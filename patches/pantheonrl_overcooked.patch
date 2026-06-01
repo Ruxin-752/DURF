@@ -1,0 +1,31 @@
+--- a/PantheonRL/overcookedgym/overcooked.py
++++ b/PantheonRL/overcookedgym/overcooked.py
+@@ -63,7 +63,10 @@
+         next_state, reward, done, info = self.base_env.step(joint_action)
+ 
+         # reward shaping
+-        rew_shape = info['shaped_r']
++        rew_shape = info['shaped_r_by_agent'][0]
+         reward = reward + rew_shape
+ 
+         #print(self.base_env.mdp.state_string(next_state))
+@@ -93,6 +96,9 @@
+         return (ego_obs, alt_obs)
+ 
++    def seed(self, seed=None):
++        np.random.seed(seed)
++
+     def render(self, mode='human', close=False):
+         pass
+ 
+--- a/PantheonRL/pantheonrl/common/agents.py
++++ b/PantheonRL/pantheonrl/common/agents.py
+@@ -124,7 +124,7 @@
+         if record and self.n_steps >= self.model.n_steps:
+             buf.compute_returns_and_advantage(
+                 last_values=self.values,
+-                dones=self._last_episode_starts[0]
++                dones=np.array([self._last_episode_starts[0]])
+             )
+ 
+             if self.log_interval is not None and \
