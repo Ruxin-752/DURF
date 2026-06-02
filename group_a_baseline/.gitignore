@@ -1,5 +1,8 @@
 logs/
 checkpoints/
+# 父目录 .gitignore 有 `env/` 规则，需要显式恢复 src/env/
+!src/env/
+!src/env/**
 __pycache__/
 *.pyc
 *.pyo
