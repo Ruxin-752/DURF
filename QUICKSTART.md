@@ -85,4 +85,3 @@ overcooked_ai/
 └── patches/
     ├── pantheonrl_overcooked.patch   ← PantheonRL 兼容性修复
     └── gym_numpy_compat.patch        ← 备用（当前通过 numpy 版本锁处理）
-```
