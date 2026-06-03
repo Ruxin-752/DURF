@@ -14,7 +14,7 @@ REM PantheonRL clone 到 overcooked_ai 的同级目录
 set PANTHEON_DIR=%~dp0..\PantheonRL
 
 REM ---- 校验脚本位置 ----
-if not exist "%~dp0setup.py" (
+if not exist "%~dp0pyproject.toml" (
     echo [错误] 请在 overcooked_ai 根目录下运行此脚本!
     echo        当前识别目录: %~dp0
     pause & exit /b 1
@@ -33,25 +33,18 @@ if not errorlevel 1 (
     )
 )
 
-REM ---- 激活环境 ----
-echo 激活环境 %ENV_NAME%...
-call conda activate %ENV_NAME%
-if errorlevel 1 (
-    echo [错误] 激活环境失败
-    echo        请先在 Anaconda Prompt 中运行: conda init cmd.exe
-    echo        然后关闭并重新打开终端, 再次运行本脚本
-    pause & exit /b 1
-)
+REM ---- 后续命令直接在目标环境中执行，避免非交互终端激活失败 ----
+set RUN=conda run -n %ENV_NAME%
 
 REM ---- Step 1: 安装 PyTorch (自动检测 GPU) ----
 echo [1/5] 检测 GPU 并安装 PyTorch...
 nvidia-smi >nul 2>&1
 if errorlevel 1 (
     echo      未检测到 NVIDIA GPU, 安装 CPU 版 PyTorch
-    pip install torch torchvision torchaudio
+    %RUN% python -m pip install torch torchvision torchaudio
 ) else (
     echo      检测到 NVIDIA GPU, 安装 CUDA 12.1 版 PyTorch
-    pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+    %RUN% python -m pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
 )
 if errorlevel 1 (
     echo [错误] 安装 PyTorch 失败! & pause & exit /b 1
@@ -59,7 +52,7 @@ if errorlevel 1 (
 
 REM ---- Step 2: 安装 overcooked_ai ----
 echo [2/5] 安装 overcooked_ai (editable mode)
-pip install -e "%~dp0."
+%RUN% python -m pip install -e "%~dp0."
 if errorlevel 1 (
     echo [错误] 安装 overcooked_ai 失败! & pause & exit /b 1
 )
@@ -73,7 +66,7 @@ if not exist "%PANTHEON_DIR%" (
         pause & exit /b 1
     )
 )
-pip install -e "%PANTHEON_DIR%"
+%RUN% python -m pip install -e "%PANTHEON_DIR%"
 if errorlevel 1 (
     echo [错误] 安装 PantheonRL 失败! & pause & exit /b 1
 )
@@ -81,7 +74,7 @@ if errorlevel 1 (
 REM ---- Step 4: 安装 gym + NumPy + shimmy ----
 echo [4/5] 安装 gym 0.25.2 / numpy^<2.0 / shimmy...
 REM 固定 numpy<2.0: np.bool8 在 NumPy 2.0 中被移除, 锁版本比打 patch 更可靠
-pip install "gym<0.26" "numpy<2.0" "shimmy>=2.0"
+%RUN% python -m pip install "gym<0.26" "numpy<2.0" "shimmy>=2.0"
 if errorlevel 1 (
     echo [错误] 安装依赖失败! & pause & exit /b 1
 )
@@ -104,7 +97,7 @@ if errorlevel 1 (
 REM ---- 验证 ----
 echo.
 echo 验证安装...
-python -c "import torch, gym, overcooked_ai_py, stable_baselines3; print('OK  torch', torch.__version__, '| gym', gym.__version__)"
+%RUN% python -c "import torch, gym, overcooked_ai_py, stable_baselines3; print('OK  torch', torch.__version__, '| gym', gym.__version__)"
 if errorlevel 1 (
     echo [错误] 验证失败, 某些包未正确安装
     pause & exit /b 1
