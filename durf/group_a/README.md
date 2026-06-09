@@ -35,3 +35,25 @@ loop. A valid end-to-end implementation must demonstrate that:
 2. PPO actually performs parameter updates;
 3. training and evaluation logs record the code version and configuration;
 4. pause behavior is identical across experimental groups.
+
+# Human + PPO collaboration
+
+Run the archived 1M-step PPO as the blue agent and control the green agent:
+
+```powershell
+$env:PYTHONPATH="$PWD;$PWD\src"
+conda run -n pantheonrl_env python -m durf.group_a.play_with_baseline
+```
+
+Controls:
+
+- `WASD` or arrow keys: move the green human agent
+- `Space`: interact
+- `J`: record positive feedback (`+1`)
+- `K`: record negative feedback (`-1`)
+- `P`: pause or resume
+- `R`: reset the episode
+- `Q` or `Esc`: quit
+
+Session data is written to `outputs/human_ai_sessions/<timestamp>/`. The J/K
+signals are logged for inspection but do not update PPO yet.

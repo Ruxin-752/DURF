@@ -51,6 +51,14 @@ def make_baseline_env(layout_name: str = "cramped_room", seed: int = 42):
     return env
 
 
+def make_direct_multi_env(layout_name: str = "cramped_room", seed: int = 42):
+    """Create an environment whose two actions are supplied by the caller."""
+    wrapped_env = gym.make("OvercookedMultiEnv-v0", layout_name=layout_name)
+    env = wrapped_env.unwrapped
+    env.seed(seed)
+    return env
+
+
 def reset_env(env) -> Any:
     result = env.reset()
     return result[0] if isinstance(result, tuple) else result
