@@ -150,6 +150,7 @@ def main() -> int:
     feedback_writer.writeheader()
 
     pygame.init()
+    pygame.key.set_repeat()
     screen = pygame.display.set_mode((940, 740))
     pygame.display.set_caption("DURF Human + PPO Baseline")
     clock = pygame.time.Clock()
@@ -184,32 +185,42 @@ def main() -> int:
         f"Timing: {args.step_hz:g} environment steps/s, "
         f"{args.render_fps} render FPS, {args.start_delay:g}s start delay"
     )
-    print("Controls: WASD/Arrows=Move, Space=Interact, J=+1, K=-1, P=Pause, R=Reset")
+    print(
+        "Controls: WASD/Arrows=Move, Space=Interact, J=+1, K=-1, "
+        "release P/Tab=Pause, R=Reset"
+    )
 
     try:
         while running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
+                elif event.type == pygame.KEYUP and event.key in (
+                    pygame.K_p,
+                    pygame.K_TAB,
+                ):
+                    paused = not paused
+                    pending_interact = False
+                    pending_motion = None
+                    if not paused:
+                        next_step_at = pygame.time.get_ticks() + step_interval_ms
+                        countdown_until = 0
+                    print(
+                        f"{'PAUSED' if paused else 'RESUMED'} at "
+                        f"episode={episode}, step={episode_step}"
+                    )
                 elif event.type == pygame.KEYDOWN:
                     if event.key in (pygame.K_ESCAPE, pygame.K_q):
                         running = False
-                    elif event.key == pygame.K_p:
-                        paused = not paused
-                        pending_interact = False
-                        pending_motion = None
-                        if not paused:
-                            next_step_at = pygame.time.get_ticks() + step_interval_ms
-                            countdown_until = 0
                     elif event.key == pygame.K_SPACE and not paused:
                         pending_interact = True
-                    elif event.key in (pygame.K_UP, pygame.K_w):
+                    elif not paused and event.key in (pygame.K_UP, pygame.K_w):
                         pending_motion = 0
-                    elif event.key in (pygame.K_DOWN, pygame.K_s):
+                    elif not paused and event.key in (pygame.K_DOWN, pygame.K_s):
                         pending_motion = 1
-                    elif event.key in (pygame.K_RIGHT, pygame.K_d):
+                    elif not paused and event.key in (pygame.K_RIGHT, pygame.K_d):
                         pending_motion = 2
-                    elif event.key in (pygame.K_LEFT, pygame.K_a):
+                    elif not paused and event.key in (pygame.K_LEFT, pygame.K_a):
                         pending_motion = 3
                     elif event.key == pygame.K_r:
                         ai_obs, _ = env.multi_reset()
@@ -326,6 +337,25 @@ def main() -> int:
 
             screen.fill((28, 30, 34))
             screen.blit(game_surface, game_surface.get_rect(center=(470, 305)))
+            if paused:
+                overlay = pygame.Surface((940, 610), pygame.SRCALPHA)
+                overlay.fill((10, 12, 16, 150))
+                screen.blit(overlay, (0, 0))
+                pause_label = pygame.font.Font(None, 72).render(
+                    "PAUSED",
+                    True,
+                    (255, 225, 120),
+                )
+                screen.blit(pause_label, pause_label.get_rect(center=(470, 280)))
+                resume_label = font.render(
+                    "Release P or Tab to resume",
+                    True,
+                    (245, 245, 245),
+                )
+                screen.blit(
+                    resume_label,
+                    resume_label.get_rect(center=(470, 335)),
+                )
             countdown_ms = max(0, countdown_until - pygame.time.get_ticks())
             if paused:
                 run_status = "PAUSED"
@@ -337,7 +367,10 @@ def main() -> int:
                 f"Blue: PPO | Green: YOU | Episode {episode} | Step {episode_step} | "
                 f"Reward {episode_reward:.1f} | {run_status}"
             )
-            controls = "WASD/Arrows Move | Space Interact | P Pause | R Reset | Q/Esc Quit"
+            controls = (
+                "WASD/Arrows Move | Space Interact | P/Tab Pause | "
+                "R Reset | Q/Esc Quit"
+            )
             feedback_status = (
                 f"J +1 ({feedback_count[1]}) | K -1 ({feedback_count[-1]}) | "
                 "LOGGING ONLY - MODEL IS NOT UPDATING"

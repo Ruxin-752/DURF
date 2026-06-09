@@ -51,7 +51,7 @@ Controls:
 - `Space`: interact
 - `J`: record positive feedback (`+1`)
 - `K`: record negative feedback (`-1`)
-- `P`: pause or resume
+- release `P` or `Tab`: pause or resume
 - `R`: reset the episode
 - `Q` or `Esc`: quit
 
