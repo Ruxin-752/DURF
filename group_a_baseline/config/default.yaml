@@ -1,0 +1,36 @@
+# Group A Baseline — 默认配置
+# 所有可调参数集中在此，代码中不写魔法数字
+
+env:
+  layout_name: cramped_room
+  horizon: 400
+
+feedback:
+  alpha: 1.0                   # human reward 缩放系数
+  max_signal_per_step: 5.0     # 防止极端反馈
+  random_source_rate_hz: 2.0   # random 模式下的注入频率
+
+ppo:
+  policy: MlpPolicy
+  learning_rate: 3.0e-4
+  n_steps: 2048
+  batch_size: 64
+  n_epochs: 10
+  gamma: 0.99
+  gae_lambda: 0.95
+  clip_range: 0.2
+  vf_coef: 0.5
+  ent_coef: 0.01
+
+train:
+  total_timesteps: 100000      # smoke test 默认值；正式训练用 CLI override
+  checkpoint_freq: 10000
+  log_interval: 10
+
+seed: 42
+device: cpu                    # auto / cuda / cpu
+
+logging:
+  log_dir: logs
+  tensorboard: true
+  trajectory_jsonl: true
