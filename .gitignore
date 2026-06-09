@@ -180,3 +180,12 @@ node_modules/
 
 # Ignore copied overcooked_ai directory in server
 src/overcooked_demo/server/overcooked_ai/
+
+# DURF local runtime data
+/archive_local/
+/outputs/
+**/logs/
+**/checkpoints/
+reward_signal.txt
+feedback_log.csv
+*.tmp
