@@ -23,6 +23,10 @@ from durf.baseline.runtime import (
 STAY = 4
 INTERACT = 5
 ACTION_NAMES = ("north", "south", "east", "west", "stay", "interact")
+PAUSE_KEYS = (pygame.K_p, pygame.K_TAB, pygame.K_F1)
+PAUSE_BUTTON = pygame.Rect(790, 620, 130, 42)
+PAUSE_DEBOUNCE_MS = 300
+BUILD_ID = "pause-v3"
 
 
 def parse_args() -> argparse.Namespace:
@@ -144,15 +148,27 @@ def main() -> int:
         "last_ai_action",
         "last_ai_action_name",
     ]
+    pause_path = session_dir / "pause_events.csv"
+    pause_handle = pause_path.open("w", newline="", encoding="utf-8")
+    pause_fields = [
+        "timestamp_utc",
+        "event",
+        "episode",
+        "episode_step",
+        "total_step",
+        "pygame_ticks",
+    ]
     trajectory_writer = csv.DictWriter(trajectory_handle, fieldnames=trajectory_fields)
     feedback_writer = csv.DictWriter(feedback_handle, fieldnames=feedback_fields)
+    pause_writer = csv.DictWriter(pause_handle, fieldnames=pause_fields)
     trajectory_writer.writeheader()
     feedback_writer.writeheader()
+    pause_writer.writeheader()
 
     pygame.init()
     pygame.key.set_repeat()
     screen = pygame.display.set_mode((940, 740))
-    pygame.display.set_caption("DURF Human + PPO Baseline")
+    pygame.display.set_caption(f"DURF Human + PPO Baseline [{BUILD_ID}]")
     clock = pygame.time.Clock()
     font = pygame.font.Font(None, 25)
     small_font = pygame.font.Font(None, 22)
@@ -176,9 +192,12 @@ def main() -> int:
     step_interval_ms = max(1, round(1000 / args.step_hz))
     countdown_until = pygame.time.get_ticks() + round(args.start_delay * 1000)
     next_step_at = countdown_until
+    last_pause_toggle_at = -PAUSE_DEBOUNCE_MS
     game_surface = render_game_surface(visualizer, env, episode_reward)
 
     print(f"Model: {model_path}")
+    print(f"Interface build: {BUILD_ID}")
+    print(f"Script: {Path(__file__).resolve()}")
     print(f"Session logs: {session_dir}")
     print("Human is green; PPO is blue.")
     print(
@@ -187,31 +206,23 @@ def main() -> int:
     )
     print(
         "Controls: WASD/Arrows=Move, Space=Interact, J=+1, K=-1, "
-        "release P/Tab=Pause, R=Reset"
+        "P/Tab/F1=Pause, R=Reset"
     )
 
     try:
         while running:
+            pause_requested = False
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     running = False
-                elif event.type == pygame.KEYUP and event.key in (
-                    pygame.K_p,
-                    pygame.K_TAB,
-                ):
-                    paused = not paused
-                    pending_interact = False
-                    pending_motion = None
-                    if not paused:
-                        next_step_at = pygame.time.get_ticks() + step_interval_ms
-                        countdown_until = 0
-                    print(
-                        f"{'PAUSED' if paused else 'RESUMED'} at "
-                        f"episode={episode}, step={episode_step}"
-                    )
                 elif event.type == pygame.KEYDOWN:
                     if event.key in (pygame.K_ESCAPE, pygame.K_q):
                         running = False
+                    elif (
+                        event.key in PAUSE_KEYS
+                        or getattr(event, "unicode", "").lower() == "p"
+                    ):
+                        pause_requested = True
                     elif event.key == pygame.K_SPACE and not paused:
                         pending_interact = True
                     elif not paused and event.key in (pygame.K_UP, pygame.K_w):
@@ -256,8 +267,43 @@ def main() -> int:
                         )
                         feedback_flash = f"Recorded feedback: {feedback:+d}"
                         feedback_flash_frames = args.render_fps
+                elif (
+                    event.type == pygame.MOUSEBUTTONDOWN
+                    and event.button == 1
+                    and PAUSE_BUTTON.collidepoint(event.pos)
+                ):
+                    pause_requested = True
 
             now = pygame.time.get_ticks()
+            if (
+                pause_requested
+                and now - last_pause_toggle_at >= PAUSE_DEBOUNCE_MS
+            ):
+                paused = not paused
+                last_pause_toggle_at = now
+                pending_interact = False
+                pending_motion = None
+                if not paused:
+                    next_step_at = now + step_interval_ms
+                    countdown_until = 0
+                pause_event = "paused" if paused else "resumed"
+                write_row(
+                    pause_writer,
+                    pause_handle,
+                    {
+                        "timestamp_utc": utc_timestamp(),
+                        "event": pause_event,
+                        "episode": episode,
+                        "episode_step": episode_step,
+                        "total_step": total_step,
+                        "pygame_ticks": now,
+                    },
+                )
+                print(
+                    f"{pause_event.upper()} at episode={episode}, "
+                    f"step={episode_step}, total_step={total_step}"
+                )
+
             if not paused and running and now >= next_step_at:
                 if pending_interact:
                     human_action = INTERACT
@@ -337,6 +383,14 @@ def main() -> int:
 
             screen.fill((28, 30, 34))
             screen.blit(game_surface, game_surface.get_rect(center=(470, 305)))
+            button_color = (100, 145, 105) if paused else (150, 105, 70)
+            pygame.draw.rect(screen, button_color, PAUSE_BUTTON, border_radius=7)
+            button_text = small_font.render(
+                "RESUME" if paused else "PAUSE",
+                True,
+                (255, 255, 255),
+            )
+            screen.blit(button_text, button_text.get_rect(center=PAUSE_BUTTON.center))
             if paused:
                 overlay = pygame.Surface((940, 610), pygame.SRCALPHA)
                 overlay.fill((10, 12, 16, 150))
@@ -348,7 +402,7 @@ def main() -> int:
                 )
                 screen.blit(pause_label, pause_label.get_rect(center=(470, 280)))
                 resume_label = font.render(
-                    "Release P or Tab to resume",
+                    "Press P / Tab / F1 or click RESUME",
                     True,
                     (245, 245, 245),
                 )
@@ -368,7 +422,7 @@ def main() -> int:
                 f"Reward {episode_reward:.1f} | {run_status}"
             )
             controls = (
-                "WASD/Arrows Move | Space Interact | P/Tab Pause | "
+                "WASD/Arrows Move | Space Interact | P/Tab/F1 Pause | "
                 "R Reset | Q/Esc Quit"
             )
             feedback_status = (
@@ -376,7 +430,7 @@ def main() -> int:
                 "LOGGING ONLY - MODEL IS NOT UPDATING"
             )
             timing_status = (
-                f"Decision rate: {args.step_hz:g}/s | "
+                f"{BUILD_ID} | Decision rate: {args.step_hz:g}/s | "
                 f"AI predict: {last_predict_ms:.1f} ms | "
                 f"Environment: {last_environment_step_ms:.1f} ms"
             )
@@ -398,13 +452,16 @@ def main() -> int:
     finally:
         trajectory_handle.flush()
         feedback_handle.flush()
+        pause_handle.flush()
         trajectory_handle.close()
         feedback_handle.close()
+        pause_handle.close()
         env.close()
         pygame.quit()
 
     print(f"Trajectory: {trajectory_path}")
     print(f"Feedback: {feedback_path}")
+    print(f"Pause events: {pause_path}")
     return 0
 
 
