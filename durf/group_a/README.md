@@ -1,0 +1,37 @@
+# Group A: Scalar Feedback
+
+## Verified component
+
+`keyboard_listener.py` is the currently trusted component.
+
+Run from the repository root:
+
+```powershell
+python durf/group_a/keyboard_listener.py
+```
+
+Controls:
+
+- `J`: write `+1`
+- `K`: write `-1`
+- `Space`: write `0`
+- `Q`: exit
+
+Use `--terminal-only` if global keyboard listening is unavailable:
+
+```powershell
+python durf/group_a/keyboard_listener.py --terminal-only
+```
+
+By default, runtime output is written to `reward_signal.txt` and
+`feedback_log.csv` in the current directory. Both are ignored by Git.
+
+## Not yet verified
+
+The keyboard signal has not yet been connected to a proven online PPO training
+loop. A valid end-to-end implementation must demonstrate that:
+
+1. feedback changes the reward consumed by PPO;
+2. PPO actually performs parameter updates;
+3. training and evaluation logs record the code version and configuration;
+4. pause behavior is identical across experimental groups.
