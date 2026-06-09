@@ -57,3 +57,11 @@ Controls:
 
 Session data is written to `outputs/human_ai_sessions/<timestamp>/`. The J/K
 signals are logged for inspection but do not update PPO yet.
+
+The default interaction rate is two environment steps per second with a
+three-second preparation countdown. To slow it further:
+
+```powershell
+conda run -n pantheonrl_env python -m durf.group_a.play_with_baseline `
+  --step-hz 1.5 --start-delay 5
+```
