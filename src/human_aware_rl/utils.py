@@ -7,9 +7,21 @@ import shutil
 
 import git
 import numpy as np
-import tensorflow as tf
+
+try:
+    import tensorflow as tf
+except ModuleNotFoundError:
+    tf = None
 
 WANDB_PROJECT = "Overcooked AI"
+
+
+def _require_tensorflow():
+    if tf is None:
+        raise ModuleNotFoundError(
+            "TensorFlow is required for this behavior-cloning utility. "
+            "Self-play RLlib PPO playback does not require TensorFlow."
+        )
 
 
 def delete_dir_if_exists(dir_path, verbose=False):
@@ -27,6 +39,7 @@ def create_dir_if_not_exists(dir_path):
 def reset_tf():
     """Clean up tensorflow graph and session.
     NOTE: this also resets the tensorflow seed"""
+    _require_tensorflow()
     tf.reset_default_graph()
     if tf.get_default_session() is not None:
         tf.get_default_session().close()
@@ -34,6 +47,7 @@ def reset_tf():
 
 def num_tf_params():
     """Prints number of trainable parameters defined"""
+    _require_tensorflow()
     total_parameters = 0
     for variable in tf.trainable_variables():
         # shape is an array of tf.Dimension
@@ -106,7 +120,8 @@ def accuracy(action_probs, y):
 def set_global_seed(seed):
     random.seed(seed)
     np.random.seed(seed)
-    tf.random.set_seed(seed)
+    if tf is not None:
+        tf.random.set_seed(seed)
 
 
 def prepare_nested_default_dict_for_pickle(nested_defaultdict):

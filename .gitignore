@@ -165,25 +165,10 @@ data/gail_runs/
 data/joint_ppo_runs/
 data/ppo_exp/
 
-#demo gitignore
-*~
-package-lock.json
-node_modules/
-**/.DS_Store
-**/.vscode/
-**/old/
-**/master_agents/
-**/__pycache__/
-#manually correcting for demo 
-!**/static/**/*.png
-!src/overcooked_demo/server/static/lib
-
-# Ignore copied overcooked_ai directory in server
-src/overcooked_demo/server/overcooked_ai/
-
 # DURF local runtime data
 /archive_local/
 /outputs/
+/reproduced_results/
 **/logs/
 **/checkpoints/
 reward_signal.txt

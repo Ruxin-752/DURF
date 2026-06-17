@@ -1,31 +1,34 @@
-# Archived SB3 PPO Baseline
+# Archived RLlib PPO Baseline
 
-This module evaluates the 1M-step no-feedback model preserved under
-`archive_local/`.
+This module runs the trained RLlib PPO agents restored from commit
+`b1e6c627`. The default pygame baseline uses:
 
-The original run used:
+```text
+models/rllib_agents/RllibCrampedRoomSP
+```
 
-- PantheonRL `OvercookedMultiEnv-v0`
-- Stable-Baselines3 PPO 2.8.0
-- `cramped_room`
-- a newly initialized PPO partner policy
-- 1,001,472 recorded timesteps
+Use it only with `cramped_room`; other restored agents are map-specific assets.
 
-Run commands from the repository root with the existing environment:
+Run commands from the repository root:
 
 ```powershell
 $env:PYTHONPATH="$PWD;$PWD\src"
-conda run -n pantheonrl_env python -m durf.baseline.watch_baseline
+python -m durf.baseline.watch_baseline --layout cramped_room
 ```
 
 Fixed-seed evaluation:
 
 ```powershell
 $env:PYTHONPATH="$PWD;$PWD\src"
-conda run -n pantheonrl_env python -m durf.baseline.evaluate_baseline `
+python -m durf.baseline.evaluate_baseline `
   --episodes 20 `
   --output outputs\baseline_evaluation.json
 ```
 
-The model should only be promoted to the official baseline after both visual
-inspection and quantitative evaluation.
+The viewer keeps the original pygame pause/reset controls:
+
+```text
+Space = pause or resume
+R     = reset
+Q/Esc = quit
+```

@@ -3,9 +3,23 @@ import os
 import pickle
 
 import numpy as np
-import tensorflow as tf
 from ray.rllib.policy import Policy as RllibPolicy
-from tensorflow import keras
+
+try:
+    import tensorflow as tf
+    from tensorflow import keras
+except ModuleNotFoundError:
+    tf = None
+
+    class _MissingTensorFlowKeras:
+        class callbacks:
+            class Callback:
+                pass
+
+        class Model:
+            pass
+
+    keras = _MissingTensorFlowKeras()
 
 from human_aware_rl.data_dir import DATA_DIR
 from human_aware_rl.human.process_dataframes import get_human_human_trajectories
@@ -65,6 +79,15 @@ DEFAULT_BC_PARAMS = {
 
 # Boolean indicating whether all param dependencies have been loaded. Used to prevent re-loading unceccesarily
 _params_initalized = False
+
+
+def _require_tensorflow():
+    if tf is None:
+        raise ModuleNotFoundError(
+            "TensorFlow is required for behavior cloning agents, but not for "
+            "self-play RLlib PPO agents. Install the harl extra before using "
+            "BC models."
+        )
 
 
 def _get_base_ae(bc_params):
@@ -164,6 +187,7 @@ def load_data(bc_params, verbose=False):
 
 
 def build_bc_model(use_lstm=True, eager=False, **kwargs):
+    _require_tensorflow()
     if not eager:
         tf.compat.v1.disable_eager_execution()
     if use_lstm:
@@ -173,6 +197,7 @@ def build_bc_model(use_lstm=True, eager=False, **kwargs):
 
 
 def train_bc_model(model_dir, bc_params, verbose=False):
+    _require_tensorflow()
     inputs, seq_lens, targets = load_data(bc_params, verbose)
 
     # Ensure targets are int32 for SparseCategoricalCrossentropy
@@ -291,6 +316,7 @@ def save_bc_model(model_dir, model, bc_params, verbose=False):
 
 
 def load_bc_model(model_dir, verbose=False):
+    _require_tensorflow()
     """
     Returns the model instance (including all compilation data like optimizer state) and a dictionary of parameters
     used to create the model
@@ -355,6 +381,7 @@ def evaluate_bc_model(model, bc_params, verbose=False):
 
 
 def _build_model(observation_shape, action_shape, mlp_params, **kwargs):
+    _require_tensorflow()
     ## Inputs
     inputs = keras.Input(shape=observation_shape, name="Overcooked_observation")
     x = inputs
@@ -377,6 +404,7 @@ def _build_model(observation_shape, action_shape, mlp_params, **kwargs):
 def _build_lstm_model(
     observation_shape, action_shape, mlp_params, cell_size, max_seq_len=20, **kwargs
 ):
+    _require_tensorflow()
     ## Inputs
     obs_in = keras.Input(
         shape=(None, *observation_shape), name="Overcooked_observation"
@@ -427,6 +455,7 @@ def _build_lstm_model(
 
 class BehaviorCloningPolicy(RllibPolicy):
     def __init__(self, observation_space, action_space, config):
+        _require_tensorflow()
         """
         RLLib compatible constructor for initializing a behavior cloning model
 

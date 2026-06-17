@@ -1,8 +1,11 @@
 import copy
+import builtins
 import logging
 import os
 import random
+import sys
 import tempfile
+import types
 from datetime import datetime
 from pathlib import Path
 
@@ -656,12 +659,14 @@ def evaluate(
 def gen_trainer_from_params(params):
     # All ray environment set-up
     if not ray.is_initialized():
+        os.environ.setdefault("CUDA_VISIBLE_DEVICES", "")
         init_params = {
             "ignore_reinit_error": True,
             "include_dashboard": False,
             "_temp_dir": params["ray_params"]["temp_dir"],
             "log_to_driver": params["verbose"],
             "logging_level": logging.INFO if params["verbose"] else logging.CRITICAL,
+            "num_gpus": 0,
         }
         ray.init(**init_params)
     register_env("overcooked_multi_agent", params["ray_params"]["env_creator"])
@@ -814,15 +819,16 @@ def load_trainer(save_path, true_num_workers=False):
     # Read in params used to create trainer
     config_path = os.path.join(os.path.dirname(save_path), "config.pkl")
     with open(config_path, "rb") as f:
+        sys.modules.setdefault("__builtin__", builtins)
         # We use dill (instead of pickle) here because we must deserialize functions
         config = dill.load(f)
     if not true_num_workers:
         # Override this param to lower overhead in trainer creation
         config["training_params"]["num_workers"] = 0
 
-    if config["training_params"]["num_gpus"] == 1:
-        # all other configs for the server can be kept for local testing
-        config["training_params"]["num_gpus"] = 0
+    # Playback and smoke tests run on CPU. This also avoids Ray's Windows GPU
+    # autodetection path, which can fail when vendor tools are absent.
+    config["training_params"]["num_gpus"] = 0
 
     if "trained_example" in save_path:
         # For the unit testing we update the result directory in order to avoid an error
@@ -833,24 +839,150 @@ def load_trainer(save_path, true_num_workers=False):
     # Get un-trained trainer object with proper config
     trainer = gen_trainer_from_params(config)
 
-    # Search for the checkpoint folder in the save_path that has the highest number. Checkpoint folders are named checkpoint_<number>
+    # Newer Ray saves checkpoint directories as checkpoint_000500. The historical
+    # DURF agents committed by Ruxin use the older checkpoint-550 file layout.
     checkpoint_dirs = [d for d in os.listdir(save_path) if d.startswith("checkpoint_")]
-    if not checkpoint_dirs:
-        raise ValueError(f"No checkpoint directories found in {save_path}")
-
-    # Find directory with highest checkpoint number (2025: this was recently changed because previously checkpoints didn't have this format)
-    latest_dir = checkpoint_dirs[0]
-    latest_num = int(latest_dir.split("_")[1].lstrip("0") or "0")
-    for d in checkpoint_dirs[1:]:
-        num = int(d.split("_")[1].lstrip("0") or "0")
-        if num > latest_num:
-            latest_num = num
-            latest_dir = d
-
-    checkpoint_file = os.path.join(save_path, latest_dir + "/")
+    checkpoint_files = [f for f in os.listdir(save_path) if f.startswith("checkpoint-")]
+    legacy_checkpoint_file = False
+    if checkpoint_dirs:
+        latest_dir = checkpoint_dirs[0]
+        latest_num = int(latest_dir.split("_")[1].lstrip("0") or "0")
+        for d in checkpoint_dirs[1:]:
+            num = int(d.split("_")[1].lstrip("0") or "0")
+            if num > latest_num:
+                latest_num = num
+                latest_dir = d
+        checkpoint_file = os.path.join(save_path, latest_dir + "/")
+    elif checkpoint_files:
+        latest_file = checkpoint_files[0]
+        latest_num = int(latest_file.split("-")[1].lstrip("0") or "0")
+        for f in checkpoint_files[1:]:
+            num = int(f.split("-")[1].lstrip("0") or "0")
+            if num > latest_num:
+                latest_num = num
+                latest_file = f
+        checkpoint_file = os.path.join(save_path, latest_file)
+        legacy_checkpoint_file = True
+    else:
+        raise ValueError(f"No checkpoint files found in {save_path}")
 
     # Load weights into dummy object
-    trainer.restore(checkpoint_file)
+    if legacy_checkpoint_file:
+        from ray.tune.trainable.util import TrainableUtil
+        import ray.rllib.evaluation.rollout_worker as rollout_worker
+        import ray.cloudpickle.cloudpickle as ray_cloudpickle
+
+        original_load_metadata = TrainableUtil.load_metadata
+        original_pickle_loads = rollout_worker.pickle.loads
+        original_builtin_type = ray_cloudpickle._builtin_type
+        TrainableUtil.load_metadata = staticmethod(
+            lambda _checkpoint_dir: {
+                "saved_as_dict": False,
+                "relative_checkpoint_path": os.path.basename(checkpoint_file),
+                "experiment_id": "legacy-rllib-agent",
+                "iteration": latest_num,
+                "timesteps_total": 0,
+                "time_total": 0.0,
+                "episodes_total": 0,
+            }
+        )
+
+        def legacy_pickle_loads(data, *args, **kwargs):
+            if isinstance(data, (bytes, bytearray)) and "encoding" not in kwargs:
+                kwargs["encoding"] = "latin1"
+            return original_pickle_loads(data, *args, **kwargs)
+
+        def legacy_code_type(*args):
+            if len(args) == 15:
+                (
+                    argcount,
+                    kwonlyargcount,
+                    nlocals,
+                    stacksize,
+                    flags,
+                    code,
+                    consts,
+                    names,
+                    varnames,
+                    filename,
+                    name,
+                    firstlineno,
+                    lnotab,
+                    freevars,
+                    cellvars,
+                ) = args
+                return types.CodeType(
+                    argcount,
+                    0,
+                    kwonlyargcount,
+                    nlocals,
+                    stacksize,
+                    flags,
+                    code,
+                    consts,
+                    names,
+                    varnames,
+                    filename,
+                    name,
+                    firstlineno,
+                    lnotab,
+                    freevars,
+                    cellvars,
+                )
+            if len(args) == 16:
+                (
+                    argcount,
+                    posonlyargcount,
+                    kwonlyargcount,
+                    nlocals,
+                    stacksize,
+                    flags,
+                    code,
+                    consts,
+                    names,
+                    varnames,
+                    filename,
+                    name,
+                    firstlineno,
+                    lnotab,
+                    freevars,
+                    cellvars,
+                ) = args
+                return types.CodeType(
+                    argcount,
+                    posonlyargcount,
+                    kwonlyargcount,
+                    nlocals,
+                    stacksize,
+                    flags,
+                    code,
+                    consts,
+                    names,
+                    varnames,
+                    filename,
+                    name,
+                    firstlineno,
+                    lnotab,
+                    freevars,
+                    cellvars,
+                )
+            return types.CodeType(*args)
+
+        def legacy_builtin_type(name):
+            if name == "CodeType":
+                return legacy_code_type
+            return original_builtin_type(name)
+
+        rollout_worker.pickle.loads = legacy_pickle_loads
+        ray_cloudpickle._builtin_type = legacy_builtin_type
+        try:
+            trainer.restore(checkpoint_file)
+        finally:
+            TrainableUtil.load_metadata = original_load_metadata
+            rollout_worker.pickle.loads = original_pickle_loads
+            ray_cloudpickle._builtin_type = original_builtin_type
+    else:
+        trainer.restore(checkpoint_file)
     return trainer
 
 

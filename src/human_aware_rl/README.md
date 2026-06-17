@@ -4,7 +4,9 @@ This code is based on the work in [On the Utility of Learning about Humans for H
 
 # Contents
 
-To play the game with trained agents, you can use [Overcooked-Demo](https://github.com/HumanCompatibleAI/overcooked-demo).
+In this DURF branch, trained RLlib agents are loaded from
+`models/rllib_agents/` and played through the pygame entry points under
+`durf/`.
 
 For more information about the Overcooked-AI environment, check out [this](https://github.com/HumanCompatibleAI/overcooked_ai) repo.
 

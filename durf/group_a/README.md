@@ -38,11 +38,11 @@ loop. A valid end-to-end implementation must demonstrate that:
 
 # Human + PPO collaboration
 
-Run the archived 1M-step PPO as the blue agent and control the green agent:
+Run the archived RLlib PPO as the blue agent and control the green agent:
 
 ```powershell
 $env:PYTHONPATH="$PWD;$PWD\src"
-conda run -n pantheonrl_env python -m durf.group_a.play_with_baseline
+python -m durf.group_a.play_with_baseline --layout cramped_room
 ```
 
 Controls:
@@ -62,6 +62,6 @@ The default interaction rate is two environment steps per second with a
 three-second preparation countdown. To slow it further:
 
 ```powershell
-conda run -n pantheonrl_env python -m durf.group_a.play_with_baseline `
+python -m durf.group_a.play_with_baseline `
   --step-hz 1.5 --start-delay 5
 ```
