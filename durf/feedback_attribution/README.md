@@ -1,0 +1,183 @@
+# Feedback Attribution
+
+这个包是新版研究方向的第一层代码骨架：
+
+```text
+自然语言反馈 + 游戏轨迹事实
+-> 候选事件
+-> 语义归因
+-> H_u 训练样本
+```
+
+目前这里的大部分脚本都是离线脚本。也就是说，它们先读取一局游戏保存下来的日志，再做转换、事件检测和归因预览。
+
+## 当前最小流程
+
+先正常运行一局游戏：
+
+```powershell
+$env:PYTHONPATH="$PWD;$PWD\src"
+python -m durf.group_a.play_with_baseline --layout cramped_room
+```
+
+然后对这局游戏的 session 文件夹运行离线归因 demo：
+
+```powershell
+python -m durf.feedback_attribution.demo_offline_attribution `
+  --session outputs\human_ai_sessions\<session_id>
+```
+
+它会写出：
+
+```text
+trajectory.jsonl
+feedback_events.jsonl
+candidate_events.jsonl
+attribution_preview.jsonl
+```
+
+## 文件职责说明
+
+- `schemas.py`
+  - 它是“数据格式定义文件”。
+  - 回答的问题是：这个项目里一条轨迹、一条反馈、一个候选事件、一个归因结果，应该长什么样？
+  - 现在里面定义了四种核心记录：
+    - `trajectory_step`：一帧/一步游戏轨迹。
+    - `feedback_event`：一次人类反馈，目前主要来自聊天语言反馈；旧 session 里的 `+1/-1` 只做兼容读取。
+    - `candidate_event`：程序从轨迹里检测出来的候选协作事件。
+    - `attribution_result`：把人类反馈归因到某个时间窗口/事件后的预览结果。
+  - 为什么需要它：如果每个脚本随手写字段名，后面会乱成一团；这个文件负责统一字段口径。
+
+- `io_utils.py`
+  - 它是“文件读写小工具箱”。
+  - 回答的问题是：怎么稳定地读 CSV、写 JSONL、读 JSONL，以及把 CSV 里的字符串转成数字、布尔值或 JSON？
+  - 现在里面有：
+    - `read_csv`：读取 `.csv` 表格。
+    - `write_jsonl`：把一组字典逐行写成 `.jsonl`。
+    - `read_jsonl`：读取 `.jsonl`。
+    - `as_int` / `as_float` / `as_bool` / `as_json`：把 CSV 字符串转换成程序真正需要的类型。
+  - 它不包含研究逻辑，只负责让其他脚本少写重复代码。
+
+- `session_converter.py`
+  - 它是“原始游戏日志转换器”。
+  - 回答的问题是：Pygame 游戏跑完后产生的原始 CSV，怎么变成后续归因流程更好处理的 JSONL？
+  - 输入文件：
+    - `trajectory.csv`：每一步游戏动作、奖励、状态快照。
+    - `chat_messages.csv`：人类在 Chat 里输入的语言反馈，以及模型回复。
+    - `feedback.csv`：旧版本的 `J/K +1/-1` 标量反馈，只为了兼容旧 session，新 session 不再生成。
+  - 输出文件：
+    - `trajectory.jsonl`：结构化后的每一步轨迹。
+    - `feedback_events.jsonl`：结构化后的人类反馈事件。
+  - 关键点：新版本 `trajectory.csv` 里的 `state_after_json` 会被放进 `trajectory.jsonl` 的 `state_facts` 里，里面包括 AI/人类位置、手持物、锅状态、地图结构等。
+
+- `event_detectors.py`
+  - 它是“事件识别规则库”。
+  - 回答的问题是：只看游戏轨迹，不看人类说了什么，程序能不能先找出一些可能值得评价的协作事件？
+  - 它不调用 LLM，也不判断“用户到底想表达什么”。它只做事实层面的候选事件检测。
+  - 现在有两个检测器：
+    - `AI_blocked_human_path`
+      - 检测 AI 是否挡住人。
+      - 当前规则很保守：只有当“人类尝试移动到 AI 所在格子，但移动失败”时，才认为可能是 AI 堵路。
+      - 这样可以避免把“人自己撞墙、AI 只是站在旁边”误判成堵路。
+    - `AI_ignored_ready_or_nearly_ready_pot`
+      - 检测 AI 是否忽略 ready pot。
+      - 当前规则是：锅已经 ready，AI 有可能去处理锅，但连续几步没有 `interact`。
+      - 例如 AI 拿着盘子、离 ready pot 很近，却一直往别处走。
+  - 输出的是 `candidate_event`，里面会包含：
+    - 事件类型
+    - 起止 timestep
+    - 证据字段，比如位置、动作、锅状态
+    - confidence
+    - severity
+
+- `generate_candidate_events.py`
+  - 它是“候选事件生成命令”。
+  - 回答的问题是：给我一个完整 session 文件夹，怎么一键生成 `candidate_events.jsonl`？
+  - 它会先确保 session 被转换成 JSONL，然后调用 `event_detectors.py` 里的检测器。
+  - 输入是一个 session 文件夹，例如：
+    - `outputs/human_ai_sessions/20260624_225407`
+  - 输出是：
+    - `candidate_events.jsonl`
+  - 常用命令：
+    ```powershell
+    python -m durf.feedback_attribution.generate_candidate_events `
+      --session outputs\human_ai_sessions\<session_id>
+    ```
+
+- `feedback_type_router.py`
+  - 它是“反馈类型粗分类器”。
+  - 回答的问题是：一句反馈大概属于哪类？
+  - 目前是非常初级的规则版本，用关键词粗略区分：
+    - evaluative：评价式反馈，比如“刚刚很好”“不对”“bad”。
+    - imperative：指令式反馈，比如“去拿盘子”“你应该去锅那边”。
+    - descriptive：描述式反馈，比如“你堵住我了”“你一直重复做这个”。
+  - 它还会粗略判断 polarity：
+    - positive
+    - negative
+    - neutral
+  - 这个文件现在更像 baseline/占位符。之后真正重要的语义归因会交给 LLM，但这个文件可以作为非 LLM 对照的一部分。
+
+- `sample_builder.py`
+  - 它是“归因预览构造器”。
+  - 回答的问题是：有了一条人类反馈和附近轨迹后，能不能先生成一个保守的 attribution preview？
+  - 现在它做的是早期预览：
+    - 找反馈发生前后的近期轨迹窗口。
+    - 调用反馈类型分类器。
+    - 调用候选事件检测器。
+    - 生成一条 `attribution_result`。
+  - 当前结果不是最终训练 `H_u` 的数据。它的作用是帮我们检查流程有没有打通、字段够不够、哪里需要澄清。
+  - 下一步会把它改成读取 `candidate_events.jsonl`，再把语言反馈对齐到最近的候选事件。
+
+- `demo_offline_attribution.py`
+  - 它是“完整离线流程的一键 demo”。
+  - 回答的问题是：一个 session 能不能从原始 CSV 一路跑到 attribution preview？
+  - 它串起了现在的最小流程：
+    ```text
+    trajectory.csv / chat_messages.csv
+    -> trajectory.jsonl / feedback_events.jsonl
+    -> candidate_events.jsonl
+    -> attribution_preview.jsonl
+    ```
+  - 常用命令：
+    ```powershell
+    python -m durf.feedback_attribution.demo_offline_attribution `
+      --session outputs\human_ai_sessions\<session_id>
+    ```
+  - 它适合用来快速检查一个新 session 是否能通过整个离线管线。
+
+- `__init__.py`
+  - 它是 Python 包标记文件。
+  - 作用是告诉 Python：`feedback_attribution` 是一个可以被导入和用 `python -m ...` 运行的包。
+  - 没有它，类似下面的命令可能无法正常工作：
+    ```powershell
+    python -m durf.feedback_attribution.demo_offline_attribution
+    ```
+
+如果只想生成候选事件，运行：
+
+```powershell
+python -m durf.feedback_attribution.generate_candidate_events `
+  --session outputs\human_ai_sessions\<session_id>
+```
+
+第一版事件检测器故意做得很小、很保守：
+
+- `AI_blocked_human_path`：人类尝试移动到 AI 占据的格子，但移动失败。
+- `AI_ignored_ready_or_nearly_ready_pot`：锅已经 ready，AI 有可能处理锅，但没有及时处理。
+
+## 当前限制
+
+新版 `durf.group_a.play_with_baseline` 生成的 session 已经会在 `trajectory.csv`
+里记录 `state_before_json` 和 `state_after_json`。这些字段包括：
+
+- AI 和人类的位置
+- AI 和人类手里拿着什么
+- 锅状态
+- 地图上的物体
+- 地图 terrain 结构
+
+旧 session 可能没有这些字段。对于旧 session，`attribution_preview` 不能当作
+训练数据，只能用来检查文件流程是否打通，以及暴露缺少哪些状态事实。
+
+`J/K +1/-1` 标量反馈现在只属于旧版本兼容逻辑。当前研究路线使用
+`chat_messages.csv` 里的自然语言反馈；`feedback.csv` 只在读取旧 session 时兼容使用。
