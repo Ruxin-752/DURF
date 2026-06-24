@@ -6,7 +6,9 @@ import argparse
 import csv
 import ctypes
 import os
+import queue
 import sys
+import threading
 import time
 import traceback
 from datetime import datetime, timezone
@@ -25,6 +27,7 @@ from durf.baseline.runtime import (
     resolve_agent_dir,
     rllib_action_index,
 )
+from durf.group_a.deepseek_chat import DeepSeekChatError, chat_once
 
 
 STAY = 4
@@ -32,11 +35,51 @@ INTERACT = 5
 ACTION_NAMES = ("north", "south", "east", "west", "stay", "interact")
 PAUSE_KEYS = (pygame.K_p, pygame.K_TAB, pygame.K_F1)
 PAUSE_BUTTON = pygame.Rect(790, 620, 130, 42)
+CHAT_BUTTON = pygame.Rect(650, 620, 120, 42)
 PAUSE_DEBOUNCE_MS = 300
 LAYOUT_SWITCH_DEBOUNCE_MS = 300
-BUILD_ID = "pause-v4-fast-input-maps"
+BUILD_ID = "pause-v5-chat"
 LAYOUT_NUMBER_KEYS = (pygame.K_1, pygame.K_2, pygame.K_3, pygame.K_4)
 WINDOWS_LAYOUT_NUMBER_KEYS = (0x31, 0x32, 0x33, 0x34)
+WINDOWS_CHAT_CHAR_KEYS = {
+    **{vk: chr(vk).lower() for vk in range(0x41, 0x5B)},
+    **{vk: chr(vk) for vk in range(0x30, 0x3A)},
+    0x20: " ",
+    0xBA: ";",
+    0xBB: "=",
+    0xBC: ",",
+    0xBD: "-",
+    0xBE: ".",
+    0xBF: "/",
+    0xC0: "`",
+    0xDB: "[",
+    0xDC: "\\",
+    0xDD: "]",
+    0xDE: "'",
+}
+WINDOWS_SHIFT_CHAT_CHARS = {
+    "1": "!",
+    "2": "@",
+    "3": "#",
+    "4": "$",
+    "5": "%",
+    "6": "^",
+    "7": "&",
+    "8": "*",
+    "9": "(",
+    "0": ")",
+    ";": ":",
+    "=": "+",
+    ",": "<",
+    "-": "_",
+    ".": ">",
+    "/": "?",
+    "`": "~",
+    "[": "{",
+    "\\": "|",
+    "]": "}",
+    "'": '"',
+}
 MOTION_KEY_ACTIONS = {
     pygame.K_UP: 0,
     pygame.K_w: 0,
@@ -96,8 +139,12 @@ WINDOWS_VK_NAMES = {
     0x33: "3",
     0x34: "4",
     0x70: "F1",
+    0x08: "Backspace",
+    0x0D: "Enter",
 }
-WINDOWS_WATCHED_KEYS = set(WINDOWS_VK_NAMES) | set(WINDOWS_VK_ACTIONS)
+WINDOWS_WATCHED_KEYS = (
+    set(WINDOWS_VK_NAMES) | set(WINDOWS_VK_ACTIONS) | set(WINDOWS_CHAT_CHAR_KEYS)
+)
 WINDOWS_KEYBOARD_AVAILABLE = os.name == "nt"
 if WINDOWS_KEYBOARD_AVAILABLE:
     _get_async_key_state = ctypes.windll.user32.GetAsyncKeyState
@@ -198,6 +245,22 @@ def windows_key_name(vk: int) -> str:
     return WINDOWS_VK_NAMES.get(vk, f"VK{vk}")
 
 
+def windows_chat_text(pressed_now: set[int], pressed_keys: set[int]) -> str:
+    shift_pressed = 0x10 in pressed_keys or 0xA0 in pressed_keys or 0xA1 in pressed_keys
+    chars: list[str] = []
+    for vk in sorted(pressed_now):
+        char = WINDOWS_CHAT_CHAR_KEYS.get(vk)
+        if not char:
+            continue
+        if shift_pressed:
+            if "a" <= char <= "z":
+                char = char.upper()
+            else:
+                char = WINDOWS_SHIFT_CHAT_CHARS.get(char, char)
+        chars.append(char)
+    return "".join(chars)
+
+
 def describe_key_event(event) -> str:
     key_name = pygame.key.name(event.key) if event.key is not None else "?"
     return (
@@ -244,6 +307,84 @@ def render_game_surface(visualizer, env, episode_reward):
     return surface
 
 
+def wrap_text(text: str, font: pygame.font.Font, max_width: int) -> list[str]:
+    lines: list[str] = []
+    for raw_line in text.splitlines() or [""]:
+        words = raw_line.split(" ")
+        current = ""
+        for word in words:
+            candidate = word if not current else f"{current} {word}"
+            if font.size(candidate)[0] <= max_width:
+                current = candidate
+                continue
+            if current:
+                lines.append(current)
+            current = word
+            while font.size(current)[0] > max_width and len(current) > 1:
+                cut = len(current)
+                while cut > 1 and font.size(current[:cut])[0] > max_width:
+                    cut -= 1
+                lines.append(current[:cut])
+                current = current[cut:]
+        lines.append(current)
+    return lines
+
+
+def render_chat_panel(
+    screen,
+    font,
+    small_font,
+    chat_messages: list[dict[str, str]],
+    chat_input: str,
+    chat_pending: bool,
+    chat_status: str,
+) -> None:
+    panel = pygame.Rect(80, 80, 780, 500)
+    pygame.draw.rect(screen, (20, 24, 32), panel, border_radius=8)
+    pygame.draw.rect(screen, (115, 150, 190), panel, width=2, border_radius=8)
+    screen.blit(font.render("DeepSeek Chat", True, (245, 245, 245)), (105, 100))
+    hint = "Enter Send | Esc Close | Describe why the agent behavior is bad"
+    screen.blit(small_font.render(hint, True, (170, 210, 180)), (105, 126))
+
+    y = 155
+    left = 105
+    right_padding = 28
+    content_gap = 8
+    history = chat_messages[-8:]
+    for message in history:
+        role = message["role"].upper()
+        color = (180, 220, 255) if message["role"] == "user" else (245, 220, 150)
+        prefix = f"{role}: "
+        prefix_width = small_font.size(prefix)[0] + content_gap
+        content_x = left + prefix_width
+        max_text_width = panel.right - content_x - right_padding
+        prefix_surface = small_font.render(prefix, True, color)
+        for idx, line in enumerate(
+            wrap_text(message["content"], small_font, max_text_width)
+        ):
+            if idx == 0:
+                screen.blit(prefix_surface, (left, y))
+            screen.blit(small_font.render(line, True, color), (content_x, y))
+            y += 22
+            if y > 455:
+                break
+        if y > 455:
+            break
+        y += 6
+
+    status = "Thinking..." if chat_pending else chat_status
+    if status:
+        screen.blit(small_font.render(status, True, (245, 200, 105)), (105, 460))
+
+    input_rect = pygame.Rect(105, 490, 730, 42)
+    pygame.draw.rect(screen, (35, 40, 50), input_rect, border_radius=5)
+    pygame.draw.rect(screen, (120, 140, 170), input_rect, width=1, border_radius=5)
+    cursor = "|" if pygame.time.get_ticks() // 500 % 2 == 0 else ""
+    input_text = f"{chat_input}{cursor}" if chat_input else f"Type message...{cursor}"
+    input_color = (235, 235, 235) if chat_input else (130, 140, 155)
+    screen.blit(small_font.render(input_text[-120:], True, input_color), (118, 503))
+
+
 def main() -> int:
     args = parse_args()
     if args.step_hz <= 0:
@@ -267,8 +408,10 @@ def main() -> int:
 
     trajectory_path = session_dir / "trajectory.csv"
     feedback_path = session_dir / "feedback.csv"
+    chat_path = session_dir / "chat_messages.csv"
     trajectory_handle = trajectory_path.open("w", newline="", encoding="utf-8")
     feedback_handle = feedback_path.open("w", newline="", encoding="utf-8")
+    chat_handle = chat_path.open("w", newline="", encoding="utf-8")
     trajectory_fields = [
         "timestamp_utc",
         "episode",
@@ -294,6 +437,15 @@ def main() -> int:
         "last_ai_action",
         "last_ai_action_name",
     ]
+    chat_fields = [
+        "timestamp_utc",
+        "episode",
+        "episode_step",
+        "total_step",
+        "layout",
+        "role",
+        "content",
+    ]
     pause_path = session_dir / "pause_events.csv"
     pause_handle = pause_path.open("w", newline="", encoding="utf-8")
     pause_fields = [
@@ -307,9 +459,11 @@ def main() -> int:
     ]
     trajectory_writer = csv.DictWriter(trajectory_handle, fieldnames=trajectory_fields)
     feedback_writer = csv.DictWriter(feedback_handle, fieldnames=feedback_fields)
+    chat_writer = csv.DictWriter(chat_handle, fieldnames=chat_fields)
     pause_writer = csv.DictWriter(pause_handle, fieldnames=pause_fields)
     trajectory_writer.writeheader()
     feedback_writer.writeheader()
+    chat_writer.writeheader()
     pause_writer.writeheader()
 
     pygame.init()
@@ -340,6 +494,13 @@ def main() -> int:
     feedback_count = {1: 0, -1: 0}
     feedback_flash = ""
     feedback_flash_frames = 0
+    chat_open = False
+    chat_input = ""
+    chat_messages: list[dict[str, str]] = []
+    chat_pending = False
+    chat_status = "Set DEEPSEEK_API_KEY to enable model replies."
+    chat_result_queue: queue.Queue[tuple[str, str]] = queue.Queue()
+    last_textinput_at = -1000
     step_interval_ms = max(1, round(1000 / args.step_hz))
     countdown_until = pygame.time.get_ticks() + round(args.start_delay * 1000)
     next_step_at = countdown_until
@@ -395,6 +556,51 @@ def main() -> int:
         reset_episode(new_layout_index)
         return True
 
+    def log_chat_message(role: str, content: str) -> None:
+        write_row(
+            chat_writer,
+            chat_handle,
+            {
+                "timestamp_utc": utc_timestamp(),
+                "episode": episode,
+                "episode_step": episode_step,
+                "total_step": total_step,
+                "layout": current_layout,
+                "role": role,
+                "content": content,
+            },
+        )
+
+    def start_chat_request(prompt: str) -> None:
+        nonlocal chat_pending
+        nonlocal chat_status
+
+        chat_messages.append({"role": "user", "content": prompt})
+        log_chat_message("user", prompt)
+        chat_pending = True
+        chat_status = ""
+        history = [
+            {
+                "role": "system",
+                "content": (
+                    "You are helping a human evaluate a cooperative Overcooked "
+                    "PPO agent. Reply concisely and ask clarifying questions when needed."
+                ),
+            },
+            *chat_messages[-10:],
+        ]
+
+        def worker() -> None:
+            try:
+                reply = chat_once(history)
+                chat_result_queue.put(("assistant", reply))
+            except DeepSeekChatError as exc:
+                chat_result_queue.put(("error", str(exc)))
+            except Exception as exc:
+                chat_result_queue.put(("error", f"Chat failed: {exc}"))
+
+        threading.Thread(target=worker, daemon=True).start()
+
     print(f"Agent: {agent_dir}")
     print(f"Interface build: {BUILD_ID}")
     print(f"Script: {Path(__file__).resolve()}")
@@ -406,18 +612,47 @@ def main() -> int:
     )
     print(
         "Controls: WASD/Arrows=Move, Space=Interact, J=+1, K=-1, "
-        "P/Tab/F1=Pause, R=Reset, 1-4/N/M=Switch map, Esc=Quit"
+        "P/Tab/F1=Pause, Chat=LLM, R=Reset, 1-4/N/M=Switch map, Esc=Quit"
     )
 
     try:
         while running:
+            while not chat_result_queue.empty():
+                role, content = chat_result_queue.get()
+                chat_pending = False
+                if role == "assistant":
+                    chat_messages.append({"role": "assistant", "content": content})
+                    log_chat_message("assistant", content)
+                    chat_status = ""
+                else:
+                    chat_status = content
+                    chat_messages.append(
+                        {"role": "assistant", "content": f"[Error] {content}"}
+                    )
+                    log_chat_message("assistant", f"[Error] {content}")
+
             pause_requested = False
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     quit_reason = "window close button"
                     running = False
                 elif event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_ESCAPE:
+                    if chat_open:
+                        if event.key == pygame.K_ESCAPE:
+                            chat_open = False
+                            chat_input = ""
+                            pygame.key.stop_text_input()
+                        elif event.key == pygame.K_RETURN:
+                            prompt = chat_input.strip()
+                            if prompt and not chat_pending:
+                                chat_input = ""
+                                start_chat_request(prompt)
+                        elif event.key == pygame.K_BACKSPACE:
+                            chat_input = chat_input[:-1]
+                        elif event.key == pygame.K_v and pygame.key.get_mods() & pygame.KMOD_CTRL:
+                            # Clipboard paste is not portable in pygame without extra deps.
+                            chat_status = "Paste is not supported here; type your message."
+                    elif event.key == pygame.K_ESCAPE:
                         quit_reason = "pygame Esc"
                         running = False
                     elif (
@@ -468,6 +703,9 @@ def main() -> int:
                             )
                             feedback_flash = f"Recorded feedback: {feedback:+d}"
                             feedback_flash_frames = args.render_fps
+                elif event.type == pygame.TEXTINPUT and chat_open:
+                    chat_input += event.text
+                    last_textinput_at = pygame.time.get_ticks()
                 elif event.type == pygame.KEYUP:
                     motion_action = event_motion_action(event)
                     if motion_action is not None:
@@ -479,40 +717,69 @@ def main() -> int:
                 elif (
                     event.type == pygame.MOUSEBUTTONDOWN
                     and event.button == 1
-                    and PAUSE_BUTTON.collidepoint(event.pos)
                 ):
-                    pause_requested = True
+                    if CHAT_BUTTON.collidepoint(event.pos):
+                        chat_open = not chat_open
+                        if chat_open:
+                            paused = True
+                            pygame.key.start_text_input()
+                            pending_interact = False
+                            pending_motion = None
+                            held_motion_actions.clear()
+                            chat_status = (
+                                "" if os.getenv("DEEPSEEK_API_KEY")
+                                else "Set DEEPSEEK_API_KEY to enable model replies."
+                            )
+                        else:
+                            pygame.key.stop_text_input()
+                    elif PAUSE_BUTTON.collidepoint(event.pos):
+                        pause_requested = True
 
             windows_keys = windows_pressed_keys()
             windows_pressed_now = windows_keys - previous_windows_keys
             previous_windows_keys = windows_keys
             windows_new_actions = windows_motion_actions(windows_pressed_now)
-            if windows_new_actions and not paused:
+            if chat_open:
+                if 0x08 in windows_pressed_now:  # Backspace
+                    chat_input = chat_input[:-1]
+                if 0x0D in windows_pressed_now:  # Enter
+                    prompt = chat_input.strip()
+                    if prompt and not chat_pending:
+                        chat_input = ""
+                        start_chat_request(prompt)
+                fallback_text = windows_chat_text(
+                    windows_pressed_now - {0x08, 0x0D},
+                    windows_keys,
+                )
+                if fallback_text and pygame.time.get_ticks() - last_textinput_at > 50:
+                    chat_input += fallback_text
+            if windows_new_actions and not paused and not chat_open:
                 pending_motion = human_motion_action(windows_new_actions)
                 last_key_debug = (
                     f"windows press "
                     f"{'+'.join(windows_key_name(vk) for vk in sorted(windows_pressed_now & set(WINDOWS_VK_ACTIONS)))}"
                     f" -> {ACTION_NAMES[pending_motion]}"
                 )
-            if 0x20 in windows_pressed_now and not paused:  # Space
+            if 0x20 in windows_pressed_now and not paused and not chat_open:  # Space
                 pending_interact = True
                 last_key_debug = "windows Space -> interact"
-            if windows_pressed_now & {0x50, 0x09, 0x70}:  # P, Tab, F1
+            if windows_pressed_now & {0x50, 0x09, 0x70} and not chat_open:  # P, Tab, F1
                 pause_requested = True
                 last_key_debug = "windows pause key"
-            for key_index, vk in enumerate(WINDOWS_LAYOUT_NUMBER_KEYS):
-                if vk in windows_pressed_now and request_layout_switch(key_index):
-                    last_key_debug = f"windows map -> {current_layout}"
-            if 0x4E in windows_pressed_now:  # N
-                if request_layout_switch((layout_index + 1) % len(layouts)):
-                    last_key_debug = f"windows next map -> {current_layout}"
-            if 0x4D in windows_pressed_now:  # M
-                if request_layout_switch((layout_index - 1) % len(layouts)):
-                    last_key_debug = f"windows previous map -> {current_layout}"
-            if 0x52 in windows_pressed_now:  # R
-                reset_episode()
-                last_key_debug = "windows R -> reset"
-            if windows_pressed_now & {0x4A, 0x4B}:  # J, K
+            if not chat_open:
+                for key_index, vk in enumerate(WINDOWS_LAYOUT_NUMBER_KEYS):
+                    if vk in windows_pressed_now and request_layout_switch(key_index):
+                        last_key_debug = f"windows map -> {current_layout}"
+                if 0x4E in windows_pressed_now:  # N
+                    if request_layout_switch((layout_index + 1) % len(layouts)):
+                        last_key_debug = f"windows next map -> {current_layout}"
+                if 0x4D in windows_pressed_now:  # M
+                    if request_layout_switch((layout_index - 1) % len(layouts)):
+                        last_key_debug = f"windows previous map -> {current_layout}"
+                if 0x52 in windows_pressed_now:  # R
+                    reset_episode()
+                    last_key_debug = "windows R -> reset"
+            if windows_pressed_now & {0x4A, 0x4B} and not chat_open:  # J, K
                 feedback = 1 if 0x4A in windows_pressed_now else -1
                 feedback_count[feedback] += 1
                 write_row(
@@ -630,6 +897,17 @@ def main() -> int:
 
             screen.fill((28, 30, 34))
             screen.blit(game_surface, game_surface.get_rect(center=(470, 305)))
+            chat_button_color = (70, 115, 155) if chat_open else (75, 95, 125)
+            pygame.draw.rect(screen, chat_button_color, CHAT_BUTTON, border_radius=7)
+            chat_button_text = small_font.render(
+                "CHAT",
+                True,
+                (255, 255, 255),
+            )
+            screen.blit(
+                chat_button_text,
+                chat_button_text.get_rect(center=CHAT_BUTTON.center),
+            )
             button_color = (100, 145, 105) if paused else (150, 105, 70)
             pygame.draw.rect(screen, button_color, PAUSE_BUTTON, border_radius=7)
             button_text = small_font.render(
@@ -666,12 +944,11 @@ def main() -> int:
                 run_status = "RUNNING"
             status = (
                 f"Blue: PPO | Green: YOU | Episode {episode} | Step {episode_step} | "
-                f"Reward {episode_reward:.1f} | Map {layout_index + 1}/{len(layouts)}: "
-                f"{current_layout} | {run_status}"
+                f"Reward {episode_reward:.1f} | {run_status}"
             )
             controls = (
                 "WASD/Arrows Move | Space Interact | P/Tab/F1 Pause | "
-                "R Reset | 1-4/N/M Map | Esc Quit"
+                "Chat | R Reset | N/M Map | Esc Quit"
             )
             feedback_status = (
                 f"J +1 ({feedback_count[1]}) | K -1 ({feedback_count[-1]}) | "
@@ -700,21 +977,35 @@ def main() -> int:
                     (690, 655),
                 )
                 feedback_flash_frames -= 1
+            if chat_open:
+                render_chat_panel(
+                    screen,
+                    font,
+                    small_font,
+                    chat_messages,
+                    chat_input,
+                    chat_pending,
+                    chat_status,
+                )
             pygame.display.flip()
             clock.tick(args.render_fps)
     finally:
         trajectory_handle.flush()
         feedback_handle.flush()
+        chat_handle.flush()
         pause_handle.flush()
         trajectory_handle.close()
         feedback_handle.close()
+        chat_handle.close()
         pause_handle.close()
         for cached_env in set(envs_by_layout.values()):
             cached_env.close()
+        pygame.key.stop_text_input()
         pygame.quit()
 
     print(f"Trajectory: {trajectory_path}")
     print(f"Feedback: {feedback_path}")
+    print(f"Chat messages: {chat_path}")
     print(f"Pause events: {pause_path}")
     print(f"Exit reason: {quit_reason}")
     return 0
