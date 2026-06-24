@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import csv
 import ctypes
+import json
 import os
 import queue
 import sys
@@ -127,8 +128,6 @@ WINDOWS_VK_NAMES = {
     0x41: "A",
     0x44: "D",
     0x46: "F",
-    0x4A: "J",
-    0x4B: "K",
     0x4D: "M",
     0x4E: "N",
     0x50: "P",
@@ -288,6 +287,98 @@ def write_crash_log(exc: BaseException) -> Path:
     return crash_path
 
 
+def to_jsonable(value):
+    if value is None or isinstance(value, (str, int, float, bool)):
+        return value
+    if isinstance(value, tuple):
+        return [to_jsonable(item) for item in value]
+    if isinstance(value, list):
+        return [to_jsonable(item) for item in value]
+    if isinstance(value, dict):
+        return {str(key): to_jsonable(item) for key, item in value.items()}
+    if hasattr(value, "tolist"):
+        return value.tolist()
+    if hasattr(value, "name"):
+        return str(value.name)
+    return str(value)
+
+
+def object_summary(obj):
+    if obj is None:
+        return None
+    summary = {
+        "type": type(obj).__name__,
+        "name": getattr(obj, "name", None),
+        "position": to_jsonable(getattr(obj, "position", None)),
+    }
+    for attr in (
+        "ingredients",
+        "cooking_tick",
+        "is_cooking",
+        "is_ready",
+        "is_idle",
+        "is_full",
+    ):
+        if hasattr(obj, attr):
+            value = getattr(obj, attr)
+            summary[attr] = to_jsonable(value() if callable(value) else value)
+    return {key: value for key, value in summary.items() if value is not None}
+
+
+def player_summary(player):
+    return {
+        "position": to_jsonable(getattr(player, "position", None)),
+        "orientation": to_jsonable(getattr(player, "orientation", None)),
+        "held_object": object_summary(getattr(player, "held_object", None)),
+    }
+
+
+def terrain_rows(mdp) -> list[str]:
+    rows = getattr(mdp, "terrain_mtx", [])
+    return ["".join(row) for row in rows]
+
+
+def pot_state_summary(mdp, state):
+    if not hasattr(mdp, "get_pot_states"):
+        return None
+    try:
+        return to_jsonable(mdp.get_pot_states(state))
+    except Exception as exc:
+        return {"error": f"get_pot_states failed: {exc}"}
+
+
+def state_facts(env) -> dict:
+    state = env.base_env.state
+    mdp = env.base_env.mdp
+    players = list(getattr(state, "players", []))
+    ai_player = players[0] if len(players) > 0 else None
+    human_player = players[1] if len(players) > 1 else None
+    objects = getattr(state, "objects", {})
+    return {
+        "ai_pos": to_jsonable(getattr(ai_player, "position", None)),
+        "human_pos": to_jsonable(getattr(human_player, "position", None)),
+        "ai_held_object": object_summary(getattr(ai_player, "held_object", None)),
+        "human_held_object": object_summary(getattr(human_player, "held_object", None)),
+        "players": [player_summary(player) for player in players],
+        "objects": [
+            {
+                "position": to_jsonable(position),
+                "object": object_summary(obj),
+            }
+            for position, obj in getattr(objects, "items", lambda: [])()
+        ],
+        "pot_states": pot_state_summary(mdp, state),
+        "layout_features": {
+            "layout_name": getattr(env, "layout_name", None),
+            "terrain": terrain_rows(mdp),
+        },
+    }
+
+
+def json_dumps(value) -> str:
+    return json.dumps(value, ensure_ascii=False, sort_keys=True)
+
+
 def render_game_surface(visualizer, env, episode_reward):
     state = env.base_env.state
     hud_data = StateVisualizer.default_hud_data(state, score=episode_reward)
@@ -410,10 +501,8 @@ def main() -> int:
     session_dir = new_session_dir(args.output_dir)
 
     trajectory_path = session_dir / "trajectory.csv"
-    feedback_path = session_dir / "feedback.csv"
     chat_path = session_dir / "chat_messages.csv"
     trajectory_handle = trajectory_path.open("w", newline="", encoding="utf-8")
-    feedback_handle = feedback_path.open("w", newline="", encoding="utf-8")
     chat_handle = chat_path.open("w", newline="", encoding="utf-8")
     trajectory_fields = [
         "timestamp_utc",
@@ -430,15 +519,8 @@ def main() -> int:
         "predict_ms",
         "environment_step_ms",
         "done",
-    ]
-    feedback_fields = [
-        "timestamp_utc",
-        "episode",
-        "episode_step",
-        "total_step",
-        "feedback",
-        "last_ai_action",
-        "last_ai_action_name",
+        "state_before_json",
+        "state_after_json",
     ]
     chat_fields = [
         "timestamp_utc",
@@ -461,11 +543,9 @@ def main() -> int:
         "pygame_ticks",
     ]
     trajectory_writer = csv.DictWriter(trajectory_handle, fieldnames=trajectory_fields)
-    feedback_writer = csv.DictWriter(feedback_handle, fieldnames=feedback_fields)
     chat_writer = csv.DictWriter(chat_handle, fieldnames=chat_fields)
     pause_writer = csv.DictWriter(pause_handle, fieldnames=pause_fields)
     trajectory_writer.writeheader()
-    feedback_writer.writeheader()
     chat_writer.writeheader()
     pause_writer.writeheader()
 
@@ -494,9 +574,6 @@ def main() -> int:
     last_ai_action = STAY
     last_predict_ms = 0.0
     last_environment_step_ms = 0.0
-    feedback_count = {1: 0, -1: 0}
-    feedback_flash = ""
-    feedback_flash_frames = 0
     chat_open = False
     chat_input = ""
     chat_messages: list[dict[str, str]] = []
@@ -614,8 +691,9 @@ def main() -> int:
         f"{args.render_fps} render FPS, {args.start_delay:g}s start delay"
     )
     print(
-        "Controls: WASD/Arrows=Move, Space=Interact, J=+1, K=-1, "
-        "P/Tab/F1=Pause, Chat=LLM, R=Reset, 1-4/N/M=Switch map, Esc=Quit"
+        "Controls: WASD/Arrows=Move, Space=Interact, "
+        "P/Tab/F1=Pause, Chat=Language feedback, R=Reset, "
+        "1-4/N/M=Switch map, Esc=Quit"
     )
 
     try:
@@ -688,24 +766,6 @@ def main() -> int:
                                 pending_motion = motion_action
                         elif event.key == pygame.K_r:
                             reset_episode()
-                        elif event.key in (pygame.K_j, pygame.K_k):
-                            feedback = 1 if event.key == pygame.K_j else -1
-                            feedback_count[feedback] += 1
-                            write_row(
-                                feedback_writer,
-                                feedback_handle,
-                                {
-                                    "timestamp_utc": utc_timestamp(),
-                                    "episode": episode,
-                                    "episode_step": episode_step,
-                                    "total_step": total_step,
-                                    "feedback": feedback,
-                                    "last_ai_action": last_ai_action,
-                                    "last_ai_action_name": ACTION_NAMES[last_ai_action],
-                                },
-                            )
-                            feedback_flash = f"Recorded feedback: {feedback:+d}"
-                            feedback_flash_frames = args.render_fps
                 elif event.type == pygame.TEXTINPUT and chat_open:
                     chat_input += event.text
                     last_textinput_at = pygame.time.get_ticks()
@@ -782,26 +842,6 @@ def main() -> int:
                 if 0x52 in windows_pressed_now:  # R
                     reset_episode()
                     last_key_debug = "windows R -> reset"
-            if windows_pressed_now & {0x4A, 0x4B} and not chat_open:  # J, K
-                feedback = 1 if 0x4A in windows_pressed_now else -1
-                feedback_count[feedback] += 1
-                write_row(
-                    feedback_writer,
-                    feedback_handle,
-                    {
-                        "timestamp_utc": utc_timestamp(),
-                        "episode": episode,
-                        "episode_step": episode_step,
-                        "total_step": total_step,
-                        "feedback": feedback,
-                        "last_ai_action": last_ai_action,
-                        "last_ai_action_name": ACTION_NAMES[last_ai_action],
-                    },
-                )
-                feedback_flash = f"Recorded feedback: {feedback:+d}"
-                feedback_flash_frames = args.render_fps
-                last_key_debug = f"windows {'J' if feedback > 0 else 'K'} -> feedback"
-
             now = pygame.time.get_ticks()
             if (
                 pause_requested
@@ -847,11 +887,13 @@ def main() -> int:
                 ai_action_raw = rllib_action_index(ai_agent, env.base_env.state)
                 last_predict_ms = (time.perf_counter() - predict_started) * 1000
                 ai_action = int(ai_action_raw)
+                state_before = state_facts(env)
                 step_started = time.perf_counter()
                 (ai_obs, _), (reward, _), done, _ = env.multi_step(
                     ai_action,
                     human_action,
                 )
+                state_after = state_facts(env)
                 last_environment_step_ms = (
                     time.perf_counter() - step_started
                 ) * 1000
@@ -877,6 +919,8 @@ def main() -> int:
                         "predict_ms": round(last_predict_ms, 3),
                         "environment_step_ms": round(last_environment_step_ms, 3),
                         "done": bool(done),
+                        "state_before_json": json_dumps(state_before),
+                        "state_after_json": json_dumps(state_after),
                     },
                     flush=total_step % 10 == 0 or bool(done),
                 )
@@ -953,10 +997,7 @@ def main() -> int:
                 "WASD/Arrows Move | Space Interact | P/Tab/F1 Pause | "
                 "Chat | R Reset | N/M Map | Esc Quit"
             )
-            feedback_status = (
-                f"J +1 ({feedback_count[1]}) | K -1 ({feedback_count[-1]}) | "
-                "LOGGING ONLY - MODEL IS NOT UPDATING"
-            )
+            feedback_status = "Language feedback: click Chat, type comment, press Enter"
             timing_status = (
                 f"{BUILD_ID} | Decision rate: {args.step_hz:g}/s | "
                 f"AI predict: {last_predict_ms:.1f} ms | "
@@ -974,12 +1015,6 @@ def main() -> int:
                 small_font.render(input_status, True, (180, 220, 245)),
                 (470, 705),
             )
-            if feedback_flash_frames > 0:
-                screen.blit(
-                    font.render(feedback_flash, True, (120, 225, 135)),
-                    (690, 655),
-                )
-                feedback_flash_frames -= 1
             if chat_open:
                 render_chat_panel(
                     screen,
@@ -994,11 +1029,9 @@ def main() -> int:
             clock.tick(args.render_fps)
     finally:
         trajectory_handle.flush()
-        feedback_handle.flush()
         chat_handle.flush()
         pause_handle.flush()
         trajectory_handle.close()
-        feedback_handle.close()
         chat_handle.close()
         pause_handle.close()
         for cached_env in set(envs_by_layout.values()):
@@ -1007,7 +1040,6 @@ def main() -> int:
         pygame.quit()
 
     print(f"Trajectory: {trajectory_path}")
-    print(f"Feedback: {feedback_path}")
     print(f"Chat messages: {chat_path}")
     print(f"Pause events: {pause_path}")
     print(f"Exit reason: {quit_reason}")
