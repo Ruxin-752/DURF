@@ -1,42 +1,4 @@
-# Group A: Scalar Feedback
-
-## Verified component
-
-`keyboard_listener.py` is the currently trusted component.
-
-Run from the repository root:
-
-```powershell
-python durf/group_a/keyboard_listener.py
-```
-
-Controls:
-
-- `J`: write `+1`
-- `K`: write `-1`
-- `Space`: write `0`
-- `Q`: exit
-
-Use `--terminal-only` if global keyboard listening is unavailable:
-
-```powershell
-python durf/group_a/keyboard_listener.py --terminal-only
-```
-
-By default, runtime output is written to `reward_signal.txt` and
-`feedback_log.csv` in the current directory. Both are ignored by Git.
-
-## Not yet verified
-
-The keyboard signal has not yet been connected to a proven online PPO training
-loop. A valid end-to-end implementation must demonstrate that:
-
-1. feedback changes the reward consumed by PPO;
-2. PPO actually performs parameter updates;
-3. training and evaluation logs record the code version and configuration;
-4. pause behavior is identical across experimental groups.
-
-# Human + PPO collaboration
+# Group A: Human + PPO Pygame Baseline
 
 Run the archived RLlib PPO as the blue agent and control the green agent:
 
@@ -55,8 +17,11 @@ Controls:
 - `R`: reset the episode
 - `Q` or `Esc`: quit
 
-Session data is written to `outputs/human_ai_sessions/<timestamp>/`. The J/K
-signals are logged for inspection but do not update PPO yet.
+Session data is written to `outputs/human_ai_sessions/<timestamp>/`.
+
+The J/K keys are currently retained as lightweight inspection logs only. They
+do not update PPO and are not the main feedback interface for the new
+LLM-assisted attribution study.
 
 The default interaction rate is two environment steps per second with a
 three-second preparation countdown. To slow it further:
@@ -65,3 +30,6 @@ three-second preparation countdown. To slow it further:
 python -m durf.group_a.play_with_baseline `
   --step-hz 1.5 --start-delay 5
 ```
+
+The older standalone scalar keyboard listener has been archived under
+`archive/legacy_scalar_feedback/`.

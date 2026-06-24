@@ -15,6 +15,8 @@ code has been removed from the active path.
   `RllibCrampedRoomSP`, `RllibCoordinationRingSP`,
   `RllibForcedCoordinationSP`, `RllibAsymmetricAdvantagesSP`, and
   `RllibCounterCircuit1OrderSP`.
+- `archive/`: legacy scalar-feedback utilities and tutorial notebooks kept for
+  reference, not active development.
 
 ## Default Agent
 
@@ -61,3 +63,10 @@ Q / Esc       = quit
 ```
 
 Session logs are written under `outputs/human_ai_sessions/`.
+
+## Next Research Layer
+
+The next active development target is an LLM-assisted feedback attribution
+package under `durf/feedback_attribution/`. The pygame baseline should provide
+trajectory logs and candidate events; the LLM should only handle human-semantic
+interpretation that deterministic code cannot resolve reliably.
