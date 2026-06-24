@@ -22,6 +22,7 @@ from durf.baseline.runtime import (
     DEFAULT_PLAYABLE_LAYOUTS,
     REPO_ROOT,
     ensure_agent_layout,
+    filter_compatible_layouts,
     load_rllib_agent,
     make_direct_multi_env,
     resolve_agent_dir,
@@ -394,9 +395,11 @@ def main() -> int:
     if args.start_delay < 0:
         raise ValueError("--start-delay cannot be negative")
 
-    layouts = list(dict.fromkeys([args.layout, *args.layouts]))
-    for layout_name in layouts:
-        ensure_agent_layout(args.agent, layout_name)
+    requested_layouts = list(dict.fromkeys([args.layout, *args.layouts]))
+    ensure_agent_layout(args.agent, args.layout)
+    layouts = filter_compatible_layouts(args.agent, requested_layouts)
+    if args.layout not in layouts:
+        layouts.insert(0, args.layout)
     layout_index = layouts.index(args.layout)
     current_layout = args.layout
 

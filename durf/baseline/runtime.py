@@ -5,6 +5,7 @@ from __future__ import annotations
 import random
 from pathlib import Path
 
+import dill
 from human_aware_rl.rllib.rllib import load_agent
 from overcooked_ai_py.mdp.actions import Action
 from overcooked_ai_py.mdp.overcooked_env import OvercookedEnv
@@ -14,11 +15,16 @@ from overcooked_ai_py.mdp.overcooked_mdp import OvercookedGridworld
 REPO_ROOT = Path(__file__).resolve().parents[2]
 AGENT_ROOT = REPO_ROOT / "models" / "rllib_agents"
 DEFAULT_AGENT_NAME = "RllibCrampedRoomSP"
-DEFAULT_PLAYABLE_LAYOUTS = (
+CRAMPED_ROOM_COMPATIBLE_LAYOUTS = (
     "cramped_room",
     "cramped_room_wide",
     "cramped_room_corridor",
     "cramped_room_two_pots",
+)
+RING_TOMATO_ONION_LAYOUT = "ring_tomato_onion_10x6"
+DEFAULT_PLAYABLE_LAYOUTS = (
+    *CRAMPED_ROOM_COMPATIBLE_LAYOUTS,
+    RING_TOMATO_ONION_LAYOUT,
 )
 DEFAULT_MDP_PARAMS = {
     "old_dynamics": True,
@@ -44,8 +50,9 @@ AGENT_LAYOUTS = {
     "RllibForcedCoordinationSP": "forced_coordination",
 }
 AGENT_COMPATIBLE_LAYOUTS = {
-    "RllibCrampedRoomBC": DEFAULT_PLAYABLE_LAYOUTS,
-    "RllibCrampedRoomSP": DEFAULT_PLAYABLE_LAYOUTS,
+    "RllibCrampedRoomBC": CRAMPED_ROOM_COMPATIBLE_LAYOUTS,
+    "RllibCrampedRoomSP": CRAMPED_ROOM_COMPATIBLE_LAYOUTS,
+    "RllibRingTomatoOnion10x6SP": (RING_TOMATO_ONION_LAYOUT,),
 }
 
 
@@ -70,12 +77,43 @@ def expected_layout_for_agent(agent: str | Path | None) -> str | None:
 
 
 def compatible_layouts_for_agent(agent: str | Path | None) -> tuple[str, ...]:
-    name = agent_name_from_dir(resolve_agent_dir(agent))
+    agent_dir = resolve_agent_dir(agent)
+    name = agent_name_from_dir(agent_dir)
     compatible_layouts = AGENT_COMPATIBLE_LAYOUTS.get(name)
     if compatible_layouts:
         return compatible_layouts
+    trained_layout = trained_layout_for_agent_dir(agent_dir)
+    if trained_layout:
+        return (trained_layout,)
     expected = AGENT_LAYOUTS.get(name)
     return (expected,) if expected else ()
+
+
+def trained_layout_for_agent_dir(agent_dir: Path) -> str | None:
+    for config_path in (agent_dir / "config.pkl", agent_dir.parent / "config.pkl"):
+        if not config_path.exists():
+            continue
+        try:
+            with config_path.open("rb") as handle:
+                config = dill.load(handle)
+        except Exception:
+            continue
+        return (
+            config.get("environment_params", {})
+            .get("mdp_params", {})
+            .get("layout_name")
+        )
+    return None
+
+
+def filter_compatible_layouts(
+    agent: str | Path | None,
+    layout_names: list[str],
+) -> list[str]:
+    compatible_layouts = compatible_layouts_for_agent(agent)
+    if not compatible_layouts:
+        return layout_names
+    return [layout for layout in layout_names if layout in compatible_layouts]
 
 
 def ensure_agent_layout(agent: str | Path | None, layout_name: str) -> None:
