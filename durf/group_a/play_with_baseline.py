@@ -170,8 +170,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--step-hz",
         type=float,
-        default=8.0,
-        help="Environment decisions per second. Higher values reduce input latency.",
+        default=2.0,
+        help=(
+            "Environment decisions per second. Default 2.0 means one timestep "
+            "every 0.5 seconds."
+        ),
     )
     parser.add_argument("--render-fps", type=int, default=60)
     parser.add_argument("--start-delay", type=float, default=3.0)
@@ -810,12 +813,6 @@ def main() -> int:
                     if prompt and not chat_pending:
                         chat_input = ""
                         start_chat_request(prompt)
-                fallback_text = windows_chat_text(
-                    windows_pressed_now - {0x08, 0x0D},
-                    windows_keys,
-                )
-                if fallback_text and pygame.time.get_ticks() - last_textinput_at > 50:
-                    chat_input += fallback_text
             if windows_new_actions and not paused and not chat_open:
                 pending_motion = human_motion_action(windows_new_actions)
                 last_key_debug = (

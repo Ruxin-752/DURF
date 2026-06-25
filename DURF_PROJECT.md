@@ -13,6 +13,13 @@ The pygame baseline uses the RLlib PPO agents restored from commit `b1e6c627`.
 The default agent is `models/rllib_agents/RllibCrampedRoomSP`, which should be
 used with the `cramped_room` layout.
 
+The new layout `ring_tomato_onion_10x6` is present locally, but its matching
+PPO agent is not committed yet. The intended local agent name is:
+
+```text
+models/rllib_agents/RllibRingTomatoOnion10x6SP
+```
+
 The human-AI pygame interface lives at:
 
 ```text
@@ -25,9 +32,9 @@ It writes session CSV logs under:
 outputs/human_ai_sessions/
 ```
 
-The J/K keys are retained as lightweight scalar feedback logs for inspection.
-They do not update PPO and are not the main feedback mechanism for the new
-LLM-assisted attribution study.
+The active interface records language feedback plus step-level trajectory
+snapshots. J/K scalar feedback has been archived and should not be used as the
+main feedback mechanism for the new LLM-assisted attribution study.
 
 ## Code status
 
@@ -35,6 +42,7 @@ LLM-assisted attribution study.
 durf/
 |-- baseline/
 |   |-- runtime.py                RLlib agent loading and pygame env helpers
+|   |-- train_rllib_agent.py      Local self-play PPO training wrapper
 |   |-- watch_baseline.py         Pygame RLlib PPO viewer
 |   `-- evaluate_baseline.py      Fixed-seed RLlib PPO evaluation
 |-- group_a/
@@ -60,6 +68,24 @@ the active branch. The project now uses the pygame renderer from
 `src/overcooked_ai_py/visualization/`.
 
 ## Next active layer
+
+Immediate engineering priority:
+
+```powershell
+conda activate durf310
+cd "C:\Users\my185\Desktop\研究\durf\DURF"
+$env:PYTHONPATH="$PWD;$PWD\src"
+python -m durf.baseline.train_rllib_agent `
+  --layout ring_tomato_onion_10x6 `
+  --agent-name RllibRingTomatoOnion10x6SP `
+  --iterations 2 `
+  --num-workers 0 `
+  --ray-local-mode `
+  --overwrite
+```
+
+This is a smoke training run. If it produces a loadable agent, increase
+`--iterations` for a stronger policy.
 
 New research work should start by creating:
 

@@ -5,7 +5,7 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from .event_detectors import detect_candidate_events
+from .event_detectors import DEFAULT_LOOKBACK_STEPS, detect_candidate_events
 from .io_utils import read_jsonl, write_jsonl
 from .session_converter import convert_session
 
@@ -13,7 +13,7 @@ from .session_converter import convert_session
 def generate_candidate_events(
     session_dir: Path,
     *,
-    window_steps: int = 8,
+    window_steps: int = DEFAULT_LOOKBACK_STEPS,
     convert_csv: bool = True,
 ) -> dict[str, int]:
     if convert_csv:
@@ -32,7 +32,7 @@ def generate_candidate_events(
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--session", required=True, type=Path)
-    parser.add_argument("--window-steps", type=int, default=8)
+    parser.add_argument("--window-steps", type=int, default=DEFAULT_LOOKBACK_STEPS)
     parser.add_argument(
         "--no-convert",
         action="store_true",

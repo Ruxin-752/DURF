@@ -27,6 +27,15 @@ python -m durf.feedback_attribution.demo_offline_attribution `
   --session outputs\human_ai_sessions\<session_id>
 ```
 
+如果要启用 DeepSeek 语义归因，先设置 API key，然后加 `--use-llm`：
+
+```powershell
+$env:DEEPSEEK_API_KEY="你的 key"
+python -m durf.feedback_attribution.demo_offline_attribution `
+  --session outputs\human_ai_sessions\<session_id> `
+  --use-llm
+```
+
 它会写出：
 
 ```text
@@ -34,6 +43,7 @@ trajectory.jsonl
 feedback_events.jsonl
 candidate_events.jsonl
 attribution_preview.jsonl
+llm_attribution_audit.jsonl  # only when --use-llm is enabled
 ```
 
 ## 文件职责说明
@@ -119,14 +129,35 @@ attribution_preview.jsonl
 
 - `sample_builder.py`
   - 它是“归因预览构造器”。
-  - 回答的问题是：有了一条人类反馈和附近轨迹后，能不能先生成一个保守的 attribution preview？
+  - 回答的问题是：有了一条人类反馈和已经检测出的候选事件后，能不能先生成一个保守的 attribution preview？
   - 现在它做的是早期预览：
-    - 找反馈发生前后的近期轨迹窗口。
     - 调用反馈类型分类器。
-    - 调用候选事件检测器。
+    - 找反馈发生时间附近的 `candidate_events`。
+    - 用简单关键词把语言反馈对齐到候选事件。
+      - 例如“别堵我”优先对齐到 `AI_blocked_human_path`。
+      - 例如“为什么不拿汤”优先对齐到 `AI_ignored_ready_or_nearly_ready_pot`。
     - 生成一条 `attribution_result`。
   - 当前结果不是最终训练 `H_u` 的数据。它的作用是帮我们检查流程有没有打通、字段够不够、哪里需要澄清。
-  - 下一步会把它改成读取 `candidate_events.jsonl`，再把语言反馈对齐到最近的候选事件。
+  - 它是 LLM 语义归因之前的确定性 baseline。
+
+- `llm_attributor.py`
+  - 它是“LLM 语义归因器”。
+  - 回答的问题是：当程序已经检测出若干候选事件后，人类这句话到底更可能指向哪个事件？
+  - 它不会自己检测底层事实，也不会改写环境奖励函数。
+  - 它收到的输入包括：
+    - 一条人类反馈，比如“你为什么不拿汤”。
+    - 附近的 `candidate_events`。
+    - 最近几步轨迹摘要。
+    - 规则 baseline 的初步判断。
+  - 它的职责是：
+    - 从候选事件中选择 `target_event`。
+    - 判断反馈类型和情绪倾向。
+    - 提取关键条件 `key_conditions`。
+    - 给出置信度 `confidence`。
+    - 如果语义不清，设置 `needs_clarification=true` 并提出一个澄清问题。
+    - 如果现有候选事件无法表达用户意思，写入 `proposed_schema_update`，供之后人工审核。
+  - 它必须返回 JSON。脚本会把 prompt、raw response、parsed response 写入 `llm_attribution_audit.jsonl`，保证之后可以复查。
+  - 如果 DeepSeek 没有配置、调用失败或输出不合法，系统会自动回退到 `sample_builder.py` 的规则 baseline。
 
 - `demo_offline_attribution.py`
   - 它是“完整离线流程的一键 demo”。
@@ -144,6 +175,7 @@ attribution_preview.jsonl
       --session outputs\human_ai_sessions\<session_id>
     ```
   - 它适合用来快速检查一个新 session 是否能通过整个离线管线。
+  - 加上 `--use-llm` 后，它会调用 `llm_attributor.py`，并额外写出 `llm_attribution_audit.jsonl`。
 
 - `__init__.py`
   - 它是 Python 包标记文件。
@@ -160,10 +192,12 @@ python -m durf.feedback_attribution.generate_candidate_events `
   --session outputs\human_ai_sessions\<session_id>
 ```
 
-第一版事件检测器故意做得很小、很保守：
+第一版事件检测器故意做得很小、很保守。默认归因窗口现在是
+`25` 个 timestep，也就是在当前 0.5 秒一步的设置下约 12.5 秒：
 
 - `AI_blocked_human_path`：人类尝试移动到 AI 占据的格子，但移动失败。
 - `AI_ignored_ready_or_nearly_ready_pot`：锅已经 ready，AI 有可能处理锅，但没有及时处理。
+- `AI_failed_to_prepare_ingredient_while_waiting`：锅正在 cooking、人类拿着盘子等待时，AI 空手但没有去准备下一份原料。
 
 ## 当前限制
 

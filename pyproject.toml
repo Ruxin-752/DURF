@@ -24,6 +24,7 @@ dependencies = [
     "opencv-python",
     "pygame",
     "ray[rllib,tune]==2.2",
+    "sacred",
     "scipy",
     "setuptools>=77.0.3",
     "tensorflow==2.10.1",

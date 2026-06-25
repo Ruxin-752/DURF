@@ -17,11 +17,14 @@ ACTION_DELTAS = {
 }
 
 
+DEFAULT_LOOKBACK_STEPS = 25
+
+
 def recent_window(
     trajectory: list[dict],
     *,
     feedback_total_step: int | None,
-    lookback_steps: int = 8,
+    lookback_steps: int = DEFAULT_LOOKBACK_STEPS,
 ) -> list[dict]:
     if feedback_total_step is None:
         return trajectory[-lookback_steps:]
@@ -251,6 +254,91 @@ def detect_ai_ignored_ready_or_nearly_ready_pot(window: list[dict]) -> list[dict
     return []
 
 
+def detect_ai_failed_to_prepare_ingredient_while_waiting(window: list[dict]) -> list[dict]:
+    """Detect cooking-wait periods where AI has idle capacity but does not prep.
+
+    This catches feedback such as "prepare food while I wait for the soup to
+    cook". It is deliberately a candidate event: it says the opportunity
+    existed, not that this is always the optimal strategy.
+    """
+
+    events: list[dict] = []
+    streak: list[dict] = []
+    ingredient_pickups = {"onion", "tomato"}
+
+    for step in window:
+        after = step_state_after(step)
+        missing = missing_facts(step, ["ai_pos", "human_pos", "pot_states"])
+        if missing:
+            if len(streak) >= 4:
+                events.append(prep_wait_event(streak))
+            streak = []
+            continue
+
+        pot_states = after.get("pot_states") or {}
+        pot_is_cooking = bool(pot_positions(pot_states, ("cooking",)))
+        if not pot_is_cooking:
+            if len(streak) >= 4:
+                events.append(prep_wait_event(streak))
+            streak = []
+            continue
+
+        ai_holding = held_name(after.get("ai_held_object"))
+        human_holding = held_name(after.get("human_held_object"))
+        ai_action_name = str(step.get("ai_action_name"))
+        ai_picked_up_ingredient = (
+            ai_action_name == "interact" and ai_holding in ingredient_pickups
+        )
+
+        ai_has_free_hand = ai_holding is None
+        human_waiting_with_dish = human_holding == "dish"
+        ai_not_prepping = ai_has_free_hand and not ai_picked_up_ingredient
+
+        if ai_not_prepping and human_waiting_with_dish:
+            streak.append(step)
+        else:
+            if len(streak) >= 4:
+                events.append(prep_wait_event(streak))
+            streak = []
+
+    if len(streak) >= 4:
+        events.append(prep_wait_event(streak))
+
+    return events
+
+
+def prep_wait_event(streak: list[dict]) -> dict:
+    first = streak[0]
+    last = streak[-1]
+    last_after = step_state_after(last)
+    ai_positions = [
+        pos_tuple(step_state_after(step).get("ai_pos"))
+        for step in streak
+    ]
+    human_positions = [
+        pos_tuple(step_state_after(step).get("human_pos"))
+        for step in streak
+    ]
+    return candidate_event(
+        event_type="AI_failed_to_prepare_ingredient_while_waiting",
+        start_timestep=int(first["total_step"]),
+        end_timestep=int(last["total_step"]),
+        evidence={
+            "reason": "Pot was cooking while human held a dish, but AI stayed empty-handed instead of preparing another ingredient.",
+            "duration_steps": len(streak),
+            "pot_states": last_after.get("pot_states"),
+            "ai_actions": [step.get("ai_action_name") for step in streak],
+            "human_actions": [step.get("human_action_name") for step in streak],
+            "ai_positions": [list(pos) if pos else None for pos in ai_positions],
+            "human_positions": [list(pos) if pos else None for pos in human_positions],
+            "ai_held_object": last_after.get("ai_held_object"),
+            "human_held_object": last_after.get("human_held_object"),
+        },
+        severity=min(1.0, 0.3 + len(streak) * 0.05),
+        confidence=0.65,
+    )
+
+
 def ready_pot_event(streak: list[dict]) -> dict:
     first = streak[0]
     last = streak[-1]
@@ -282,4 +370,5 @@ def detect_candidate_events(window: list[dict]) -> list[dict]:
     events: list[dict] = []
     events.extend(detect_ai_blocked_human_path(window))
     events.extend(detect_ai_ignored_ready_or_nearly_ready_pot(window))
+    events.extend(detect_ai_failed_to_prepare_ingredient_while_waiting(window))
     return events

@@ -14,7 +14,8 @@ code has been removed from the active path.
 - `models/rllib_agents/`: restored historical agents, including
   `RllibCrampedRoomSP`, `RllibCoordinationRingSP`,
   `RllibForcedCoordinationSP`, `RllibAsymmetricAdvantagesSP`, and
-  `RllibCounterCircuit1OrderSP`.
+  `RllibCounterCircuit1OrderSP`. The new `ring_tomato_onion_10x6` map is
+  present, but its PPO agent must be trained locally first.
 - `archive/`: legacy scalar-feedback utilities and tutorial notebooks kept for
   reference, not active development.
 
@@ -56,13 +57,36 @@ Controls:
 ```text
 WASD / Arrows = move
 Space         = interact
+Chat input    = natural-language feedback
 P / Tab / F1  = pause or resume
 R             = reset
-J / K         = log scalar feedback only
 Q / Esc       = quit
 ```
 
 Session logs are written under `outputs/human_ai_sessions/`.
+
+The active research interface uses natural-language feedback for attribution.
+J/K scalar feedback belongs to the archived legacy path and should not be used
+as the main Group A signal.
+
+## Train New Map Agent
+
+To smoke-train the missing PPO self-play agent for `ring_tomato_onion_10x6`:
+
+```powershell
+conda activate durf310
+cd "C:\Users\my185\Desktop\研究\durf\DURF"
+$env:PYTHONPATH="$PWD;$PWD\src"
+python -m durf.baseline.train_rllib_agent `
+  --layout ring_tomato_onion_10x6 `
+  --agent-name RllibRingTomatoOnion10x6SP `
+  --iterations 2 `
+  --num-workers 0 `
+  --ray-local-mode `
+  --overwrite
+```
+
+After the smoke run works, increase `--iterations` for a more useful policy.
 
 ## Next Research Layer
 

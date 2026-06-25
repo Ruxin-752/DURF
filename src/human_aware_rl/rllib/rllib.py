@@ -489,7 +489,8 @@ class TrainingCallbacks(DefaultCallbacks):
         pass
 
     # Executes at the end of a call to Trainer.train, we'll update environment params (like annealing shaped rewards)
-    def on_train_result(self, trainer, result, **kwargs):
+    def on_train_result(self, trainer=None, result=None, algorithm=None, **kwargs):
+        trainer = trainer or algorithm
         # Anneal the reward shaping coefficient based on environment paremeters and current timestep
         timestep = result["timesteps_total"]
         trainer.workers.foreach_worker(
