@@ -1,0 +1,22 @@
+{
+  "respects_human_intent": 2.0,
+  "avoids_duplicate_human_task": 2.0,
+  "clears_human_shortest_path": 2.0,
+  "clears_human_path": 2.0,
+  "clears_serving_access": 2.0,
+  "complementary_to_human": 2.0,
+  "avoids_human_shortest_path": 2.0,
+  "recipe_needs_onion": 1.0,
+  "supports_serving": 1.0,
+  "blocks_human_path": -3.0,
+  "blocks_serving_route": -3.0,
+  "human_wait_cost": -2.0,
+  "duplicate_human_task": -2.5,
+  "steals_human_target": -2.5,
+  "crowds_human_target": -2.0,
+  "frustrates_human": -2.0,
+  "collision_risk": -2.0,
+  "cuts_in_front_of_human": -2.5,
+  "time_cost": -0.5,
+  "delays_serving": -1.0
+}

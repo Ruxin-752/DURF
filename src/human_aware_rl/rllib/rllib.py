@@ -830,6 +830,12 @@ def load_trainer(save_path, true_num_workers=False):
     # Playback and smoke tests run on CPU. This also avoids Ray's Windows GPU
     # autodetection path, which can fail when vendor tools are absent.
     config["training_params"]["num_gpus"] = 0
+    config.setdefault("ray_params", {})["temp_dir"] = os.path.join(
+        os.getcwd(), "reproduced_results", "ray_tmp"
+    )
+    config["results_dir"] = os.path.join(
+        os.getcwd(), "reproduced_results", "ray_results"
+    )
 
     if "trained_example" in save_path:
         # For the unit testing we update the result directory in order to avoid an error

@@ -1,0 +1,40 @@
+[
+  {
+    "feedback_id": "F01_positive_clear_path",
+    "text": "Good job moving away from my path.",
+    "expected_feedback_type": "evaluative",
+    "trajectory_features": {
+      "clears_human_path": 1,
+      "respects_human_intent": 1,
+      "blocks_human_path": 0
+    }
+  },
+  {
+    "feedback_id": "F02_do_not_block",
+    "text": "别挡我的路，你应该自己让开。",
+    "expected_feedback_type": "imperative",
+    "target_action": "step_aside"
+  },
+  {
+    "feedback_id": "F03_do_not_take_dish",
+    "text": "I am getting the dish, don't take it and don't block serving.",
+    "expected_feedback_type": "imperative",
+    "target_action": "move_away_from_serving_route"
+  },
+  {
+    "feedback_id": "F04_duplicate_task_bad",
+    "text": "You repeated my tomato task, that is bad.",
+    "expected_feedback_type": "descriptive"
+  },
+  {
+    "feedback_id": "F05_get_onion",
+    "text": "我拿番茄了，你去拿洋葱，不要挡我去锅。",
+    "expected_feedback_type": "imperative",
+    "target_action": "move_to_onion_via_non_blocking_route"
+  },
+  {
+    "feedback_id": "F06_cutting_path_bad",
+    "text": "Don't cut in front of my shortest path.",
+    "expected_feedback_type": "descriptive"
+  }
+]

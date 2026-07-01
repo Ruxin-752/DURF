@@ -1,0 +1,386 @@
+[
+  {
+    "probe_id": "P01_do_not_take_human_dish_or_block_serving_route",
+    "probe_name": "Do Not Take Human Dish Or Block Serving Route",
+    "category": "HumanComfortCoordination",
+    "difficulty": "medium",
+    "research_question": "Does the agent avoid taking the dish and avoid blocking the shortest serving route when the human is going for the dish?",
+    "feedback_type_tested": "imperative",
+    "credit_assignment_target": "action",
+    "precondition": {
+      "human_feedback_example": [
+        "I am going to get the dish, don't take it.",
+        "别拿盘子，我去拿；也别挡我去出餐口的路。"
+      ]
+    },
+    "state": {
+      "map": "ring_tomato_onion_10x6",
+      "current_orders": [["tomato", "tomato", "onion"]],
+      "pot_state": {"ingredients": ["tomato", "tomato", "onion"], "status": "ready"},
+      "human_position": [2, 1],
+      "human_holding": "none",
+      "human_intent": "pick_dish_then_serve",
+      "agent_position": [6, 1],
+      "agent_holding": "none",
+      "critical_path": ["dish_dispenser_left_top", "pot_top_middle", "serving_counter_right_middle"]
+    },
+    "available_actions": [
+      {
+        "action_id": "move_away_from_serving_route",
+        "action_type": "move",
+        "target": "non_blocking_ring_tile",
+        "features": {
+          "respects_human_intent": 1,
+          "avoids_duplicate_human_task": 1,
+          "clears_human_shortest_path": 1,
+          "blocks_human_path": 0,
+          "human_wait_cost": 0
+        }
+      },
+      {
+        "action_id": "pick_dish",
+        "action_type": "pickup",
+        "target": "dish_dispenser_left_top",
+        "features": {
+          "duplicate_human_task": 1,
+          "steals_human_target": 1,
+          "blocks_human_path": 1,
+          "human_wait_cost": 1
+        }
+      },
+      {
+        "action_id": "move_to_serving_route",
+        "action_type": "move",
+        "target": "human_shortest_path_to_serving",
+        "features": {
+          "blocks_human_path": 1,
+          "blocks_serving_route": 1,
+          "human_wait_cost": 1,
+          "delays_serving": 1
+        }
+      }
+    ],
+    "expected_action": "move_away_from_serving_route",
+    "acceptable_actions": ["move_away_from_serving_route"],
+    "wrong_actions": ["pick_dish", "move_to_serving_route"],
+    "success_condition": "agent does not take the dish and clears the route from dish to pot to serving counter",
+    "scoring": {"correct": 1, "incorrect": 0},
+    "notes": "Human is already committed to the dish-serving plan."
+  },
+  {
+    "probe_id": "P02_move_away_when_blocking_human",
+    "probe_name": "Move Away When Blocking Human",
+    "category": "HumanComfortCoordination",
+    "difficulty": "easy",
+    "research_question": "Does the agent move away when it is blocking the human's immediate path?",
+    "feedback_type_tested": "imperative",
+    "credit_assignment_target": "action",
+    "precondition": {
+      "human_feedback_example": ["Move out of my way.", "你挡住我了，自己让开。"]
+    },
+    "state": {
+      "map": "ring_tomato_onion_10x6",
+      "current_orders": [["tomato", "tomato", "onion"]],
+      "pot_state": {"ingredients": ["tomato"], "status": "in_progress", "missing_ingredients": ["tomato", "onion"]},
+      "human_position": [3, 1],
+      "human_holding": "tomato",
+      "human_intent": "move_to_pot",
+      "human_next_tile": [4, 1],
+      "agent_position": [4, 1],
+      "agent_holding": "none",
+      "agent_is_blocking_human": true
+    },
+    "available_actions": [
+      {
+        "action_id": "step_aside",
+        "action_type": "move",
+        "target": "adjacent_non_blocking_tile",
+        "features": {
+          "respects_human_intent": 1,
+          "clears_human_path": 1,
+          "blocks_human_path": 0,
+          "human_wait_cost": 0
+        }
+      },
+      {
+        "action_id": "stay_blocking",
+        "action_type": "wait",
+        "target": "human_next_tile",
+        "features": {
+          "blocks_human_path": 1,
+          "human_wait_cost": 1,
+          "frustrates_human": 1
+        }
+      },
+      {
+        "action_id": "move_into_human",
+        "action_type": "move",
+        "target": "human_position",
+        "features": {
+          "blocks_human_path": 1,
+          "collision_risk": 1,
+          "frustrates_human": 1
+        }
+      }
+    ],
+    "expected_action": "step_aside",
+    "acceptable_actions": ["step_aside"],
+    "wrong_actions": ["stay_blocking", "move_into_human"],
+    "success_condition": "agent leaves the tile the human is trying to move into",
+    "scoring": {"correct": 1, "incorrect": 0},
+    "notes": "Tests whether the agent frees the human's next route tile."
+  },
+  {
+    "probe_id": "P03_choose_complementary_task_to_human_tomato",
+    "probe_name": "Choose Complementary Task To Human Tomato",
+    "category": "HumanComfortCoordination",
+    "difficulty": "medium",
+    "research_question": "Does the agent choose a complementary task when the human is already handling tomato?",
+    "feedback_type_tested": "descriptive",
+    "credit_assignment_target": "feature",
+    "precondition": {
+      "human_feedback_example": ["I already have tomato, you get onion or dish.", "我拿番茄了，你别也去拿番茄。"]
+    },
+    "state": {
+      "map": "ring_tomato_onion_10x6",
+      "current_orders": [["tomato", "tomato", "onion"]],
+      "pot_state": {"ingredients": ["tomato"], "status": "in_progress", "missing_ingredients": ["tomato", "onion"]},
+      "human_position": [1, 4],
+      "human_holding": "tomato",
+      "human_intent": "add_tomato_to_pot",
+      "agent_position": [4, 4],
+      "agent_holding": "none"
+    },
+    "available_actions": [
+      {
+        "action_id": "move_to_onion",
+        "action_type": "move",
+        "target": "onion_dispenser_bottom",
+        "features": {
+          "complementary_to_human": 1,
+          "avoids_duplicate_human_task": 1,
+          "respects_human_intent": 1,
+          "recipe_needs_onion": 1
+        }
+      },
+      {
+        "action_id": "move_to_tomato",
+        "action_type": "move",
+        "target": "tomato_dispenser_left_bottom",
+        "features": {
+          "duplicate_human_task": 1,
+          "crowds_human_target": 1,
+          "frustrates_human": 1,
+          "human_wait_cost": 1
+        }
+      },
+      {
+        "action_id": "wait_near_tomato",
+        "action_type": "wait",
+        "target": "tomato_dispenser_left_bottom",
+        "features": {
+          "crowds_human_target": 1,
+          "time_cost": 1,
+          "frustrates_human": 1
+        }
+      }
+    ],
+    "expected_action": "move_to_onion",
+    "acceptable_actions": ["move_to_onion"],
+    "wrong_actions": ["move_to_tomato", "wait_near_tomato"],
+    "success_condition": "agent selects onion or another complementary task instead of duplicating the human's tomato task",
+    "scoring": {"correct": 1, "incorrect": 0},
+    "notes": "Tests role complementarity."
+  },
+  {
+    "probe_id": "P06_do_not_cut_into_human_shortest_path",
+    "probe_name": "Do Not Cut Into Human Shortest Path",
+    "category": "HumanComfortCoordination",
+    "difficulty": "medium",
+    "research_question": "Does the agent avoid cutting into the human's shortest route to the pot?",
+    "feedback_type_tested": "descriptive",
+    "credit_assignment_target": "feature",
+    "precondition": {
+      "human_feedback_example": ["Don't cut in front of me.", "别插到我的最短路径上。"]
+    },
+    "state": {
+      "map": "ring_tomato_onion_10x6",
+      "current_orders": [["tomato", "tomato", "onion"]],
+      "pot_state": {"ingredients": ["tomato"], "status": "in_progress", "missing_ingredients": ["tomato", "onion"]},
+      "human_position": [2, 1],
+      "human_holding": "tomato",
+      "human_intent": "add_tomato_to_pot",
+      "human_shortest_path": [[3, 1], [4, 1]],
+      "agent_position": [5, 1],
+      "agent_holding": "none",
+      "agent_possible_targets": ["onion_dispenser_bottom", "dish_dispenser_left_top"]
+    },
+    "available_actions": [
+      {
+        "action_id": "move_to_onion_via_lower_route",
+        "action_type": "move",
+        "target": "onion_dispenser_bottom",
+        "features": {
+          "complementary_to_human": 1,
+          "avoids_human_shortest_path": 1,
+          "respects_human_intent": 1,
+          "blocks_human_path": 0
+        }
+      },
+      {
+        "action_id": "move_left_into_human_shortest_path",
+        "action_type": "move",
+        "target": "human_shortest_path",
+        "features": {
+          "blocks_human_path": 1,
+          "cuts_in_front_of_human": 1,
+          "human_wait_cost": 1,
+          "frustrates_human": 1
+        }
+      },
+      {
+        "action_id": "wait_on_human_shortest_path",
+        "action_type": "wait",
+        "target": "human_shortest_path",
+        "features": {
+          "blocks_human_path": 1,
+          "human_wait_cost": 1,
+          "time_cost": 1
+        }
+      }
+    ],
+    "expected_action": "move_to_onion_via_lower_route",
+    "acceptable_actions": ["move_to_onion_via_lower_route"],
+    "wrong_actions": ["move_left_into_human_shortest_path", "wait_on_human_shortest_path"],
+    "success_condition": "agent chooses a route that does not cut into the human's shortest path to the pot",
+    "scoring": {"correct": 1, "incorrect": 0},
+    "notes": "Tests helpful routing without interrupting the human path."
+  },
+  {
+    "probe_id": "P12_do_not_interrupt_human_plan",
+    "probe_name": "Do Not Interrupt Human Plan",
+    "category": "RespectHumanIntent",
+    "difficulty": "hard",
+    "research_question": "Does the agent avoid interrupting a human plan that is already underway?",
+    "feedback_type_tested": "descriptive",
+    "credit_assignment_target": "feature",
+    "precondition": {
+      "human_feedback_example": ["I am already doing this, don't interrupt.", "我已经在做这条路线了，你别插进来。"]
+    },
+    "state": {
+      "map": "ring_tomato_onion_10x6",
+      "current_orders": [["tomato", "tomato", "onion"]],
+      "pot_state": {"ingredients": ["tomato", "tomato", "onion"], "status": "ready"},
+      "human_plan": ["pick_dish", "pick_ready_soup", "serve_soup"],
+      "human_current_step": "pick_dish",
+      "human_position": [2, 1],
+      "human_holding": "none",
+      "agent_position": [6, 1],
+      "agent_holding": "none"
+    },
+    "available_actions": [
+      {
+        "action_id": "choose_non_interfering_target",
+        "action_type": "move",
+        "target": "non_blocking_support_position",
+        "features": {
+          "respects_human_intent": 1,
+          "avoids_duplicate_human_task": 1,
+          "avoids_human_shortest_path": 1,
+          "blocks_human_path": 0
+        }
+      },
+      {
+        "action_id": "move_to_dish",
+        "action_type": "move",
+        "target": "dish_dispenser_left_top",
+        "features": {
+          "duplicate_human_task": 1,
+          "steals_human_target": 1,
+          "blocks_human_path": 1,
+          "frustrates_human": 1
+        }
+      },
+      {
+        "action_id": "move_to_serving_counter_access",
+        "action_type": "move",
+        "target": "serving_counter_right_middle",
+        "features": {
+          "blocks_serving_route": 1,
+          "blocks_human_path": 1,
+          "human_wait_cost": 1
+        }
+      }
+    ],
+    "expected_action": "choose_non_interfering_target",
+    "acceptable_actions": ["choose_non_interfering_target"],
+    "wrong_actions": ["move_to_dish", "move_to_serving_counter_access"],
+    "success_condition": "agent chooses a non-interfering support position instead of interrupting the human's dish-to-serve plan",
+    "scoring": {"correct": 1, "incorrect": 0},
+    "notes": "Tests stable cooperation with an inferred human plan."
+  },
+  {
+    "probe_id": "P16_help_without_interfering",
+    "probe_name": "Help Without Interfering",
+    "category": "HumanComfortCoordination",
+    "difficulty": "hard",
+    "research_question": "Does the agent help the team while avoiding interference with the human's current route?",
+    "feedback_type_tested": "imperative",
+    "credit_assignment_target": "action",
+    "precondition": {
+      "human_feedback_example": ["Help me, but don't block my path.", "你可以去拿洋葱，但别挡我去锅的路。"]
+    },
+    "state": {
+      "map": "ring_tomato_onion_10x6",
+      "current_orders": [["tomato", "tomato", "onion"]],
+      "pot_state": {"ingredients": ["tomato"], "status": "in_progress", "missing_ingredients": ["tomato", "onion"]},
+      "human_position": [3, 1],
+      "human_holding": "tomato",
+      "human_intent": "add_tomato_to_pot",
+      "agent_position": [6, 1],
+      "agent_holding": "none",
+      "human_shortest_path": [[4, 1]]
+    },
+    "available_actions": [
+      {
+        "action_id": "move_to_onion_via_non_blocking_route",
+        "action_type": "move",
+        "target": "onion_dispenser_bottom",
+        "features": {
+          "complementary_to_human": 1,
+          "recipe_needs_onion": 1,
+          "avoids_human_shortest_path": 1,
+          "respects_human_intent": 1,
+          "blocks_human_path": 0
+        }
+      },
+      {
+        "action_id": "move_to_pot_access",
+        "action_type": "move",
+        "target": "pot_top_middle",
+        "features": {
+          "blocks_human_path": 1,
+          "cuts_in_front_of_human": 1,
+          "human_wait_cost": 1,
+          "frustrates_human": 1
+        }
+      },
+      {
+        "action_id": "move_to_tomato",
+        "action_type": "move",
+        "target": "tomato_dispenser_left_bottom",
+        "features": {
+          "duplicate_human_task": 1,
+          "crowds_human_target": 1,
+          "frustrates_human": 1
+        }
+      }
+    ],
+    "expected_action": "move_to_onion_via_non_blocking_route",
+    "acceptable_actions": ["move_to_onion_via_non_blocking_route"],
+    "wrong_actions": ["move_to_pot_access", "move_to_tomato"],
+    "success_condition": "agent helps by moving toward onion through a route that does not block the human's path to the pot",
+    "scoring": {"correct": 1, "incorrect": 0},
+    "notes": "Tests helpfulness without interference."
+  }
+]
