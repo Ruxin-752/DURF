@@ -1017,11 +1017,17 @@ class OvercookedState(object):
 
 BASE_REW_SHAPING_PARAMS = {
     "PLACEMENT_IN_POT_REW": 3,
+    "TOMATO_PICKUP_REWARD": 0,
+    "ONION_PICKUP_REWARD": 0,
     "DISH_PICKUP_REWARD": 3,
+    "READY_DISH_PICKUP_REWARD": 0,
     "SOUP_PICKUP_REWARD": 5,
     "DISH_DISP_DISTANCE_REW": 0,
     "POT_DISTANCE_REW": 0,
     "SOUP_DISTANCE_REW": 0,
+    "TOMATO_DISP_DISTANCE_REWARD": 0,
+    "TOMATO_TO_POT_DISTANCE_REWARD": 0,
+    "ONION_TO_POT_DISTANCE_REWARD": 0,
 }
 
 EVENT_TYPES = [
@@ -1160,16 +1166,16 @@ class OvercookedGridworld(object):
         grid = base_layout_params["grid"]
         del base_layout_params["grid"]
         base_layout_params["layout_name"] = layout_name
-        if "start_state" in base_layout_params:
-            base_layout_params["start_state"] = OvercookedState.from_dict(
-                base_layout_params["start_state"]
-            )
+        raw_start_state = base_layout_params.pop("start_state", None)
 
         # Clean grid
         grid = [layout_row.strip() for layout_row in grid.split("\n")]
-        return OvercookedGridworld.from_grid(
+        mdp = OvercookedGridworld.from_grid(
             grid, base_layout_params, params_to_overwrite
         )
+        if raw_start_state is not None:
+            mdp.start_state = OvercookedState.from_dict(raw_start_state)
+        return mdp
 
     @staticmethod
     def from_grid(
@@ -1414,6 +1420,13 @@ class OvercookedGridworld(object):
 
         # Additional dense reward logic
         # shaped_reward += self.calculate_distance_based_shaped_reward(state, new_state)
+        curriculum_shaped_reward = self.calculate_curriculum_distance_shaped_reward(
+            state, new_state
+        )
+        shaped_reward_by_agent = [
+            base + extra
+            for base, extra in zip(shaped_reward_by_agent, curriculum_shaped_reward)
+        ]
         infos = {
             "event_infos": events_infos,
             "sparse_reward_by_agent": sparse_reward_by_agent,
@@ -1428,6 +1441,118 @@ class OvercookedGridworld(object):
                 new_state, motion_planner
             )
         return new_state, infos
+
+    def calculate_curriculum_distance_shaped_reward(self, state, new_state):
+        """Small optional curriculum rewards for sparse navigation skills."""
+        tomato_disp_reward = self.reward_shaping_params.get(
+            "TOMATO_DISP_DISTANCE_REWARD", 0
+        )
+        tomato_to_pot_reward = self.reward_shaping_params.get(
+            "TOMATO_TO_POT_DISTANCE_REWARD", 0
+        )
+        onion_to_pot_reward = self.reward_shaping_params.get(
+            "ONION_TO_POT_DISTANCE_REWARD", 0
+        )
+        dish_disp_reward = self.reward_shaping_params.get(
+            "DISH_DISP_DISTANCE_REW", 0
+        )
+        dish_to_pot_reward = self.reward_shaping_params.get("POT_DISTANCE_REW", 0)
+        soup_to_serving_reward = self.reward_shaping_params.get(
+            "SOUP_DISTANCE_REW", 0
+        )
+        if (
+            tomato_disp_reward == 0
+            and tomato_to_pot_reward == 0
+            and onion_to_pot_reward == 0
+            and dish_disp_reward == 0
+            and dish_to_pot_reward == 0
+            and soup_to_serving_reward == 0
+        ):
+            return [0] * self.num_players
+
+        def min_manhattan(pos, targets):
+            if not targets:
+                return np.inf
+            return min(abs(pos[0] - tx) + abs(pos[1] - ty) for tx, ty in targets)
+
+        rewards = [0] * self.num_players
+        tomato_locs = self.get_tomato_dispenser_locations()
+        pot_locs = self.get_pot_locations()
+        dish_locs = self.get_dish_dispenser_locations()
+        serving_locs = self.get_serving_locations()
+        pot_states = self.get_pot_states(new_state)
+        ready_pots = self.get_ready_pots(pot_states)
+        cooking_pots = ready_pots + self.get_cooking_pots(pot_states)
+        nearly_ready_pots = cooking_pots + self.get_partially_full_pots(pot_states)
+        dishes_in_play = len(new_state.player_objects_by_type["dish"])
+        for player_idx, (old_player, new_player) in enumerate(
+            zip(state.players, new_state.players)
+        ):
+            if (
+                tomato_disp_reward
+                and not old_player.has_object()
+                and not new_player.has_object()
+            ):
+                old_dist = min_manhattan(old_player.position, tomato_locs)
+                new_dist = min_manhattan(new_player.position, tomato_locs)
+                if new_dist < old_dist:
+                    rewards[player_idx] += tomato_disp_reward * (old_dist - new_dist)
+
+            if (
+                tomato_to_pot_reward
+                and new_player.has_object()
+                and new_player.get_object().name == Recipe.TOMATO
+            ):
+                old_dist = min_manhattan(old_player.position, pot_locs)
+                new_dist = min_manhattan(new_player.position, pot_locs)
+                if new_dist < old_dist:
+                    rewards[player_idx] += tomato_to_pot_reward * (old_dist - new_dist)
+
+            if (
+                onion_to_pot_reward
+                and new_player.has_object()
+                and new_player.get_object().name == Recipe.ONION
+            ):
+                old_dist = min_manhattan(old_player.position, pot_locs)
+                new_dist = min_manhattan(new_player.position, pot_locs)
+                if new_dist < old_dist:
+                    rewards[player_idx] += onion_to_pot_reward * (old_dist - new_dist)
+
+            if (
+                dish_disp_reward
+                and not new_player.has_object()
+                and cooking_pots
+                and dishes_in_play == 0
+            ):
+                old_dist = min_manhattan(old_player.position, dish_locs)
+                new_dist = min_manhattan(new_player.position, dish_locs)
+                if new_dist < old_dist:
+                    rewards[player_idx] += dish_disp_reward * (old_dist - new_dist)
+
+            if (
+                dish_to_pot_reward
+                and new_player.has_object()
+                and new_player.get_object().name == "dish"
+                and nearly_ready_pots
+            ):
+                old_dist = min_manhattan(old_player.position, pot_locs)
+                new_dist = min_manhattan(new_player.position, pot_locs)
+                if new_dist < old_dist:
+                    rewards[player_idx] += dish_to_pot_reward * (old_dist - new_dist)
+
+            if (
+                soup_to_serving_reward
+                and new_player.has_object()
+                and new_player.get_object().name == "soup"
+            ):
+                old_dist = min_manhattan(old_player.position, serving_locs)
+                new_dist = min_manhattan(new_player.position, serving_locs)
+                if new_dist < old_dist:
+                    rewards[player_idx] += soup_to_serving_reward * (
+                        old_dist - new_dist
+                    )
+
+        return rewards
 
     def resolve_interacts(self, new_state, joint_action, events_infos):
         """
@@ -1488,12 +1613,22 @@ class OvercookedGridworld(object):
                 self.log_object_pickup(
                     events_infos, new_state, "onion", pot_states, player_idx
                 )
+                shaped_reward[player_idx] += self.reward_shaping_params.get(
+                    "ONION_PICKUP_REWARD", 0
+                )
 
                 # Onion pickup from dispenser
                 obj = ObjectState("onion", pos)
                 player.set_object(obj)
 
             elif terrain_type == "T" and player.held_object is None:
+                self.log_object_pickup(
+                    events_infos, new_state, "tomato", pot_states, player_idx
+                )
+                shaped_reward[player_idx] += self.reward_shaping_params.get(
+                    "TOMATO_PICKUP_REWARD", 0
+                )
+
                 # Tomato pickup from dispenser
                 player.set_object(ObjectState("tomato", pos))
 
@@ -1507,6 +1642,10 @@ class OvercookedGridworld(object):
                     shaped_reward[player_idx] += self.reward_shaping_params[
                         "DISH_PICKUP_REWARD"
                     ]
+                if self.is_dish_pickup_for_ready_soup_useful(new_state, pot_states):
+                    shaped_reward[player_idx] += self.reward_shaping_params.get(
+                        "READY_DISH_PICKUP_REWARD", 0
+                    )
 
                 # Perform dish pickup from dispenser
                 obj = ObjectState("dish", pos)
@@ -2202,6 +2341,20 @@ class OvercookedGridworld(object):
             + self.get_partially_full_pots(pot_states)
         )
         return no_dishes_on_counters and num_player_dishes < non_empty_pots
+
+    def is_dish_pickup_for_ready_soup_useful(
+        self, state, pot_states, player_index=None
+    ):
+        """
+        Narrow curriculum signal: reward dish pickup only when a ready soup exists.
+        This prevents the agent from learning a generic dish-pickup loop before it
+        has learned to fill and cook pots.
+        """
+        dishes_on_counters = self.get_counter_objects_dict(state)["dish"]
+        no_dishes_on_counters = len(dishes_on_counters) == 0
+        ready_pots = self.get_ready_pots(pot_states)
+        num_player_dishes = len(state.player_objects_by_type["dish"])
+        return no_dishes_on_counters and len(ready_pots) > num_player_dishes
 
     def is_dish_drop_useful(self, state, pot_states, player_index):
         """

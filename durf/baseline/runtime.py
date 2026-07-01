@@ -22,8 +22,48 @@ CRAMPED_ROOM_COMPATIBLE_LAYOUTS = (
     "cramped_room_two_pots",
 )
 RING_TOMATO_ONION_LAYOUT = "ring_tomato_onion_10x6"
+RING_TOMATO_ONION_CURRICULUM_LAYOUTS = (
+    "ring_tomato_onion_10x6_curriculum_micro",
+    "ring_tomato_onion_10x6_curriculum_micro_delivery",
+    "ring_tomato_onion_10x6_curriculum_cooking_serving_spawn_clean",
+    "ring_tomato_onion_10x6_curriculum_cooking_serving_spawn_near",
+    "ring_tomato_onion_10x6_curriculum_ready_serving",
+    "ring_tomato_onion_10x6_curriculum_ready_serving_spawn_clean",
+    "ring_tomato_onion_10x6_curriculum_ready_serving_spawn_near",
+    "ring_tomato_onion_10x6_curriculum_tomato_gap",
+    "ring_tomato_onion_10x6_curriculum_final_tomato_held_spawn_near",
+    "ring_tomato_onion_10x6_curriculum_final_onion_held_spawn_near",
+    "ring_tomato_onion_10x6_curriculum_final_onion_pickup_spawn_near",
+    "ring_tomato_onion_10x6_curriculum_soup_held_at_service_target_geometry",
+    "ring_tomato_onion_10x6_curriculum_soup_held_target_geometry",
+    "ring_tomato_onion_10x6_curriculum_dish_held_ready_soup_target_geometry",
+    "ring_tomato_onion_10x6_curriculum_empty_ready_soup_target_geometry",
+    "ring_tomato_onion_10x6_curriculum_final_onion_held_target_pot_near",
+    "ring_tomato_onion_10x6_curriculum_final_onion_held_target_top_left",
+    "ring_tomato_onion_10x6_curriculum_final_onion_held_target_mid_left_2",
+    "ring_tomato_onion_10x6_curriculum_final_onion_held_target_mid_left_3",
+    "ring_tomato_onion_10x6_curriculum_final_onion_held_target_bottom_mid_2",
+    "ring_tomato_onion_10x6_curriculum_final_onion_held_target_bottom_mid_3",
+    "ring_tomato_onion_10x6_curriculum_final_onion_held_target_bottom_left",
+    "ring_tomato_onion_10x6_curriculum_final_onion_held_target_bottom",
+    "ring_tomato_onion_10x6_curriculum_final_onion_pickup_target_geometry",
+    "ring_tomato_onion_10x6_curriculum_second_tomato_held_spawn_near",
+    "ring_tomato_onion_10x6_curriculum_one_tomato_finish_spawn_clean",
+    "ring_tomato_onion_10x6_curriculum_one_tomato_finish_spawn_near",
+    "ring_tomato_onion_10x6_curriculum_two_tomato_finish_spawn_near",
+    "ring_tomato_onion_10x6_curriculum_tomato_down_potting",
+    "ring_tomato_onion_10x6_curriculum_tomato_down_spawn_near",
+    "ring_tomato_onion_10x6_curriculum_tomato_down_near",
+    "ring_tomato_onion_10x6_curriculum_tomato_down_mid",
+    "ring_tomato_onion_10x6_curriculum_open_delivery",
+    "ring_tomato_onion_10x6_curriculum_open",
+    "ring_tomato_onion_10x6_curriculum_easy",
+    "ring_tomato_onion_10x6_curriculum_corridor",
+    "ring_tomato_onion_10x6_curriculum_tomato",
+)
 DEFAULT_PLAYABLE_LAYOUTS = (
     *CRAMPED_ROOM_COMPATIBLE_LAYOUTS,
+    *RING_TOMATO_ONION_CURRICULUM_LAYOUTS,
     RING_TOMATO_ONION_LAYOUT,
 )
 DEFAULT_MDP_PARAMS = {
@@ -52,7 +92,10 @@ AGENT_LAYOUTS = {
 AGENT_COMPATIBLE_LAYOUTS = {
     "RllibCrampedRoomBC": CRAMPED_ROOM_COMPATIBLE_LAYOUTS,
     "RllibCrampedRoomSP": CRAMPED_ROOM_COMPATIBLE_LAYOUTS,
-    "RllibRingTomatoOnion10x6SP": (RING_TOMATO_ONION_LAYOUT,),
+    "RllibRingTomatoOnion10x6SP": (
+        *RING_TOMATO_ONION_CURRICULUM_LAYOUTS,
+        RING_TOMATO_ONION_LAYOUT,
+    ),
 }
 
 

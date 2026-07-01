@@ -441,12 +441,14 @@ def render_chat_panel(
     hint = "Enter Send | Esc Close | Describe why the agent behavior is bad"
     screen.blit(small_font.render(hint, True, (170, 210, 180)), (105, 126))
 
-    y = 155
     left = 105
     right_padding = 28
     content_gap = 8
-    history = chat_messages[-8:]
-    for message in history:
+    line_height = 22
+    history_top = 155
+    history_bottom = 448
+    history_y = history_bottom
+    for message in reversed(chat_messages):
         role = message["role"].upper()
         color = (180, 220, 255) if message["role"] == "user" else (245, 220, 150)
         prefix = f"{role}: "
@@ -454,30 +456,55 @@ def render_chat_panel(
         content_x = left + prefix_width
         max_text_width = panel.right - content_x - right_padding
         prefix_surface = small_font.render(prefix, True, color)
-        for idx, line in enumerate(
-            wrap_text(message["content"], small_font, max_text_width)
-        ):
-            if idx == 0:
-                screen.blit(prefix_surface, (left, y))
-            screen.blit(small_font.render(line, True, color), (content_x, y))
-            y += 22
-            if y > 455:
+        lines = wrap_text(message["content"], small_font, max_text_width)
+        block_height = len(lines) * line_height + 6
+        if history_y - block_height < history_top:
+            visible_count = max(0, (history_y - history_top - 6) // line_height)
+            if visible_count == 0:
                 break
-        if y > 455:
+            first_visible_index = max(0, len(lines) - visible_count)
+            lines = lines[first_visible_index:]
+            block_height = len(lines) * line_height
+            continuation = first_visible_index > 0
+        else:
+            first_visible_index = 0
+            continuation = False
+
+        block_y = history_y - block_height
+        for idx, line in enumerate(lines):
+            source_index = first_visible_index + idx
+            line_y = block_y + idx * line_height
+            if source_index == 0:
+                screen.blit(prefix_surface, (left, line_y))
+            elif continuation and idx == 0:
+                cont_prefix = f"{role} ... "
+                screen.blit(small_font.render(cont_prefix, True, color), (left, line_y))
+            screen.blit(small_font.render(line, True, color), (content_x, line_y))
+        history_y = block_y - 6
+        if history_y <= history_top:
             break
-        y += 6
 
     status = "Thinking..." if chat_pending else chat_status
     if status:
-        screen.blit(small_font.render(status, True, (245, 200, 105)), (105, 460))
+        status_lines = wrap_text(status, small_font, 730)
+        for idx, line in enumerate(status_lines[:2]):
+            screen.blit(
+                small_font.render(line, True, (245, 200, 105)),
+                (105, 458 + idx * 18),
+            )
 
-    input_rect = pygame.Rect(105, 490, 730, 42)
+    input_rect = pygame.Rect(105, 490, 730, 72)
     pygame.draw.rect(screen, (35, 40, 50), input_rect, border_radius=5)
     pygame.draw.rect(screen, (120, 140, 170), input_rect, width=1, border_radius=5)
     cursor = "|" if pygame.time.get_ticks() // 500 % 2 == 0 else ""
     input_text = f"{chat_input}{cursor}" if chat_input else f"Type message...{cursor}"
     input_color = (235, 235, 235) if chat_input else (130, 140, 155)
-    screen.blit(small_font.render(input_text[-120:], True, input_color), (118, 503))
+    input_lines = wrap_text(input_text, small_font, input_rect.width - 26)
+    for idx, line in enumerate(input_lines[-3:]):
+        screen.blit(
+            small_font.render(line, True, input_color),
+            (118, 500 + idx * 20),
+        )
 
 
 def main() -> int:

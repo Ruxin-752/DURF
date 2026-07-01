@@ -1,0 +1,36 @@
+{
+    "grid":  """XXXXPXXXXX
+                X     DS X
+                X  12    X
+                X        X
+                XT       X
+                XXXXXXXXXX""",
+    "start_bonus_orders": [],
+    "start_all_orders" : [
+        { "ingredients" : ["tomato", "tomato", "tomato"]}
+    ],
+    "start_state" : {
+        "players": [
+            {"position": [3, 2], "orientation": [1, 0], "held_object": None},
+            {"position": [4, 2], "orientation": [1, 0], "held_object": None}
+        ],
+        "objects": [{
+            "name": "soup",
+            "position": [4, 0],
+            "_ingredients": [
+                {"name": "tomato", "position": [4, 0]},
+                {"name": "tomato", "position": [4, 0]},
+                {"name": "tomato", "position": [4, 0]}
+            ],
+            "_cooking_tick": 10,
+            "cooking_tick": 10,
+            "is_cooking": True,
+            "is_ready": False,
+            "is_idle": False,
+            "cook_time": 20
+        }],
+        "bonus_orders": [],
+        "all_orders": [{"ingredients": ["tomato", "tomato", "tomato"]}]
+    },
+    "rew_shaping_params": None
+}
