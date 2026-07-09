@@ -76,6 +76,29 @@ def convert_feedback(session_dir: Path) -> list[dict]:
             )
         )
 
+    for row in read_csv(session_dir / "annotations.csv"):
+        records.append(
+            feedback_event(
+                source="annotations.csv",
+                timestamp_utc=row.get("timestamp_utc", ""),
+                episode=as_int(row.get("episode")) or 0,
+                episode_step=as_int(row.get("episode_step")) or 0,
+                total_step=as_int(row.get("total_step")) or 0,
+                feedback_text=row.get("annotation_text"),
+                feedback_value=None,
+                role="human_annotation",
+                extra={
+                    "layout": row.get("layout"),
+                    "scope_hint": row.get("annotation_scope_hint"),
+                    "last_ai_action": as_int(row.get("last_ai_action")),
+                    "last_ai_action_name": row.get("last_ai_action_name"),
+                    "episode_reward": as_float(row.get("episode_reward")),
+                    "state_facts": as_json(row.get("state_json")),
+                    "recent_replay": as_json(row.get("recent_replay_json")),
+                },
+            )
+        )
+
     records.sort(key=lambda item: (item["total_step"], item["timestamp_utc"]))
     return records
 

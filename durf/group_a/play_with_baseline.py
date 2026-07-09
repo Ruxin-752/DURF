@@ -1,4 +1,4 @@
-"""Play Overcooked as the green agent beside the archived blue RLlib PPO."""
+"""Play Overcooked as the green human beside a blue AI teammate."""
 
 from __future__ import annotations
 
@@ -8,6 +8,7 @@ import ctypes
 import json
 import os
 import queue
+import random
 import sys
 import threading
 import time
@@ -15,9 +16,20 @@ import traceback
 from datetime import datetime, timezone
 from pathlib import Path
 
+import numpy as np
 import pygame
+import tensorflow as tf
 from overcooked_ai_py.visualization.state_visualizer import StateVisualizer
 
+from durf.baseline.action_prior import StepPrefixPrior, available_priors
+from durf.baseline.collect_rule_teacher_dataset import (
+    SUBGOAL_TO_INDEX,
+    SUBGOALS,
+    first_action_to_feature,
+    make_motion_planner,
+    pots_needing_ingredient,
+    rule_teacher_decision,
+)
 from durf.baseline.runtime import (
     DEFAULT_AGENT_NAME,
     DEFAULT_PLAYABLE_LAYOUTS,
@@ -40,7 +52,7 @@ PAUSE_BUTTON = pygame.Rect(790, 620, 130, 42)
 CHAT_BUTTON = pygame.Rect(650, 620, 120, 42)
 PAUSE_DEBOUNCE_MS = 300
 LAYOUT_SWITCH_DEBOUNCE_MS = 300
-BUILD_ID = "pause-v5-chat"
+BUILD_ID = "pause-v8-visual-replay"
 LAYOUT_NUMBER_KEYS = (pygame.K_1, pygame.K_2, pygame.K_3, pygame.K_4)
 WINDOWS_LAYOUT_NUMBER_KEYS = (0x31, 0x32, 0x33, 0x34)
 WINDOWS_CHAT_CHAR_KEYS = {
@@ -159,6 +171,27 @@ def parse_args() -> argparse.Namespace:
         default=DEFAULT_AGENT_NAME,
         help="RLlib agent name or path; defaults to RllibCrampedRoomSP",
     )
+    parser.add_argument(
+        "--ai-mode",
+        choices=("ppo", "random", "subgoal_executor"),
+        default="ppo",
+        help=(
+            "Use the selected PPO agent, a uniformly random collaborator, or "
+            "the rule-planner + learned subgoal executor backbone."
+        ),
+    )
+    parser.add_argument(
+        "--subgoal-executor",
+        type=Path,
+        default=(
+            REPO_ROOT
+            / "outputs"
+            / "subgoal_executors"
+            / "h0_p0_rule_executor_v5_fast_two_delivery_recovery"
+            / "executor.keras"
+        ),
+        help="Keras executor used when --ai-mode subgoal_executor.",
+    )
     parser.add_argument("--layout", default="cramped_room")
     parser.add_argument(
         "--layouts",
@@ -179,6 +212,21 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--render-fps", type=int, default=60)
     parser.add_argument("--start-delay", type=float, default=3.0)
     parser.add_argument(
+        "--horizon",
+        type=int,
+        default=800,
+        help="Maximum environment timesteps per episode. Default 800 for H0 demos.",
+    )
+    parser.add_argument(
+        "--ai-action-prior",
+        choices=available_priors(),
+        default=None,
+        help=(
+            "Optional deterministic AI prefix before PPO takes over. "
+            "Useful for diagnosing brittle opening skills."
+        ),
+    )
+    parser.add_argument(
         "--output-dir",
         default=str(REPO_ROOT / "outputs" / "human_ai_sessions"),
     )
@@ -187,6 +235,20 @@ def parse_args() -> argparse.Namespace:
         type=int,
         default=None,
         help="Exit after this many total steps; useful for smoke tests.",
+    )
+    parser.add_argument(
+        "--annotation-mode",
+        action="store_true",
+        help=(
+            "Auto-pause every --annotation-interval environment steps and "
+            "record human correction text without sending it to the LLM."
+        ),
+    )
+    parser.add_argument(
+        "--annotation-interval",
+        type=int,
+        default=8,
+        help="In annotation mode, pause for human feedback every N environment steps.",
     )
     return parser.parse_args()
 
@@ -382,6 +444,57 @@ def json_dumps(value) -> str:
     return json.dumps(value, ensure_ascii=False, sort_keys=True)
 
 
+def held_name(facts: dict, key: str) -> str:
+    obj = facts.get(key)
+    if not obj:
+        return "-"
+    return obj.get("name") or obj.get("type") or "object"
+
+
+def pos_text(value) -> str:
+    if value is None:
+        return "?"
+    return ",".join(str(part) for part in value)
+
+
+def replay_line(step_record: dict) -> str:
+    after = step_record["state_after"]
+    return (
+        f"t-{step_record['age']}: "
+        f"AI {step_record['ai_action_name']} "
+        f"@{pos_text(after.get('ai_pos'))}({held_name(after, 'ai_held_object')}) | "
+        f"YOU {step_record['human_action_name']} "
+        f"@{pos_text(after.get('human_pos'))}({held_name(after, 'human_held_object')}) | "
+        f"r={step_record['reward']:.1f}"
+    )
+
+
+def replay_messages(recent_steps: list[dict], window: int) -> list[dict[str, str]]:
+    if not recent_steps:
+        return [
+            {
+                "role": "assistant",
+                "content": "No recent steps yet.",
+            }
+        ]
+    window_steps = recent_steps[-window:]
+    total = len(window_steps)
+    messages = [
+        {
+            "role": "assistant",
+            "content": (
+                "Recent action replay. Use prefixes if helpful: "
+                "now:, last3:, last8:, event:"
+            ),
+        }
+    ]
+    for index, record in enumerate(window_steps):
+        record = dict(record)
+        record["age"] = total - index
+        messages.append({"role": "assistant", "content": replay_line(record)})
+    return messages
+
+
 def render_game_surface(visualizer, env, episode_reward):
     state = env.base_env.state
     hud_data = StateVisualizer.default_hud_data(state, score=episode_reward)
@@ -433,12 +546,13 @@ def render_chat_panel(
     chat_input: str,
     chat_pending: bool,
     chat_status: str,
+    title: str = "DeepSeek Chat",
+    hint: str = "Enter Send | Esc Close | Describe why the agent behavior is bad",
 ) -> None:
     panel = pygame.Rect(80, 80, 780, 500)
     pygame.draw.rect(screen, (20, 24, 32), panel, border_radius=8)
     pygame.draw.rect(screen, (115, 150, 190), panel, width=2, border_radius=8)
-    screen.blit(font.render("DeepSeek Chat", True, (245, 245, 245)), (105, 100))
-    hint = "Enter Send | Esc Close | Describe why the agent behavior is bad"
+    screen.blit(font.render(title, True, (245, 245, 245)), (105, 100))
     screen.blit(small_font.render(hint, True, (170, 210, 180)), (105, 126))
 
     left = 105
@@ -507,6 +621,90 @@ def render_chat_panel(
         )
 
 
+def render_annotation_panel(
+    screen,
+    font,
+    small_font,
+    replay_snapshot: list[dict],
+    replay_surfaces: list[pygame.Surface],
+    chat_input: str,
+    chat_status: str,
+) -> None:
+    panel = pygame.Rect(45, 55, 850, 625)
+    pygame.draw.rect(screen, (18, 22, 30), panel, border_radius=8)
+    pygame.draw.rect(screen, (145, 180, 220), panel, width=2, border_radius=8)
+    screen.blit(
+        font.render(
+            f"Annotation Replay: last {len(replay_surfaces)} steps",
+            True,
+            (245, 245, 245),
+        ),
+        (70, 75),
+    )
+    hint = "Enter Save | Esc Skip | Prefix: now:, last3:, last8:, event:"
+    screen.blit(small_font.render(hint, True, (170, 210, 180)), (70, 101))
+
+    thumb_w = 185
+    thumb_h = 118
+    gap_x = 16
+    gap_y = 38
+    start_x = 70
+    start_y = 132
+    max_items = min(len(replay_surfaces), 8)
+    first_index = len(replay_surfaces) - max_items
+    shown_surfaces = replay_surfaces[first_index:]
+    shown_records = replay_snapshot[first_index:]
+
+    for idx, surface in enumerate(shown_surfaces):
+        row = idx // 4
+        col = idx % 4
+        x = start_x + col * (thumb_w + gap_x)
+        y = start_y + row * (thumb_h + gap_y)
+        rect = pygame.Rect(x, y, thumb_w, thumb_h)
+        pygame.draw.rect(screen, (35, 40, 52), rect, border_radius=5)
+        pygame.draw.rect(screen, (90, 115, 145), rect, width=1, border_radius=5)
+        scale = min(thumb_w / surface.get_width(), thumb_h / surface.get_height())
+        scaled = pygame.transform.smoothscale(
+            surface,
+            (
+                max(1, int(surface.get_width() * scale)),
+                max(1, int(surface.get_height() * scale)),
+            ),
+        )
+        screen.blit(scaled, scaled.get_rect(center=rect.center))
+        record = shown_records[idx] if idx < len(shown_records) else {}
+        age = max_items - idx
+        label = (
+            f"t-{age} AI:{record.get('ai_action_name', '?')} "
+            f"YOU:{record.get('human_action_name', '?')} "
+            f"r={float(record.get('reward', 0.0)):.0f}"
+        )
+        screen.blit(
+            small_font.render(label, True, (235, 225, 170)),
+            (x, y + thumb_h + 4),
+        )
+
+    if chat_status:
+        for idx, line in enumerate(wrap_text(chat_status, small_font, 780)[:2]):
+            screen.blit(
+                small_font.render(line, True, (245, 200, 105)),
+                (70, 448 + idx * 18),
+            )
+
+    input_rect = pygame.Rect(70, 500, 800, 95)
+    pygame.draw.rect(screen, (35, 40, 50), input_rect, border_radius=5)
+    pygame.draw.rect(screen, (120, 140, 170), input_rect, width=1, border_radius=5)
+    cursor = "|" if pygame.time.get_ticks() // 500 % 2 == 0 else ""
+    input_text = f"{chat_input}{cursor}" if chat_input else f"Type annotation...{cursor}"
+    input_color = (235, 235, 235) if chat_input else (130, 140, 155)
+    input_lines = wrap_text(input_text, small_font, input_rect.width - 26)
+    for idx, line in enumerate(input_lines[-4:]):
+        screen.blit(
+            small_font.render(line, True, input_color),
+            (83, 512 + idx * 20),
+        )
+
+
 def main() -> int:
     args = parse_args()
     if args.step_hz <= 0:
@@ -515,25 +713,75 @@ def main() -> int:
         raise ValueError("--render-fps must be greater than zero")
     if args.start_delay < 0:
         raise ValueError("--start-delay cannot be negative")
+    if args.horizon <= 0:
+        raise ValueError("--horizon must be greater than zero")
+    if args.annotation_interval <= 0:
+        raise ValueError("--annotation-interval must be greater than zero")
 
     requested_layouts = list(dict.fromkeys([args.layout, *args.layouts]))
-    ensure_agent_layout(args.agent, args.layout)
-    layouts = filter_compatible_layouts(args.agent, requested_layouts)
+    if args.ai_mode == "ppo":
+        ensure_agent_layout(args.agent, args.layout)
+        layouts = filter_compatible_layouts(args.agent, requested_layouts)
+    elif args.ai_mode == "subgoal_executor":
+        if not args.subgoal_executor.exists():
+            raise FileNotFoundError(f"Subgoal executor not found: {args.subgoal_executor}")
+        # The learned executor is trained for the H0 ring observation/subgoal space.
+        # Keep hot-switching disabled in this mode so a test cannot silently jump
+        # to an incompatible layout.
+        layouts = [args.layout]
+    else:
+        layouts = requested_layouts
     if args.layout not in layouts:
         layouts.insert(0, args.layout)
     layout_index = layouts.index(args.layout)
     current_layout = args.layout
 
-    agent_dir = resolve_agent_dir(args.agent)
-    ai_agent = load_rllib_agent(args.agent, agent_index=0)
-    env = make_direct_multi_env(current_layout, args.seed)
+    agent_dir = resolve_agent_dir(args.agent) if args.ai_mode == "ppo" else None
+    ai_agent = load_rllib_agent(args.agent, agent_index=0) if args.ai_mode == "ppo" else None
+    subgoal_model = (
+        tf.keras.models.load_model(args.subgoal_executor)
+        if args.ai_mode == "subgoal_executor"
+        else None
+    )
+    ai_action_prior = StepPrefixPrior.from_name(args.ai_action_prior)
+    env = make_direct_multi_env(current_layout, args.seed, horizon=args.horizon)
     envs_by_layout = {current_layout: env}
+    motion_planners_by_layout = (
+        {current_layout: make_motion_planner(current_layout, args.seed, args.horizon)}
+        if args.ai_mode == "subgoal_executor"
+        else {}
+    )
     session_dir = new_session_dir(args.output_dir)
 
     trajectory_path = session_dir / "trajectory.csv"
     chat_path = session_dir / "chat_messages.csv"
+    annotation_path = session_dir / "annotations.csv"
+    metadata_path = session_dir / "session_metadata.json"
+    metadata_path.write_text(
+        json.dumps(
+            {
+                "build_id": BUILD_ID,
+                "agent": str(agent_dir) if agent_dir else None,
+                "ai_mode": args.ai_mode,
+                "subgoal_executor": (
+                    str(args.subgoal_executor) if args.ai_mode == "subgoal_executor" else None
+                ),
+                "layout": args.layout,
+                "layouts": layouts,
+                "seed": args.seed,
+                "step_hz": args.step_hz,
+                "horizon": args.horizon,
+                "human_player_index": 1,
+                "ai_player_index": 0,
+            },
+            indent=2,
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
     trajectory_handle = trajectory_path.open("w", newline="", encoding="utf-8")
     chat_handle = chat_path.open("w", newline="", encoding="utf-8")
+    annotation_handle = annotation_path.open("w", newline="", encoding="utf-8")
     trajectory_fields = [
         "timestamp_utc",
         "episode",
@@ -542,6 +790,8 @@ def main() -> int:
         "layout",
         "ai_action",
         "ai_action_name",
+        "ai_subgoal",
+        "ai_event",
         "human_action",
         "human_action_name",
         "environment_reward",
@@ -572,17 +822,38 @@ def main() -> int:
         "layout",
         "pygame_ticks",
     ]
+    annotation_fields = [
+        "timestamp_utc",
+        "episode",
+        "episode_step",
+        "total_step",
+        "layout",
+        "annotation_scope_hint",
+        "annotation_text",
+        "last_ai_action",
+        "last_ai_action_name",
+        "episode_reward",
+        "state_json",
+        "recent_replay_json",
+    ]
     trajectory_writer = csv.DictWriter(trajectory_handle, fieldnames=trajectory_fields)
     chat_writer = csv.DictWriter(chat_handle, fieldnames=chat_fields)
     pause_writer = csv.DictWriter(pause_handle, fieldnames=pause_fields)
+    annotation_writer = csv.DictWriter(annotation_handle, fieldnames=annotation_fields)
     trajectory_writer.writeheader()
     chat_writer.writeheader()
     pause_writer.writeheader()
+    annotation_writer.writeheader()
 
     pygame.init()
     pygame.key.set_repeat()
     screen = pygame.display.set_mode((940, 740))
-    pygame.display.set_caption(f"DURF Human + PPO Baseline [{BUILD_ID}]")
+    mode_label = {
+        "ppo": "PPO Baseline",
+        "random": "Random Partner",
+        "subgoal_executor": "Subgoal Executor",
+    }[args.ai_mode]
+    pygame.display.set_caption(f"DURF Human + {mode_label} [{BUILD_ID}]")
     clock = pygame.time.Clock()
     font = pygame.font.Font(None, 25)
     small_font = pygame.font.Font(None, 22)
@@ -602,6 +873,8 @@ def main() -> int:
     previous_windows_keys: set[int] = set()
     last_key_debug = "no key yet"
     last_ai_action = STAY
+    last_ai_subgoal = ""
+    last_ai_event = ""
     last_predict_ms = 0.0
     last_environment_step_ms = 0.0
     chat_open = False
@@ -610,6 +883,12 @@ def main() -> int:
     chat_pending = False
     chat_status = "Set DEEPSEEK_API_KEY to enable model replies."
     chat_result_queue: queue.Queue[tuple[str, str]] = queue.Queue()
+    annotation_pending = False
+    annotation_prompt_step = 0
+    annotation_replay_snapshot: list[dict] = []
+    annotation_replay_surfaces: list[pygame.Surface] = []
+    recent_steps: list[dict] = []
+    recent_step_surfaces: list[pygame.Surface] = []
     last_textinput_at = -1000
     step_interval_ms = max(1, round(1000 / args.step_hz))
     countdown_until = pygame.time.get_ticks() + round(args.start_delay * 1000)
@@ -617,6 +896,174 @@ def main() -> int:
     last_pause_toggle_at = -PAUSE_DEBOUNCE_MS
     last_layout_switch_at = -LAYOUT_SWITCH_DEBOUNCE_MS
     game_surface = render_game_surface(visualizer, env, episode_reward)
+
+    def subgoal_executor_action() -> tuple[int, str]:
+        if subgoal_model is None:
+            raise RuntimeError("subgoal_executor_action called without a loaded model")
+        motion_planner = motion_planners_by_layout[current_layout]
+        subgoal_name, planner_action = rule_teacher_decision(
+            env.base_env.state,
+            motion_planner,
+            0,
+        )
+        if subgoal_name in {
+            "GET_TOMATO",
+            "PUT_TOMATO_IN_POT",
+            "GET_ONION",
+            "PUT_ONION_IN_POT",
+            "GET_DISH",
+            "PICKUP_SOUP",
+            "SERVE_SOUP",
+            "WAIT",
+        }:
+            return int(planner_action), subgoal_name
+        subgoal_id = SUBGOAL_TO_INDEX[subgoal_name]
+        observations = env.base_env.lossless_state_encoding_mdp(env.base_env.state)
+        observation = np.asarray(observations[0], dtype=np.float32)[None, ...]
+        subgoal_one_hot = np.eye(len(SUBGOALS), dtype=np.float32)[[subgoal_id]]
+        logits = subgoal_model.predict([observation, subgoal_one_hot], verbose=0)
+        return int(np.argmax(logits[0])), subgoal_name
+
+    def motion_target(position, action_index: int):
+        action_name = ACTION_NAMES[int(action_index)]
+        if action_name == "north":
+            return [position[0], position[1] - 1]
+        if action_name == "south":
+            return [position[0], position[1] + 1]
+        if action_name == "east":
+            return [position[0] + 1, position[1]]
+        if action_name == "west":
+            return [position[0] - 1, position[1]]
+        return list(position)
+
+    def action_moves(action_index: int) -> bool:
+        return ACTION_NAMES[int(action_index)] in {"north", "south", "east", "west"}
+
+    def choose_yield_action(ai_pos, human_pos, human_target) -> int | None:
+        valid_positions = set(env.base_env.mdp.get_valid_player_positions())
+        avoid = {tuple(human_pos), tuple(human_target)}
+        best_action = None
+        best_score = None
+        for action_index, action_name in enumerate(ACTION_NAMES[:4]):
+            candidate = motion_target(ai_pos, action_index)
+            candidate_tuple = tuple(candidate)
+            if candidate_tuple not in valid_positions or candidate_tuple in avoid:
+                continue
+            score = (
+                abs(candidate[0] - human_pos[0])
+                + abs(candidate[1] - human_pos[1])
+                + abs(candidate[0] - human_target[0])
+                + abs(candidate[1] - human_target[1])
+            )
+            if best_score is None or score > best_score:
+                best_action = action_index
+                best_score = score
+        return best_action
+
+    def detect_subgoal_issue(state, subgoal_name: str) -> str:
+        if args.ai_mode != "subgoal_executor":
+            return ""
+        ai_player = state.players[0]
+        held = getattr(ai_player, "held_object", None)
+        held_name = getattr(held, "name", None)
+        if held_name == "dish" and not env.base_env.mdp.get_ready_pots(
+            env.base_env.mdp.get_pot_states(state)
+        ):
+            return "AI_HELD_DISH_BEFORE_SOUP_READY"
+        if held_name in ("tomato", "onion"):
+            if not pots_needing_ingredient(state, env.base_env.mdp, held_name):
+                return "AI_HELD_UNNEEDED_INGREDIENT"
+        if subgoal_name in ("PUT_TOMATO_IN_POT", "PUT_ONION_IN_POT"):
+            ingredient = "tomato" if subgoal_name == "PUT_TOMATO_IN_POT" else "onion"
+            if not pots_needing_ingredient(state, env.base_env.mdp, ingredient):
+                return "STALE_PUT_INGREDIENT_SUBGOAL"
+        return ""
+
+    def empty_counter_locations(state) -> list[tuple[int, int]]:
+        mdp = env.base_env.mdp
+        motion_planner = motion_planners_by_layout[current_layout]
+        if hasattr(mdp, "get_counter_locations"):
+            counters = list(mdp.get_counter_locations())
+        else:
+            valid_positions = set(mdp.get_valid_player_positions())
+            counters = []
+            rows = getattr(mdp, "terrain_mtx", [])
+            for y, row in enumerate(rows):
+                for x, terrain in enumerate(row):
+                    pos = (x, y)
+                    if pos in valid_positions or terrain != "X":
+                        continue
+                    adjacent = [
+                        (x + 1, y),
+                        (x - 1, y),
+                        (x, y + 1),
+                        (x, y - 1),
+                    ]
+                    if any(candidate in valid_positions for candidate in adjacent):
+                        counters.append(pos)
+        feature_positions = set()
+        for getter_name in (
+            "get_pot_locations",
+            "get_serving_locations",
+            "get_dish_dispenser_locations",
+            "get_tomato_dispenser_locations",
+            "get_onion_dispenser_locations",
+        ):
+            getter = getattr(mdp, getter_name, None)
+            if getter is not None:
+                feature_positions.update(getter())
+        occupied = set(getattr(state, "objects", {}).keys())
+        motion_goal_positions = set(getattr(motion_planner, "motion_goals_for_pos", {}))
+        return [
+            tuple(position)
+            for position in counters
+            if tuple(position) not in feature_positions and tuple(position) not in occupied
+            and tuple(position) in motion_goal_positions
+        ]
+
+    def put_down_unneeded_object_action(state) -> int:
+        motion_planner = motion_planners_by_layout[current_layout]
+        action = first_action_to_feature(
+            motion_planner,
+            state.players[0],
+            empty_counter_locations(state),
+            {state.players[1].position},
+        )
+        return int(action) if action is not None else STAY
+
+    def pot_state_has(state, *keys: str) -> bool:
+        pot_states = env.base_env.mdp.get_pot_states(state)
+        return any(bool(pot_states.get(key)) for key in keys)
+
+    def cooperative_action_wrapper(
+        proposed_ai_action: int,
+        human_action: int,
+        subgoal_name: str,
+    ) -> tuple[int, str]:
+        if args.ai_mode != "subgoal_executor":
+            return proposed_ai_action, ""
+        state = env.base_env.state
+        ai_player = state.players[0]
+        human_player = state.players[1]
+        ai_pos = list(ai_player.position)
+        human_pos = list(human_player.position)
+        ai_target = motion_target(ai_pos, proposed_ai_action)
+        human_target = motion_target(human_pos, human_action)
+        issue = detect_subgoal_issue(state, subgoal_name)
+        if issue:
+            if issue == "AI_HELD_DISH_BEFORE_SOUP_READY":
+                if pot_state_has(state, "cooking"):
+                    return STAY, issue
+                return put_down_unneeded_object_action(state), issue
+            return put_down_unneeded_object_action(state), issue
+        if action_moves(proposed_ai_action) and ai_target == human_pos:
+            return STAY, "AI_WAITED_FOR_HUMAN_BLOCK"
+        if action_moves(human_action) and human_target == ai_pos:
+            yield_action = choose_yield_action(ai_pos, human_pos, human_target)
+            if yield_action is not None:
+                return yield_action, "AI_YIELDED_TO_HUMAN_PATH"
+            return STAY, "AI_COULD_NOT_YIELD_TO_HUMAN_PATH"
+        return proposed_ai_action, ""
 
     def reset_episode(new_layout_index: int | None = None) -> None:
         nonlocal ai_obs
@@ -640,11 +1087,21 @@ def main() -> int:
                 envs_by_layout[current_layout] = make_direct_multi_env(
                     current_layout,
                     args.seed,
+                    horizon=args.horizon,
                 )
+                if args.ai_mode == "subgoal_executor":
+                    motion_planners_by_layout[current_layout] = make_motion_planner(
+                        current_layout,
+                        args.seed,
+                        args.horizon,
+                    )
             env = envs_by_layout[current_layout]
 
         ai_obs, _ = env.multi_reset()
-        ai_agent.reset()
+        if ai_agent is not None:
+            ai_agent.reset()
+        if ai_action_prior:
+            ai_action_prior.reset()
         episode += 1
         episode_step = 0
         episode_reward = 0.0
@@ -681,6 +1138,89 @@ def main() -> int:
             },
         )
 
+    def log_annotation(content: str) -> None:
+        scope_hint = "event"
+        text = content.strip()
+        if ":" in text:
+            prefix = text.split(":", 1)[0].strip().lower()
+            if prefix in {"now", "last1", "last3", "last8", "event"}:
+                scope_hint = prefix
+        write_row(
+            annotation_writer,
+            annotation_handle,
+            {
+                "timestamp_utc": utc_timestamp(),
+                "episode": episode,
+                "episode_step": episode_step,
+                "total_step": total_step,
+                "layout": current_layout,
+                "annotation_scope_hint": scope_hint,
+                "annotation_text": content,
+                "last_ai_action": last_ai_action,
+                "last_ai_action_name": ACTION_NAMES[last_ai_action],
+                "episode_reward": episode_reward,
+                "state_json": json_dumps(state_facts(env)),
+                "recent_replay_json": json_dumps(annotation_replay_snapshot),
+            },
+        )
+        log_chat_message("human_annotation", content)
+
+    def open_annotation_prompt() -> None:
+        nonlocal annotation_pending
+        nonlocal annotation_prompt_step
+        nonlocal annotation_replay_snapshot
+        nonlocal annotation_replay_surfaces
+        nonlocal chat_input
+        nonlocal chat_open
+        nonlocal chat_status
+        nonlocal paused
+        nonlocal pending_interact
+        nonlocal pending_motion
+        nonlocal recent_step_surfaces
+        nonlocal recent_steps
+
+        annotation_pending = True
+        annotation_prompt_step = total_step
+        annotation_replay_snapshot = list(recent_steps[-args.annotation_interval :])
+        annotation_replay_surfaces = [
+            surface.copy()
+            for surface in recent_step_surfaces[-args.annotation_interval :]
+        ]
+        paused = True
+        chat_open = True
+        chat_input = ""
+        pending_interact = False
+        pending_motion = None
+        recent_steps.clear()
+        recent_step_surfaces.clear()
+        held_motion_actions.clear()
+        pygame.key.start_text_input()
+        chat_status = (
+            "Annotation checkpoint. Write now:/last3:/last8:/event: then feedback. "
+            "Enter saves/resumes; Esc skips."
+        )
+
+    def close_annotation_prompt(resume: bool) -> None:
+        nonlocal annotation_pending
+        nonlocal annotation_replay_snapshot
+        nonlocal annotation_replay_surfaces
+        nonlocal chat_input
+        nonlocal chat_open
+        nonlocal chat_status
+        nonlocal next_step_at
+        nonlocal paused
+
+        annotation_pending = False
+        annotation_replay_snapshot = []
+        annotation_replay_surfaces = []
+        chat_input = ""
+        chat_open = False
+        pygame.key.stop_text_input()
+        chat_status = ""
+        if resume:
+            paused = False
+            next_step_at = pygame.time.get_ticks() + step_interval_ms
+
     def start_chat_request(prompt: str) -> None:
         nonlocal chat_pending
         nonlocal chat_status
@@ -693,8 +1233,15 @@ def main() -> int:
             {
                 "role": "system",
                 "content": (
-                    "You are helping a human evaluate a cooperative Overcooked "
-                    "PPO agent. Reply concisely and ask clarifying questions when needed."
+                    "You are a player-facing feedback intake assistant for a "
+                    "human-AI Overcooked pilot study. The person chatting with you "
+                    "is a player, not a developer. Your job is to record and clarify "
+                    "what behavior the AI agent did well or poorly. Do not ask about "
+                    "reward functions, observation spaces, training setup, algorithms, "
+                    "or implementation details. When feedback is ambiguous, ask one "
+                    "short player-answerable question about the recent behavior, such "
+                    "as what the AI did, what the player wanted instead, or when it "
+                    "happened. Keep replies brief."
                 ),
             },
             *chat_messages[-10:],
@@ -712,10 +1259,11 @@ def main() -> int:
         threading.Thread(target=worker, daemon=True).start()
 
     print(f"Agent: {agent_dir}")
+    print(f"AI action prior: {args.ai_action_prior or 'none'}")
     print(f"Interface build: {BUILD_ID}")
     print(f"Script: {Path(__file__).resolve()}")
     print(f"Session logs: {session_dir}")
-    print("Human is green; PPO is blue.")
+    print(f"Human is green; {mode_label} is blue.")
     print(
         f"Timing: {args.step_hz:g} environment steps/s, "
         f"{args.render_fps} render FPS, {args.start_delay:g}s start delay"
@@ -725,6 +1273,12 @@ def main() -> int:
         "P/Tab/F1=Pause, Chat=Language feedback, R=Reset, "
         "1-4/N/M=Switch map, Esc=Quit"
     )
+    if args.annotation_mode:
+        print(
+            "Annotation mode: auto-pauses every "
+            f"{args.annotation_interval} environment steps. "
+            "Type feedback and press Enter to save/resume; Esc skips."
+        )
 
     try:
         while running:
@@ -750,12 +1304,29 @@ def main() -> int:
                 elif event.type == pygame.KEYDOWN:
                     if chat_open:
                         if event.key == pygame.K_ESCAPE:
-                            chat_open = False
-                            chat_input = ""
-                            pygame.key.stop_text_input()
+                            if annotation_pending:
+                                close_annotation_prompt(resume=True)
+                                last_key_debug = "annotation skipped"
+                            else:
+                                chat_open = False
+                                chat_input = ""
+                                pygame.key.stop_text_input()
                         elif event.key == pygame.K_RETURN:
                             prompt = chat_input.strip()
-                            if prompt and not chat_pending:
+                            if annotation_pending:
+                                if prompt:
+                                    log_annotation(prompt)
+                                    chat_messages.append(
+                                        {
+                                            "role": "user",
+                                            "content": f"[Annotation] {prompt}",
+                                        }
+                                    )
+                                    last_key_debug = "annotation saved"
+                                else:
+                                    last_key_debug = "annotation empty -> skipped"
+                                close_annotation_prompt(resume=True)
+                            elif prompt and not chat_pending:
                                 chat_input = ""
                                 start_chat_request(prompt)
                         elif event.key == pygame.K_BACKSPACE:
@@ -812,6 +1383,8 @@ def main() -> int:
                     and event.button == 1
                 ):
                     if CHAT_BUTTON.collidepoint(event.pos):
+                        if annotation_pending:
+                            continue
                         chat_open = not chat_open
                         if chat_open:
                             paused = True
@@ -832,14 +1405,6 @@ def main() -> int:
             windows_pressed_now = windows_keys - previous_windows_keys
             previous_windows_keys = windows_keys
             windows_new_actions = windows_motion_actions(windows_pressed_now)
-            if chat_open:
-                if 0x08 in windows_pressed_now:  # Backspace
-                    chat_input = chat_input[:-1]
-                if 0x0D in windows_pressed_now:  # Enter
-                    prompt = chat_input.strip()
-                    if prompt and not chat_pending:
-                        chat_input = ""
-                        start_chat_request(prompt)
             if windows_new_actions and not paused and not chat_open:
                 pending_motion = human_motion_action(windows_new_actions)
                 last_key_debug = (
@@ -908,10 +1473,28 @@ def main() -> int:
                 pending_interact = False
                 pending_motion = None
                 predict_started = time.perf_counter()
-                ai_action_raw = rllib_action_index(ai_agent, env.base_env.state)
+                prior_action = (
+                    ai_action_prior.next_action() if ai_action_prior else None
+                )
+                if prior_action is None:
+                    if args.ai_mode == "random":
+                        ai_action_raw = random.randrange(len(ACTION_NAMES))
+                        current_ai_subgoal = ""
+                    elif args.ai_mode == "subgoal_executor":
+                        ai_action_raw, current_ai_subgoal = subgoal_executor_action()
+                    else:
+                        ai_action_raw = rllib_action_index(ai_agent, env.base_env.state)
+                        current_ai_subgoal = ""
+                else:
+                    ai_action_raw = prior_action
+                    current_ai_subgoal = "action_prior"
                 last_predict_ms = (time.perf_counter() - predict_started) * 1000
-                ai_action = int(ai_action_raw)
                 state_before = state_facts(env)
+                ai_action, current_ai_event = cooperative_action_wrapper(
+                    int(ai_action_raw),
+                    human_action,
+                    current_ai_subgoal,
+                )
                 step_started = time.perf_counter()
                 (ai_obs, _), (reward, _), done, _ = env.multi_step(
                     ai_action,
@@ -922,9 +1505,31 @@ def main() -> int:
                     time.perf_counter() - step_started
                 ) * 1000
                 last_ai_action = ai_action
+                last_ai_subgoal = current_ai_subgoal
+                last_ai_event = current_ai_event
                 episode_step += 1
                 total_step += 1
                 episode_reward += float(reward)
+                recent_steps.append(
+                    {
+                        "episode": episode,
+                        "episode_step": episode_step,
+                        "total_step": total_step,
+                        "layout": current_layout,
+                        "ai_action": ai_action,
+                        "ai_action_name": ACTION_NAMES[ai_action],
+                        "ai_subgoal": current_ai_subgoal,
+                        "ai_event": current_ai_event,
+                        "human_action": human_action,
+                        "human_action_name": ACTION_NAMES[human_action],
+                        "reward": float(reward),
+                        "episode_reward": episode_reward,
+                        "state_before": state_before,
+                        "state_after": state_after,
+                    }
+                )
+                if len(recent_steps) > max(args.annotation_interval, 16):
+                    del recent_steps[: len(recent_steps) - max(args.annotation_interval, 16)]
                 write_row(
                     trajectory_writer,
                     trajectory_handle,
@@ -936,6 +1541,8 @@ def main() -> int:
                         "layout": current_layout,
                         "ai_action": ai_action,
                         "ai_action_name": ACTION_NAMES[ai_action],
+                        "ai_subgoal": current_ai_subgoal,
+                        "ai_event": current_ai_event,
                         "human_action": human_action,
                         "human_action_name": ACTION_NAMES[human_action],
                         "environment_reward": float(reward),
@@ -953,6 +1560,12 @@ def main() -> int:
                     env,
                     episode_reward,
                 )
+                recent_step_surfaces.append(game_surface.copy())
+                max_recent_visuals = max(args.annotation_interval, 16)
+                if len(recent_step_surfaces) > max_recent_visuals:
+                    del recent_step_surfaces[
+                        : len(recent_step_surfaces) - max_recent_visuals
+                    ]
                 # Schedule from the completed step so a slow frame never causes catch-up.
                 next_step_at = pygame.time.get_ticks() + step_interval_ms
 
@@ -965,6 +1578,14 @@ def main() -> int:
                         f"steps={episode_step}"
                     )
                     reset_episode()
+                elif (
+                    args.annotation_mode
+                    and not annotation_pending
+                    and total_step > 0
+                    and total_step % args.annotation_interval == 0
+                    and total_step != annotation_prompt_step
+                ):
+                    open_annotation_prompt()
 
             screen.fill((28, 30, 34))
             screen.blit(game_surface, game_surface.get_rect(center=(470, 305)))
@@ -1014,20 +1635,32 @@ def main() -> int:
             else:
                 run_status = "RUNNING"
             status = (
-                f"Blue: PPO | Green: YOU | Episode {episode} | Step {episode_step} | "
+                f"Blue: {mode_label} | Green: YOU | Episode {episode} | Step {episode_step} | "
                 f"Reward {episode_reward:.1f} | {run_status}"
             )
             controls = (
                 "WASD/Arrows Move | Space Interact | P/Tab/F1 Pause | "
                 "Chat | R Reset | N/M Map | Esc Quit"
             )
-            feedback_status = "Language feedback: click Chat, type comment, press Enter"
+            if annotation_pending:
+                feedback_status = (
+                    "ANNOTATION: type what AI should do, Enter save/resume, Esc skip"
+                )
+            elif args.annotation_mode:
+                feedback_status = (
+                    f"Annotation mode: auto-pause every {args.annotation_interval} steps"
+                )
+            else:
+                feedback_status = "Language feedback: click Chat, type comment, press Enter"
             timing_status = (
                 f"{BUILD_ID} | Decision rate: {args.step_hz:g}/s | "
                 f"AI predict: {last_predict_ms:.1f} ms | "
                 f"Environment: {last_environment_step_ms:.1f} ms"
             )
-            input_status = f"Last input: {last_key_debug}"
+            subgoal_status = f"AI subgoal: {last_ai_subgoal or 'n/a'}"
+            if last_ai_event:
+                subgoal_status = f"{subgoal_status} | event: {last_ai_event}"
+            input_status = f"{subgoal_status} | Last input: {last_key_debug}"
             screen.blit(font.render(status, True, (235, 235, 235)), (20, 630))
             screen.blit(small_font.render(timing_status, True, (165, 190, 235)), (20, 655))
             screen.blit(small_font.render(controls, True, (170, 210, 180)), (20, 680))
@@ -1040,24 +1673,37 @@ def main() -> int:
                 (470, 705),
             )
             if chat_open:
-                render_chat_panel(
-                    screen,
-                    font,
-                    small_font,
-                    chat_messages,
-                    chat_input,
-                    chat_pending,
-                    chat_status,
-                )
+                if annotation_pending:
+                    render_annotation_panel(
+                        screen,
+                        font,
+                        small_font,
+                        annotation_replay_snapshot,
+                        annotation_replay_surfaces,
+                        chat_input,
+                        chat_status,
+                    )
+                else:
+                    render_chat_panel(
+                        screen,
+                        font,
+                        small_font,
+                        chat_messages,
+                        chat_input,
+                        chat_pending,
+                        chat_status,
+                    )
             pygame.display.flip()
             clock.tick(args.render_fps)
     finally:
         trajectory_handle.flush()
         chat_handle.flush()
         pause_handle.flush()
+        annotation_handle.flush()
         trajectory_handle.close()
         chat_handle.close()
         pause_handle.close()
+        annotation_handle.close()
         for cached_env in set(envs_by_layout.values()):
             cached_env.close()
         pygame.key.stop_text_input()
@@ -1066,6 +1712,7 @@ def main() -> int:
     print(f"Trajectory: {trajectory_path}")
     print(f"Chat messages: {chat_path}")
     print(f"Pause events: {pause_path}")
+    print(f"Annotations: {annotation_path}")
     print(f"Exit reason: {quit_reason}")
     return 0
 

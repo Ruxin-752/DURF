@@ -6,6 +6,7 @@ import random
 from pathlib import Path
 
 import dill
+import numpy as np
 from human_aware_rl.rllib.rllib import load_agent
 from overcooked_ai_py.mdp.actions import Action
 from overcooked_ai_py.mdp.overcooked_env import OvercookedEnv
@@ -22,6 +23,7 @@ CRAMPED_ROOM_COMPATIBLE_LAYOUTS = (
     "cramped_room_two_pots",
 )
 RING_TOMATO_ONION_LAYOUT = "ring_tomato_onion_10x6"
+RING_TOMATO_ONION_H0_LAYOUT = "ring_tomato_onion_10x6_h0_full_task"
 RING_TOMATO_ONION_CURRICULUM_LAYOUTS = (
     "ring_tomato_onion_10x6_curriculum_micro",
     "ring_tomato_onion_10x6_curriculum_micro_delivery",
@@ -39,9 +41,13 @@ RING_TOMATO_ONION_CURRICULUM_LAYOUTS = (
     "ring_tomato_onion_10x6_curriculum_dish_held_ready_soup_target_geometry",
     "ring_tomato_onion_10x6_curriculum_empty_ready_soup_target_geometry",
     "ring_tomato_onion_10x6_curriculum_final_onion_held_target_pot_near",
+    "ring_tomato_onion_10x6_curriculum_final_onion_counter_pickup_pot_adjacent_top",
+    "ring_tomato_onion_10x6_curriculum_final_onion_held_target_pot_adjacent_top",
+    "ring_tomato_onion_10x6_curriculum_final_onion_held_target_pot_adjacent_bottom",
     "ring_tomato_onion_10x6_curriculum_final_onion_held_target_top_left",
     "ring_tomato_onion_10x6_curriculum_final_onion_held_target_mid_left_2",
     "ring_tomato_onion_10x6_curriculum_final_onion_held_target_mid_left_3",
+    "ring_tomato_onion_10x6_curriculum_final_onion_held_target_bottom_left_corridor",
     "ring_tomato_onion_10x6_curriculum_final_onion_held_target_bottom_mid_2",
     "ring_tomato_onion_10x6_curriculum_final_onion_held_target_bottom_mid_3",
     "ring_tomato_onion_10x6_curriculum_final_onion_held_target_bottom_left",
@@ -64,6 +70,7 @@ RING_TOMATO_ONION_CURRICULUM_LAYOUTS = (
 DEFAULT_PLAYABLE_LAYOUTS = (
     *CRAMPED_ROOM_COMPATIBLE_LAYOUTS,
     *RING_TOMATO_ONION_CURRICULUM_LAYOUTS,
+    RING_TOMATO_ONION_H0_LAYOUT,
     RING_TOMATO_ONION_LAYOUT,
 )
 DEFAULT_MDP_PARAMS = {
@@ -94,6 +101,7 @@ AGENT_COMPATIBLE_LAYOUTS = {
     "RllibCrampedRoomSP": CRAMPED_ROOM_COMPATIBLE_LAYOUTS,
     "RllibRingTomatoOnion10x6SP": (
         *RING_TOMATO_ONION_CURRICULUM_LAYOUTS,
+        RING_TOMATO_ONION_H0_LAYOUT,
         RING_TOMATO_ONION_LAYOUT,
     ),
 }
@@ -127,6 +135,16 @@ def compatible_layouts_for_agent(agent: str | Path | None) -> tuple[str, ...]:
         return compatible_layouts
     trained_layout = trained_layout_for_agent_dir(agent_dir)
     if trained_layout:
+        if trained_layout in (
+            *RING_TOMATO_ONION_CURRICULUM_LAYOUTS,
+            RING_TOMATO_ONION_H0_LAYOUT,
+            RING_TOMATO_ONION_LAYOUT,
+        ):
+            return (
+                *RING_TOMATO_ONION_CURRICULUM_LAYOUTS,
+                RING_TOMATO_ONION_H0_LAYOUT,
+                RING_TOMATO_ONION_LAYOUT,
+            )
         return (trained_layout,)
     expected = AGENT_LAYOUTS.get(name)
     return (expected,) if expected else ()
@@ -169,13 +187,51 @@ def ensure_agent_layout(agent: str | Path | None, layout_name: str) -> None:
         )
 
 
-def load_rllib_agent(agent: str | Path | None = None, agent_index: int = 0):
-    loaded = load_agent(str(resolve_agent_dir(agent)), agent_index=agent_index)
-    loaded.reset()
-    return loaded
+def load_rllib_agent(
+    agent: str | Path | None = None,
+    agent_index: int = 0,
+    policy_id: str | None = None,
+):
+    agent_dir = resolve_agent_dir(agent)
+    candidate_policy_ids = [policy_id] if policy_id else [f"ppo_{agent_index}", "ppo"]
+    last_error: Exception | None = None
+    for candidate_policy_id in candidate_policy_ids:
+        try:
+            loaded = load_agent(
+                str(agent_dir),
+                policy_id=candidate_policy_id,
+                agent_index=agent_index,
+            )
+            loaded.reset()
+            return loaded
+        except Exception as exc:
+            last_error = exc
+            if policy_id:
+                break
+            continue
+    raise RuntimeError(
+        f"Could not load RLlib policy for agent index {agent_index} from {agent_dir}"
+    ) from last_error
 
 
-def rllib_action_index(agent, state) -> int:
+def rllib_action_index(
+    agent,
+    state,
+    deterministic: bool = False,
+    temperature: float = 1.0,
+) -> int:
+    if deterministic or temperature != 1.0:
+        action_probabilities = np.asarray(agent.action_probabilities(state)[0], dtype=float)
+        if deterministic:
+            return int(np.argmax(action_probabilities))
+        if temperature <= 0:
+            raise ValueError("temperature must be positive")
+        adjusted = np.power(action_probabilities, 1.0 / temperature)
+        adjusted_sum = adjusted.sum()
+        if adjusted_sum <= 0:
+            return int(np.argmax(action_probabilities))
+        adjusted = adjusted / adjusted_sum
+        return int(random.choices(list(range(Action.NUM_ACTIONS)), adjusted)[0])
     action, _ = agent.action(state)
     return int(Action.ACTION_TO_INDEX[action])
 
@@ -183,14 +239,15 @@ def rllib_action_index(agent, state) -> int:
 class PygameOvercookedEnv:
     """Small adapter exposing the multi-agent methods used by pygame scripts."""
 
-    def __init__(self, layout_name: str = "cramped_room", seed: int = 42):
+    def __init__(self, layout_name: str = "cramped_room", seed: int = 42, horizon: int = 400):
         self.layout_name = layout_name
+        self.horizon = int(horizon)
         self.base_env = OvercookedEnv.from_mdp(
             OvercookedGridworld.from_layout_name(
                 layout_name,
                 **DEFAULT_MDP_PARAMS,
             ),
-            horizon=400,
+            horizon=self.horizon,
             info_level=0,
         )
         self.seed(seed)
@@ -215,11 +272,11 @@ class PygameOvercookedEnv:
         return None
 
 
-def make_baseline_env(layout_name: str = "cramped_room", seed: int = 42):
+def make_baseline_env(layout_name: str = "cramped_room", seed: int = 42, horizon: int = 400):
     """Create an environment whose two actions are supplied by RLlib agents."""
-    return make_direct_multi_env(layout_name, seed)
+    return make_direct_multi_env(layout_name, seed, horizon)
 
 
-def make_direct_multi_env(layout_name: str = "cramped_room", seed: int = 42):
+def make_direct_multi_env(layout_name: str = "cramped_room", seed: int = 42, horizon: int = 400):
     """Create an environment whose two actions are supplied by the caller."""
-    return PygameOvercookedEnv(layout_name, seed)
+    return PygameOvercookedEnv(layout_name, seed, horizon)

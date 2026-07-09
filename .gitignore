@@ -174,3 +174,9 @@ data/ppo_exp/
 reward_signal.txt
 feedback_log.csv
 *.tmp
+
+# Local trained agents/checkpoints generated during DURF experiments.
+# Keep already tracked bundled agents, but do not add new local training runs.
+/models/rllib_agents/*
+!/models/rllib_agents/.gitkeep
+!/models/rllib_agents/README.md

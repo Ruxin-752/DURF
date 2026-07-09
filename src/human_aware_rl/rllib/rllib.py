@@ -36,6 +36,13 @@ obs_space = gymnasium.spaces.Discrete(len(Action.ALL_ACTIONS))
 timestr = datetime.today().strftime("%Y-%m-%d_%H-%M-%S")
 
 
+def _durf_ascii_ray_temp_dir():
+    """Return a Ray temp directory that avoids Ray 2.2 Windows unicode-path crashes."""
+    temp_dir = os.path.join(tempfile.gettempdir(), "durf_ray_tmp")
+    os.makedirs(temp_dir, exist_ok=True)
+    return temp_dir
+
+
 class RlLibAgent(Agent):
     """
     Class for wrapping a trained RLLib Policy object into an Overcooked compatible Agent
@@ -69,7 +76,10 @@ class RlLibAgent(Agent):
             - Normalized action probabilities determined by self.policy
         """
         # Preprocess the environment state
-        obs = self.featurize(state, debug=False)
+        try:
+            obs = self.featurize(state, debug=False)
+        except TypeError:
+            obs = self.featurize(state)
         my_obs = obs[self.agent_index]
 
         # Compute non-normalized log probabilities from the underlying model
@@ -151,6 +161,9 @@ class OvercookedMultiAgent(MultiAgentEnv):
         reward_shaping_horizon=0,
         bc_schedule=None,
         use_phi=True,
+        reset_prefix_actions=None,
+        reset_prefix_other_action=None,
+        reset_prefix_lengths=None,
     ):
         """
         base_env: OvercookedEnv
@@ -159,6 +172,14 @@ class OvercookedMultiAgent(MultiAgentEnv):
         bc_schedule (list[tuple]): List of (t_i, v_i) pairs where v_i represents the value of bc_factor at timestep t_i
             with linear interpolation in between the t_i
         use_phi (bool): Whether to use 'shaped_r_by_agent' or 'phi_s_prime' - 'phi_s' to determine dense reward
+        reset_prefix_actions (list[int] | None): Optional action-index prefix executed
+            for environment player 0 immediately after reset. This is used only
+            for curriculum training and is disabled by default.
+        reset_prefix_other_action (int | None): Action-index executed by player 1
+            during reset_prefix_actions. Defaults to STAY.
+        reset_prefix_lengths (list[int] | None): Optional set of prefix lengths
+            to sample uniformly at each reset.  This lets a curriculum mix
+            original starts with partially assisted starts.
         """
         if bc_schedule:
             self.bc_schedule = bc_schedule
@@ -174,6 +195,17 @@ class OvercookedMultiAgent(MultiAgentEnv):
         self.reward_shaping_factor = reward_shaping_factor
         self.reward_shaping_horizon = reward_shaping_horizon
         self.use_phi = use_phi
+        self.reset_prefix_actions = list(reset_prefix_actions or [])
+        self.reset_prefix_other_action = (
+            Action.ACTION_TO_INDEX[Action.STAY]
+            if reset_prefix_other_action is None
+            else int(reset_prefix_other_action)
+        )
+        self.reset_prefix_lengths = (
+            [int(length) for length in reset_prefix_lengths]
+            if reset_prefix_lengths is not None
+            else None
+        )
         self.anneal_bc_factor(0)
         self._agent_ids = set(self.reset().keys())
         # fixes deprecation warnings
@@ -283,6 +315,29 @@ class OvercookedMultiAgent(MultiAgentEnv):
         self._setup_observation_space(agents)
         return agents
 
+    def _apply_reset_prefix(self):
+        if not self.reset_prefix_actions:
+            return
+
+        actions = self.reset_prefix_actions
+        if self.reset_prefix_lengths is not None:
+            prefix_len = int(np.random.choice(self.reset_prefix_lengths))
+            prefix_len = max(0, min(prefix_len, len(self.reset_prefix_actions)))
+            actions = self.reset_prefix_actions[:prefix_len]
+
+        other_action = Action.INDEX_TO_ACTION[int(self.reset_prefix_other_action)]
+        for action_index in actions:
+            joint_action = [
+                Action.INDEX_TO_ACTION[int(action_index)],
+                other_action,
+            ]
+            _, _, done, _ = self.base_env.step(
+                joint_action,
+                display_phi=self.use_phi,
+            )
+            if done:
+                break
+
     def _anneal(self, start_v, curr_t, end_t, end_v=0, start_t=0):
         if end_t == 0:
             # No annealing if horizon is zero
@@ -354,6 +409,7 @@ class OvercookedMultiAgent(MultiAgentEnv):
         have to deal with randomizing indices.
         """
         self.base_env.reset(regen_mdp)
+        self._apply_reset_prefix()
         self.curr_agents = self._populate_agents()
         ob_p0, ob_p1 = self._get_obs(self.base_env.state)
         return {self.curr_agents[0]: ob_p0, self.curr_agents[1]: ob_p1}
@@ -688,9 +744,9 @@ def gen_trainer_from_params(params):
     # Returns a properly formatted policy tuple to be passed into ppotrainer config
     def gen_policy(policy_type="ppo"):
         # supported policy types thus far
-        assert policy_type in ["ppo", "bc"]
+        assert policy_type.startswith("ppo") or policy_type == "bc"
 
-        if policy_type == "ppo":
+        if policy_type.startswith("ppo"):
             config = {
                 "model": {
                     "custom_model_config": model_params,
@@ -737,7 +793,8 @@ def gen_trainer_from_params(params):
 
     # Create rllib compatible multi-agent config based on params
     multi_agent_config = {}
-    all_policies = ["ppo"]
+    shared_policy = params.get("shared_policy", True)
+    all_policies = ["ppo"] if shared_policy else ["ppo_0", "ppo_1"]
 
     # Whether both agents should be learned
     self_play = iterable_equal(
@@ -752,13 +809,21 @@ def gen_trainer_from_params(params):
     }
 
     def select_policy(agent_id, episode, worker, **kwargs):
+        if not shared_policy and agent_id.startswith("ppo"):
+            return agent_id
         if agent_id.startswith("ppo"):
             return "ppo"
         if agent_id.startswith("bc"):
             return "bc"
 
     multi_agent_config["policy_mapping_fn"] = select_policy
-    multi_agent_config["policies_to_train"] = {"ppo"}
+    requested_policies_to_train = params.get("policies_to_train")
+    if requested_policies_to_train:
+        multi_agent_config["policies_to_train"] = set(requested_policies_to_train)
+    else:
+        multi_agent_config["policies_to_train"] = {
+            policy for policy in all_policies if policy.startswith("ppo")
+        }
 
     if "outer_shape" not in environment_params:
         environment_params["outer_shape"] = None
@@ -775,8 +840,8 @@ def gen_trainer_from_params(params):
                 environment_params["eval_mdp_params"],
                 environment_params["env_params"],
                 environment_params["outer_shape"],
-                "ppo",
-                "ppo" if self_play else "bc",
+                "ppo" if shared_policy else "ppo_0",
+                ("ppo" if shared_policy else "ppo_1") if self_play else "bc",
                 verbose=params["verbose"],
             ),
             "env_config": environment_params,
@@ -826,6 +891,9 @@ def load_trainer(save_path, true_num_workers=False):
     if not true_num_workers:
         # Override this param to lower overhead in trainer creation
         config["training_params"]["num_workers"] = 0
+
+    config.setdefault("ray_params", {})
+    config["ray_params"]["temp_dir"] = _durf_ascii_ray_temp_dir()
 
     # Playback and smoke tests run on CPU. This also avoids Ray's Windows GPU
     # autodetection path, which can fail when vendor tools are absent.
@@ -990,7 +1058,7 @@ def load_trainer(save_path, true_num_workers=False):
 def get_agent_from_trainer(trainer, policy_id="ppo", agent_index=0):
     policy = trainer.get_policy(policy_id)
     dummy_env = trainer.env_creator(trainer.config["env_config"])
-    featurize_fn = dummy_env.featurize_fn_map[policy_id]
+    featurize_fn = dummy_env._get_featurize_fn(policy_id)
     agent = RlLibAgent(policy, agent_index, featurize_fn=featurize_fn)
     return agent
 
