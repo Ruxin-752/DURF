@@ -960,6 +960,18 @@ def main() -> int:
                 best_score = score
         return best_action
 
+    def manhattan(a, b) -> int:
+        return abs(a[0] - b[0]) + abs(a[1] - b[1])
+
+    def pot_positions_for_waiting(state) -> list[tuple[int, int]]:
+        pot_states = env.base_env.mdp.get_pot_states(state)
+        positions: list[tuple[int, int]] = []
+        for key in ("ready", "cooking"):
+            positions.extend(tuple(pos) for pos in pot_states.get(key, []) or [])
+        if positions:
+            return positions
+        return [tuple(pos) for pos in env.base_env.mdp.get_pot_locations()]
+
     def detect_subgoal_issue(state, subgoal_name: str) -> str:
         if args.ai_mode != "subgoal_executor":
             return ""
@@ -1014,12 +1026,24 @@ def main() -> int:
                 feature_positions.update(getter())
         occupied = set(getattr(state, "objects", {}).keys())
         motion_goal_positions = set(getattr(motion_planner, "motion_goals_for_pos", {}))
-        return [
+        available = [
             tuple(position)
             for position in counters
             if tuple(position) not in feature_positions and tuple(position) not in occupied
-            and tuple(position) in motion_goal_positions
         ]
+        reachable = [
+            position for position in available if position in motion_goal_positions
+        ]
+        candidates = reachable or available
+        player_pos = state.players[0].position
+        pot_positions = env.base_env.mdp.get_pot_locations()
+        return sorted(
+            candidates,
+            key=lambda pos: (
+                min((manhattan(pos, pot) for pot in pot_positions), default=99),
+                manhattan(pos, player_pos),
+            ),
+        )
 
     def put_down_unneeded_object_action(state) -> int:
         motion_planner = motion_planners_by_layout[current_layout]
@@ -1030,6 +1054,18 @@ def main() -> int:
             {state.players[1].position},
         )
         return int(action) if action is not None else STAY
+
+    def wait_near_pot_action(state) -> int:
+        motion_planner = motion_planners_by_layout[current_layout]
+        action = first_action_to_feature(
+            motion_planner,
+            state.players[0],
+            pot_positions_for_waiting(state),
+            {state.players[1].position},
+        )
+        if action is None or int(action) == INTERACT:
+            return STAY
+        return int(action)
 
     def pot_state_has(state, *keys: str) -> bool:
         pot_states = env.base_env.mdp.get_pot_states(state)
@@ -1049,20 +1085,25 @@ def main() -> int:
         human_pos = list(human_player.position)
         ai_target = motion_target(ai_pos, proposed_ai_action)
         human_target = motion_target(human_pos, human_action)
-        issue = detect_subgoal_issue(state, subgoal_name)
-        if issue:
-            if issue == "AI_HELD_DISH_BEFORE_SOUP_READY":
-                if pot_state_has(state, "cooking"):
-                    return STAY, issue
-                return put_down_unneeded_object_action(state), issue
-            return put_down_unneeded_object_action(state), issue
-        if action_moves(proposed_ai_action) and ai_target == human_pos:
-            return STAY, "AI_WAITED_FOR_HUMAN_BLOCK"
-        if action_moves(human_action) and human_target == ai_pos:
+        human_is_trying_to_move = action_moves(human_action)
+
+        if human_is_trying_to_move and human_target == ai_pos:
             yield_action = choose_yield_action(ai_pos, human_pos, human_target)
             if yield_action is not None:
                 return yield_action, "AI_YIELDED_TO_HUMAN_PATH"
             return STAY, "AI_COULD_NOT_YIELD_TO_HUMAN_PATH"
+        if human_is_trying_to_move and action_moves(proposed_ai_action) and human_target == ai_target:
+            return STAY, "AI_AVOIDED_CONTESTED_TILE"
+        if action_moves(proposed_ai_action) and ai_target == human_pos:
+            return STAY, "AI_WAITED_FOR_HUMAN_BLOCK"
+
+        issue = detect_subgoal_issue(state, subgoal_name)
+        if issue:
+            if issue == "AI_HELD_DISH_BEFORE_SOUP_READY":
+                if pot_state_has(state, "cooking", "ready"):
+                    return wait_near_pot_action(state), issue
+                return put_down_unneeded_object_action(state), issue
+            return put_down_unneeded_object_action(state), issue
         return proposed_ai_action, ""
 
     def reset_episode(new_layout_index: int | None = None) -> None:
