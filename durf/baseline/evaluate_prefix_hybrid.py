@@ -1,4 +1,4 @@
-"""Evaluate the archived RLlib PPO baseline over seeded episodes."""
+"""Evaluate a short scripted prefix followed by archived RLlib PPO agents."""
 
 from __future__ import annotations
 
@@ -9,85 +9,54 @@ import sys
 from collections import Counter
 from pathlib import Path
 
+from durf.baseline.action_prior import (
+    COUNTER_ONION_TO_POT_TOP,
+    prefix_action_chars,
+    prefix_action_indices,
+)
+from durf.baseline.evaluate_baseline import count_event_value
 from durf.baseline.runtime import (
-    DEFAULT_AGENT_NAME,
-    ensure_agent_layout,
     load_rllib_agent,
     make_baseline_env,
     resolve_agent_dir,
     rllib_action_index,
 )
+from overcooked_ai_py.mdp.actions import Action
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "--agent",
-        default=DEFAULT_AGENT_NAME,
-        help="RLlib agent name or path; defaults to RllibCrampedRoomSP",
-    )
-    parser.add_argument("--layout", default="cramped_room")
+    parser.add_argument("--agent", required=True)
+    parser.add_argument("--layout", required=True)
+    parser.add_argument("--prior", default=COUNTER_ONION_TO_POT_TOP)
     parser.add_argument("--episodes", type=int, default=20)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--output", type=Path)
     parser.add_argument(
-        "--skip-layout-check",
-        action="store_true",
-        help="Allow diagnostic cross-layout evaluation for same-sized curriculum maps.",
-    )
-    parser.add_argument(
         "--deterministic",
         action="store_true",
-        help="Evaluate PPO with argmax actions instead of stochastic sampling.",
+        help="Evaluate PPO suffix with argmax actions instead of stochastic sampling.",
     )
     parser.add_argument(
         "--temperature",
         type=float,
         default=1.0,
-        help="Sampling temperature for PPO actions. Values below 1 sharpen the policy distribution.",
-    )
-    parser.add_argument(
-        "--policy-id-0",
-        help="Optional RLlib policy id to use for environment player 0.",
-    )
-    parser.add_argument(
-        "--policy-id-1",
-        help="Optional RLlib policy id to use for environment player 1.",
+        help="Sampling temperature for PPO suffix actions. Values below 1 sharpen the policy distribution.",
     )
     return parser.parse_args()
 
 
-def count_event_value(value) -> int:
-    if value is None:
-        return 0
-    if isinstance(value, bool):
-        return int(value)
-    if isinstance(value, (int, float)):
-        return int(value)
-    if isinstance(value, dict):
-        return sum(count_event_value(v) for v in value.values())
-    if isinstance(value, (list, tuple)):
-        if all(isinstance(item, bool) for item in value):
-            return sum(1 for item in value if item)
-        if all(isinstance(item, (int, float)) for item in value):
-            return len(value)
-        return sum(count_event_value(item) for item in value)
-    return 0
-
-
 def main() -> int:
     args = parse_args()
-    if args.episodes <= 0:
-        raise ValueError("--episodes must be positive")
-
-    if not args.skip_layout_check:
-        ensure_agent_layout(args.agent, args.layout)
     agent_dir = resolve_agent_dir(args.agent)
+    prefix_indices = prefix_action_indices(args.prior)
+    stay = Action.ACTION_TO_INDEX[Action.STAY]
+
     rewards: list[float] = []
     lengths: list[int] = []
     event_counts: Counter[str] = Counter()
-    agent0 = load_rllib_agent(args.agent, agent_index=0, policy_id=args.policy_id_0)
-    agent1 = load_rllib_agent(args.agent, agent_index=1, policy_id=args.policy_id_1)
+    agent0 = load_rllib_agent(args.agent, agent_index=0)
+    agent1 = load_rllib_agent(args.agent, agent_index=1)
 
     for episode_index in range(args.episodes):
         episode_seed = args.seed + episode_index
@@ -98,6 +67,14 @@ def main() -> int:
         done = False
         reward_sum = 0.0
         steps = 0
+        info = {}
+
+        for action0 in prefix_indices:
+            if done:
+                break
+            _, reward, done, info = env.multi_step(action0, stay)
+            reward_sum += float(reward[0])
+            steps += 1
 
         while not done:
             state = env.base_env.state
@@ -133,12 +110,12 @@ def main() -> int:
     result = {
         "agent": str(agent_dir),
         "layout": args.layout,
+        "prior": args.prior,
+        "prefix_actions": prefix_action_chars(args.prior),
         "episodes": args.episodes,
         "base_seed": args.seed,
         "deterministic": args.deterministic,
         "temperature": args.temperature,
-        "policy_id_0": args.policy_id_0,
-        "policy_id_1": args.policy_id_1,
         "mean_reward": statistics.fmean(rewards),
         "min_reward": min(rewards),
         "max_reward": max(rewards),

@@ -13,6 +13,8 @@ import os
 import shutil
 from pathlib import Path
 
+from durf.baseline.action_prior import available_priors, prefix_action_indices
+
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 AGENT_ROOT = REPO_ROOT / "models" / "rllib_agents"
@@ -41,12 +43,29 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--sgd-minibatch-size", type=int, default=800)
     parser.add_argument("--num-sgd-iter", type=int, default=1)
     parser.add_argument("--lr", type=float, default=5e-4)
+    parser.add_argument(
+        "--lr-override",
+        type=float,
+        help="Optional learning-rate override applied after selecting a profile.",
+    )
     parser.add_argument("--gamma", type=float, default=0.99)
     parser.add_argument("--gae-lambda", type=float, default=0.98)
     parser.add_argument("--vf-loss-coeff", type=float, default=1e-4)
     parser.add_argument("--kl-coeff", type=float, default=0.2)
     parser.add_argument("--clip-param", type=float, default=0.05)
     parser.add_argument("--grad-clip", type=float, default=0.1)
+    parser.add_argument(
+        "--entropy-start",
+        type=float,
+        default=0.2,
+        help="Initial PPO entropy coefficient used in entropy_coeff_schedule.",
+    )
+    parser.add_argument(
+        "--entropy-end",
+        type=float,
+        default=0.1,
+        help="Final PPO entropy coefficient used in entropy_coeff_schedule.",
+    )
     parser.add_argument("--horizon", type=int, default=400)
     parser.add_argument(
         "--reward-shaping-horizon",
@@ -91,10 +110,28 @@ def parse_args() -> argparse.Namespace:
         help="Curriculum-only dense reward for picking up an onion.",
     )
     parser.add_argument(
+        "--onion-drop-penalty",
+        type=float,
+        default=0.0,
+        help=(
+            "Curriculum-only penalty for dropping an onion on a counter when "
+            "the built-in usefulness check says the drop is not useful."
+        ),
+    )
+    parser.add_argument(
         "--dish-pickup-reward",
         type=float,
         default=3.0,
         help="Curriculum dense reward for picking up a dish.",
+    )
+    parser.add_argument(
+        "--dish-drop-penalty",
+        type=float,
+        default=0.0,
+        help=(
+            "Curriculum-only penalty for dropping a dish on a counter when "
+            "the built-in usefulness check says the drop is not useful."
+        ),
     )
     parser.add_argument(
         "--ready-dish-pickup-reward",
@@ -110,6 +147,12 @@ def parse_args() -> argparse.Namespace:
         type=float,
         default=5.0,
         help="Curriculum dense reward for picking up a ready soup.",
+    )
+    parser.add_argument(
+        "--soup-drop-penalty",
+        type=float,
+        default=0.0,
+        help="Curriculum-only penalty for dropping ready soup on a counter.",
     )
     parser.add_argument(
         "--dish-disp-distance-reward",
@@ -129,8 +172,61 @@ def parse_args() -> argparse.Namespace:
         default=0.0,
         help="Curriculum reward for moving closer to a serving location while holding soup.",
     )
+    parser.add_argument(
+        "--reset-prefix-prior",
+        choices=available_priors(),
+        help=(
+            "Optional action prior to execute after every env reset during "
+            "training. Used for reverse-prefix curriculum only."
+        ),
+    )
+    parser.add_argument(
+        "--reset-prefix-length",
+        type=int,
+        default=0,
+        help=(
+            "Number of actions from --reset-prefix-prior to execute after "
+            "reset. Defaults to 0, which disables reset-prefix curriculum."
+        ),
+    )
+    parser.add_argument(
+        "--reset-prefix-lengths",
+        type=int,
+        nargs="+",
+        help=(
+            "Optional list of prefix lengths sampled uniformly at reset, e.g. "
+            "'--reset-prefix-lengths 0 1'. Mutually exclusive with a positive "
+            "--reset-prefix-length."
+        ),
+    )
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--save-every", type=int, default=1)
+    parser.add_argument(
+        "--separate-policies",
+        action="store_true",
+        help=(
+            "Train independent PPO policies for player slots ppo_0 and ppo_1 "
+            "instead of sharing one ppo policy across both agents."
+        ),
+    )
+    parser.add_argument(
+        "--initialize-separate-from-shared",
+        action="store_true",
+        help=(
+            "When used with --separate-policies and --resume-from/--resume-installed, "
+            "copy the shared 'ppo' policy weights into ppo_0 and ppo_1 instead "
+            "of restoring trainer state directly."
+        ),
+    )
+    parser.add_argument(
+        "--train-policies",
+        nargs="+",
+        choices=("ppo", "ppo_0", "ppo_1"),
+        help=(
+            "Optional PPO policy ids to update. Defaults to all PPO policies. "
+            "Use with --separate-policies to freeze one player slot."
+        ),
+    )
     parser.add_argument("--old-dynamics", action="store_true", default=True)
     parser.add_argument("--no-old-dynamics", dest="old_dynamics", action="store_false")
     parser.add_argument("--use-phi", action="store_true", default=None)
@@ -183,6 +279,18 @@ def parse_args() -> argparse.Namespace:
             args.use_phi = False
     elif args.use_phi is None:
         args.use_phi = True
+    if args.lr_override is not None:
+        args.lr = args.lr_override
+    if args.reset_prefix_length < 0:
+        raise ValueError("--reset-prefix-length must be non-negative.")
+    if args.reset_prefix_lengths and any(length < 0 for length in args.reset_prefix_lengths):
+        raise ValueError("--reset-prefix-lengths must be non-negative.")
+    if args.reset_prefix_length and not args.reset_prefix_prior:
+        raise ValueError("--reset-prefix-length requires --reset-prefix-prior.")
+    if args.reset_prefix_lengths and not args.reset_prefix_prior:
+        raise ValueError("--reset-prefix-lengths requires --reset-prefix-prior.")
+    if args.reset_prefix_lengths and args.reset_prefix_length:
+        raise ValueError("Use either --reset-prefix-length or --reset-prefix-lengths.")
     return args
 
 
@@ -194,6 +302,17 @@ def build_training_params(args: argparse.Namespace, results_dir: Path, ray_temp_
     )
     from human_aware_rl.ppo.ppo_rllib import RllibLSTMPPOModel, RllibPPOModel
     from human_aware_rl.rllib.rllib import OvercookedMultiAgent
+    from overcooked_ai_py.mdp.actions import Action
+
+    reset_prefix_actions = None
+    reset_prefix_lengths = None
+    if args.reset_prefix_prior and args.reset_prefix_length > 0:
+        reset_prefix_actions = prefix_action_indices(args.reset_prefix_prior)[
+            : args.reset_prefix_length
+        ]
+    elif args.reset_prefix_prior and args.reset_prefix_lengths:
+        reset_prefix_actions = prefix_action_indices(args.reset_prefix_prior)
+        reset_prefix_lengths = args.reset_prefix_lengths
 
     def env_creator(env_config):
         from human_aware_rl.rllib.rllib import OvercookedMultiAgent
@@ -227,7 +346,7 @@ def build_training_params(args: argparse.Namespace, results_dir: Path, ray_temp_
         "num_gpus": 0,
         "seed": args.seed,
         "evaluation_interval": max(args.iterations + 1, 10),
-        "entropy_coeff_schedule": [(0, 0.2), (3e5, 0.1)],
+        "entropy_coeff_schedule": [(0, args.entropy_start), (3e5, args.entropy_end)],
         "eager_tracing": False,
         "log_level": "ERROR",
     }
@@ -241,9 +360,12 @@ def build_training_params(args: argparse.Namespace, results_dir: Path, ray_temp_
                 "TOMATO_TO_POT_DISTANCE_REWARD": args.tomato_to_pot_distance_reward,
                 "ONION_TO_POT_DISTANCE_REWARD": args.onion_to_pot_distance_reward,
                 "ONION_PICKUP_REWARD": args.onion_pickup_reward,
+                "ONION_DROP_PENALTY": args.onion_drop_penalty,
                 "DISH_PICKUP_REWARD": args.dish_pickup_reward,
+                "DISH_DROP_PENALTY": args.dish_drop_penalty,
                 "READY_DISH_PICKUP_REWARD": args.ready_dish_pickup_reward,
                 "SOUP_PICKUP_REWARD": args.soup_pickup_reward,
+                "SOUP_DROP_PENALTY": args.soup_drop_penalty,
                 "DISH_DISP_DISTANCE_REW": args.dish_disp_distance_reward,
                 "POT_DISTANCE_REW": args.pot_distance_reward,
                 "SOUP_DISTANCE_REW": args.soup_distance_reward,
@@ -256,6 +378,9 @@ def build_training_params(args: argparse.Namespace, results_dir: Path, ray_temp_
             "reward_shaping_horizon": args.reward_shaping_horizon,
             "use_phi": args.use_phi,
             "bc_schedule": OvercookedMultiAgent.self_play_bc_schedule,
+            "reset_prefix_actions": reset_prefix_actions,
+            "reset_prefix_other_action": Action.ACTION_TO_INDEX[Action.STAY],
+            "reset_prefix_lengths": reset_prefix_lengths,
         },
     }
     return {
@@ -270,7 +395,8 @@ def build_training_params(args: argparse.Namespace, results_dir: Path, ray_temp_
                 "eager": False,
             },
         },
-        "shared_policy": True,
+        "shared_policy": not args.separate_policies,
+        "policies_to_train": args.train_policies,
         "num_training_iters": args.iterations,
         "evaluation_params": {
             "ep_length": 400,
@@ -296,7 +422,7 @@ def build_training_params(args: argparse.Namespace, results_dir: Path, ray_temp_
 
 def train(params: dict) -> dict:
     import ray
-    from human_aware_rl.rllib.rllib import gen_trainer_from_params, save_trainer
+    from human_aware_rl.rllib.rllib import gen_trainer_from_params, load_trainer, save_trainer
 
     original_ray_init = ray.init
 
@@ -304,6 +430,8 @@ def train(params: dict) -> dict:
         kwargs.setdefault("local_mode", params["ray_params"].get("local_mode", False))
         kwargs.setdefault("num_gpus", 0)
         kwargs.setdefault("include_dashboard", False)
+        kwargs.setdefault("ignore_reinit_error", True)
+        kwargs.setdefault("_temp_dir", params["ray_params"].get("temp_dir"))
         return original_ray_init(*args, **kwargs)
 
     ray.init = init_with_local_mode
@@ -311,7 +439,27 @@ def train(params: dict) -> dict:
     result = {}
     try:
         resume_checkpoint_path = params.get("resume_checkpoint_path")
-        if resume_checkpoint_path:
+        initialize_shared_checkpoint_path = params.get(
+            "initialize_shared_checkpoint_path"
+        )
+        if initialize_shared_checkpoint_path:
+            shared_save_path = Path(initialize_shared_checkpoint_path)
+            if shared_save_path.name.startswith("checkpoint_") or shared_save_path.name.startswith(
+                "checkpoint-"
+            ):
+                shared_save_path = shared_save_path.parent
+            print(
+                "Initializing separate policies from shared checkpoint: "
+                f"{initialize_shared_checkpoint_path}"
+            )
+            source_trainer = load_trainer(str(shared_save_path))
+            try:
+                shared_weights = source_trainer.get_policy("ppo").get_weights()
+                for policy_id in ("ppo_0", "ppo_1"):
+                    trainer.get_policy(policy_id).set_weights(shared_weights)
+            finally:
+                source_trainer.stop()
+        elif resume_checkpoint_path:
             print(f"Restoring checkpoint: {resume_checkpoint_path}")
             trainer.restore(str(resume_checkpoint_path))
         for iteration in range(params["num_training_iters"]):
@@ -412,7 +560,21 @@ def main() -> int:
     ray_temp_dir.mkdir(parents=True, exist_ok=True)
 
     params = build_training_params(args, results_dir, ray_temp_dir)
-    params["resume_checkpoint_path"] = resolve_resume_checkpoint(args)
+    resume_checkpoint_path = resolve_resume_checkpoint(args)
+    if args.initialize_separate_from_shared:
+        if not args.separate_policies:
+            raise ValueError(
+                "--initialize-separate-from-shared requires --separate-policies."
+            )
+        if resume_checkpoint_path is None:
+            raise ValueError(
+                "--initialize-separate-from-shared requires "
+                "--resume-from or --resume-installed."
+            )
+        params["initialize_shared_checkpoint_path"] = resume_checkpoint_path
+        params["resume_checkpoint_path"] = None
+    else:
+        params["resume_checkpoint_path"] = resume_checkpoint_path
     experiment_name = params["experiment_name"]
 
     print(f"Training layout: {args.layout}")
@@ -421,8 +583,20 @@ def main() -> int:
     print(f"Results dir: {results_dir}")
     print(f"Ray temp dir: {ray_temp_dir}")
     print(f"Install agent name: {args.agent_name}")
+    if args.reset_prefix_prior and args.reset_prefix_length:
+        print(
+            "Reset prefix curriculum: "
+            f"{args.reset_prefix_prior} first {args.reset_prefix_length} action(s)"
+        )
+    if args.reset_prefix_prior and args.reset_prefix_lengths:
+        print(
+            "Mixed reset prefix curriculum: "
+            f"{args.reset_prefix_prior} lengths {args.reset_prefix_lengths}"
+        )
     if params["resume_checkpoint_path"]:
         print(f"Resume checkpoint: {params['resume_checkpoint_path']}")
+    if params.get("initialize_shared_checkpoint_path"):
+        print(f"Initialize from shared checkpoint: {params['initialize_shared_checkpoint_path']}")
     result = train(params)
     print(f"Training result: {result}")
 

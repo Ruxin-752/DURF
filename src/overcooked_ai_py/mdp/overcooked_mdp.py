@@ -1022,6 +1022,7 @@ BASE_REW_SHAPING_PARAMS = {
     "DISH_PICKUP_REWARD": 3,
     "READY_DISH_PICKUP_REWARD": 0,
     "SOUP_PICKUP_REWARD": 5,
+    "SOUP_DROP_PENALTY": 0,
     "DISH_DISP_DISTANCE_REW": 0,
     "POT_DISTANCE_REW": 0,
     "SOUP_DISTANCE_REW": 0,
@@ -1583,13 +1584,18 @@ class OvercookedGridworld(object):
             if terrain_type == "X":
                 if player.has_object() and not new_state.has_object(i_pos):
                     obj_name = player.get_object().name
-                    self.log_object_drop(
+                    useful_drop = self.log_object_drop(
                         events_infos,
                         new_state,
                         obj_name,
                         pot_states,
                         player_idx,
                     )
+                    if not useful_drop:
+                        penalty_key = f"{obj_name.upper()}_DROP_PENALTY"
+                        shaped_reward[player_idx] -= self.reward_shaping_params.get(
+                            penalty_key, 0
+                        )
 
                     # Drop object on counter
                     obj = player.remove_object()
@@ -1604,6 +1610,11 @@ class OvercookedGridworld(object):
                         pot_states,
                         player_idx,
                     )
+                    if obj_name in Recipe.ALL_INGREDIENTS:
+                        pickup_key = f"{obj_name.upper()}_PICKUP_REWARD"
+                        shaped_reward[player_idx] += self.reward_shaping_params.get(
+                            pickup_key, 0
+                        )
 
                     # Pick up object from counter
                     obj = new_state.remove_object(i_pos)
@@ -2311,10 +2322,13 @@ class OvercookedGridworld(object):
             "onion": self.is_ingredient_drop_useful,
             "dish": self.is_dish_drop_useful,
         }
+        useful_drop = False
         if obj_name in USEFUL_DROP_FNS:
-            if USEFUL_DROP_FNS[obj_name](state, pot_states, player_index):
+            useful_drop = USEFUL_DROP_FNS[obj_name](state, pot_states, player_index)
+            if useful_drop:
                 obj_useful_key = "useful_" + obj_name + "_drop"
                 events_infos[obj_useful_key][player_index] = True
+        return useful_drop
 
     def is_dish_pickup_useful(self, state, pot_states, player_index=None):
         """
