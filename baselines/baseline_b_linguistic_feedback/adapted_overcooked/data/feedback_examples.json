@@ -5,8 +5,7 @@
     "expected_feedback_type": "evaluative",
     "trajectory_features": {
       "clears_human_path": 1,
-      "respects_human_intent": 1,
-      "blocks_human_path": 0
+      "respects_human_intent": 1
     }
   },
   {
@@ -24,7 +23,12 @@
   {
     "feedback_id": "F04_duplicate_task_bad",
     "text": "You repeated my tomato task, that is bad.",
-    "expected_feedback_type": "descriptive"
+    "expected_feedback_type": "descriptive",
+    "target_features": {
+      "duplicate_human_task": 1,
+      "crowds_human_target": 1,
+      "frustrates_human": 1
+    }
   },
   {
     "feedback_id": "F05_get_onion",
@@ -35,6 +39,839 @@
   {
     "feedback_id": "F06_cutting_path_bad",
     "text": "Don't cut in front of my shortest path.",
-    "expected_feedback_type": "descriptive"
+    "expected_feedback_type": "descriptive",
+    "target_features": {
+      "cuts_in_front_of_human": 1,
+      "blocks_human_path": 1,
+      "human_wait_cost": 1
+    }
+  },
+  {
+    "feedback_id": "F07_do_not_cut_in_front_of_human",
+    "text": "Don't cut in front of me.",
+    "expected_feedback_type": "descriptive",
+    "target_features": {
+      "cuts_in_front_of_human": 1,
+      "blocks_human_path": 1,
+      "human_wait_cost": 1
+    }
+  },
+  {
+    "feedback_id": "F08_do_not_bother_human_task",
+    "text": "When human is doing a task, don't bother them.",
+    "expected_feedback_type": "descriptive",
+    "target_features": {
+      "duplicate_human_task": 1
+    }
+  },
+  {
+    "feedback_id": "F09_go_get_another_ingredient",
+    "text": "Go get another ingredient.",
+    "expected_feedback_type": "imperative",
+    "target_action": "move_to_onion_via_non_blocking_route"
+  },
+  {
+    "feedback_id": "F10_clear_the_path_for_human",
+    "text": "Clear the path for the human is good.",
+    "expected_feedback_type": "descriptive",
+    "target_features": {
+      "clears_human_path": 1,
+      "respects_human_intent": 1
+    }
+  },
+  {
+    "feedback_id": "E01_did_well",
+    "text": "刚才做的很好。",
+    "expected_feedback_type": "evaluative",
+    "trajectory_features": {
+      "respects_human_intent": 1,
+      "clears_human_path": 1,
+      "complementary_to_human": 1
+    }
+  },
+  {
+    "feedback_id": "E02_last_step_bad",
+    "text": "刚才那一步做的很差。",
+    "expected_feedback_type": "evaluative",
+    "trajectory_features": {
+      "blocks_human_path": 1,
+      "human_wait_cost": 1,
+      "frustrates_human": 1
+    }
+  },
+  {
+    "feedback_id": "E03_this_step_good",
+    "text": "这一步很好。",
+    "expected_feedback_type": "evaluative",
+    "trajectory_features": {
+      "respects_human_intent": 1,
+      "supports_serving": 1
+    }
+  },
+  {
+    "feedback_id": "E04_this_step_bad",
+    "text": "这一步很差。",
+    "expected_feedback_type": "evaluative",
+    "trajectory_features": {
+      "blocks_human_path": 1,
+      "cuts_in_front_of_human": 1,
+      "human_wait_cost": 1
+    }
+  },
+  {
+    "feedback_id": "E05_last_step_useless",
+    "text": "刚才那一步没用。",
+    "expected_feedback_type": "evaluative",
+    "trajectory_features": {
+      "time_cost": 1,
+      "moves_away_from_needed_object": 1,
+      "delays_serving": 1
+    }
+  },
+  {
+    "feedback_id": "E06_last_step_helpful",
+    "text": "刚才那步很有帮助。",
+    "expected_feedback_type": "evaluative",
+    "trajectory_features": {
+      "supports_serving": 1,
+      "complementary_to_human": 1,
+      "respects_human_intent": 1
+    }
+  },
+  {
+    "feedback_id": "E07_blocking_bad",
+    "text": "挡了我的路不好。",
+    "expected_feedback_type": "evaluative",
+    "trajectory_features": {
+      "blocks_human_path": 1,
+      "human_wait_cost": 1,
+      "frustrates_human": 1
+    }
+  },
+  {
+    "feedback_id": "E08_help_tomato_good",
+    "text": "帮我拿番茄很好。",
+    "expected_feedback_type": "evaluative",
+    "trajectory_features": {
+      "ingredient_tomato": 1,
+      "pick_tomato": 1,
+      "complementary_to_human": 1
+    }
+  },
+  {
+    "feedback_id": "E09_help_onion_good",
+    "text": "帮我拿洋葱很好。",
+    "expected_feedback_type": "evaluative",
+    "trajectory_features": {
+      "ingredient_onion": 1,
+      "pick_onion": 1,
+      "recipe_needs_onion": 1,
+      "complementary_to_human": 1
+    }
+  },
+  {
+    "feedback_id": "E10_help_dish_good",
+    "text": "帮我拿盘子很好。",
+    "expected_feedback_type": "evaluative",
+    "trajectory_features": {
+      "pick_dish": 1,
+      "supports_serving": 1
+    }
+  },
+  {
+    "feedback_id": "E11_help_dish_bad_not_needed",
+    "text": "帮我拿盘子很差，不需要你帮我拿盘子。",
+    "expected_feedback_type": "evaluative",
+    "trajectory_features": {
+      "pick_dish": 1,
+      "duplicate_human_task": 1,
+      "steals_human_target": 1
+    }
+  },
+  {
+    "feedback_id": "I01_go_get_dish",
+    "text": "你去拿盘子。",
+    "expected_feedback_type": "imperative",
+    "target_action": "pick_dish",
+    "target_features": {
+      "pick_dish": 1,
+      "supports_serving": 1
+    }
+  },
+  {
+    "feedback_id": "I02_go_get_tomato",
+    "text": "你去拿番茄。",
+    "expected_feedback_type": "imperative",
+    "target_action": "move_to_tomato",
+    "target_features": {
+      "ingredient_tomato": 1,
+      "pick_tomato": 1,
+      "moves_toward_needed_object": 1
+    }
+  },
+  {
+    "feedback_id": "I03_go_get_onion",
+    "text": "你去拿洋葱。",
+    "expected_feedback_type": "imperative",
+    "target_action": "move_to_onion",
+    "target_features": {
+      "ingredient_onion": 1,
+      "pick_onion": 1,
+      "recipe_needs_onion": 1,
+      "moves_toward_needed_object": 1
+    }
+  },
+  {
+    "feedback_id": "I04_human_tomato_agent_onion",
+    "text": "我去拿番茄，你去拿洋葱。",
+    "expected_feedback_type": "imperative",
+    "target_action": "move_to_onion_via_non_blocking_route"
+  },
+  {
+    "feedback_id": "I05_human_onion_agent_tomato",
+    "text": "我去拿洋葱，你去拿番茄。",
+    "expected_feedback_type": "imperative",
+    "target_action": "move_to_tomato",
+    "target_features": {
+      "ingredient_tomato": 1,
+      "pick_tomato": 1,
+      "complementary_to_human": 1,
+      "avoids_duplicate_human_task": 1
+    }
+  },
+  {
+    "feedback_id": "I06_do_not_block_my_way",
+    "text": "别挡住我的路。",
+    "expected_feedback_type": "imperative",
+    "target_action": "step_aside"
+  },
+  {
+    "feedback_id": "I07_do_not_block_serving_counter",
+    "text": "别挡着出餐口。",
+    "expected_feedback_type": "imperative",
+    "target_action": "move_away_from_serving_route"
+  },
+  {
+    "feedback_id": "I08_do_not_help_with_dish",
+    "text": "别帮我拿盘子。",
+    "expected_feedback_type": "imperative",
+    "target_action": "move_away_from_serving_route"
+  },
+  {
+    "feedback_id": "I09_move_out_of_my_way",
+    "text": "Move out of my way.",
+    "expected_feedback_type": "imperative",
+    "target_action": "step_aside"
+  },
+  {
+    "feedback_id": "I10_human_tomato_agent_onion_en",
+    "text": "When I am going to pick the tomato, go to pick the onion.",
+    "expected_feedback_type": "imperative",
+    "target_action": "move_to_onion_via_non_blocking_route"
+  },
+  {
+    "feedback_id": "I11_should_not_block_way",
+    "text": "You should not block my way.",
+    "expected_feedback_type": "imperative",
+    "target_action": "step_aside"
+  },
+  {
+    "feedback_id": "D01_blocking_my_way_bad",
+    "text": "Blocking my way is bad.",
+    "expected_feedback_type": "descriptive",
+    "target_features": {
+      "blocks_human_path": 1,
+      "human_wait_cost": 1,
+      "frustrates_human": 1
+    }
+  },
+  {
+    "feedback_id": "D02_help_tomato_when_human_onion_good",
+    "text": "Help me grab tomato when I grab onion is good.",
+    "expected_feedback_type": "descriptive",
+    "target_features": {
+      "ingredient_tomato": 1,
+      "pick_tomato": 1,
+      "complementary_to_human": 1,
+      "avoids_duplicate_human_task": 1
+    }
+  },
+  {
+    "feedback_id": "D03_clear_way_helpful",
+    "text": "Clear the way is helpful.",
+    "expected_feedback_type": "descriptive",
+    "target_features": {
+      "clears_human_path": 1,
+      "respects_human_intent": 1
+    }
+  },
+  {
+    "feedback_id": "D04_respect_human_plan_good",
+    "text": "Respect human's plan is good.",
+    "expected_feedback_type": "descriptive",
+    "target_features": {
+      "respects_human_intent": 1,
+      "avoids_duplicate_human_task": 1,
+      "avoids_human_shortest_path": 1
+    }
+  },
+  {
+    "feedback_id": "D05_repeated_existing_ingredient_useless",
+    "text": "重复拿已经有的食材没用帮助。",
+    "expected_feedback_type": "descriptive",
+    "target_features": {
+      "duplicate_human_task": 1,
+      "adds_extra_tomato": 1,
+      "adds_extra_onion": 1,
+      "time_cost": 1
+    }
+  },
+  {
+    "feedback_id": "D06_help_without_interfering",
+    "text": "添乱是不好的。",
+    "expected_feedback_type": "descriptive",
+    "target_features": {
+      "blocks_human_path": 1,
+      "frustrates_human": 1
+    }
+  },
+  {
+    "feedback_id": "P01_seed_001",
+    "probe_id": "P01_do_not_take_human_dish_or_block_serving_route",
+    "text": "I am going to get the dish, please stay away from the dish area.",
+    "expected_feedback_type": "imperative",
+    "target_action": "move_away_from_serving_route",
+    "target_features": {
+      "respects_human_intent": 1,
+      "avoids_duplicate_human_task": 1,
+      "clears_human_shortest_path": 1
+    }
+  },
+  {
+    "feedback_id": "P01_seed_002",
+    "probe_id": "P01_do_not_take_human_dish_or_block_serving_route",
+    "text": "别抢我的盘子，也别堵住出餐路线。",
+    "expected_feedback_type": "imperative",
+    "target_action": "move_away_from_serving_route",
+    "target_features": {
+      "respects_human_intent": 1,
+      "avoids_duplicate_human_task": 1,
+      "clears_human_shortest_path": 1
+    }
+  },
+  {
+    "feedback_id": "P01_seed_003",
+    "probe_id": "P01_do_not_take_human_dish_or_block_serving_route",
+    "text": "Taking the dish when I am already going for it is bad.",
+    "expected_feedback_type": "descriptive",
+    "target_features": {
+      "duplicate_human_task": 1,
+      "steals_human_target": 1,
+      "human_wait_cost": 1
+    }
+  },
+  {
+    "feedback_id": "P01_seed_004",
+    "probe_id": "P01_do_not_take_human_dish_or_block_serving_route",
+    "text": "You did well by leaving the dish and serving route open.",
+    "expected_feedback_type": "evaluative",
+    "trajectory_features": {
+      "respects_human_intent": 1,
+      "avoids_duplicate_human_task": 1,
+      "clears_human_shortest_path": 1
+    }
+  },
+  {
+    "feedback_id": "P01_seed_005",
+    "probe_id": "P01_do_not_take_human_dish_or_block_serving_route",
+    "text": "Blocking the path from dish to serving makes me wait.",
+    "expected_feedback_type": "descriptive",
+    "target_features": {
+      "blocks_human_path": 1,
+      "blocks_serving_route": 1,
+      "human_wait_cost": 1
+    }
+  },
+  {
+    "feedback_id": "P02_seed_001",
+    "probe_id": "P02_move_away_when_blocking_human",
+    "text": "你挡住我了，往旁边走。",
+    "expected_feedback_type": "imperative",
+    "target_action": "step_aside",
+    "target_features": {
+      "clears_human_path": 1,
+      "respects_human_intent": 1
+    }
+  },
+  {
+    "feedback_id": "P02_seed_002",
+    "probe_id": "P02_move_away_when_blocking_human",
+    "text": "Please step aside when I am trying to pass.",
+    "expected_feedback_type": "imperative",
+    "target_action": "step_aside",
+    "target_features": {
+      "clears_human_path": 1,
+      "respects_human_intent": 1
+    }
+  },
+  {
+    "feedback_id": "P02_seed_003",
+    "probe_id": "P02_move_away_when_blocking_human",
+    "text": "Standing on my next tile is not helpful.",
+    "expected_feedback_type": "descriptive",
+    "target_features": {
+      "blocks_human_path": 1,
+      "human_wait_cost": 1,
+      "frustrates_human": 1
+    }
+  },
+  {
+    "feedback_id": "P02_seed_004",
+    "probe_id": "P02_move_away_when_blocking_human",
+    "text": "刚才你让开那一步很好。",
+    "expected_feedback_type": "evaluative",
+    "trajectory_features": {
+      "clears_human_path": 1,
+      "respects_human_intent": 1
+    }
+  },
+  {
+    "feedback_id": "P02_seed_005",
+    "probe_id": "P02_move_away_when_blocking_human",
+    "text": "You stayed in my way and that was bad.",
+    "expected_feedback_type": "evaluative",
+    "trajectory_features": {
+      "blocks_human_path": 1,
+      "human_wait_cost": 1,
+      "frustrates_human": 1
+    }
+  },
+  {
+    "feedback_id": "P03_seed_001",
+    "probe_id": "P03_choose_complementary_task_to_human_tomato",
+    "text": "我已经在拿番茄了，你去做别的任务。",
+    "expected_feedback_type": "imperative",
+    "target_action": "move_to_onion",
+    "target_features": {
+      "complementary_to_human": 1,
+      "avoids_duplicate_human_task": 1,
+      "respects_human_intent": 1
+    }
+  },
+  {
+    "feedback_id": "P03_seed_002",
+    "probe_id": "P03_choose_complementary_task_to_human_tomato",
+    "text": "I have the tomato already, you should get onion instead.",
+    "expected_feedback_type": "imperative",
+    "target_action": "move_to_onion",
+    "target_features": {
+      "complementary_to_human": 1,
+      "avoids_duplicate_human_task": 1,
+      "recipe_needs_onion": 1
+    }
+  },
+  {
+    "feedback_id": "P03_seed_003",
+    "probe_id": "P03_choose_complementary_task_to_human_tomato",
+    "text": "Repeating my tomato task wastes time.",
+    "expected_feedback_type": "descriptive",
+    "target_features": {
+      "duplicate_human_task": 1,
+      "crowds_human_target": 1,
+      "time_cost": 1
+    }
+  },
+  {
+    "feedback_id": "P03_seed_004",
+    "probe_id": "P03_choose_complementary_task_to_human_tomato",
+    "text": "选择互补任务是有帮助的。",
+    "expected_feedback_type": "descriptive",
+    "target_features": {
+      "complementary_to_human": 1,
+      "avoids_duplicate_human_task": 1,
+      "respects_human_intent": 1
+    }
+  },
+  {
+    "feedback_id": "P03_seed_005",
+    "probe_id": "P03_choose_complementary_task_to_human_tomato",
+    "text": "Good job not crowding me at the tomato dispenser.",
+    "expected_feedback_type": "evaluative",
+    "trajectory_features": {
+      "avoids_duplicate_human_task": 1,
+      "complementary_to_human": 1,
+      "respects_human_intent": 1
+    }
+  },
+  {
+    "feedback_id": "P06_seed_001",
+    "probe_id": "P06_do_not_cut_into_human_shortest_path",
+    "text": "Take the lower route and don't cut into my path.",
+    "expected_feedback_type": "imperative",
+    "target_action": "move_to_onion_via_lower_route",
+    "target_features": {
+      "complementary_to_human": 1,
+      "avoids_human_shortest_path": 1,
+      "respects_human_intent": 1
+    }
+  },
+  {
+    "feedback_id": "P06_seed_002",
+    "probe_id": "P06_do_not_cut_into_human_shortest_path",
+    "text": "别插到我去锅的最短路线上。",
+    "expected_feedback_type": "descriptive",
+    "target_features": {
+      "cuts_in_front_of_human": 1,
+      "blocks_human_path": 1,
+      "human_wait_cost": 1
+    }
+  },
+  {
+    "feedback_id": "P06_seed_003",
+    "probe_id": "P06_do_not_cut_into_human_shortest_path",
+    "text": "Avoiding my shortest path is good.",
+    "expected_feedback_type": "descriptive",
+    "target_features": {
+      "avoids_human_shortest_path": 1,
+      "respects_human_intent": 1
+    }
+  },
+  {
+    "feedback_id": "P06_seed_004",
+    "probe_id": "P06_do_not_cut_into_human_shortest_path",
+    "text": "You cut in front of me and made me wait.",
+    "expected_feedback_type": "evaluative",
+    "trajectory_features": {
+      "cuts_in_front_of_human": 1,
+      "blocks_human_path": 1,
+      "human_wait_cost": 1
+    }
+  },
+  {
+    "feedback_id": "P06_seed_005",
+    "probe_id": "P06_do_not_cut_into_human_shortest_path",
+    "text": "刚才你绕开我的路线很有帮助。",
+    "expected_feedback_type": "evaluative",
+    "trajectory_features": {
+      "avoids_human_shortest_path": 1,
+      "complementary_to_human": 1,
+      "respects_human_intent": 1
+    }
+  },
+  {
+    "feedback_id": "P12_seed_001",
+    "probe_id": "P12_do_not_interrupt_human_plan",
+    "text": "I am already doing this plan, choose another target.",
+    "expected_feedback_type": "imperative",
+    "target_action": "choose_non_interfering_target",
+    "target_features": {
+      "respects_human_intent": 1,
+      "avoids_duplicate_human_task": 1,
+      "avoids_human_shortest_path": 1
+    }
+  },
+  {
+    "feedback_id": "P12_seed_002",
+    "probe_id": "P12_do_not_interrupt_human_plan",
+    "text": "不要打断我已经开始的计划。",
+    "expected_feedback_type": "descriptive",
+    "target_features": {
+      "duplicate_human_task": 1,
+      "steals_human_target": 1,
+      "blocks_human_path": 1
+    }
+  },
+  {
+    "feedback_id": "P12_seed_003",
+    "probe_id": "P12_do_not_interrupt_human_plan",
+    "text": "Respecting my plan is helpful.",
+    "expected_feedback_type": "descriptive",
+    "target_features": {
+      "respects_human_intent": 1,
+      "avoids_duplicate_human_task": 1
+    }
+  },
+  {
+    "feedback_id": "P12_seed_004",
+    "probe_id": "P12_do_not_interrupt_human_plan",
+    "text": "You interrupted my plan, that was bad.",
+    "expected_feedback_type": "evaluative",
+    "trajectory_features": {
+      "duplicate_human_task": 1,
+      "steals_human_target": 1,
+      "frustrates_human": 1
+    }
+  },
+  {
+    "feedback_id": "P12_seed_005",
+    "probe_id": "P12_do_not_interrupt_human_plan",
+    "text": "刚才你没有插进我的任务，这很好。",
+    "expected_feedback_type": "evaluative",
+    "trajectory_features": {
+      "respects_human_intent": 1,
+      "avoids_duplicate_human_task": 1,
+      "avoids_human_shortest_path": 1
+    }
+  },
+  {
+    "feedback_id": "P16_seed_001",
+    "probe_id": "P16_help_without_interfering",
+    "text": "Go help with onion, but do not block my pot route.",
+    "expected_feedback_type": "imperative",
+    "target_action": "move_to_onion_via_non_blocking_route",
+    "target_features": {
+      "complementary_to_human": 1,
+      "recipe_needs_onion": 1,
+      "avoids_human_shortest_path": 1,
+      "respects_human_intent": 1
+    }
+  },
+  {
+    "feedback_id": "P16_seed_002",
+    "probe_id": "P16_help_without_interfering",
+    "text": "你可以帮我，但不要挡住我去锅。",
+    "expected_feedback_type": "imperative",
+    "target_action": "move_to_onion_via_non_blocking_route",
+    "target_features": {
+      "complementary_to_human": 1,
+      "avoids_human_shortest_path": 1,
+      "respects_human_intent": 1
+    }
+  },
+  {
+    "feedback_id": "P16_seed_003",
+    "probe_id": "P16_help_without_interfering",
+    "text": "Helping is good only if you do not interfere with my route.",
+    "expected_feedback_type": "descriptive",
+    "target_features": {
+      "complementary_to_human": 1,
+      "respects_human_intent": 1,
+      "avoids_human_shortest_path": 1
+    }
+  },
+  {
+    "feedback_id": "P16_seed_004",
+    "probe_id": "P16_help_without_interfering",
+    "text": "Blocking me while trying to help is still bad.",
+    "expected_feedback_type": "descriptive",
+    "target_features": {
+      "blocks_human_path": 1,
+      "human_wait_cost": 1,
+      "frustrates_human": 1
+    }
+  },
+  {
+    "feedback_id": "P16_seed_005",
+    "probe_id": "P16_help_without_interfering",
+    "text": "刚才你帮忙而且没有挡我，很好。",
+    "expected_feedback_type": "evaluative",
+    "trajectory_features": {
+      "complementary_to_human": 1,
+      "respects_human_intent": 1,
+      "avoids_human_shortest_path": 1
+    }
+  },
+  {
+    "feedback_id": "AMB_E01_not_working",
+    "text": "你刚才那样不太行。",
+    "expected_feedback_type": "evaluative",
+    "trajectory_features": {
+      "blocks_human_path": 1,
+      "human_wait_cost": 1,
+      "frustrates_human": 1
+    }
+  },
+  {
+    "feedback_id": "AMB_E02_much_better",
+    "text": "这样好多了。",
+    "expected_feedback_type": "evaluative",
+    "trajectory_features": {
+      "clears_human_path": 1,
+      "respects_human_intent": 1,
+      "avoids_human_shortest_path": 1
+    }
+  },
+  {
+    "feedback_id": "AMB_E03_too_messy",
+    "text": "刚才有点乱。",
+    "expected_feedback_type": "evaluative",
+    "trajectory_features": {
+      "duplicate_human_task": 1,
+      "crowds_human_target": 1,
+      "frustrates_human": 1
+    }
+  },
+  {
+    "feedback_id": "AMB_E04_smoother",
+    "text": "That was smoother.",
+    "expected_feedback_type": "evaluative",
+    "trajectory_features": {
+      "clears_human_path": 1,
+      "respects_human_intent": 1,
+      "complementary_to_human": 1
+    }
+  },
+  {
+    "feedback_id": "AMB_E05_confusing",
+    "text": "That was confusing and not helpful.",
+    "expected_feedback_type": "evaluative",
+    "trajectory_features": {
+      "duplicate_human_task": 1,
+      "time_cost": 1,
+      "frustrates_human": 1
+    }
+  },
+  {
+    "feedback_id": "AMB_E06_less_comfortable",
+    "text": "这样玩起来不太舒服。",
+    "expected_feedback_type": "evaluative",
+    "trajectory_features": {
+      "blocks_human_path": 1,
+      "human_wait_cost": 1,
+      "frustrates_human": 1
+    }
+  },
+  {
+    "feedback_id": "AMB_I01_go_somewhere_else",
+    "text": "你换个地方吧。",
+    "expected_feedback_type": "imperative",
+    "target_action": "step_aside",
+    "target_features": {
+      "clears_human_path": 1,
+      "respects_human_intent": 1
+    }
+  },
+  {
+    "feedback_id": "AMB_I02_do_not_come_here",
+    "text": "你别过来，我这边自己来。",
+    "expected_feedback_type": "imperative",
+    "target_action": "choose_non_interfering_target",
+    "target_features": {
+      "respects_human_intent": 1,
+      "avoids_duplicate_human_task": 1,
+      "avoids_human_shortest_path": 1
+    }
+  },
+  {
+    "feedback_id": "AMB_I03_other_side",
+    "text": "你去另一边帮忙。",
+    "expected_feedback_type": "imperative",
+    "target_action": "move_to_onion_via_non_blocking_route",
+    "target_features": {
+      "complementary_to_human": 1,
+      "avoids_human_shortest_path": 1,
+      "respects_human_intent": 1
+    }
+  },
+  {
+    "feedback_id": "AMB_I04_leave_this_to_me",
+    "text": "Leave this to me and do something else.",
+    "expected_feedback_type": "imperative",
+    "target_action": "choose_non_interfering_target",
+    "target_features": {
+      "respects_human_intent": 1,
+      "avoids_duplicate_human_task": 1
+    }
+  },
+  {
+    "feedback_id": "AMB_I05_handle_other_ingredient",
+    "text": "Maybe handle the other ingredient.",
+    "expected_feedback_type": "imperative",
+    "target_action": "move_to_onion_via_non_blocking_route",
+    "target_features": {
+      "complementary_to_human": 1,
+      "moves_toward_needed_object": 1,
+      "avoids_duplicate_human_task": 1
+    }
+  },
+  {
+    "feedback_id": "AMB_I06_stop_hanging_around",
+    "text": "别一直在这里晃。",
+    "expected_feedback_type": "imperative",
+    "target_action": "step_aside",
+    "target_features": {
+      "clears_human_path": 1,
+      "respects_human_intent": 1
+    }
+  },
+  {
+    "feedback_id": "AMB_D01_in_the_way",
+    "text": "你在这儿有点碍事。",
+    "expected_feedback_type": "descriptive",
+    "target_features": {
+      "blocks_human_path": 1,
+      "human_wait_cost": 1,
+      "frustrates_human": 1
+    }
+  },
+  {
+    "feedback_id": "AMB_D02_too_crowded",
+    "text": "这里有点挤。",
+    "expected_feedback_type": "descriptive",
+    "target_features": {
+      "crowds_human_target": 1,
+      "blocks_human_path": 1,
+      "frustrates_human": 1
+    }
+  },
+  {
+    "feedback_id": "AMB_D03_we_are_doing_same_thing",
+    "text": "我们两个做同一件事没必要。",
+    "expected_feedback_type": "descriptive",
+    "target_features": {
+      "duplicate_human_task": 1,
+      "time_cost": 1,
+      "frustrates_human": 1
+    }
+  },
+  {
+    "feedback_id": "AMB_D04_leave_space",
+    "text": "留出路会舒服很多。",
+    "expected_feedback_type": "descriptive",
+    "target_features": {
+      "clears_human_path": 1,
+      "respects_human_intent": 1,
+      "avoids_human_shortest_path": 1
+    }
+  },
+  {
+    "feedback_id": "AMB_D05_front_path_bad",
+    "text": "走到我前面会卡住我。",
+    "expected_feedback_type": "descriptive",
+    "target_features": {
+      "cuts_in_front_of_human": 1,
+      "blocks_human_path": 1,
+      "human_wait_cost": 1
+    }
+  },
+  {
+    "feedback_id": "AMB_D06_split_tasks_good",
+    "text": "各做各的会更顺。",
+    "expected_feedback_type": "descriptive",
+    "target_features": {
+      "complementary_to_human": 1,
+      "avoids_duplicate_human_task": 1,
+      "respects_human_intent": 1
+    }
+  },
+  {
+    "feedback_id": "AMB_D07_do_not_break_my_flow",
+    "text": "You are breaking my flow.",
+    "expected_feedback_type": "descriptive",
+    "target_features": {
+      "duplicate_human_task": 1,
+      "blocks_human_path": 1,
+      "frustrates_human": 1
+    }
+  },
+  {
+    "feedback_id": "AMB_D08_read_my_plan",
+    "text": "It is better if you read my plan and stay out of it.",
+    "expected_feedback_type": "descriptive",
+    "target_features": {
+      "respects_human_intent": 1,
+      "avoids_duplicate_human_task": 1,
+      "avoids_human_shortest_path": 1
+    }
   }
 ]

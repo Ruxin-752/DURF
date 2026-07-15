@@ -10,7 +10,8 @@ from collections import Counter
 from pathlib import Path
 
 from durf.baseline.runtime import (
-    DEFAULT_AGENT_NAME,
+    DEFAULT_LAYOUT_NAME,
+    default_agent_for_layout,
     ensure_agent_layout,
     load_rllib_agent,
     make_baseline_env,
@@ -23,10 +24,10 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--agent",
-        default=DEFAULT_AGENT_NAME,
-        help="RLlib agent name or path; defaults to RllibCrampedRoomSP",
+        default=None,
+        help="RLlib agent name or path; defaults based on the requested layout.",
     )
-    parser.add_argument("--layout", default="cramped_room")
+    parser.add_argument("--layout", default=DEFAULT_LAYOUT_NAME)
     parser.add_argument("--episodes", type=int, default=20)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--output", type=Path)
@@ -35,7 +36,10 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Allow diagnostic cross-layout evaluation for same-sized curriculum maps.",
     )
-    return parser.parse_args()
+    args = parser.parse_args()
+    if args.agent is None:
+        args.agent = default_agent_for_layout(args.layout)
+    return args
 
 
 def count_event_value(value) -> int:

@@ -6,7 +6,6 @@ import random
 from pathlib import Path
 
 import dill
-from human_aware_rl.rllib.rllib import load_agent
 from overcooked_ai_py.mdp.actions import Action
 from overcooked_ai_py.mdp.overcooked_env import OvercookedEnv
 from overcooked_ai_py.mdp.overcooked_mdp import OvercookedGridworld
@@ -14,7 +13,9 @@ from overcooked_ai_py.mdp.overcooked_mdp import OvercookedGridworld
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 AGENT_ROOT = REPO_ROOT / "models" / "rllib_agents"
-DEFAULT_AGENT_NAME = "RllibCrampedRoomSP"
+CRAMPED_ROOM_AGENT_NAME = "RllibCrampedRoomSP"
+RING_HALF_TASK_AGENT_NAME = "RllibRingHalfTaskStableTopLeft"
+DEFAULT_AGENT_NAME = RING_HALF_TASK_AGENT_NAME
 CRAMPED_ROOM_COMPATIBLE_LAYOUTS = (
     "cramped_room",
     "cramped_room_wide",
@@ -22,6 +23,11 @@ CRAMPED_ROOM_COMPATIBLE_LAYOUTS = (
     "cramped_room_two_pots",
 )
 RING_TOMATO_ONION_LAYOUT = "ring_tomato_onion_10x6"
+RING_TOMATO_ONION_H0_LAYOUT = "ring_tomato_onion_10x6_h0_full_task"
+RING_HALF_TASK_LAYOUT = (
+    "ring_tomato_onion_10x6_curriculum_final_onion_held_target_top_left"
+)
+DEFAULT_LAYOUT_NAME = RING_HALF_TASK_LAYOUT
 RING_TOMATO_ONION_CURRICULUM_LAYOUTS = (
     "ring_tomato_onion_10x6_curriculum_micro",
     "ring_tomato_onion_10x6_curriculum_micro_delivery",
@@ -39,7 +45,7 @@ RING_TOMATO_ONION_CURRICULUM_LAYOUTS = (
     "ring_tomato_onion_10x6_curriculum_dish_held_ready_soup_target_geometry",
     "ring_tomato_onion_10x6_curriculum_empty_ready_soup_target_geometry",
     "ring_tomato_onion_10x6_curriculum_final_onion_held_target_pot_near",
-    "ring_tomato_onion_10x6_curriculum_final_onion_held_target_top_left",
+    RING_HALF_TASK_LAYOUT,
     "ring_tomato_onion_10x6_curriculum_final_onion_held_target_mid_left_2",
     "ring_tomato_onion_10x6_curriculum_final_onion_held_target_mid_left_3",
     "ring_tomato_onion_10x6_curriculum_final_onion_held_target_bottom_mid_2",
@@ -60,6 +66,9 @@ RING_TOMATO_ONION_CURRICULUM_LAYOUTS = (
     "ring_tomato_onion_10x6_curriculum_easy",
     "ring_tomato_onion_10x6_curriculum_corridor",
     "ring_tomato_onion_10x6_curriculum_tomato",
+)
+RING_HALF_TASK_COMPATIBLE_LAYOUTS = (
+    RING_HALF_TASK_LAYOUT,
 )
 DEFAULT_PLAYABLE_LAYOUTS = (
     *CRAMPED_ROOM_COMPATIBLE_LAYOUTS,
@@ -85,18 +94,29 @@ AGENT_LAYOUTS = {
     "RllibCounterCircuit1OrderBC": "counter_circuit_o_1order",
     "RllibCounterCircuit1OrderSP": "counter_circuit_o_1order",
     "RllibCrampedRoomBC": "cramped_room",
-    "RllibCrampedRoomSP": "cramped_room",
+    CRAMPED_ROOM_AGENT_NAME: "cramped_room",
     "RllibForcedCoordinationBC": "forced_coordination",
     "RllibForcedCoordinationSP": "forced_coordination",
 }
 AGENT_COMPATIBLE_LAYOUTS = {
     "RllibCrampedRoomBC": CRAMPED_ROOM_COMPATIBLE_LAYOUTS,
-    "RllibCrampedRoomSP": CRAMPED_ROOM_COMPATIBLE_LAYOUTS,
+    CRAMPED_ROOM_AGENT_NAME: CRAMPED_ROOM_COMPATIBLE_LAYOUTS,
     "RllibRingTomatoOnion10x6SP": (
         *RING_TOMATO_ONION_CURRICULUM_LAYOUTS,
         RING_TOMATO_ONION_LAYOUT,
     ),
+    RING_HALF_TASK_AGENT_NAME: RING_HALF_TASK_COMPATIBLE_LAYOUTS,
 }
+
+
+def default_agent_for_layout(layout_name: str | None) -> str:
+    """Choose the least surprising default agent for a requested layout."""
+
+    if layout_name in CRAMPED_ROOM_COMPATIBLE_LAYOUTS:
+        return CRAMPED_ROOM_AGENT_NAME
+    if layout_name in RING_HALF_TASK_COMPATIBLE_LAYOUTS:
+        return RING_HALF_TASK_AGENT_NAME
+    return DEFAULT_AGENT_NAME
 
 
 def resolve_agent_dir(agent: str | Path | None) -> Path:
@@ -170,6 +190,8 @@ def ensure_agent_layout(agent: str | Path | None, layout_name: str) -> None:
 
 
 def load_rllib_agent(agent: str | Path | None = None, agent_index: int = 0):
+    from human_aware_rl.rllib.rllib import load_agent
+
     loaded = load_agent(str(resolve_agent_dir(agent)), agent_index=agent_index)
     loaded.reset()
     return loaded
@@ -183,14 +205,19 @@ def rllib_action_index(agent, state) -> int:
 class PygameOvercookedEnv:
     """Small adapter exposing the multi-agent methods used by pygame scripts."""
 
-    def __init__(self, layout_name: str = "cramped_room", seed: int = 42):
+    def __init__(
+        self,
+        layout_name: str = "cramped_room",
+        seed: int = 42,
+        horizon: int = 400,
+    ):
         self.layout_name = layout_name
         self.base_env = OvercookedEnv.from_mdp(
             OvercookedGridworld.from_layout_name(
                 layout_name,
                 **DEFAULT_MDP_PARAMS,
             ),
-            horizon=400,
+            horizon=horizon,
             info_level=0,
         )
         self.seed(seed)
@@ -215,11 +242,19 @@ class PygameOvercookedEnv:
         return None
 
 
-def make_baseline_env(layout_name: str = "cramped_room", seed: int = 42):
+def make_baseline_env(
+    layout_name: str = "cramped_room",
+    seed: int = 42,
+    horizon: int = 400,
+):
     """Create an environment whose two actions are supplied by RLlib agents."""
-    return make_direct_multi_env(layout_name, seed)
+    return make_direct_multi_env(layout_name, seed, horizon=horizon)
 
 
-def make_direct_multi_env(layout_name: str = "cramped_room", seed: int = 42):
+def make_direct_multi_env(
+    layout_name: str = "cramped_room",
+    seed: int = 42,
+    horizon: int = 400,
+):
     """Create an environment whose two actions are supplied by the caller."""
-    return PygameOvercookedEnv(layout_name, seed)
+    return PygameOvercookedEnv(layout_name, seed, horizon=horizon)

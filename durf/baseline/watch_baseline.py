@@ -12,9 +12,10 @@ import pygame
 from overcooked_ai_py.visualization.state_visualizer import StateVisualizer
 
 from durf.baseline.runtime import (
-    DEFAULT_AGENT_NAME,
+    DEFAULT_LAYOUT_NAME,
     DEFAULT_PLAYABLE_LAYOUTS,
     REPO_ROOT,
+    default_agent_for_layout,
     ensure_agent_layout,
     filter_compatible_layouts,
     load_rllib_agent,
@@ -39,10 +40,10 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--agent",
-        default=DEFAULT_AGENT_NAME,
-        help="RLlib agent name or path; defaults to RllibCrampedRoomSP",
+        default=None,
+        help="RLlib agent name or path; defaults based on the requested layout.",
     )
-    parser.add_argument("--layout", default="cramped_room")
+    parser.add_argument("--layout", default=DEFAULT_LAYOUT_NAME)
     parser.add_argument(
         "--layouts",
         nargs="+",
@@ -57,7 +58,10 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="Exit after this many environment steps; useful for smoke tests.",
     )
-    return parser.parse_args()
+    args = parser.parse_args()
+    if args.agent is None:
+        args.agent = default_agent_for_layout(args.layout)
+    return args
 
 
 def main() -> int:

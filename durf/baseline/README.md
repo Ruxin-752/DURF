@@ -1,18 +1,31 @@
 # Archived RLlib PPO Baseline
 
-This module runs the trained RLlib PPO agents restored from commit
-`b1e6c627`. The default pygame baseline uses:
+This module runs trained RLlib PPO agents in pygame/evaluation entry points.
+The default large-ring late-stage baseline uses:
 
 ```text
-models/rllib_agents/RllibCrampedRoomSP
+models/rllib_agents/RllibRingHalfTaskStableTopLeft
 ```
 
-Use it only with `cramped_room`; other restored agents are map-specific assets.
+Its default layout is:
+
+```text
+ring_tomato_onion_10x6_curriculum_final_onion_held_target_top_left
+```
+
+Use restored historical agents only with their compatible maps. For example,
+`RllibCrampedRoomSP` remains available for `cramped_room`.
 
 Run commands from the repository root:
 
 ```powershell
 $env:PYTHONPATH="$PWD;$PWD\src"
+python -m durf.baseline.watch_baseline
+```
+
+To run the older cramped-room baseline:
+
+```powershell
 python -m durf.baseline.watch_baseline --layout cramped_room
 ```
 
@@ -21,7 +34,7 @@ Fixed-seed evaluation:
 ```powershell
 $env:PYTHONPATH="$PWD;$PWD\src"
 python -m durf.baseline.evaluate_baseline `
-  --episodes 20 `
+  --episodes 1 `
   --output outputs\baseline_evaluation.json
 ```
 
@@ -86,6 +99,25 @@ python -m durf.baseline.evaluate_baseline `
   --episodes 10 `
   --seed 200 `
   --output outputs\baseline_eval_ring_latest.json
+```
+
+A frozen late-stage ring-map PPO is also available for the final-onion top-left
+curriculum layout. That layout defaults to `RllibRingHalfTaskStableTopLeft`, so
+the smoke command can omit `--agent`:
+
+```powershell
+python -m durf.baseline.evaluate_baseline `
+  --layout ring_tomato_onion_10x6_curriculum_final_onion_held_target_top_left `
+  --episodes 1 `
+  --seed 200 `
+  --output outputs\baseline_eval_ring_half_task_smoke.json
+```
+
+For the human-AI pygame UI:
+
+```powershell
+python -m durf.group_a.play_with_baseline `
+  --layout ring_tomato_onion_10x6_curriculum_final_onion_held_target_top_left
 ```
 
 If the sparse reward stays near zero on the target map, use curriculum training

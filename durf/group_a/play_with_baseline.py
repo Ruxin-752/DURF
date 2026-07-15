@@ -1,4 +1,4 @@
-"""Play Overcooked as the green agent beside the archived blue RLlib PPO."""
+"""Play Overcooked as the green human beside the blue H0 or PPO agent."""
 
 from __future__ import annotations
 
@@ -18,10 +18,19 @@ from pathlib import Path
 import pygame
 from overcooked_ai_py.visualization.state_visualizer import StateVisualizer
 
+from durf.baseline.h0_planner import (
+    SUBGOALS,
+    first_action_to_feature,
+    make_motion_planner,
+    pots_needing_ingredient,
+    rule_teacher_decision,
+)
 from durf.baseline.runtime import (
-    DEFAULT_AGENT_NAME,
+    DEFAULT_LAYOUT_NAME,
     DEFAULT_PLAYABLE_LAYOUTS,
     REPO_ROOT,
+    RING_TOMATO_ONION_H0_LAYOUT,
+    default_agent_for_layout,
     ensure_agent_layout,
     filter_compatible_layouts,
     load_rllib_agent,
@@ -40,7 +49,14 @@ PAUSE_BUTTON = pygame.Rect(790, 620, 130, 42)
 CHAT_BUTTON = pygame.Rect(650, 620, 120, 42)
 PAUSE_DEBOUNCE_MS = 300
 LAYOUT_SWITCH_DEBOUNCE_MS = 300
-BUILD_ID = "pause-v5-chat"
+BUILD_ID = "pause-v6-h0"
+DEFAULT_H0_EXECUTOR = (
+    REPO_ROOT
+    / "models"
+    / "subgoal_executors"
+    / "h0_rule_executor_v5"
+    / "executor.keras"
+)
 LAYOUT_NUMBER_KEYS = (pygame.K_1, pygame.K_2, pygame.K_3, pygame.K_4)
 WINDOWS_LAYOUT_NUMBER_KEYS = (0x31, 0x32, 0x33, 0x34)
 WINDOWS_CHAT_CHAR_KEYS = {
@@ -155,11 +171,17 @@ else:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "--agent",
-        default=DEFAULT_AGENT_NAME,
-        help="RLlib agent name or path; defaults to RllibCrampedRoomSP",
+        "--ai-mode",
+        choices=("ppo", "subgoal_executor"),
+        default="subgoal_executor",
+        help="Blue-agent backend. Defaults to the bundled H0 subgoal executor.",
     )
-    parser.add_argument("--layout", default="cramped_room")
+    parser.add_argument(
+        "--agent",
+        default=None,
+        help="RLlib agent name or path; defaults based on the requested layout.",
+    )
+    parser.add_argument("--layout", default=None)
     parser.add_argument(
         "--layouts",
         nargs="+",
@@ -167,6 +189,13 @@ def parse_args() -> argparse.Namespace:
         help="Layouts available for hot switching with 1-4 or N/M.",
     )
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--horizon", type=int, default=800)
+    parser.add_argument(
+        "--subgoal-executor",
+        type=Path,
+        default=DEFAULT_H0_EXECUTOR,
+        help="Bundled Keras H0 executor used by --ai-mode subgoal_executor.",
+    )
     parser.add_argument(
         "--step-hz",
         type=float,
@@ -188,7 +217,194 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="Exit after this many total steps; useful for smoke tests.",
     )
-    return parser.parse_args()
+    args = parser.parse_args()
+    if args.layout is None:
+        args.layout = (
+            RING_TOMATO_ONION_H0_LAYOUT
+            if args.ai_mode == "subgoal_executor"
+            else DEFAULT_LAYOUT_NAME
+        )
+    if args.ai_mode == "ppo" and args.agent is None:
+        args.agent = default_agent_for_layout(args.layout)
+    return args
+
+
+def load_h0_executor(path: str | Path):
+    path = Path(path).resolve()
+    if not path.is_file():
+        raise FileNotFoundError(f"H0 subgoal executor not found: {path}")
+    try:
+        from tensorflow.keras.models import load_model
+    except ImportError as exc:
+        raise RuntimeError(
+            "TensorFlow is required for --ai-mode subgoal_executor"
+        ) from exc
+    model = load_model(path, compile=False)
+    expected_inputs = [(None, 10, 6, 26), (None, len(SUBGOALS))]
+    input_shapes = [tuple(shape) for shape in model.input_shape]
+    output_shape = tuple(model.output_shape)
+    if input_shapes != expected_inputs or output_shape != (None, len(ACTION_NAMES)):
+        raise ValueError(
+            f"Unexpected H0 model contract: inputs={input_shapes}, "
+            f"output={output_shape}"
+        )
+    return model
+
+
+def h0_executor_action(base_env, model, motion_planner) -> tuple[int, str]:
+    """Reproduce the bundled H0 playtest policy from commit 4ccb410."""
+
+    if model is None:
+        raise RuntimeError("H0 bundled model was not loaded")
+    subgoal, planner_action = rule_teacher_decision(
+        base_env.state,
+        motion_planner,
+        player_index=0,
+    )
+    return int(planner_action), subgoal
+
+
+def motion_target(position, action_index: int) -> list[int]:
+    action_name = ACTION_NAMES[int(action_index)]
+    if action_name == "north":
+        return [position[0], position[1] - 1]
+    if action_name == "south":
+        return [position[0], position[1] + 1]
+    if action_name == "east":
+        return [position[0] + 1, position[1]]
+    if action_name == "west":
+        return [position[0] - 1, position[1]]
+    return list(position)
+
+
+def action_moves(action_index: int) -> bool:
+    return ACTION_NAMES[int(action_index)] in {"north", "south", "east", "west"}
+
+
+def choose_yield_action(base_env, ai_pos, human_pos, human_target) -> int | None:
+    valid_positions = set(base_env.mdp.get_valid_player_positions())
+    avoid = {tuple(human_pos), tuple(human_target)}
+    best_action = None
+    best_score = None
+    for action_index in range(4):
+        candidate = motion_target(ai_pos, action_index)
+        if tuple(candidate) not in valid_positions or tuple(candidate) in avoid:
+            continue
+        score = (
+            abs(candidate[0] - human_pos[0])
+            + abs(candidate[1] - human_pos[1])
+            + abs(candidate[0] - human_target[0])
+            + abs(candidate[1] - human_target[1])
+        )
+        if best_score is None or score > best_score:
+            best_action = action_index
+            best_score = score
+    return best_action
+
+
+def detect_subgoal_issue(base_env, state, subgoal_name: str) -> str:
+    held_name = getattr(state.players[0].held_object, "name", None)
+    if held_name == "dish" and not base_env.mdp.get_ready_pots(
+        base_env.mdp.get_pot_states(state)
+    ):
+        return "AI_HELD_DISH_BEFORE_SOUP_READY"
+    if held_name in ("tomato", "onion") and not pots_needing_ingredient(
+        state,
+        base_env.mdp,
+        held_name,
+    ):
+        return "AI_HELD_UNNEEDED_INGREDIENT"
+    if subgoal_name in ("PUT_TOMATO_IN_POT", "PUT_ONION_IN_POT"):
+        ingredient = (
+            "tomato" if subgoal_name == "PUT_TOMATO_IN_POT" else "onion"
+        )
+        if not pots_needing_ingredient(state, base_env.mdp, ingredient):
+            return "STALE_PUT_INGREDIENT_SUBGOAL"
+    return ""
+
+
+def empty_counter_locations(base_env, state, motion_planner) -> list[tuple[int, int]]:
+    mdp = base_env.mdp
+    if hasattr(mdp, "get_counter_locations"):
+        counters = list(mdp.get_counter_locations())
+    else:
+        valid_positions = set(mdp.get_valid_player_positions())
+        counters = []
+        for y, row in enumerate(getattr(mdp, "terrain_mtx", [])):
+            for x, terrain in enumerate(row):
+                pos = (x, y)
+                if pos in valid_positions or terrain != "X":
+                    continue
+                adjacent = [(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)]
+                if any(candidate in valid_positions for candidate in adjacent):
+                    counters.append(pos)
+    feature_positions = set()
+    for getter_name in (
+        "get_pot_locations",
+        "get_serving_locations",
+        "get_dish_dispenser_locations",
+        "get_tomato_dispenser_locations",
+        "get_onion_dispenser_locations",
+    ):
+        getter = getattr(mdp, getter_name, None)
+        if getter is not None:
+            feature_positions.update(getter())
+    occupied = set(getattr(state, "objects", {}).keys())
+    motion_goal_positions = set(getattr(motion_planner, "motion_goals_for_pos", {}))
+    return [
+        tuple(position)
+        for position in counters
+        if tuple(position) not in feature_positions
+        and tuple(position) not in occupied
+        and tuple(position) in motion_goal_positions
+    ]
+
+
+def put_down_unneeded_object_action(base_env, state, motion_planner) -> int:
+    action = first_action_to_feature(
+        motion_planner,
+        state.players[0],
+        empty_counter_locations(base_env, state, motion_planner),
+        {state.players[1].position},
+    )
+    return int(action) if action is not None else STAY
+
+
+def cooperative_action_wrapper(
+    base_env,
+    motion_planner,
+    proposed_ai_action: int,
+    human_action: int,
+    subgoal_name: str,
+) -> tuple[int, str]:
+    state = base_env.state
+    ai_pos = list(state.players[0].position)
+    human_pos = list(state.players[1].position)
+    ai_target = motion_target(ai_pos, proposed_ai_action)
+    human_target = motion_target(human_pos, human_action)
+    issue = detect_subgoal_issue(base_env, state, subgoal_name)
+    if issue:
+        if issue == "AI_HELD_DISH_BEFORE_SOUP_READY":
+            pot_states = base_env.mdp.get_pot_states(state)
+            if pot_states.get("cooking"):
+                return STAY, issue
+        return (
+            put_down_unneeded_object_action(base_env, state, motion_planner),
+            issue,
+        )
+    if action_moves(proposed_ai_action) and ai_target == human_pos:
+        return STAY, "AI_WAITED_FOR_HUMAN_BLOCK"
+    if action_moves(human_action) and human_target == ai_pos:
+        yield_action = choose_yield_action(
+            base_env,
+            ai_pos,
+            human_pos,
+            human_target,
+        )
+        if yield_action is not None:
+            return yield_action, "AI_YIELDED_TO_HUMAN_PATH"
+        return STAY, "AI_COULD_NOT_YIELD_TO_HUMAN_PATH"
+    return proposed_ai_action, ""
 
 
 def utc_timestamp() -> str:
@@ -515,18 +731,38 @@ def main() -> int:
         raise ValueError("--render-fps must be greater than zero")
     if args.start_delay < 0:
         raise ValueError("--start-delay cannot be negative")
+    if args.horizon <= 0:
+        raise ValueError("--horizon must be greater than zero")
 
-    requested_layouts = list(dict.fromkeys([args.layout, *args.layouts]))
-    ensure_agent_layout(args.agent, args.layout)
-    layouts = filter_compatible_layouts(args.agent, requested_layouts)
-    if args.layout not in layouts:
-        layouts.insert(0, args.layout)
+    subgoal_model = None
+    motion_planner = None
+    if args.ai_mode == "subgoal_executor":
+        if args.layout != RING_TOMATO_ONION_H0_LAYOUT:
+            raise ValueError(
+                "--ai-mode subgoal_executor requires layout "
+                f"{RING_TOMATO_ONION_H0_LAYOUT!r}"
+            )
+        layouts = [RING_TOMATO_ONION_H0_LAYOUT]
+        agent_dir = Path(args.subgoal_executor).resolve()
+        ai_agent = None
+        subgoal_model = load_h0_executor(args.subgoal_executor)
+        motion_planner = make_motion_planner(
+            args.layout,
+            args.seed,
+            args.horizon,
+        )
+    else:
+        requested_layouts = list(dict.fromkeys([args.layout, *args.layouts]))
+        ensure_agent_layout(args.agent, args.layout)
+        layouts = filter_compatible_layouts(args.agent, requested_layouts)
+        if args.layout not in layouts:
+            layouts.insert(0, args.layout)
+        agent_dir = resolve_agent_dir(args.agent)
+        ai_agent = load_rllib_agent(args.agent, agent_index=0)
     layout_index = layouts.index(args.layout)
     current_layout = args.layout
 
-    agent_dir = resolve_agent_dir(args.agent)
-    ai_agent = load_rllib_agent(args.agent, agent_index=0)
-    env = make_direct_multi_env(current_layout, args.seed)
+    env = make_direct_multi_env(current_layout, args.seed, horizon=args.horizon)
     envs_by_layout = {current_layout: env}
     session_dir = new_session_dir(args.output_dir)
 
@@ -540,6 +776,9 @@ def main() -> int:
         "episode_step",
         "total_step",
         "layout",
+        "ai_mode",
+        "ai_subgoal",
+        "ai_event",
         "ai_action",
         "ai_action_name",
         "human_action",
@@ -582,7 +821,7 @@ def main() -> int:
     pygame.init()
     pygame.key.set_repeat()
     screen = pygame.display.set_mode((940, 740))
-    pygame.display.set_caption(f"DURF Human + PPO Baseline [{BUILD_ID}]")
+    pygame.display.set_caption(f"DURF Human + H0/PPO Agent [{BUILD_ID}]")
     clock = pygame.time.Clock()
     font = pygame.font.Font(None, 25)
     small_font = pygame.font.Font(None, 22)
@@ -602,6 +841,8 @@ def main() -> int:
     previous_windows_keys: set[int] = set()
     last_key_debug = "no key yet"
     last_ai_action = STAY
+    last_ai_subgoal = "N/A"
+    last_ai_event = ""
     last_predict_ms = 0.0
     last_environment_step_ms = 0.0
     chat_open = False
@@ -629,6 +870,8 @@ def main() -> int:
         nonlocal game_surface
         nonlocal held_motion_actions
         nonlocal layout_index
+        nonlocal last_ai_event
+        nonlocal last_ai_subgoal
         nonlocal next_step_at
         nonlocal pending_interact
         nonlocal pending_motion
@@ -640,14 +883,18 @@ def main() -> int:
                 envs_by_layout[current_layout] = make_direct_multi_env(
                     current_layout,
                     args.seed,
+                    horizon=args.horizon,
                 )
             env = envs_by_layout[current_layout]
 
         ai_obs, _ = env.multi_reset()
-        ai_agent.reset()
+        if ai_agent is not None:
+            ai_agent.reset()
         episode += 1
         episode_step = 0
         episode_reward = 0.0
+        last_ai_event = ""
+        last_ai_subgoal = "N/A"
         pending_interact = False
         pending_motion = None
         held_motion_actions.clear()
@@ -657,6 +904,8 @@ def main() -> int:
 
     def request_layout_switch(new_layout_index: int) -> bool:
         nonlocal last_layout_switch_at
+        if args.ai_mode == "subgoal_executor":
+            return False
         now = pygame.time.get_ticks()
         if not 0 <= new_layout_index < len(layouts):
             return False
@@ -694,7 +943,7 @@ def main() -> int:
                 "role": "system",
                 "content": (
                     "You are helping a human evaluate a cooperative Overcooked "
-                    "PPO agent. Reply concisely and ask clarifying questions when needed."
+                    "AI agent. Reply concisely and ask clarifying questions when needed."
                 ),
             },
             *chat_messages[-10:],
@@ -711,19 +960,21 @@ def main() -> int:
 
         threading.Thread(target=worker, daemon=True).start()
 
+    print(f"AI mode: {args.ai_mode}")
     print(f"Agent: {agent_dir}")
     print(f"Interface build: {BUILD_ID}")
     print(f"Script: {Path(__file__).resolve()}")
     print(f"Session logs: {session_dir}")
-    print("Human is green; PPO is blue.")
+    print("Human is green; AI is blue.")
     print(
         f"Timing: {args.step_hz:g} environment steps/s, "
-        f"{args.render_fps} render FPS, {args.start_delay:g}s start delay"
+        f"{args.render_fps} render FPS, {args.start_delay:g}s start delay, "
+        f"horizon={args.horizon}"
     )
     print(
         "Controls: WASD/Arrows=Move, Space=Interact, "
         "P/Tab/F1=Pause, Chat=Language feedback, R=Reset, "
-        "1-4/N/M=Switch map, Esc=Quit"
+        "1-4/N/M=Switch map (PPO only), Esc=Quit"
     )
 
     try:
@@ -908,10 +1159,30 @@ def main() -> int:
                 pending_interact = False
                 pending_motion = None
                 predict_started = time.perf_counter()
-                ai_action_raw = rllib_action_index(ai_agent, env.base_env.state)
+                if args.ai_mode == "subgoal_executor":
+                    if subgoal_model is None or motion_planner is None:
+                        raise RuntimeError("H0 runtime was not initialized")
+                    ai_action_raw, last_ai_subgoal = h0_executor_action(
+                        env.base_env,
+                        subgoal_model,
+                        motion_planner,
+                    )
+                else:
+                    ai_action_raw = rllib_action_index(ai_agent, env.base_env.state)
+                    last_ai_subgoal = "PPO"
                 last_predict_ms = (time.perf_counter() - predict_started) * 1000
-                ai_action = int(ai_action_raw)
                 state_before = state_facts(env)
+                if args.ai_mode == "subgoal_executor":
+                    ai_action, last_ai_event = cooperative_action_wrapper(
+                        env.base_env,
+                        motion_planner,
+                        int(ai_action_raw),
+                        human_action,
+                        last_ai_subgoal,
+                    )
+                else:
+                    ai_action = int(ai_action_raw)
+                    last_ai_event = ""
                 step_started = time.perf_counter()
                 (ai_obs, _), (reward, _), done, _ = env.multi_step(
                     ai_action,
@@ -934,6 +1205,9 @@ def main() -> int:
                         "episode_step": episode_step,
                         "total_step": total_step,
                         "layout": current_layout,
+                        "ai_mode": args.ai_mode,
+                        "ai_subgoal": last_ai_subgoal,
+                        "ai_event": last_ai_event,
                         "ai_action": ai_action,
                         "ai_action_name": ACTION_NAMES[ai_action],
                         "human_action": human_action,
@@ -1014,7 +1288,8 @@ def main() -> int:
             else:
                 run_status = "RUNNING"
             status = (
-                f"Blue: PPO | Green: YOU | Episode {episode} | Step {episode_step} | "
+                f"Blue: {args.ai_mode} | Green: YOU | Episode {episode} | "
+                f"Step {episode_step} | "
                 f"Reward {episode_reward:.1f} | {run_status}"
             )
             controls = (
@@ -1025,7 +1300,8 @@ def main() -> int:
             timing_status = (
                 f"{BUILD_ID} | Decision rate: {args.step_hz:g}/s | "
                 f"AI predict: {last_predict_ms:.1f} ms | "
-                f"Environment: {last_environment_step_ms:.1f} ms"
+                f"Environment: {last_environment_step_ms:.1f} ms | "
+                f"Subgoal: {last_ai_subgoal} | Event: {last_ai_event or 'none'}"
             )
             input_status = f"Last input: {last_key_debug}"
             screen.blit(font.render(status, True, (235, 235, 235)), (20, 630))

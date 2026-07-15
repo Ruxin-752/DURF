@@ -11,11 +11,35 @@ POSITIVE_MARKERS = (
     "right",
     "thanks",
     "useful",
+    "helpful",
     "好",
     "不错",
     "对",
     "棒",
     "有用",
+    "有帮助",
+    "帮助",
+    "帮我",
+)
+
+POSITIVE_PHRASES = (
+    "did well",
+    "well by",
+    "good job",
+    "that was smoother",
+    "much better",
+    "better if",
+    "without blocking",
+    "not blocking",
+    "did not block",
+    "helping is good",
+    "没有挡",
+    "没挡",
+    "绕开",
+    "好多了",
+    "更顺",
+    "舒服",
+    "留出路",
 )
 
 NEGATIVE_MARKERS = (
@@ -37,6 +61,35 @@ NEGATIVE_MARKERS = (
     "挡",
     "抢",
     "重复",
+    "很差",
+    "差",
+    "没用",
+    "添乱",
+    "碍事",
+    "挤",
+    "乱",
+)
+
+NEGATIVE_PHRASES = (
+    "not helpful",
+    "not useful",
+    "not working",
+    "not smooth",
+    "too crowded",
+    "too messy",
+    "made me wait",
+    "makes me wait",
+    "in my way",
+    "cut in front",
+    "interrupted my plan",
+    "breaking my flow",
+    "不太行",
+    "不太舒服",
+    "有点乱",
+    "有点挤",
+    "打乱",
+    "卡住我",
+    "没必要",
 )
 
 
@@ -49,6 +102,11 @@ def extract_sentiment(text: str | None, *, scalar_value: int | None = None) -> d
         return {"sentiment": "neutral", "sentiment_score": 0.0}
 
     lowered = (text or "").strip().lower()
+    if any(phrase in lowered for phrase in NEGATIVE_PHRASES):
+        return {"sentiment": "negative", "sentiment_score": -1.0}
+    if any(phrase in lowered for phrase in POSITIVE_PHRASES):
+        return {"sentiment": "positive", "sentiment_score": 1.0}
+
     positive = sum(marker in lowered for marker in POSITIVE_MARKERS)
     negative = sum(marker in lowered for marker in NEGATIVE_MARKERS)
     if positive > negative:

@@ -19,13 +19,17 @@ def print_summary(evaluation: dict) -> None:
     correct = evaluation["correct"]
     total = evaluation["total"]
     accuracy = evaluation["overall_accuracy"] * 100
-    print(f"Probe Accuracy: {correct}/{total} = {accuracy:.1f}%")
+    print(
+        f"Probe Accuracy: {correct}/{total} = {accuracy:.1f}% "
+        f"(ties={evaluation['tie_count']})"
+    )
     for result in evaluation["results"]:
         mark = "OK" if result["correct"] else "FAIL"
+        chosen = result["chosen_action"] or f"TIE:{','.join(result['tied_actions'])}"
         print(
             f"[{mark}] {result['probe_id']}: "
-            f"chosen={result['chosen_action']} expected={result['expected_action']} "
-            f"score={result['chosen_score']:.2f}"
+            f"chosen={chosen} expected={result['expected_action']} "
+            f"score={result['chosen_score']:.2f} margin={result['margin']:.2f}"
         )
 
 
@@ -47,7 +51,7 @@ def main() -> int:
         print(json.dumps(evaluation, ensure_ascii=False, indent=2))
     else:
         print_summary(evaluation)
-    return 0 if evaluation["correct"] == evaluation["total"] else 1
+    return 0 if evaluation["correct"] == evaluation["total"] and not evaluation["tie_count"] else 1
 
 
 if __name__ == "__main__":

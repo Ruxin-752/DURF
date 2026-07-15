@@ -96,6 +96,16 @@ def ground_feedback(
     text = feedback.get("text") or feedback.get("feedback_text")
     action_feature_library = action_feature_library or {}
 
+    explicit_target_features = feedback.get("target_features")
+    if isinstance(explicit_target_features, dict) and explicit_target_features:
+        return {
+            "target_features": {
+                str(feature): float(value)
+                for feature, value in explicit_target_features.items()
+            },
+            "grounding_source": "target_features",
+        }
+
     if feedback_type == "evaluative":
         target_features = feedback.get("trajectory_features") or {}
         return {

@@ -1,0 +1,3334 @@
+{
+  "learned_weights": {
+    "adds_extra_onion": -7.0,
+    "adds_extra_tomato": -7.0,
+    "adds_needed_onion": 0.0,
+    "adds_needed_tomato": 0.0,
+    "avoids_duplicate_human_task": 139.0,
+    "avoids_human_shortest_path": 126.0,
+    "blocks_human_path": -136.0,
+    "blocks_partner_on_ring": 0.0,
+    "blocks_serving_route": -9.0,
+    "breaks_recipe": 0.0,
+    "clears_human_path": 111.0,
+    "clears_human_shortest_path": 41.0,
+    "clears_serving_access": 2.0,
+    "collision_risk": -2.0,
+    "complementary_to_human": 160.0,
+    "completes_recipe": 0.0,
+    "crowds_human_target": -29.0,
+    "cuts_in_front_of_human": -42.5,
+    "delays_serving": -8.0,
+    "dish_needed_for_ready_soup": 0.0,
+    "distance_cost": 0.0,
+    "duplicate_human_task": -82.5,
+    "frustrates_human": -117.0,
+    "human_wait_cost": -114.0,
+    "ingredient_onion": 14.0,
+    "ingredient_tomato": 28.0,
+    "matches_current_order": 0.0,
+    "moves_away_from_needed_object": -7.0,
+    "moves_toward_needed_object": 21.0,
+    "near_dish_dispenser": 0.0,
+    "near_onion_dispenser": 0.0,
+    "near_pot": 0.0,
+    "near_serving_counter": 0.0,
+    "near_tomato_dispenser": 0.0,
+    "pick_dish": 7.0,
+    "pick_onion": 14.0,
+    "pick_ready_soup": 0.0,
+    "pick_tomato": 28.0,
+    "pot_cooking": 0.0,
+    "pot_empty": 0.0,
+    "pot_has_one_tomato": 0.0,
+    "pot_has_two_tomatoes": 0.0,
+    "pot_has_two_tomatoes_one_onion": 0.0,
+    "recipe_needs_first_tomato": 0.0,
+    "recipe_needs_onion": 55.0,
+    "recipe_needs_second_tomato": 0.0,
+    "respects_human_intent": 312.0,
+    "serve_ready_soup": 0.0,
+    "soup_ready": 0.0,
+    "steals_human_target": -27.5,
+    "supports_serving": 29.0,
+    "time_cost": -34.5,
+    "wrong_ingredient": 0.0
+  },
+  "pipeline_metrics": {
+    "classification_accuracy": 0.5227272727272727,
+    "classification_correct": 46,
+    "feedback_examples": 88,
+    "grounding_source_counts": {
+      "target_action": 11,
+      "target_features": 50,
+      "trajectory_features": 27
+    }
+  },
+  "probe_evaluation": {
+    "category_accuracy": {
+      "HumanComfortCoordination": {
+        "accuracy": 1.0,
+        "correct": 5,
+        "total": 5
+      },
+      "RespectHumanIntent": {
+        "accuracy": 1.0,
+        "correct": 1,
+        "total": 1
+      }
+    },
+    "correct": 6,
+    "mean_margin": 133.91666666666666,
+    "overall_accuracy": 1.0,
+    "results": [
+      {
+        "acceptable_actions": [
+          "move_away_from_serving_route"
+        ],
+        "action_scores": [
+          {
+            "action_id": "move_away_from_serving_route",
+            "features": {
+              "avoids_duplicate_human_task": 1,
+              "blocks_human_path": 0,
+              "clears_human_shortest_path": 1,
+              "human_wait_cost": 0,
+              "respects_human_intent": 1
+            },
+            "score": 80.0
+          },
+          {
+            "action_id": "move_to_serving_route",
+            "features": {
+              "blocks_human_path": 1,
+              "blocks_serving_route": 1,
+              "delays_serving": 1,
+              "human_wait_cost": 1
+            },
+            "score": -48.0
+          },
+          {
+            "action_id": "pick_dish",
+            "features": {
+              "blocks_human_path": 1,
+              "duplicate_human_task": 1,
+              "human_wait_cost": 1,
+              "steals_human_target": 1
+            },
+            "score": -63.0
+          }
+        ],
+        "best_incorrect_score": -48.0,
+        "category": "HumanComfortCoordination",
+        "chosen_action": "move_away_from_serving_route",
+        "chosen_score": 80.0,
+        "correct": true,
+        "expected_action": "move_away_from_serving_route",
+        "expected_score": 80.0,
+        "is_tie": false,
+        "margin": 128.0,
+        "probe_id": "P01_do_not_take_human_dish_or_block_serving_route",
+        "probe_name": "Do Not Take Human Dish Or Block Serving Route",
+        "tied_actions": [
+          "move_away_from_serving_route"
+        ]
+      },
+      {
+        "acceptable_actions": [
+          "step_aside"
+        ],
+        "action_scores": [
+          {
+            "action_id": "step_aside",
+            "features": {
+              "blocks_human_path": 0,
+              "clears_human_path": 1,
+              "human_wait_cost": 0,
+              "respects_human_intent": 1
+            },
+            "score": 67.0
+          },
+          {
+            "action_id": "move_into_human",
+            "features": {
+              "blocks_human_path": 1,
+              "collision_risk": 1,
+              "frustrates_human": 1
+            },
+            "score": -44.0
+          },
+          {
+            "action_id": "stay_blocking",
+            "features": {
+              "blocks_human_path": 1,
+              "frustrates_human": 1,
+              "human_wait_cost": 1
+            },
+            "score": -61.0
+          }
+        ],
+        "best_incorrect_score": -44.0,
+        "category": "HumanComfortCoordination",
+        "chosen_action": "step_aside",
+        "chosen_score": 67.0,
+        "correct": true,
+        "expected_action": "step_aside",
+        "expected_score": 67.0,
+        "is_tie": false,
+        "margin": 111.0,
+        "probe_id": "P02_move_away_when_blocking_human",
+        "probe_name": "Move Away When Blocking Human",
+        "tied_actions": [
+          "step_aside"
+        ]
+      },
+      {
+        "acceptable_actions": [
+          "move_to_onion"
+        ],
+        "action_scores": [
+          {
+            "action_id": "move_to_onion",
+            "features": {
+              "avoids_duplicate_human_task": 1,
+              "complementary_to_human": 1,
+              "recipe_needs_onion": 1,
+              "respects_human_intent": 1
+            },
+            "score": 107.0
+          },
+          {
+            "action_id": "wait_near_tomato",
+            "features": {
+              "crowds_human_target": 1,
+              "frustrates_human": 1,
+              "time_cost": 1
+            },
+            "score": -30.5
+          },
+          {
+            "action_id": "move_to_tomato",
+            "features": {
+              "crowds_human_target": 1,
+              "duplicate_human_task": 1,
+              "frustrates_human": 1,
+              "human_wait_cost": 1
+            },
+            "score": -58.5
+          }
+        ],
+        "best_incorrect_score": -30.5,
+        "category": "HumanComfortCoordination",
+        "chosen_action": "move_to_onion",
+        "chosen_score": 107.0,
+        "correct": true,
+        "expected_action": "move_to_onion",
+        "expected_score": 107.0,
+        "is_tie": false,
+        "margin": 137.5,
+        "probe_id": "P03_choose_complementary_task_to_human_tomato",
+        "probe_name": "Choose Complementary Task To Human Tomato",
+        "tied_actions": [
+          "move_to_onion"
+        ]
+      },
+      {
+        "acceptable_actions": [
+          "move_to_onion_via_lower_route"
+        ],
+        "action_scores": [
+          {
+            "action_id": "move_to_onion_via_lower_route",
+            "features": {
+              "avoids_human_shortest_path": 1,
+              "blocks_human_path": 0,
+              "complementary_to_human": 1,
+              "respects_human_intent": 1
+            },
+            "score": 96.0
+          },
+          {
+            "action_id": "wait_on_human_shortest_path",
+            "features": {
+              "blocks_human_path": 1,
+              "human_wait_cost": 1,
+              "time_cost": 1
+            },
+            "score": -47.5
+          },
+          {
+            "action_id": "move_left_into_human_shortest_path",
+            "features": {
+              "blocks_human_path": 1,
+              "cuts_in_front_of_human": 1,
+              "frustrates_human": 1,
+              "human_wait_cost": 1
+            },
+            "score": -69.5
+          }
+        ],
+        "best_incorrect_score": -47.5,
+        "category": "HumanComfortCoordination",
+        "chosen_action": "move_to_onion_via_lower_route",
+        "chosen_score": 96.0,
+        "correct": true,
+        "expected_action": "move_to_onion_via_lower_route",
+        "expected_score": 96.0,
+        "is_tie": false,
+        "margin": 143.5,
+        "probe_id": "P06_do_not_cut_into_human_shortest_path",
+        "probe_name": "Do Not Cut Into Human Shortest Path",
+        "tied_actions": [
+          "move_to_onion_via_lower_route"
+        ]
+      },
+      {
+        "acceptable_actions": [
+          "choose_non_interfering_target"
+        ],
+        "action_scores": [
+          {
+            "action_id": "choose_non_interfering_target",
+            "features": {
+              "avoids_duplicate_human_task": 1,
+              "avoids_human_shortest_path": 1,
+              "blocks_human_path": 0,
+              "respects_human_intent": 1
+            },
+            "score": 93.0
+          },
+          {
+            "action_id": "move_to_serving_counter_access",
+            "features": {
+              "blocks_human_path": 1,
+              "blocks_serving_route": 1,
+              "human_wait_cost": 1
+            },
+            "score": -46.0
+          },
+          {
+            "action_id": "move_to_dish",
+            "features": {
+              "blocks_human_path": 1,
+              "duplicate_human_task": 1,
+              "frustrates_human": 1,
+              "steals_human_target": 1
+            },
+            "score": -63.0
+          }
+        ],
+        "best_incorrect_score": -46.0,
+        "category": "RespectHumanIntent",
+        "chosen_action": "choose_non_interfering_target",
+        "chosen_score": 93.0,
+        "correct": true,
+        "expected_action": "choose_non_interfering_target",
+        "expected_score": 93.0,
+        "is_tie": false,
+        "margin": 139.0,
+        "probe_id": "P12_do_not_interrupt_human_plan",
+        "probe_name": "Do Not Interrupt Human Plan",
+        "tied_actions": [
+          "choose_non_interfering_target"
+        ]
+      },
+      {
+        "acceptable_actions": [
+          "move_to_onion_via_non_blocking_route"
+        ],
+        "action_scores": [
+          {
+            "action_id": "move_to_onion_via_non_blocking_route",
+            "features": {
+              "avoids_human_shortest_path": 1,
+              "blocks_human_path": 0,
+              "complementary_to_human": 1,
+              "recipe_needs_onion": 1,
+              "respects_human_intent": 1
+            },
+            "score": 105.0
+          },
+          {
+            "action_id": "move_to_tomato",
+            "features": {
+              "crowds_human_target": 1,
+              "duplicate_human_task": 1,
+              "frustrates_human": 1
+            },
+            "score": -39.5
+          },
+          {
+            "action_id": "move_to_pot_access",
+            "features": {
+              "blocks_human_path": 1,
+              "cuts_in_front_of_human": 1,
+              "frustrates_human": 1,
+              "human_wait_cost": 1
+            },
+            "score": -69.5
+          }
+        ],
+        "best_incorrect_score": -39.5,
+        "category": "HumanComfortCoordination",
+        "chosen_action": "move_to_onion_via_non_blocking_route",
+        "chosen_score": 105.0,
+        "correct": true,
+        "expected_action": "move_to_onion_via_non_blocking_route",
+        "expected_score": 105.0,
+        "is_tie": false,
+        "margin": 144.5,
+        "probe_id": "P16_help_without_interfering",
+        "probe_name": "Help Without Interfering",
+        "tied_actions": [
+          "move_to_onion_via_non_blocking_route"
+        ]
+      }
+    ],
+    "tie_count": 0,
+    "total": 6
+  },
+  "probe_evaluations": {
+    "initial_weights": {
+      "category_accuracy": {
+        "HumanComfortCoordination": {
+          "accuracy": 1.0,
+          "correct": 5,
+          "total": 5
+        },
+        "RespectHumanIntent": {
+          "accuracy": 1.0,
+          "correct": 1,
+          "total": 1
+        }
+      },
+      "correct": 6,
+      "mean_margin": 133.91666666666666,
+      "overall_accuracy": 1.0,
+      "results": [
+        {
+          "acceptable_actions": [
+            "move_away_from_serving_route"
+          ],
+          "action_scores": [
+            {
+              "action_id": "move_away_from_serving_route",
+              "features": {
+                "avoids_duplicate_human_task": 1,
+                "blocks_human_path": 0,
+                "clears_human_shortest_path": 1,
+                "human_wait_cost": 0,
+                "respects_human_intent": 1
+              },
+              "score": 80.0
+            },
+            {
+              "action_id": "move_to_serving_route",
+              "features": {
+                "blocks_human_path": 1,
+                "blocks_serving_route": 1,
+                "delays_serving": 1,
+                "human_wait_cost": 1
+              },
+              "score": -48.0
+            },
+            {
+              "action_id": "pick_dish",
+              "features": {
+                "blocks_human_path": 1,
+                "duplicate_human_task": 1,
+                "human_wait_cost": 1,
+                "steals_human_target": 1
+              },
+              "score": -63.0
+            }
+          ],
+          "best_incorrect_score": -48.0,
+          "category": "HumanComfortCoordination",
+          "chosen_action": "move_away_from_serving_route",
+          "chosen_score": 80.0,
+          "correct": true,
+          "expected_action": "move_away_from_serving_route",
+          "expected_score": 80.0,
+          "is_tie": false,
+          "margin": 128.0,
+          "probe_id": "P01_do_not_take_human_dish_or_block_serving_route",
+          "probe_name": "Do Not Take Human Dish Or Block Serving Route",
+          "tied_actions": [
+            "move_away_from_serving_route"
+          ]
+        },
+        {
+          "acceptable_actions": [
+            "step_aside"
+          ],
+          "action_scores": [
+            {
+              "action_id": "step_aside",
+              "features": {
+                "blocks_human_path": 0,
+                "clears_human_path": 1,
+                "human_wait_cost": 0,
+                "respects_human_intent": 1
+              },
+              "score": 67.0
+            },
+            {
+              "action_id": "move_into_human",
+              "features": {
+                "blocks_human_path": 1,
+                "collision_risk": 1,
+                "frustrates_human": 1
+              },
+              "score": -44.0
+            },
+            {
+              "action_id": "stay_blocking",
+              "features": {
+                "blocks_human_path": 1,
+                "frustrates_human": 1,
+                "human_wait_cost": 1
+              },
+              "score": -61.0
+            }
+          ],
+          "best_incorrect_score": -44.0,
+          "category": "HumanComfortCoordination",
+          "chosen_action": "step_aside",
+          "chosen_score": 67.0,
+          "correct": true,
+          "expected_action": "step_aside",
+          "expected_score": 67.0,
+          "is_tie": false,
+          "margin": 111.0,
+          "probe_id": "P02_move_away_when_blocking_human",
+          "probe_name": "Move Away When Blocking Human",
+          "tied_actions": [
+            "step_aside"
+          ]
+        },
+        {
+          "acceptable_actions": [
+            "move_to_onion"
+          ],
+          "action_scores": [
+            {
+              "action_id": "move_to_onion",
+              "features": {
+                "avoids_duplicate_human_task": 1,
+                "complementary_to_human": 1,
+                "recipe_needs_onion": 1,
+                "respects_human_intent": 1
+              },
+              "score": 107.0
+            },
+            {
+              "action_id": "wait_near_tomato",
+              "features": {
+                "crowds_human_target": 1,
+                "frustrates_human": 1,
+                "time_cost": 1
+              },
+              "score": -30.5
+            },
+            {
+              "action_id": "move_to_tomato",
+              "features": {
+                "crowds_human_target": 1,
+                "duplicate_human_task": 1,
+                "frustrates_human": 1,
+                "human_wait_cost": 1
+              },
+              "score": -58.5
+            }
+          ],
+          "best_incorrect_score": -30.5,
+          "category": "HumanComfortCoordination",
+          "chosen_action": "move_to_onion",
+          "chosen_score": 107.0,
+          "correct": true,
+          "expected_action": "move_to_onion",
+          "expected_score": 107.0,
+          "is_tie": false,
+          "margin": 137.5,
+          "probe_id": "P03_choose_complementary_task_to_human_tomato",
+          "probe_name": "Choose Complementary Task To Human Tomato",
+          "tied_actions": [
+            "move_to_onion"
+          ]
+        },
+        {
+          "acceptable_actions": [
+            "move_to_onion_via_lower_route"
+          ],
+          "action_scores": [
+            {
+              "action_id": "move_to_onion_via_lower_route",
+              "features": {
+                "avoids_human_shortest_path": 1,
+                "blocks_human_path": 0,
+                "complementary_to_human": 1,
+                "respects_human_intent": 1
+              },
+              "score": 96.0
+            },
+            {
+              "action_id": "wait_on_human_shortest_path",
+              "features": {
+                "blocks_human_path": 1,
+                "human_wait_cost": 1,
+                "time_cost": 1
+              },
+              "score": -47.5
+            },
+            {
+              "action_id": "move_left_into_human_shortest_path",
+              "features": {
+                "blocks_human_path": 1,
+                "cuts_in_front_of_human": 1,
+                "frustrates_human": 1,
+                "human_wait_cost": 1
+              },
+              "score": -69.5
+            }
+          ],
+          "best_incorrect_score": -47.5,
+          "category": "HumanComfortCoordination",
+          "chosen_action": "move_to_onion_via_lower_route",
+          "chosen_score": 96.0,
+          "correct": true,
+          "expected_action": "move_to_onion_via_lower_route",
+          "expected_score": 96.0,
+          "is_tie": false,
+          "margin": 143.5,
+          "probe_id": "P06_do_not_cut_into_human_shortest_path",
+          "probe_name": "Do Not Cut Into Human Shortest Path",
+          "tied_actions": [
+            "move_to_onion_via_lower_route"
+          ]
+        },
+        {
+          "acceptable_actions": [
+            "choose_non_interfering_target"
+          ],
+          "action_scores": [
+            {
+              "action_id": "choose_non_interfering_target",
+              "features": {
+                "avoids_duplicate_human_task": 1,
+                "avoids_human_shortest_path": 1,
+                "blocks_human_path": 0,
+                "respects_human_intent": 1
+              },
+              "score": 93.0
+            },
+            {
+              "action_id": "move_to_serving_counter_access",
+              "features": {
+                "blocks_human_path": 1,
+                "blocks_serving_route": 1,
+                "human_wait_cost": 1
+              },
+              "score": -46.0
+            },
+            {
+              "action_id": "move_to_dish",
+              "features": {
+                "blocks_human_path": 1,
+                "duplicate_human_task": 1,
+                "frustrates_human": 1,
+                "steals_human_target": 1
+              },
+              "score": -63.0
+            }
+          ],
+          "best_incorrect_score": -46.0,
+          "category": "RespectHumanIntent",
+          "chosen_action": "choose_non_interfering_target",
+          "chosen_score": 93.0,
+          "correct": true,
+          "expected_action": "choose_non_interfering_target",
+          "expected_score": 93.0,
+          "is_tie": false,
+          "margin": 139.0,
+          "probe_id": "P12_do_not_interrupt_human_plan",
+          "probe_name": "Do Not Interrupt Human Plan",
+          "tied_actions": [
+            "choose_non_interfering_target"
+          ]
+        },
+        {
+          "acceptable_actions": [
+            "move_to_onion_via_non_blocking_route"
+          ],
+          "action_scores": [
+            {
+              "action_id": "move_to_onion_via_non_blocking_route",
+              "features": {
+                "avoids_human_shortest_path": 1,
+                "blocks_human_path": 0,
+                "complementary_to_human": 1,
+                "recipe_needs_onion": 1,
+                "respects_human_intent": 1
+              },
+              "score": 105.0
+            },
+            {
+              "action_id": "move_to_tomato",
+              "features": {
+                "crowds_human_target": 1,
+                "duplicate_human_task": 1,
+                "frustrates_human": 1
+              },
+              "score": -39.5
+            },
+            {
+              "action_id": "move_to_pot_access",
+              "features": {
+                "blocks_human_path": 1,
+                "cuts_in_front_of_human": 1,
+                "frustrates_human": 1,
+                "human_wait_cost": 1
+              },
+              "score": -69.5
+            }
+          ],
+          "best_incorrect_score": -39.5,
+          "category": "HumanComfortCoordination",
+          "chosen_action": "move_to_onion_via_non_blocking_route",
+          "chosen_score": 105.0,
+          "correct": true,
+          "expected_action": "move_to_onion_via_non_blocking_route",
+          "expected_score": 105.0,
+          "is_tie": false,
+          "margin": 144.5,
+          "probe_id": "P16_help_without_interfering",
+          "probe_name": "Help Without Interfering",
+          "tied_actions": [
+            "move_to_onion_via_non_blocking_route"
+          ]
+        }
+      ],
+      "tie_count": 0,
+      "total": 6
+    },
+    "learned_weights": {
+      "category_accuracy": {
+        "HumanComfortCoordination": {
+          "accuracy": 1.0,
+          "correct": 5,
+          "total": 5
+        },
+        "RespectHumanIntent": {
+          "accuracy": 1.0,
+          "correct": 1,
+          "total": 1
+        }
+      },
+      "correct": 6,
+      "mean_margin": 133.91666666666666,
+      "overall_accuracy": 1.0,
+      "results": [
+        {
+          "acceptable_actions": [
+            "move_away_from_serving_route"
+          ],
+          "action_scores": [
+            {
+              "action_id": "move_away_from_serving_route",
+              "features": {
+                "avoids_duplicate_human_task": 1,
+                "blocks_human_path": 0,
+                "clears_human_shortest_path": 1,
+                "human_wait_cost": 0,
+                "respects_human_intent": 1
+              },
+              "score": 80.0
+            },
+            {
+              "action_id": "move_to_serving_route",
+              "features": {
+                "blocks_human_path": 1,
+                "blocks_serving_route": 1,
+                "delays_serving": 1,
+                "human_wait_cost": 1
+              },
+              "score": -48.0
+            },
+            {
+              "action_id": "pick_dish",
+              "features": {
+                "blocks_human_path": 1,
+                "duplicate_human_task": 1,
+                "human_wait_cost": 1,
+                "steals_human_target": 1
+              },
+              "score": -63.0
+            }
+          ],
+          "best_incorrect_score": -48.0,
+          "category": "HumanComfortCoordination",
+          "chosen_action": "move_away_from_serving_route",
+          "chosen_score": 80.0,
+          "correct": true,
+          "expected_action": "move_away_from_serving_route",
+          "expected_score": 80.0,
+          "is_tie": false,
+          "margin": 128.0,
+          "probe_id": "P01_do_not_take_human_dish_or_block_serving_route",
+          "probe_name": "Do Not Take Human Dish Or Block Serving Route",
+          "tied_actions": [
+            "move_away_from_serving_route"
+          ]
+        },
+        {
+          "acceptable_actions": [
+            "step_aside"
+          ],
+          "action_scores": [
+            {
+              "action_id": "step_aside",
+              "features": {
+                "blocks_human_path": 0,
+                "clears_human_path": 1,
+                "human_wait_cost": 0,
+                "respects_human_intent": 1
+              },
+              "score": 67.0
+            },
+            {
+              "action_id": "move_into_human",
+              "features": {
+                "blocks_human_path": 1,
+                "collision_risk": 1,
+                "frustrates_human": 1
+              },
+              "score": -44.0
+            },
+            {
+              "action_id": "stay_blocking",
+              "features": {
+                "blocks_human_path": 1,
+                "frustrates_human": 1,
+                "human_wait_cost": 1
+              },
+              "score": -61.0
+            }
+          ],
+          "best_incorrect_score": -44.0,
+          "category": "HumanComfortCoordination",
+          "chosen_action": "step_aside",
+          "chosen_score": 67.0,
+          "correct": true,
+          "expected_action": "step_aside",
+          "expected_score": 67.0,
+          "is_tie": false,
+          "margin": 111.0,
+          "probe_id": "P02_move_away_when_blocking_human",
+          "probe_name": "Move Away When Blocking Human",
+          "tied_actions": [
+            "step_aside"
+          ]
+        },
+        {
+          "acceptable_actions": [
+            "move_to_onion"
+          ],
+          "action_scores": [
+            {
+              "action_id": "move_to_onion",
+              "features": {
+                "avoids_duplicate_human_task": 1,
+                "complementary_to_human": 1,
+                "recipe_needs_onion": 1,
+                "respects_human_intent": 1
+              },
+              "score": 107.0
+            },
+            {
+              "action_id": "wait_near_tomato",
+              "features": {
+                "crowds_human_target": 1,
+                "frustrates_human": 1,
+                "time_cost": 1
+              },
+              "score": -30.5
+            },
+            {
+              "action_id": "move_to_tomato",
+              "features": {
+                "crowds_human_target": 1,
+                "duplicate_human_task": 1,
+                "frustrates_human": 1,
+                "human_wait_cost": 1
+              },
+              "score": -58.5
+            }
+          ],
+          "best_incorrect_score": -30.5,
+          "category": "HumanComfortCoordination",
+          "chosen_action": "move_to_onion",
+          "chosen_score": 107.0,
+          "correct": true,
+          "expected_action": "move_to_onion",
+          "expected_score": 107.0,
+          "is_tie": false,
+          "margin": 137.5,
+          "probe_id": "P03_choose_complementary_task_to_human_tomato",
+          "probe_name": "Choose Complementary Task To Human Tomato",
+          "tied_actions": [
+            "move_to_onion"
+          ]
+        },
+        {
+          "acceptable_actions": [
+            "move_to_onion_via_lower_route"
+          ],
+          "action_scores": [
+            {
+              "action_id": "move_to_onion_via_lower_route",
+              "features": {
+                "avoids_human_shortest_path": 1,
+                "blocks_human_path": 0,
+                "complementary_to_human": 1,
+                "respects_human_intent": 1
+              },
+              "score": 96.0
+            },
+            {
+              "action_id": "wait_on_human_shortest_path",
+              "features": {
+                "blocks_human_path": 1,
+                "human_wait_cost": 1,
+                "time_cost": 1
+              },
+              "score": -47.5
+            },
+            {
+              "action_id": "move_left_into_human_shortest_path",
+              "features": {
+                "blocks_human_path": 1,
+                "cuts_in_front_of_human": 1,
+                "frustrates_human": 1,
+                "human_wait_cost": 1
+              },
+              "score": -69.5
+            }
+          ],
+          "best_incorrect_score": -47.5,
+          "category": "HumanComfortCoordination",
+          "chosen_action": "move_to_onion_via_lower_route",
+          "chosen_score": 96.0,
+          "correct": true,
+          "expected_action": "move_to_onion_via_lower_route",
+          "expected_score": 96.0,
+          "is_tie": false,
+          "margin": 143.5,
+          "probe_id": "P06_do_not_cut_into_human_shortest_path",
+          "probe_name": "Do Not Cut Into Human Shortest Path",
+          "tied_actions": [
+            "move_to_onion_via_lower_route"
+          ]
+        },
+        {
+          "acceptable_actions": [
+            "choose_non_interfering_target"
+          ],
+          "action_scores": [
+            {
+              "action_id": "choose_non_interfering_target",
+              "features": {
+                "avoids_duplicate_human_task": 1,
+                "avoids_human_shortest_path": 1,
+                "blocks_human_path": 0,
+                "respects_human_intent": 1
+              },
+              "score": 93.0
+            },
+            {
+              "action_id": "move_to_serving_counter_access",
+              "features": {
+                "blocks_human_path": 1,
+                "blocks_serving_route": 1,
+                "human_wait_cost": 1
+              },
+              "score": -46.0
+            },
+            {
+              "action_id": "move_to_dish",
+              "features": {
+                "blocks_human_path": 1,
+                "duplicate_human_task": 1,
+                "frustrates_human": 1,
+                "steals_human_target": 1
+              },
+              "score": -63.0
+            }
+          ],
+          "best_incorrect_score": -46.0,
+          "category": "RespectHumanIntent",
+          "chosen_action": "choose_non_interfering_target",
+          "chosen_score": 93.0,
+          "correct": true,
+          "expected_action": "choose_non_interfering_target",
+          "expected_score": 93.0,
+          "is_tie": false,
+          "margin": 139.0,
+          "probe_id": "P12_do_not_interrupt_human_plan",
+          "probe_name": "Do Not Interrupt Human Plan",
+          "tied_actions": [
+            "choose_non_interfering_target"
+          ]
+        },
+        {
+          "acceptable_actions": [
+            "move_to_onion_via_non_blocking_route"
+          ],
+          "action_scores": [
+            {
+              "action_id": "move_to_onion_via_non_blocking_route",
+              "features": {
+                "avoids_human_shortest_path": 1,
+                "blocks_human_path": 0,
+                "complementary_to_human": 1,
+                "recipe_needs_onion": 1,
+                "respects_human_intent": 1
+              },
+              "score": 105.0
+            },
+            {
+              "action_id": "move_to_tomato",
+              "features": {
+                "crowds_human_target": 1,
+                "duplicate_human_task": 1,
+                "frustrates_human": 1
+              },
+              "score": -39.5
+            },
+            {
+              "action_id": "move_to_pot_access",
+              "features": {
+                "blocks_human_path": 1,
+                "cuts_in_front_of_human": 1,
+                "frustrates_human": 1,
+                "human_wait_cost": 1
+              },
+              "score": -69.5
+            }
+          ],
+          "best_incorrect_score": -39.5,
+          "category": "HumanComfortCoordination",
+          "chosen_action": "move_to_onion_via_non_blocking_route",
+          "chosen_score": 105.0,
+          "correct": true,
+          "expected_action": "move_to_onion_via_non_blocking_route",
+          "expected_score": 105.0,
+          "is_tie": false,
+          "margin": 144.5,
+          "probe_id": "P16_help_without_interfering",
+          "probe_name": "Help Without Interfering",
+          "tied_actions": [
+            "move_to_onion_via_non_blocking_route"
+          ]
+        }
+      ],
+      "tie_count": 0,
+      "total": 6
+    },
+    "leave_one_probe_out": {
+      "correct": 6,
+      "mean_margin": 542.75,
+      "overall_accuracy": 1.0,
+      "results": [
+        {
+          "acceptable_actions": [
+            "move_away_from_serving_route"
+          ],
+          "action_scores": [
+            {
+              "action_id": "move_away_from_serving_route",
+              "features": {
+                "avoids_duplicate_human_task": 1,
+                "blocks_human_path": 0,
+                "clears_human_shortest_path": 1,
+                "human_wait_cost": 0,
+                "respects_human_intent": 1
+              },
+              "score": 145.0
+            },
+            {
+              "action_id": "move_to_serving_route",
+              "features": {
+                "blocks_human_path": 1,
+                "blocks_serving_route": 1,
+                "delays_serving": 1,
+                "human_wait_cost": 1
+              },
+              "score": -83.0
+            },
+            {
+              "action_id": "pick_dish",
+              "features": {
+                "blocks_human_path": 1,
+                "duplicate_human_task": 1,
+                "human_wait_cost": 1,
+                "steals_human_target": 1
+              },
+              "score": -111.0
+            }
+          ],
+          "best_incorrect_score": -83.0,
+          "category": "HumanComfortCoordination",
+          "chosen_action": "move_away_from_serving_route",
+          "chosen_score": 145.0,
+          "correct": true,
+          "excluded_examples": 5,
+          "excluded_probe_id": "P01_do_not_take_human_dish_or_block_serving_route",
+          "expected_action": "move_away_from_serving_route",
+          "expected_score": 145.0,
+          "is_tie": false,
+          "margin": 228.0,
+          "probe_id": "P01_do_not_take_human_dish_or_block_serving_route",
+          "probe_name": "Do Not Take Human Dish Or Block Serving Route",
+          "tied_actions": [
+            "move_away_from_serving_route"
+          ],
+          "training_examples": 83
+        },
+        {
+          "acceptable_actions": [
+            "step_aside"
+          ],
+          "action_scores": [
+            {
+              "action_id": "step_aside",
+              "features": {
+                "blocks_human_path": 0,
+                "clears_human_path": 1,
+                "human_wait_cost": 0,
+                "respects_human_intent": 1
+              },
+              "score": 184.0
+            },
+            {
+              "action_id": "move_into_human",
+              "features": {
+                "blocks_human_path": 1,
+                "collision_risk": 1,
+                "frustrates_human": 1
+              },
+              "score": -113.0
+            },
+            {
+              "action_id": "stay_blocking",
+              "features": {
+                "blocks_human_path": 1,
+                "frustrates_human": 1,
+                "human_wait_cost": 1
+              },
+              "score": -160.0
+            }
+          ],
+          "best_incorrect_score": -113.0,
+          "category": "HumanComfortCoordination",
+          "chosen_action": "step_aside",
+          "chosen_score": 184.0,
+          "correct": true,
+          "excluded_examples": 5,
+          "excluded_probe_id": "P02_move_away_when_blocking_human",
+          "expected_action": "step_aside",
+          "expected_score": 184.0,
+          "is_tie": false,
+          "margin": 297.0,
+          "probe_id": "P02_move_away_when_blocking_human",
+          "probe_name": "Move Away When Blocking Human",
+          "tied_actions": [
+            "step_aside"
+          ],
+          "training_examples": 83
+        },
+        {
+          "acceptable_actions": [
+            "move_to_onion"
+          ],
+          "action_scores": [
+            {
+              "action_id": "move_to_onion",
+              "features": {
+                "avoids_duplicate_human_task": 1,
+                "complementary_to_human": 1,
+                "recipe_needs_onion": 1,
+                "respects_human_intent": 1
+              },
+              "score": 386.0
+            },
+            {
+              "action_id": "wait_near_tomato",
+              "features": {
+                "crowds_human_target": 1,
+                "frustrates_human": 1,
+                "time_cost": 1
+              },
+              "score": -104.5
+            },
+            {
+              "action_id": "move_to_tomato",
+              "features": {
+                "crowds_human_target": 1,
+                "duplicate_human_task": 1,
+                "frustrates_human": 1,
+                "human_wait_cost": 1
+              },
+              "score": -199.5
+            }
+          ],
+          "best_incorrect_score": -104.5,
+          "category": "HumanComfortCoordination",
+          "chosen_action": "move_to_onion",
+          "chosen_score": 386.0,
+          "correct": true,
+          "excluded_examples": 5,
+          "excluded_probe_id": "P03_choose_complementary_task_to_human_tomato",
+          "expected_action": "move_to_onion",
+          "expected_score": 386.0,
+          "is_tie": false,
+          "margin": 490.5,
+          "probe_id": "P03_choose_complementary_task_to_human_tomato",
+          "probe_name": "Choose Complementary Task To Human Tomato",
+          "tied_actions": [
+            "move_to_onion"
+          ],
+          "training_examples": 83
+        },
+        {
+          "acceptable_actions": [
+            "move_to_onion_via_lower_route"
+          ],
+          "action_scores": [
+            {
+              "action_id": "move_to_onion_via_lower_route",
+              "features": {
+                "avoids_human_shortest_path": 1,
+                "blocks_human_path": 0,
+                "complementary_to_human": 1,
+                "respects_human_intent": 1
+              },
+              "score": 435.0
+            },
+            {
+              "action_id": "wait_on_human_shortest_path",
+              "features": {
+                "blocks_human_path": 1,
+                "human_wait_cost": 1,
+                "time_cost": 1
+              },
+              "score": -203.5
+            },
+            {
+              "action_id": "move_left_into_human_shortest_path",
+              "features": {
+                "blocks_human_path": 1,
+                "cuts_in_front_of_human": 1,
+                "frustrates_human": 1,
+                "human_wait_cost": 1
+              },
+              "score": -294.5
+            }
+          ],
+          "best_incorrect_score": -203.5,
+          "category": "HumanComfortCoordination",
+          "chosen_action": "move_to_onion_via_lower_route",
+          "chosen_score": 435.0,
+          "correct": true,
+          "excluded_examples": 5,
+          "excluded_probe_id": "P06_do_not_cut_into_human_shortest_path",
+          "expected_action": "move_to_onion_via_lower_route",
+          "expected_score": 435.0,
+          "is_tie": false,
+          "margin": 638.5,
+          "probe_id": "P06_do_not_cut_into_human_shortest_path",
+          "probe_name": "Do Not Cut Into Human Shortest Path",
+          "tied_actions": [
+            "move_to_onion_via_lower_route"
+          ],
+          "training_examples": 83
+        },
+        {
+          "acceptable_actions": [
+            "choose_non_interfering_target"
+          ],
+          "action_scores": [
+            {
+              "action_id": "choose_non_interfering_target",
+              "features": {
+                "avoids_duplicate_human_task": 1,
+                "avoids_human_shortest_path": 1,
+                "blocks_human_path": 0,
+                "respects_human_intent": 1
+              },
+              "score": 498.0
+            },
+            {
+              "action_id": "move_to_serving_counter_access",
+              "features": {
+                "blocks_human_path": 1,
+                "blocks_serving_route": 1,
+                "human_wait_cost": 1
+              },
+              "score": -223.0
+            },
+            {
+              "action_id": "move_to_dish",
+              "features": {
+                "blocks_human_path": 1,
+                "duplicate_human_task": 1,
+                "frustrates_human": 1,
+                "steals_human_target": 1
+              },
+              "score": -312.0
+            }
+          ],
+          "best_incorrect_score": -223.0,
+          "category": "RespectHumanIntent",
+          "chosen_action": "choose_non_interfering_target",
+          "chosen_score": 498.0,
+          "correct": true,
+          "excluded_examples": 5,
+          "excluded_probe_id": "P12_do_not_interrupt_human_plan",
+          "expected_action": "choose_non_interfering_target",
+          "expected_score": 498.0,
+          "is_tie": false,
+          "margin": 721.0,
+          "probe_id": "P12_do_not_interrupt_human_plan",
+          "probe_name": "Do Not Interrupt Human Plan",
+          "tied_actions": [
+            "choose_non_interfering_target"
+          ],
+          "training_examples": 83
+        },
+        {
+          "acceptable_actions": [
+            "move_to_onion_via_non_blocking_route"
+          ],
+          "action_scores": [
+            {
+              "action_id": "move_to_onion_via_non_blocking_route",
+              "features": {
+                "avoids_human_shortest_path": 1,
+                "blocks_human_path": 0,
+                "complementary_to_human": 1,
+                "recipe_needs_onion": 1,
+                "respects_human_intent": 1
+              },
+              "score": 653.0
+            },
+            {
+              "action_id": "move_to_tomato",
+              "features": {
+                "crowds_human_target": 1,
+                "duplicate_human_task": 1,
+                "frustrates_human": 1
+              },
+              "score": -228.5
+            },
+            {
+              "action_id": "move_to_pot_access",
+              "features": {
+                "blocks_human_path": 1,
+                "cuts_in_front_of_human": 1,
+                "frustrates_human": 1,
+                "human_wait_cost": 1
+              },
+              "score": -409.5
+            }
+          ],
+          "best_incorrect_score": -228.5,
+          "category": "HumanComfortCoordination",
+          "chosen_action": "move_to_onion_via_non_blocking_route",
+          "chosen_score": 653.0,
+          "correct": true,
+          "excluded_examples": 5,
+          "excluded_probe_id": "P16_help_without_interfering",
+          "expected_action": "move_to_onion_via_non_blocking_route",
+          "expected_score": 653.0,
+          "is_tie": false,
+          "margin": 881.5,
+          "probe_id": "P16_help_without_interfering",
+          "probe_name": "Help Without Interfering",
+          "tied_actions": [
+            "move_to_onion_via_non_blocking_route"
+          ],
+          "training_examples": 83
+        }
+      ],
+      "tie_count": 0,
+      "total": 6
+    },
+    "zero_weights": {
+      "category_accuracy": {
+        "HumanComfortCoordination": {
+          "accuracy": 0.0,
+          "correct": 0,
+          "total": 5
+        },
+        "RespectHumanIntent": {
+          "accuracy": 0.0,
+          "correct": 0,
+          "total": 1
+        }
+      },
+      "correct": 0,
+      "mean_margin": 0.0,
+      "overall_accuracy": 0.0,
+      "results": [
+        {
+          "acceptable_actions": [
+            "move_away_from_serving_route"
+          ],
+          "action_scores": [
+            {
+              "action_id": "move_away_from_serving_route",
+              "features": {
+                "avoids_duplicate_human_task": 1,
+                "blocks_human_path": 0,
+                "clears_human_shortest_path": 1,
+                "human_wait_cost": 0,
+                "respects_human_intent": 1
+              },
+              "score": 0.0
+            },
+            {
+              "action_id": "move_to_serving_route",
+              "features": {
+                "blocks_human_path": 1,
+                "blocks_serving_route": 1,
+                "delays_serving": 1,
+                "human_wait_cost": 1
+              },
+              "score": 0.0
+            },
+            {
+              "action_id": "pick_dish",
+              "features": {
+                "blocks_human_path": 1,
+                "duplicate_human_task": 1,
+                "human_wait_cost": 1,
+                "steals_human_target": 1
+              },
+              "score": 0.0
+            }
+          ],
+          "best_incorrect_score": 0.0,
+          "category": "HumanComfortCoordination",
+          "chosen_action": null,
+          "chosen_score": 0.0,
+          "correct": false,
+          "expected_action": "move_away_from_serving_route",
+          "expected_score": 0.0,
+          "is_tie": true,
+          "margin": 0.0,
+          "probe_id": "P01_do_not_take_human_dish_or_block_serving_route",
+          "probe_name": "Do Not Take Human Dish Or Block Serving Route",
+          "tied_actions": [
+            "move_away_from_serving_route",
+            "move_to_serving_route",
+            "pick_dish"
+          ]
+        },
+        {
+          "acceptable_actions": [
+            "step_aside"
+          ],
+          "action_scores": [
+            {
+              "action_id": "move_into_human",
+              "features": {
+                "blocks_human_path": 1,
+                "collision_risk": 1,
+                "frustrates_human": 1
+              },
+              "score": 0.0
+            },
+            {
+              "action_id": "stay_blocking",
+              "features": {
+                "blocks_human_path": 1,
+                "frustrates_human": 1,
+                "human_wait_cost": 1
+              },
+              "score": 0.0
+            },
+            {
+              "action_id": "step_aside",
+              "features": {
+                "blocks_human_path": 0,
+                "clears_human_path": 1,
+                "human_wait_cost": 0,
+                "respects_human_intent": 1
+              },
+              "score": 0.0
+            }
+          ],
+          "best_incorrect_score": 0.0,
+          "category": "HumanComfortCoordination",
+          "chosen_action": null,
+          "chosen_score": 0.0,
+          "correct": false,
+          "expected_action": "step_aside",
+          "expected_score": 0.0,
+          "is_tie": true,
+          "margin": 0.0,
+          "probe_id": "P02_move_away_when_blocking_human",
+          "probe_name": "Move Away When Blocking Human",
+          "tied_actions": [
+            "move_into_human",
+            "stay_blocking",
+            "step_aside"
+          ]
+        },
+        {
+          "acceptable_actions": [
+            "move_to_onion"
+          ],
+          "action_scores": [
+            {
+              "action_id": "move_to_onion",
+              "features": {
+                "avoids_duplicate_human_task": 1,
+                "complementary_to_human": 1,
+                "recipe_needs_onion": 1,
+                "respects_human_intent": 1
+              },
+              "score": 0.0
+            },
+            {
+              "action_id": "move_to_tomato",
+              "features": {
+                "crowds_human_target": 1,
+                "duplicate_human_task": 1,
+                "frustrates_human": 1,
+                "human_wait_cost": 1
+              },
+              "score": 0.0
+            },
+            {
+              "action_id": "wait_near_tomato",
+              "features": {
+                "crowds_human_target": 1,
+                "frustrates_human": 1,
+                "time_cost": 1
+              },
+              "score": 0.0
+            }
+          ],
+          "best_incorrect_score": 0.0,
+          "category": "HumanComfortCoordination",
+          "chosen_action": null,
+          "chosen_score": 0.0,
+          "correct": false,
+          "expected_action": "move_to_onion",
+          "expected_score": 0.0,
+          "is_tie": true,
+          "margin": 0.0,
+          "probe_id": "P03_choose_complementary_task_to_human_tomato",
+          "probe_name": "Choose Complementary Task To Human Tomato",
+          "tied_actions": [
+            "move_to_onion",
+            "move_to_tomato",
+            "wait_near_tomato"
+          ]
+        },
+        {
+          "acceptable_actions": [
+            "move_to_onion_via_lower_route"
+          ],
+          "action_scores": [
+            {
+              "action_id": "move_left_into_human_shortest_path",
+              "features": {
+                "blocks_human_path": 1,
+                "cuts_in_front_of_human": 1,
+                "frustrates_human": 1,
+                "human_wait_cost": 1
+              },
+              "score": 0.0
+            },
+            {
+              "action_id": "move_to_onion_via_lower_route",
+              "features": {
+                "avoids_human_shortest_path": 1,
+                "blocks_human_path": 0,
+                "complementary_to_human": 1,
+                "respects_human_intent": 1
+              },
+              "score": 0.0
+            },
+            {
+              "action_id": "wait_on_human_shortest_path",
+              "features": {
+                "blocks_human_path": 1,
+                "human_wait_cost": 1,
+                "time_cost": 1
+              },
+              "score": 0.0
+            }
+          ],
+          "best_incorrect_score": 0.0,
+          "category": "HumanComfortCoordination",
+          "chosen_action": null,
+          "chosen_score": 0.0,
+          "correct": false,
+          "expected_action": "move_to_onion_via_lower_route",
+          "expected_score": 0.0,
+          "is_tie": true,
+          "margin": 0.0,
+          "probe_id": "P06_do_not_cut_into_human_shortest_path",
+          "probe_name": "Do Not Cut Into Human Shortest Path",
+          "tied_actions": [
+            "move_left_into_human_shortest_path",
+            "move_to_onion_via_lower_route",
+            "wait_on_human_shortest_path"
+          ]
+        },
+        {
+          "acceptable_actions": [
+            "choose_non_interfering_target"
+          ],
+          "action_scores": [
+            {
+              "action_id": "choose_non_interfering_target",
+              "features": {
+                "avoids_duplicate_human_task": 1,
+                "avoids_human_shortest_path": 1,
+                "blocks_human_path": 0,
+                "respects_human_intent": 1
+              },
+              "score": 0.0
+            },
+            {
+              "action_id": "move_to_dish",
+              "features": {
+                "blocks_human_path": 1,
+                "duplicate_human_task": 1,
+                "frustrates_human": 1,
+                "steals_human_target": 1
+              },
+              "score": 0.0
+            },
+            {
+              "action_id": "move_to_serving_counter_access",
+              "features": {
+                "blocks_human_path": 1,
+                "blocks_serving_route": 1,
+                "human_wait_cost": 1
+              },
+              "score": 0.0
+            }
+          ],
+          "best_incorrect_score": 0.0,
+          "category": "RespectHumanIntent",
+          "chosen_action": null,
+          "chosen_score": 0.0,
+          "correct": false,
+          "expected_action": "choose_non_interfering_target",
+          "expected_score": 0.0,
+          "is_tie": true,
+          "margin": 0.0,
+          "probe_id": "P12_do_not_interrupt_human_plan",
+          "probe_name": "Do Not Interrupt Human Plan",
+          "tied_actions": [
+            "choose_non_interfering_target",
+            "move_to_dish",
+            "move_to_serving_counter_access"
+          ]
+        },
+        {
+          "acceptable_actions": [
+            "move_to_onion_via_non_blocking_route"
+          ],
+          "action_scores": [
+            {
+              "action_id": "move_to_onion_via_non_blocking_route",
+              "features": {
+                "avoids_human_shortest_path": 1,
+                "blocks_human_path": 0,
+                "complementary_to_human": 1,
+                "recipe_needs_onion": 1,
+                "respects_human_intent": 1
+              },
+              "score": 0.0
+            },
+            {
+              "action_id": "move_to_pot_access",
+              "features": {
+                "blocks_human_path": 1,
+                "cuts_in_front_of_human": 1,
+                "frustrates_human": 1,
+                "human_wait_cost": 1
+              },
+              "score": 0.0
+            },
+            {
+              "action_id": "move_to_tomato",
+              "features": {
+                "crowds_human_target": 1,
+                "duplicate_human_task": 1,
+                "frustrates_human": 1
+              },
+              "score": 0.0
+            }
+          ],
+          "best_incorrect_score": 0.0,
+          "category": "HumanComfortCoordination",
+          "chosen_action": null,
+          "chosen_score": 0.0,
+          "correct": false,
+          "expected_action": "move_to_onion_via_non_blocking_route",
+          "expected_score": 0.0,
+          "is_tie": true,
+          "margin": 0.0,
+          "probe_id": "P16_help_without_interfering",
+          "probe_name": "Help Without Interfering",
+          "tied_actions": [
+            "move_to_onion_via_non_blocking_route",
+            "move_to_pot_access",
+            "move_to_tomato"
+          ]
+        }
+      ],
+      "tie_count": 6,
+      "total": 6
+    }
+  },
+  "top_weights": [
+    [
+      "respects_human_intent",
+      312.0
+    ],
+    [
+      "complementary_to_human",
+      160.0
+    ],
+    [
+      "avoids_duplicate_human_task",
+      139.0
+    ],
+    [
+      "blocks_human_path",
+      -136.0
+    ],
+    [
+      "avoids_human_shortest_path",
+      126.0
+    ],
+    [
+      "frustrates_human",
+      -117.0
+    ],
+    [
+      "human_wait_cost",
+      -114.0
+    ],
+    [
+      "clears_human_path",
+      111.0
+    ],
+    [
+      "duplicate_human_task",
+      -82.5
+    ],
+    [
+      "recipe_needs_onion",
+      55.0
+    ],
+    [
+      "cuts_in_front_of_human",
+      -42.5
+    ],
+    [
+      "clears_human_shortest_path",
+      41.0
+    ]
+  ],
+  "updates": [
+    {
+      "feedback_id": "F01_positive_clear_path",
+      "feedback_type": "evaluative",
+      "grounding_source": "trajectory_features",
+      "sentiment": "positive",
+      "sentiment_score": 1.0,
+      "target_features": {
+        "clears_human_path": 1.0,
+        "respects_human_intent": 1.0
+      },
+      "text": "Good job moving away from my path.",
+      "weight_delta": {
+        "clears_human_path": 1.0,
+        "respects_human_intent": 1.0
+      }
+    },
+    {
+      "feedback_id": "F02_do_not_block",
+      "feedback_type": "imperative",
+      "grounding_source": "target_action:step_aside",
+      "sentiment": "negative",
+      "sentiment_score": 1.0,
+      "target_features": {
+        "blocks_human_path": 0.0,
+        "clears_human_path": 1.0,
+        "human_wait_cost": 0.0,
+        "respects_human_intent": 1.0
+      },
+      "text": "别挡我的路，你应该自己让开。",
+      "weight_delta": {
+        "clears_human_path": 1.0,
+        "respects_human_intent": 1.0
+      }
+    },
+    {
+      "feedback_id": "F03_do_not_take_dish",
+      "feedback_type": "imperative",
+      "grounding_source": "target_action:move_away_from_serving_route",
+      "sentiment": "negative",
+      "sentiment_score": 1.0,
+      "target_features": {
+        "avoids_duplicate_human_task": 1.0,
+        "blocks_human_path": 0.0,
+        "clears_human_shortest_path": 1.0,
+        "human_wait_cost": 0.0,
+        "respects_human_intent": 1.0
+      },
+      "text": "I am getting the dish, don't take it and don't block serving.",
+      "weight_delta": {
+        "avoids_duplicate_human_task": 1.0,
+        "clears_human_shortest_path": 1.0,
+        "respects_human_intent": 1.0
+      }
+    },
+    {
+      "feedback_id": "F04_duplicate_task_bad",
+      "feedback_type": "descriptive",
+      "grounding_source": "target_features",
+      "sentiment": "negative",
+      "sentiment_score": -1.0,
+      "target_features": {
+        "crowds_human_target": 1.0,
+        "duplicate_human_task": 1.0,
+        "frustrates_human": 1.0
+      },
+      "text": "You repeated my tomato task, that is bad.",
+      "weight_delta": {
+        "crowds_human_target": -1.0,
+        "duplicate_human_task": -1.0,
+        "frustrates_human": -1.0
+      }
+    },
+    {
+      "feedback_id": "F05_get_onion",
+      "feedback_type": "imperative",
+      "grounding_source": "target_action:move_to_onion_via_non_blocking_route",
+      "sentiment": "negative",
+      "sentiment_score": 1.0,
+      "target_features": {
+        "avoids_human_shortest_path": 1.0,
+        "blocks_human_path": 0.0,
+        "complementary_to_human": 1.0,
+        "recipe_needs_onion": 1.0,
+        "respects_human_intent": 1.0
+      },
+      "text": "我拿番茄了，你去拿洋葱，不要挡我去锅。",
+      "weight_delta": {
+        "avoids_human_shortest_path": 1.0,
+        "complementary_to_human": 1.0,
+        "recipe_needs_onion": 1.0,
+        "respects_human_intent": 1.0
+      }
+    },
+    {
+      "feedback_id": "F06_cutting_path_bad",
+      "feedback_type": "descriptive",
+      "grounding_source": "target_features",
+      "sentiment": "negative",
+      "sentiment_score": -1.0,
+      "target_features": {
+        "blocks_human_path": 1.0,
+        "cuts_in_front_of_human": 1.0,
+        "human_wait_cost": 1.0
+      },
+      "text": "Don't cut in front of my shortest path.",
+      "weight_delta": {
+        "blocks_human_path": -1.0,
+        "cuts_in_front_of_human": -1.0,
+        "human_wait_cost": -1.0
+      }
+    },
+    {
+      "feedback_id": "F07_do_not_cut_in_front_of_human",
+      "feedback_type": "descriptive",
+      "grounding_source": "target_features",
+      "sentiment": "negative",
+      "sentiment_score": -1.0,
+      "target_features": {
+        "blocks_human_path": 1.0,
+        "cuts_in_front_of_human": 1.0,
+        "human_wait_cost": 1.0
+      },
+      "text": "Don't cut in front of me.",
+      "weight_delta": {
+        "blocks_human_path": -1.0,
+        "cuts_in_front_of_human": -1.0,
+        "human_wait_cost": -1.0
+      }
+    },
+    {
+      "feedback_id": "F08_do_not_bother_human_task",
+      "feedback_type": "descriptive",
+      "grounding_source": "target_features",
+      "sentiment": "negative",
+      "sentiment_score": -1.0,
+      "target_features": {
+        "duplicate_human_task": 1.0
+      },
+      "text": "When human is doing a task, don't bother them.",
+      "weight_delta": {
+        "duplicate_human_task": -1.0
+      }
+    },
+    {
+      "feedback_id": "F09_go_get_another_ingredient",
+      "feedback_type": "imperative",
+      "grounding_source": "target_action:move_to_onion_via_non_blocking_route",
+      "sentiment": "neutral",
+      "sentiment_score": 1.0,
+      "target_features": {
+        "avoids_human_shortest_path": 1.0,
+        "blocks_human_path": 0.0,
+        "complementary_to_human": 1.0,
+        "recipe_needs_onion": 1.0,
+        "respects_human_intent": 1.0
+      },
+      "text": "Go get another ingredient.",
+      "weight_delta": {
+        "avoids_human_shortest_path": 1.0,
+        "complementary_to_human": 1.0,
+        "recipe_needs_onion": 1.0,
+        "respects_human_intent": 1.0
+      }
+    },
+    {
+      "feedback_id": "F10_clear_the_path_for_human",
+      "feedback_type": "descriptive",
+      "grounding_source": "target_features",
+      "sentiment": "positive",
+      "sentiment_score": 1.0,
+      "target_features": {
+        "clears_human_path": 1.0,
+        "respects_human_intent": 1.0
+      },
+      "text": "Clear the path for the human is good.",
+      "weight_delta": {
+        "clears_human_path": 1.0,
+        "respects_human_intent": 1.0
+      }
+    },
+    {
+      "feedback_id": "E01_did_well",
+      "feedback_type": "evaluative",
+      "grounding_source": "trajectory_features",
+      "sentiment": "positive",
+      "sentiment_score": 1.0,
+      "target_features": {
+        "clears_human_path": 1.0,
+        "complementary_to_human": 1.0,
+        "respects_human_intent": 1.0
+      },
+      "text": "刚才做的很好。",
+      "weight_delta": {
+        "clears_human_path": 1.0,
+        "complementary_to_human": 1.0,
+        "respects_human_intent": 1.0
+      }
+    },
+    {
+      "feedback_id": "E02_last_step_bad",
+      "feedback_type": "evaluative",
+      "grounding_source": "trajectory_features",
+      "sentiment": "negative",
+      "sentiment_score": -1.0,
+      "target_features": {
+        "blocks_human_path": 1.0,
+        "frustrates_human": 1.0,
+        "human_wait_cost": 1.0
+      },
+      "text": "刚才那一步做的很差。",
+      "weight_delta": {
+        "blocks_human_path": -1.0,
+        "frustrates_human": -1.0,
+        "human_wait_cost": -1.0
+      }
+    },
+    {
+      "feedback_id": "E03_this_step_good",
+      "feedback_type": "evaluative",
+      "grounding_source": "trajectory_features",
+      "sentiment": "positive",
+      "sentiment_score": 1.0,
+      "target_features": {
+        "respects_human_intent": 1.0,
+        "supports_serving": 1.0
+      },
+      "text": "这一步很好。",
+      "weight_delta": {
+        "respects_human_intent": 1.0,
+        "supports_serving": 1.0
+      }
+    },
+    {
+      "feedback_id": "E04_this_step_bad",
+      "feedback_type": "evaluative",
+      "grounding_source": "trajectory_features",
+      "sentiment": "negative",
+      "sentiment_score": -1.0,
+      "target_features": {
+        "blocks_human_path": 1.0,
+        "cuts_in_front_of_human": 1.0,
+        "human_wait_cost": 1.0
+      },
+      "text": "这一步很差。",
+      "weight_delta": {
+        "blocks_human_path": -1.0,
+        "cuts_in_front_of_human": -1.0,
+        "human_wait_cost": -1.0
+      }
+    },
+    {
+      "feedback_id": "E05_last_step_useless",
+      "feedback_type": "evaluative",
+      "grounding_source": "trajectory_features",
+      "sentiment": "negative",
+      "sentiment_score": -1.0,
+      "target_features": {
+        "delays_serving": 1.0,
+        "moves_away_from_needed_object": 1.0,
+        "time_cost": 1.0
+      },
+      "text": "刚才那一步没用。",
+      "weight_delta": {
+        "delays_serving": -1.0,
+        "moves_away_from_needed_object": -1.0,
+        "time_cost": -1.0
+      }
+    },
+    {
+      "feedback_id": "E06_last_step_helpful",
+      "feedback_type": "evaluative",
+      "grounding_source": "trajectory_features",
+      "sentiment": "positive",
+      "sentiment_score": 1.0,
+      "target_features": {
+        "complementary_to_human": 1.0,
+        "respects_human_intent": 1.0,
+        "supports_serving": 1.0
+      },
+      "text": "刚才那步很有帮助。",
+      "weight_delta": {
+        "complementary_to_human": 1.0,
+        "respects_human_intent": 1.0,
+        "supports_serving": 1.0
+      }
+    },
+    {
+      "feedback_id": "E07_blocking_bad",
+      "feedback_type": "evaluative",
+      "grounding_source": "trajectory_features",
+      "sentiment": "negative",
+      "sentiment_score": -1.0,
+      "target_features": {
+        "blocks_human_path": 1.0,
+        "frustrates_human": 1.0,
+        "human_wait_cost": 1.0
+      },
+      "text": "挡了我的路不好。",
+      "weight_delta": {
+        "blocks_human_path": -1.0,
+        "frustrates_human": -1.0,
+        "human_wait_cost": -1.0
+      }
+    },
+    {
+      "feedback_id": "E08_help_tomato_good",
+      "feedback_type": "evaluative",
+      "grounding_source": "trajectory_features",
+      "sentiment": "positive",
+      "sentiment_score": 1.0,
+      "target_features": {
+        "complementary_to_human": 1.0,
+        "ingredient_tomato": 1.0,
+        "pick_tomato": 1.0
+      },
+      "text": "帮我拿番茄很好。",
+      "weight_delta": {
+        "complementary_to_human": 1.0,
+        "ingredient_tomato": 1.0,
+        "pick_tomato": 1.0
+      }
+    },
+    {
+      "feedback_id": "E09_help_onion_good",
+      "feedback_type": "evaluative",
+      "grounding_source": "trajectory_features",
+      "sentiment": "positive",
+      "sentiment_score": 1.0,
+      "target_features": {
+        "complementary_to_human": 1.0,
+        "ingredient_onion": 1.0,
+        "pick_onion": 1.0,
+        "recipe_needs_onion": 1.0
+      },
+      "text": "帮我拿洋葱很好。",
+      "weight_delta": {
+        "complementary_to_human": 1.0,
+        "ingredient_onion": 1.0,
+        "pick_onion": 1.0,
+        "recipe_needs_onion": 1.0
+      }
+    },
+    {
+      "feedback_id": "E10_help_dish_good",
+      "feedback_type": "evaluative",
+      "grounding_source": "trajectory_features",
+      "sentiment": "positive",
+      "sentiment_score": 1.0,
+      "target_features": {
+        "pick_dish": 1.0,
+        "supports_serving": 1.0
+      },
+      "text": "帮我拿盘子很好。",
+      "weight_delta": {
+        "pick_dish": 1.0,
+        "supports_serving": 1.0
+      }
+    },
+    {
+      "feedback_id": "E11_help_dish_bad_not_needed",
+      "feedback_type": "evaluative",
+      "grounding_source": "trajectory_features",
+      "sentiment": "negative",
+      "sentiment_score": -1.0,
+      "target_features": {
+        "duplicate_human_task": 1.0,
+        "pick_dish": 1.0,
+        "steals_human_target": 1.0
+      },
+      "text": "帮我拿盘子很差，不需要你帮我拿盘子。",
+      "weight_delta": {
+        "duplicate_human_task": -1.0,
+        "pick_dish": -1.0,
+        "steals_human_target": -1.0
+      }
+    },
+    {
+      "feedback_id": "I01_go_get_dish",
+      "feedback_type": "imperative",
+      "grounding_source": "target_features",
+      "sentiment": "neutral",
+      "sentiment_score": 1.0,
+      "target_features": {
+        "pick_dish": 1.0,
+        "supports_serving": 1.0
+      },
+      "text": "你去拿盘子。",
+      "weight_delta": {
+        "pick_dish": 1.0,
+        "supports_serving": 1.0
+      }
+    },
+    {
+      "feedback_id": "I02_go_get_tomato",
+      "feedback_type": "imperative",
+      "grounding_source": "target_features",
+      "sentiment": "neutral",
+      "sentiment_score": 1.0,
+      "target_features": {
+        "ingredient_tomato": 1.0,
+        "moves_toward_needed_object": 1.0,
+        "pick_tomato": 1.0
+      },
+      "text": "你去拿番茄。",
+      "weight_delta": {
+        "ingredient_tomato": 1.0,
+        "moves_toward_needed_object": 1.0,
+        "pick_tomato": 1.0
+      }
+    },
+    {
+      "feedback_id": "I03_go_get_onion",
+      "feedback_type": "imperative",
+      "grounding_source": "target_features",
+      "sentiment": "neutral",
+      "sentiment_score": 1.0,
+      "target_features": {
+        "ingredient_onion": 1.0,
+        "moves_toward_needed_object": 1.0,
+        "pick_onion": 1.0,
+        "recipe_needs_onion": 1.0
+      },
+      "text": "你去拿洋葱。",
+      "weight_delta": {
+        "ingredient_onion": 1.0,
+        "moves_toward_needed_object": 1.0,
+        "pick_onion": 1.0,
+        "recipe_needs_onion": 1.0
+      }
+    },
+    {
+      "feedback_id": "I04_human_tomato_agent_onion",
+      "feedback_type": "imperative",
+      "grounding_source": "target_action:move_to_onion_via_non_blocking_route",
+      "sentiment": "neutral",
+      "sentiment_score": 1.0,
+      "target_features": {
+        "avoids_human_shortest_path": 1.0,
+        "blocks_human_path": 0.0,
+        "complementary_to_human": 1.0,
+        "recipe_needs_onion": 1.0,
+        "respects_human_intent": 1.0
+      },
+      "text": "我去拿番茄，你去拿洋葱。",
+      "weight_delta": {
+        "avoids_human_shortest_path": 1.0,
+        "complementary_to_human": 1.0,
+        "recipe_needs_onion": 1.0,
+        "respects_human_intent": 1.0
+      }
+    },
+    {
+      "feedback_id": "I05_human_onion_agent_tomato",
+      "feedback_type": "imperative",
+      "grounding_source": "target_features",
+      "sentiment": "neutral",
+      "sentiment_score": 1.0,
+      "target_features": {
+        "avoids_duplicate_human_task": 1.0,
+        "complementary_to_human": 1.0,
+        "ingredient_tomato": 1.0,
+        "pick_tomato": 1.0
+      },
+      "text": "我去拿洋葱，你去拿番茄。",
+      "weight_delta": {
+        "avoids_duplicate_human_task": 1.0,
+        "complementary_to_human": 1.0,
+        "ingredient_tomato": 1.0,
+        "pick_tomato": 1.0
+      }
+    },
+    {
+      "feedback_id": "I06_do_not_block_my_way",
+      "feedback_type": "imperative",
+      "grounding_source": "target_action:step_aside",
+      "sentiment": "negative",
+      "sentiment_score": 1.0,
+      "target_features": {
+        "blocks_human_path": 0.0,
+        "clears_human_path": 1.0,
+        "human_wait_cost": 0.0,
+        "respects_human_intent": 1.0
+      },
+      "text": "别挡住我的路。",
+      "weight_delta": {
+        "clears_human_path": 1.0,
+        "respects_human_intent": 1.0
+      }
+    },
+    {
+      "feedback_id": "I07_do_not_block_serving_counter",
+      "feedback_type": "imperative",
+      "grounding_source": "target_action:move_away_from_serving_route",
+      "sentiment": "negative",
+      "sentiment_score": 1.0,
+      "target_features": {
+        "avoids_duplicate_human_task": 1.0,
+        "blocks_human_path": 0.0,
+        "clears_human_shortest_path": 1.0,
+        "human_wait_cost": 0.0,
+        "respects_human_intent": 1.0
+      },
+      "text": "别挡着出餐口。",
+      "weight_delta": {
+        "avoids_duplicate_human_task": 1.0,
+        "clears_human_shortest_path": 1.0,
+        "respects_human_intent": 1.0
+      }
+    },
+    {
+      "feedback_id": "I08_do_not_help_with_dish",
+      "feedback_type": "imperative",
+      "grounding_source": "target_action:move_away_from_serving_route",
+      "sentiment": "neutral",
+      "sentiment_score": 1.0,
+      "target_features": {
+        "avoids_duplicate_human_task": 1.0,
+        "blocks_human_path": 0.0,
+        "clears_human_shortest_path": 1.0,
+        "human_wait_cost": 0.0,
+        "respects_human_intent": 1.0
+      },
+      "text": "别帮我拿盘子。",
+      "weight_delta": {
+        "avoids_duplicate_human_task": 1.0,
+        "clears_human_shortest_path": 1.0,
+        "respects_human_intent": 1.0
+      }
+    },
+    {
+      "feedback_id": "I09_move_out_of_my_way",
+      "feedback_type": "imperative",
+      "grounding_source": "target_action:step_aside",
+      "sentiment": "neutral",
+      "sentiment_score": 1.0,
+      "target_features": {
+        "blocks_human_path": 0.0,
+        "clears_human_path": 1.0,
+        "human_wait_cost": 0.0,
+        "respects_human_intent": 1.0
+      },
+      "text": "Move out of my way.",
+      "weight_delta": {
+        "clears_human_path": 1.0,
+        "respects_human_intent": 1.0
+      }
+    },
+    {
+      "feedback_id": "I10_human_tomato_agent_onion_en",
+      "feedback_type": "imperative",
+      "grounding_source": "target_action:move_to_onion_via_non_blocking_route",
+      "sentiment": "neutral",
+      "sentiment_score": 1.0,
+      "target_features": {
+        "avoids_human_shortest_path": 1.0,
+        "blocks_human_path": 0.0,
+        "complementary_to_human": 1.0,
+        "recipe_needs_onion": 1.0,
+        "respects_human_intent": 1.0
+      },
+      "text": "When I am going to pick the tomato, go to pick the onion.",
+      "weight_delta": {
+        "avoids_human_shortest_path": 1.0,
+        "complementary_to_human": 1.0,
+        "recipe_needs_onion": 1.0,
+        "respects_human_intent": 1.0
+      }
+    },
+    {
+      "feedback_id": "I11_should_not_block_way",
+      "feedback_type": "imperative",
+      "grounding_source": "target_action:step_aside",
+      "sentiment": "negative",
+      "sentiment_score": 1.0,
+      "target_features": {
+        "blocks_human_path": 0.0,
+        "clears_human_path": 1.0,
+        "human_wait_cost": 0.0,
+        "respects_human_intent": 1.0
+      },
+      "text": "You should not block my way.",
+      "weight_delta": {
+        "clears_human_path": 1.0,
+        "respects_human_intent": 1.0
+      }
+    },
+    {
+      "feedback_id": "D01_blocking_my_way_bad",
+      "feedback_type": "descriptive",
+      "grounding_source": "target_features",
+      "sentiment": "negative",
+      "sentiment_score": -1.0,
+      "target_features": {
+        "blocks_human_path": 1.0,
+        "frustrates_human": 1.0,
+        "human_wait_cost": 1.0
+      },
+      "text": "Blocking my way is bad.",
+      "weight_delta": {
+        "blocks_human_path": -1.0,
+        "frustrates_human": -1.0,
+        "human_wait_cost": -1.0
+      }
+    },
+    {
+      "feedback_id": "D02_help_tomato_when_human_onion_good",
+      "feedback_type": "descriptive",
+      "grounding_source": "target_features",
+      "sentiment": "positive",
+      "sentiment_score": 1.0,
+      "target_features": {
+        "avoids_duplicate_human_task": 1.0,
+        "complementary_to_human": 1.0,
+        "ingredient_tomato": 1.0,
+        "pick_tomato": 1.0
+      },
+      "text": "Help me grab tomato when I grab onion is good.",
+      "weight_delta": {
+        "avoids_duplicate_human_task": 1.0,
+        "complementary_to_human": 1.0,
+        "ingredient_tomato": 1.0,
+        "pick_tomato": 1.0
+      }
+    },
+    {
+      "feedback_id": "D03_clear_way_helpful",
+      "feedback_type": "descriptive",
+      "grounding_source": "target_features",
+      "sentiment": "positive",
+      "sentiment_score": 1.0,
+      "target_features": {
+        "clears_human_path": 1.0,
+        "respects_human_intent": 1.0
+      },
+      "text": "Clear the way is helpful.",
+      "weight_delta": {
+        "clears_human_path": 1.0,
+        "respects_human_intent": 1.0
+      }
+    },
+    {
+      "feedback_id": "D04_respect_human_plan_good",
+      "feedback_type": "descriptive",
+      "grounding_source": "target_features",
+      "sentiment": "positive",
+      "sentiment_score": 1.0,
+      "target_features": {
+        "avoids_duplicate_human_task": 1.0,
+        "avoids_human_shortest_path": 1.0,
+        "respects_human_intent": 1.0
+      },
+      "text": "Respect human's plan is good.",
+      "weight_delta": {
+        "avoids_duplicate_human_task": 1.0,
+        "avoids_human_shortest_path": 1.0,
+        "respects_human_intent": 1.0
+      }
+    },
+    {
+      "feedback_id": "D05_repeated_existing_ingredient_useless",
+      "feedback_type": "descriptive",
+      "grounding_source": "target_features",
+      "sentiment": "negative",
+      "sentiment_score": -1.0,
+      "target_features": {
+        "adds_extra_onion": 1.0,
+        "adds_extra_tomato": 1.0,
+        "duplicate_human_task": 1.0,
+        "time_cost": 1.0
+      },
+      "text": "重复拿已经有的食材没用帮助。",
+      "weight_delta": {
+        "adds_extra_onion": -1.0,
+        "adds_extra_tomato": -1.0,
+        "duplicate_human_task": -1.0,
+        "time_cost": -1.0
+      }
+    },
+    {
+      "feedback_id": "D06_help_without_interfering",
+      "feedback_type": "descriptive",
+      "grounding_source": "target_features",
+      "sentiment": "negative",
+      "sentiment_score": -1.0,
+      "target_features": {
+        "blocks_human_path": 1.0,
+        "frustrates_human": 1.0
+      },
+      "text": "添乱是不好的。",
+      "weight_delta": {
+        "blocks_human_path": -1.0,
+        "frustrates_human": -1.0
+      }
+    },
+    {
+      "feedback_id": "P01_seed_001",
+      "feedback_type": "imperative",
+      "grounding_source": "target_features",
+      "sentiment": "neutral",
+      "sentiment_score": 1.0,
+      "target_features": {
+        "avoids_duplicate_human_task": 1.0,
+        "clears_human_shortest_path": 1.0,
+        "respects_human_intent": 1.0
+      },
+      "text": "I am going to get the dish, please stay away from the dish area.",
+      "weight_delta": {
+        "avoids_duplicate_human_task": 1.0,
+        "clears_human_shortest_path": 1.0,
+        "respects_human_intent": 1.0
+      }
+    },
+    {
+      "feedback_id": "P01_seed_002",
+      "feedback_type": "imperative",
+      "grounding_source": "target_features",
+      "sentiment": "negative",
+      "sentiment_score": 1.0,
+      "target_features": {
+        "avoids_duplicate_human_task": 1.0,
+        "clears_human_shortest_path": 1.0,
+        "respects_human_intent": 1.0
+      },
+      "text": "别抢我的盘子，也别堵住出餐路线。",
+      "weight_delta": {
+        "avoids_duplicate_human_task": 1.0,
+        "clears_human_shortest_path": 1.0,
+        "respects_human_intent": 1.0
+      }
+    },
+    {
+      "feedback_id": "P01_seed_003",
+      "feedback_type": "descriptive",
+      "grounding_source": "target_features",
+      "sentiment": "negative",
+      "sentiment_score": -1.0,
+      "target_features": {
+        "duplicate_human_task": 1.0,
+        "human_wait_cost": 1.0,
+        "steals_human_target": 1.0
+      },
+      "text": "Taking the dish when I am already going for it is bad.",
+      "weight_delta": {
+        "duplicate_human_task": -1.0,
+        "human_wait_cost": -1.0,
+        "steals_human_target": -1.0
+      }
+    },
+    {
+      "feedback_id": "P01_seed_004",
+      "feedback_type": "evaluative",
+      "grounding_source": "trajectory_features",
+      "sentiment": "positive",
+      "sentiment_score": 1.0,
+      "target_features": {
+        "avoids_duplicate_human_task": 1.0,
+        "clears_human_shortest_path": 1.0,
+        "respects_human_intent": 1.0
+      },
+      "text": "You did well by leaving the dish and serving route open.",
+      "weight_delta": {
+        "avoids_duplicate_human_task": 1.0,
+        "clears_human_shortest_path": 1.0,
+        "respects_human_intent": 1.0
+      }
+    },
+    {
+      "feedback_id": "P01_seed_005",
+      "feedback_type": "descriptive",
+      "grounding_source": "target_features",
+      "sentiment": "negative",
+      "sentiment_score": -1.0,
+      "target_features": {
+        "blocks_human_path": 1.0,
+        "blocks_serving_route": 1.0,
+        "human_wait_cost": 1.0
+      },
+      "text": "Blocking the path from dish to serving makes me wait.",
+      "weight_delta": {
+        "blocks_human_path": -1.0,
+        "blocks_serving_route": -1.0,
+        "human_wait_cost": -1.0
+      }
+    },
+    {
+      "feedback_id": "P02_seed_001",
+      "feedback_type": "imperative",
+      "grounding_source": "target_features",
+      "sentiment": "negative",
+      "sentiment_score": 1.0,
+      "target_features": {
+        "clears_human_path": 1.0,
+        "respects_human_intent": 1.0
+      },
+      "text": "你挡住我了，往旁边走。",
+      "weight_delta": {
+        "clears_human_path": 1.0,
+        "respects_human_intent": 1.0
+      }
+    },
+    {
+      "feedback_id": "P02_seed_002",
+      "feedback_type": "imperative",
+      "grounding_source": "target_features",
+      "sentiment": "neutral",
+      "sentiment_score": 1.0,
+      "target_features": {
+        "clears_human_path": 1.0,
+        "respects_human_intent": 1.0
+      },
+      "text": "Please step aside when I am trying to pass.",
+      "weight_delta": {
+        "clears_human_path": 1.0,
+        "respects_human_intent": 1.0
+      }
+    },
+    {
+      "feedback_id": "P02_seed_003",
+      "feedback_type": "descriptive",
+      "grounding_source": "target_features",
+      "sentiment": "negative",
+      "sentiment_score": -1.0,
+      "target_features": {
+        "blocks_human_path": 1.0,
+        "frustrates_human": 1.0,
+        "human_wait_cost": 1.0
+      },
+      "text": "Standing on my next tile is not helpful.",
+      "weight_delta": {
+        "blocks_human_path": -1.0,
+        "frustrates_human": -1.0,
+        "human_wait_cost": -1.0
+      }
+    },
+    {
+      "feedback_id": "P02_seed_004",
+      "feedback_type": "evaluative",
+      "grounding_source": "trajectory_features",
+      "sentiment": "positive",
+      "sentiment_score": 1.0,
+      "target_features": {
+        "clears_human_path": 1.0,
+        "respects_human_intent": 1.0
+      },
+      "text": "刚才你让开那一步很好。",
+      "weight_delta": {
+        "clears_human_path": 1.0,
+        "respects_human_intent": 1.0
+      }
+    },
+    {
+      "feedback_id": "P02_seed_005",
+      "feedback_type": "evaluative",
+      "grounding_source": "trajectory_features",
+      "sentiment": "negative",
+      "sentiment_score": -1.0,
+      "target_features": {
+        "blocks_human_path": 1.0,
+        "frustrates_human": 1.0,
+        "human_wait_cost": 1.0
+      },
+      "text": "You stayed in my way and that was bad.",
+      "weight_delta": {
+        "blocks_human_path": -1.0,
+        "frustrates_human": -1.0,
+        "human_wait_cost": -1.0
+      }
+    },
+    {
+      "feedback_id": "P03_seed_001",
+      "feedback_type": "imperative",
+      "grounding_source": "target_features",
+      "sentiment": "negative",
+      "sentiment_score": 1.0,
+      "target_features": {
+        "avoids_duplicate_human_task": 1.0,
+        "complementary_to_human": 1.0,
+        "respects_human_intent": 1.0
+      },
+      "text": "我已经在拿番茄了，你去做别的任务。",
+      "weight_delta": {
+        "avoids_duplicate_human_task": 1.0,
+        "complementary_to_human": 1.0,
+        "respects_human_intent": 1.0
+      }
+    },
+    {
+      "feedback_id": "P03_seed_002",
+      "feedback_type": "imperative",
+      "grounding_source": "target_features",
+      "sentiment": "neutral",
+      "sentiment_score": 1.0,
+      "target_features": {
+        "avoids_duplicate_human_task": 1.0,
+        "complementary_to_human": 1.0,
+        "recipe_needs_onion": 1.0
+      },
+      "text": "I have the tomato already, you should get onion instead.",
+      "weight_delta": {
+        "avoids_duplicate_human_task": 1.0,
+        "complementary_to_human": 1.0,
+        "recipe_needs_onion": 1.0
+      }
+    },
+    {
+      "feedback_id": "P03_seed_003",
+      "feedback_type": "descriptive",
+      "grounding_source": "target_features",
+      "sentiment": "negative",
+      "sentiment_score": -1.0,
+      "target_features": {
+        "crowds_human_target": 1.0,
+        "duplicate_human_task": 1.0,
+        "time_cost": 1.0
+      },
+      "text": "Repeating my tomato task wastes time.",
+      "weight_delta": {
+        "crowds_human_target": -1.0,
+        "duplicate_human_task": -1.0,
+        "time_cost": -1.0
+      }
+    },
+    {
+      "feedback_id": "P03_seed_004",
+      "feedback_type": "descriptive",
+      "grounding_source": "target_features",
+      "sentiment": "positive",
+      "sentiment_score": 1.0,
+      "target_features": {
+        "avoids_duplicate_human_task": 1.0,
+        "complementary_to_human": 1.0,
+        "respects_human_intent": 1.0
+      },
+      "text": "选择互补任务是有帮助的。",
+      "weight_delta": {
+        "avoids_duplicate_human_task": 1.0,
+        "complementary_to_human": 1.0,
+        "respects_human_intent": 1.0
+      }
+    },
+    {
+      "feedback_id": "P03_seed_005",
+      "feedback_type": "evaluative",
+      "grounding_source": "trajectory_features",
+      "sentiment": "positive",
+      "sentiment_score": 1.0,
+      "target_features": {
+        "avoids_duplicate_human_task": 1.0,
+        "complementary_to_human": 1.0,
+        "respects_human_intent": 1.0
+      },
+      "text": "Good job not crowding me at the tomato dispenser.",
+      "weight_delta": {
+        "avoids_duplicate_human_task": 1.0,
+        "complementary_to_human": 1.0,
+        "respects_human_intent": 1.0
+      }
+    },
+    {
+      "feedback_id": "P06_seed_001",
+      "feedback_type": "imperative",
+      "grounding_source": "target_features",
+      "sentiment": "negative",
+      "sentiment_score": 1.0,
+      "target_features": {
+        "avoids_human_shortest_path": 1.0,
+        "complementary_to_human": 1.0,
+        "respects_human_intent": 1.0
+      },
+      "text": "Take the lower route and don't cut into my path.",
+      "weight_delta": {
+        "avoids_human_shortest_path": 1.0,
+        "complementary_to_human": 1.0,
+        "respects_human_intent": 1.0
+      }
+    },
+    {
+      "feedback_id": "P06_seed_002",
+      "feedback_type": "descriptive",
+      "grounding_source": "target_features",
+      "sentiment": "negative",
+      "sentiment_score": -1.0,
+      "target_features": {
+        "blocks_human_path": 1.0,
+        "cuts_in_front_of_human": 1.0,
+        "human_wait_cost": 1.0
+      },
+      "text": "别插到我去锅的最短路线上。",
+      "weight_delta": {
+        "blocks_human_path": -1.0,
+        "cuts_in_front_of_human": -1.0,
+        "human_wait_cost": -1.0
+      }
+    },
+    {
+      "feedback_id": "P06_seed_003",
+      "feedback_type": "descriptive",
+      "grounding_source": "target_features",
+      "sentiment": "positive",
+      "sentiment_score": 1.0,
+      "target_features": {
+        "avoids_human_shortest_path": 1.0,
+        "respects_human_intent": 1.0
+      },
+      "text": "Avoiding my shortest path is good.",
+      "weight_delta": {
+        "avoids_human_shortest_path": 1.0,
+        "respects_human_intent": 1.0
+      }
+    },
+    {
+      "feedback_id": "P06_seed_004",
+      "feedback_type": "evaluative",
+      "grounding_source": "trajectory_features",
+      "sentiment": "negative",
+      "sentiment_score": -1.0,
+      "target_features": {
+        "blocks_human_path": 1.0,
+        "cuts_in_front_of_human": 1.0,
+        "human_wait_cost": 1.0
+      },
+      "text": "You cut in front of me and made me wait.",
+      "weight_delta": {
+        "blocks_human_path": -1.0,
+        "cuts_in_front_of_human": -1.0,
+        "human_wait_cost": -1.0
+      }
+    },
+    {
+      "feedback_id": "P06_seed_005",
+      "feedback_type": "evaluative",
+      "grounding_source": "trajectory_features",
+      "sentiment": "positive",
+      "sentiment_score": 1.0,
+      "target_features": {
+        "avoids_human_shortest_path": 1.0,
+        "complementary_to_human": 1.0,
+        "respects_human_intent": 1.0
+      },
+      "text": "刚才你绕开我的路线很有帮助。",
+      "weight_delta": {
+        "avoids_human_shortest_path": 1.0,
+        "complementary_to_human": 1.0,
+        "respects_human_intent": 1.0
+      }
+    },
+    {
+      "feedback_id": "P12_seed_001",
+      "feedback_type": "imperative",
+      "grounding_source": "target_features",
+      "sentiment": "neutral",
+      "sentiment_score": 1.0,
+      "target_features": {
+        "avoids_duplicate_human_task": 1.0,
+        "avoids_human_shortest_path": 1.0,
+        "respects_human_intent": 1.0
+      },
+      "text": "I am already doing this plan, choose another target.",
+      "weight_delta": {
+        "avoids_duplicate_human_task": 1.0,
+        "avoids_human_shortest_path": 1.0,
+        "respects_human_intent": 1.0
+      }
+    },
+    {
+      "feedback_id": "P12_seed_002",
+      "feedback_type": "descriptive",
+      "grounding_source": "target_features",
+      "sentiment": "negative",
+      "sentiment_score": -1.0,
+      "target_features": {
+        "blocks_human_path": 1.0,
+        "duplicate_human_task": 1.0,
+        "steals_human_target": 1.0
+      },
+      "text": "不要打断我已经开始的计划。",
+      "weight_delta": {
+        "blocks_human_path": -1.0,
+        "duplicate_human_task": -1.0,
+        "steals_human_target": -1.0
+      }
+    },
+    {
+      "feedback_id": "P12_seed_003",
+      "feedback_type": "descriptive",
+      "grounding_source": "target_features",
+      "sentiment": "positive",
+      "sentiment_score": 1.0,
+      "target_features": {
+        "avoids_duplicate_human_task": 1.0,
+        "respects_human_intent": 1.0
+      },
+      "text": "Respecting my plan is helpful.",
+      "weight_delta": {
+        "avoids_duplicate_human_task": 1.0,
+        "respects_human_intent": 1.0
+      }
+    },
+    {
+      "feedback_id": "P12_seed_004",
+      "feedback_type": "evaluative",
+      "grounding_source": "trajectory_features",
+      "sentiment": "negative",
+      "sentiment_score": -1.0,
+      "target_features": {
+        "duplicate_human_task": 1.0,
+        "frustrates_human": 1.0,
+        "steals_human_target": 1.0
+      },
+      "text": "You interrupted my plan, that was bad.",
+      "weight_delta": {
+        "duplicate_human_task": -1.0,
+        "frustrates_human": -1.0,
+        "steals_human_target": -1.0
+      }
+    },
+    {
+      "feedback_id": "P12_seed_005",
+      "feedback_type": "evaluative",
+      "grounding_source": "trajectory_features",
+      "sentiment": "positive",
+      "sentiment_score": 1.0,
+      "target_features": {
+        "avoids_duplicate_human_task": 1.0,
+        "avoids_human_shortest_path": 1.0,
+        "respects_human_intent": 1.0
+      },
+      "text": "刚才你没有插进我的任务，这很好。",
+      "weight_delta": {
+        "avoids_duplicate_human_task": 1.0,
+        "avoids_human_shortest_path": 1.0,
+        "respects_human_intent": 1.0
+      }
+    },
+    {
+      "feedback_id": "P16_seed_001",
+      "feedback_type": "imperative",
+      "grounding_source": "target_features",
+      "sentiment": "negative",
+      "sentiment_score": 1.0,
+      "target_features": {
+        "avoids_human_shortest_path": 1.0,
+        "complementary_to_human": 1.0,
+        "recipe_needs_onion": 1.0,
+        "respects_human_intent": 1.0
+      },
+      "text": "Go help with onion, but do not block my pot route.",
+      "weight_delta": {
+        "avoids_human_shortest_path": 1.0,
+        "complementary_to_human": 1.0,
+        "recipe_needs_onion": 1.0,
+        "respects_human_intent": 1.0
+      }
+    },
+    {
+      "feedback_id": "P16_seed_002",
+      "feedback_type": "imperative",
+      "grounding_source": "target_features",
+      "sentiment": "negative",
+      "sentiment_score": 1.0,
+      "target_features": {
+        "avoids_human_shortest_path": 1.0,
+        "complementary_to_human": 1.0,
+        "respects_human_intent": 1.0
+      },
+      "text": "你可以帮我，但不要挡住我去锅。",
+      "weight_delta": {
+        "avoids_human_shortest_path": 1.0,
+        "complementary_to_human": 1.0,
+        "respects_human_intent": 1.0
+      }
+    },
+    {
+      "feedback_id": "P16_seed_003",
+      "feedback_type": "descriptive",
+      "grounding_source": "target_features",
+      "sentiment": "positive",
+      "sentiment_score": 1.0,
+      "target_features": {
+        "avoids_human_shortest_path": 1.0,
+        "complementary_to_human": 1.0,
+        "respects_human_intent": 1.0
+      },
+      "text": "Helping is good only if you do not interfere with my route.",
+      "weight_delta": {
+        "avoids_human_shortest_path": 1.0,
+        "complementary_to_human": 1.0,
+        "respects_human_intent": 1.0
+      }
+    },
+    {
+      "feedback_id": "P16_seed_004",
+      "feedback_type": "descriptive",
+      "grounding_source": "target_features",
+      "sentiment": "negative",
+      "sentiment_score": -1.0,
+      "target_features": {
+        "blocks_human_path": 1.0,
+        "frustrates_human": 1.0,
+        "human_wait_cost": 1.0
+      },
+      "text": "Blocking me while trying to help is still bad.",
+      "weight_delta": {
+        "blocks_human_path": -1.0,
+        "frustrates_human": -1.0,
+        "human_wait_cost": -1.0
+      }
+    },
+    {
+      "feedback_id": "P16_seed_005",
+      "feedback_type": "evaluative",
+      "grounding_source": "trajectory_features",
+      "sentiment": "positive",
+      "sentiment_score": 1.0,
+      "target_features": {
+        "avoids_human_shortest_path": 1.0,
+        "complementary_to_human": 1.0,
+        "respects_human_intent": 1.0
+      },
+      "text": "刚才你帮忙而且没有挡我，很好。",
+      "weight_delta": {
+        "avoids_human_shortest_path": 1.0,
+        "complementary_to_human": 1.0,
+        "respects_human_intent": 1.0
+      }
+    },
+    {
+      "feedback_id": "AMB_E01_not_working",
+      "feedback_type": "evaluative",
+      "grounding_source": "trajectory_features",
+      "sentiment": "negative",
+      "sentiment_score": -1.0,
+      "target_features": {
+        "blocks_human_path": 1.0,
+        "frustrates_human": 1.0,
+        "human_wait_cost": 1.0
+      },
+      "text": "你刚才那样不太行。",
+      "weight_delta": {
+        "blocks_human_path": -1.0,
+        "frustrates_human": -1.0,
+        "human_wait_cost": -1.0
+      }
+    },
+    {
+      "feedback_id": "AMB_E02_much_better",
+      "feedback_type": "evaluative",
+      "grounding_source": "trajectory_features",
+      "sentiment": "positive",
+      "sentiment_score": 1.0,
+      "target_features": {
+        "avoids_human_shortest_path": 1.0,
+        "clears_human_path": 1.0,
+        "respects_human_intent": 1.0
+      },
+      "text": "这样好多了。",
+      "weight_delta": {
+        "avoids_human_shortest_path": 1.0,
+        "clears_human_path": 1.0,
+        "respects_human_intent": 1.0
+      }
+    },
+    {
+      "feedback_id": "AMB_E03_too_messy",
+      "feedback_type": "evaluative",
+      "grounding_source": "trajectory_features",
+      "sentiment": "negative",
+      "sentiment_score": -1.0,
+      "target_features": {
+        "crowds_human_target": 1.0,
+        "duplicate_human_task": 1.0,
+        "frustrates_human": 1.0
+      },
+      "text": "刚才有点乱。",
+      "weight_delta": {
+        "crowds_human_target": -1.0,
+        "duplicate_human_task": -1.0,
+        "frustrates_human": -1.0
+      }
+    },
+    {
+      "feedback_id": "AMB_E04_smoother",
+      "feedback_type": "evaluative",
+      "grounding_source": "trajectory_features",
+      "sentiment": "positive",
+      "sentiment_score": 1.0,
+      "target_features": {
+        "clears_human_path": 1.0,
+        "complementary_to_human": 1.0,
+        "respects_human_intent": 1.0
+      },
+      "text": "That was smoother.",
+      "weight_delta": {
+        "clears_human_path": 1.0,
+        "complementary_to_human": 1.0,
+        "respects_human_intent": 1.0
+      }
+    },
+    {
+      "feedback_id": "AMB_E05_confusing",
+      "feedback_type": "evaluative",
+      "grounding_source": "trajectory_features",
+      "sentiment": "negative",
+      "sentiment_score": -1.0,
+      "target_features": {
+        "duplicate_human_task": 1.0,
+        "frustrates_human": 1.0,
+        "time_cost": 1.0
+      },
+      "text": "That was confusing and not helpful.",
+      "weight_delta": {
+        "duplicate_human_task": -1.0,
+        "frustrates_human": -1.0,
+        "time_cost": -1.0
+      }
+    },
+    {
+      "feedback_id": "AMB_E06_less_comfortable",
+      "feedback_type": "evaluative",
+      "grounding_source": "trajectory_features",
+      "sentiment": "negative",
+      "sentiment_score": -1.0,
+      "target_features": {
+        "blocks_human_path": 1.0,
+        "frustrates_human": 1.0,
+        "human_wait_cost": 1.0
+      },
+      "text": "这样玩起来不太舒服。",
+      "weight_delta": {
+        "blocks_human_path": -1.0,
+        "frustrates_human": -1.0,
+        "human_wait_cost": -1.0
+      }
+    },
+    {
+      "feedback_id": "AMB_I01_go_somewhere_else",
+      "feedback_type": "imperative",
+      "grounding_source": "target_features",
+      "sentiment": "neutral",
+      "sentiment_score": 1.0,
+      "target_features": {
+        "clears_human_path": 1.0,
+        "respects_human_intent": 1.0
+      },
+      "text": "你换个地方吧。",
+      "weight_delta": {
+        "clears_human_path": 1.0,
+        "respects_human_intent": 1.0
+      }
+    },
+    {
+      "feedback_id": "AMB_I02_do_not_come_here",
+      "feedback_type": "imperative",
+      "grounding_source": "target_features",
+      "sentiment": "negative",
+      "sentiment_score": 1.0,
+      "target_features": {
+        "avoids_duplicate_human_task": 1.0,
+        "avoids_human_shortest_path": 1.0,
+        "respects_human_intent": 1.0
+      },
+      "text": "你别过来，我这边自己来。",
+      "weight_delta": {
+        "avoids_duplicate_human_task": 1.0,
+        "avoids_human_shortest_path": 1.0,
+        "respects_human_intent": 1.0
+      }
+    },
+    {
+      "feedback_id": "AMB_I03_other_side",
+      "feedback_type": "imperative",
+      "grounding_source": "target_features",
+      "sentiment": "neutral",
+      "sentiment_score": 1.0,
+      "target_features": {
+        "avoids_human_shortest_path": 1.0,
+        "complementary_to_human": 1.0,
+        "respects_human_intent": 1.0
+      },
+      "text": "你去另一边帮忙。",
+      "weight_delta": {
+        "avoids_human_shortest_path": 1.0,
+        "complementary_to_human": 1.0,
+        "respects_human_intent": 1.0
+      }
+    },
+    {
+      "feedback_id": "AMB_I04_leave_this_to_me",
+      "feedback_type": "imperative",
+      "grounding_source": "target_features",
+      "sentiment": "neutral",
+      "sentiment_score": 1.0,
+      "target_features": {
+        "avoids_duplicate_human_task": 1.0,
+        "respects_human_intent": 1.0
+      },
+      "text": "Leave this to me and do something else.",
+      "weight_delta": {
+        "avoids_duplicate_human_task": 1.0,
+        "respects_human_intent": 1.0
+      }
+    },
+    {
+      "feedback_id": "AMB_I05_handle_other_ingredient",
+      "feedback_type": "imperative",
+      "grounding_source": "target_features",
+      "sentiment": "neutral",
+      "sentiment_score": 1.0,
+      "target_features": {
+        "avoids_duplicate_human_task": 1.0,
+        "complementary_to_human": 1.0,
+        "moves_toward_needed_object": 1.0
+      },
+      "text": "Maybe handle the other ingredient.",
+      "weight_delta": {
+        "avoids_duplicate_human_task": 1.0,
+        "complementary_to_human": 1.0,
+        "moves_toward_needed_object": 1.0
+      }
+    },
+    {
+      "feedback_id": "AMB_I06_stop_hanging_around",
+      "feedback_type": "imperative",
+      "grounding_source": "target_features",
+      "sentiment": "negative",
+      "sentiment_score": 1.0,
+      "target_features": {
+        "clears_human_path": 1.0,
+        "respects_human_intent": 1.0
+      },
+      "text": "别一直在这里晃。",
+      "weight_delta": {
+        "clears_human_path": 1.0,
+        "respects_human_intent": 1.0
+      }
+    },
+    {
+      "feedback_id": "AMB_D01_in_the_way",
+      "feedback_type": "descriptive",
+      "grounding_source": "target_features",
+      "sentiment": "negative",
+      "sentiment_score": -1.0,
+      "target_features": {
+        "blocks_human_path": 1.0,
+        "frustrates_human": 1.0,
+        "human_wait_cost": 1.0
+      },
+      "text": "你在这儿有点碍事。",
+      "weight_delta": {
+        "blocks_human_path": -1.0,
+        "frustrates_human": -1.0,
+        "human_wait_cost": -1.0
+      }
+    },
+    {
+      "feedback_id": "AMB_D02_too_crowded",
+      "feedback_type": "descriptive",
+      "grounding_source": "target_features",
+      "sentiment": "negative",
+      "sentiment_score": -1.0,
+      "target_features": {
+        "blocks_human_path": 1.0,
+        "crowds_human_target": 1.0,
+        "frustrates_human": 1.0
+      },
+      "text": "这里有点挤。",
+      "weight_delta": {
+        "blocks_human_path": -1.0,
+        "crowds_human_target": -1.0,
+        "frustrates_human": -1.0
+      }
+    },
+    {
+      "feedback_id": "AMB_D03_we_are_doing_same_thing",
+      "feedback_type": "descriptive",
+      "grounding_source": "target_features",
+      "sentiment": "negative",
+      "sentiment_score": -1.0,
+      "target_features": {
+        "duplicate_human_task": 1.0,
+        "frustrates_human": 1.0,
+        "time_cost": 1.0
+      },
+      "text": "我们两个做同一件事没必要。",
+      "weight_delta": {
+        "duplicate_human_task": -1.0,
+        "frustrates_human": -1.0,
+        "time_cost": -1.0
+      }
+    },
+    {
+      "feedback_id": "AMB_D04_leave_space",
+      "feedback_type": "descriptive",
+      "grounding_source": "target_features",
+      "sentiment": "positive",
+      "sentiment_score": 1.0,
+      "target_features": {
+        "avoids_human_shortest_path": 1.0,
+        "clears_human_path": 1.0,
+        "respects_human_intent": 1.0
+      },
+      "text": "留出路会舒服很多。",
+      "weight_delta": {
+        "avoids_human_shortest_path": 1.0,
+        "clears_human_path": 1.0,
+        "respects_human_intent": 1.0
+      }
+    },
+    {
+      "feedback_id": "AMB_D05_front_path_bad",
+      "feedback_type": "descriptive",
+      "grounding_source": "target_features",
+      "sentiment": "negative",
+      "sentiment_score": -1.0,
+      "target_features": {
+        "blocks_human_path": 1.0,
+        "cuts_in_front_of_human": 1.0,
+        "human_wait_cost": 1.0
+      },
+      "text": "走到我前面会卡住我。",
+      "weight_delta": {
+        "blocks_human_path": -1.0,
+        "cuts_in_front_of_human": -1.0,
+        "human_wait_cost": -1.0
+      }
+    },
+    {
+      "feedback_id": "AMB_D06_split_tasks_good",
+      "feedback_type": "descriptive",
+      "grounding_source": "target_features",
+      "sentiment": "positive",
+      "sentiment_score": 1.0,
+      "target_features": {
+        "avoids_duplicate_human_task": 1.0,
+        "complementary_to_human": 1.0,
+        "respects_human_intent": 1.0
+      },
+      "text": "各做各的会更顺。",
+      "weight_delta": {
+        "avoids_duplicate_human_task": 1.0,
+        "complementary_to_human": 1.0,
+        "respects_human_intent": 1.0
+      }
+    },
+    {
+      "feedback_id": "AMB_D07_do_not_break_my_flow",
+      "feedback_type": "descriptive",
+      "grounding_source": "target_features",
+      "sentiment": "negative",
+      "sentiment_score": -1.0,
+      "target_features": {
+        "blocks_human_path": 1.0,
+        "duplicate_human_task": 1.0,
+        "frustrates_human": 1.0
+      },
+      "text": "You are breaking my flow.",
+      "weight_delta": {
+        "blocks_human_path": -1.0,
+        "duplicate_human_task": -1.0,
+        "frustrates_human": -1.0
+      }
+    },
+    {
+      "feedback_id": "AMB_D08_read_my_plan",
+      "feedback_type": "descriptive",
+      "grounding_source": "target_features",
+      "sentiment": "positive",
+      "sentiment_score": 1.0,
+      "target_features": {
+        "avoids_duplicate_human_task": 1.0,
+        "avoids_human_shortest_path": 1.0,
+        "respects_human_intent": 1.0
+      },
+      "text": "It is better if you read my plan and stay out of it.",
+      "weight_delta": {
+        "avoids_duplicate_human_task": 1.0,
+        "avoids_human_shortest_path": 1.0,
+        "respects_human_intent": 1.0
+      }
+    }
+  ]
+}
