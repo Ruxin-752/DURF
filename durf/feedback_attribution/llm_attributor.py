@@ -21,6 +21,7 @@ from .sample_builder import (
     key_conditions_from_event,
 )
 from .schemas import attribution_result
+from .subgoal_preferences import infer_subgoal_preferences
 
 
 SYSTEM_PROMPT = """You are an attribution module for a human-AI Overcooked study.
@@ -35,8 +36,15 @@ You will receive:
 Rules:
 - Choose target_event only from candidate_events[].event_type, or null.
 - Do not invent positions, actions, pot states, or events.
+- You may infer preferred_subgoals and rejected_subgoals, but they must be
+  high-level subgoal names rather than low-level motion actions.
 - If the feedback refers to something not represented by candidate events,
-  set target_event=null and propose_schema_update.
+  set target_event=null and propose_schema_update for human review.
+- Do not bundle state conditions into event names. Events describe only AI
+  behavior patterns; state facts belong in key_conditions or condition_features.
+  For example, propose "AI_missed_plate_pickup_opportunity" plus condition
+  "human_has_last_needed_ingredient", not
+  "AI_should_get_dish_when_human_has_last_ingredient".
 - If multiple candidates are plausible, set needs_clarification=true and ask
   one short clarification question.
 - Return JSON only. No markdown, no explanation outside JSON.
@@ -50,6 +58,8 @@ OUTPUT_SCHEMA_HINT = {
     "polarity": "positive|negative|neutral|unknown",
     "preference": "short snake_case preference or null",
     "key_conditions": {},
+    "preferred_subgoals": [],
+    "rejected_subgoals": [],
     "confidence": 0.0,
     "needs_clarification": False,
     "clarification_question": None,
@@ -106,6 +116,8 @@ def recent_trajectory_summary(
             {
                 "total_step": step.get("total_step"),
                 "ai_action": step.get("ai_action_name"),
+                "ai_subgoal": step.get("ai_subgoal"),
+                "ai_event": step.get("ai_event"),
                 "human_action": step.get("human_action_name"),
                 "reward": step.get("environment_reward"),
                 "ai_pos": facts.get("ai_pos"),
@@ -125,6 +137,8 @@ def compact_candidate_event(event: dict) -> dict:
         "end_timestep": event.get("end_timestep"),
         "confidence": event.get("confidence"),
         "severity": event.get("severity"),
+        "related_subgoal": event.get("related_subgoal"),
+        "condition_features": event.get("condition_features"),
         "evidence": event.get("evidence"),
     }
 
@@ -218,6 +232,16 @@ def normalize_llm_result(
     if not isinstance(key_conditions, dict) or not key_conditions:
         key_conditions = key_conditions_from_event(target)
 
+    condition_features = parsed.get("condition_features")
+    if not isinstance(condition_features, dict) or not condition_features:
+        condition_features = target.get("condition_features") if target else {}
+
+    preferred_subgoals, rejected_subgoals = infer_subgoal_preferences(
+        target_event=target.get("event_type") if target else None,
+        preferred_subgoals=parsed.get("preferred_subgoals"),
+        rejected_subgoals=parsed.get("rejected_subgoals"),
+    )
+
     rationale = parsed.get("rationale") or "No rationale returned."
     return attribution_result(
         feedback_event_id=feedback_event_id(feedback),
@@ -227,6 +251,9 @@ def normalize_llm_result(
         polarity=parsed.get("polarity") or baseline_attribution.get("polarity"),
         preference=parsed.get("preference") or baseline_attribution.get("preference"),
         key_conditions=key_conditions,
+        condition_features=condition_features,
+        preferred_subgoals=preferred_subgoals,
+        rejected_subgoals=rejected_subgoals,
         candidate_events=nearby_candidate_events,
         confidence=clamp_confidence(parsed.get("confidence")),
         needs_clarification=needs_clarification,

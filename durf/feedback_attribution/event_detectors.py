@@ -6,6 +6,7 @@ records into candidate events for later semantic attribution, not final labels.
 
 from __future__ import annotations
 
+from .condition_features import extract_condition_features
 from .schemas import candidate_event
 
 
@@ -81,6 +82,52 @@ def held_name(held_object) -> str | None:
     return held_object.get("name")
 
 
+def object_ingredients(obj) -> list[str]:
+    if not isinstance(obj, dict):
+        return []
+    return [str(item) for item in obj.get("ingredients") or []]
+
+
+def soup_ingredients(facts: dict) -> list[str]:
+    ingredients: list[str] = []
+    for obj in facts.get("objects") or []:
+        if not isinstance(obj, dict):
+            continue
+        nested = obj.get("object") if isinstance(obj.get("object"), dict) else obj
+        if nested.get("name") == "soup":
+            ingredients.extend(object_ingredients(nested))
+    return ingredients
+
+
+def recipe_needs(step: dict, ingredient: str) -> bool | None:
+    conditions = extract_condition_features(step)
+    key = f"recipe_needs_{ingredient}"
+    value = conditions.get(key)
+    return value if isinstance(value, bool) else None
+
+
+def object_positions(facts: dict, name: str) -> list[tuple[int, int]]:
+    positions = []
+    for obj in facts.get("objects") or []:
+        if not isinstance(obj, dict):
+            continue
+        nested = obj.get("object") if isinstance(obj.get("object"), dict) else obj
+        if nested.get("name") != name:
+            continue
+        pos = pos_tuple(obj.get("position") or nested.get("position"))
+        if pos is not None:
+            positions.append(pos)
+    return positions
+
+
+def pot_all_positions(facts: dict) -> list[tuple[int, int]]:
+    pot_states = facts.get("pot_states") or {}
+    return pot_positions(
+        pot_states,
+        ("empty", "1_items", "2_items", "3_items", "partially_full", "cooking", "ready"),
+    )
+
+
 def pot_positions(pot_states: dict, keys: tuple[str, ...]) -> list[tuple[int, int]]:
     positions: list[tuple[int, int]] = []
     if not isinstance(pot_states, dict):
@@ -99,6 +146,17 @@ def step_state_before(step: dict) -> dict:
 
 def step_state_after(step: dict) -> dict:
     return step.get("state_facts") or {}
+
+
+def step_ai_subgoal(step: dict) -> str | None:
+    return step.get("ai_subgoal") or step.get("extra", {}).get("ai_subgoal")
+
+
+def event_context(step: dict) -> dict:
+    return {
+        "related_subgoal": step_ai_subgoal(step),
+        "condition_features": extract_condition_features(step),
+    }
 
 
 def missing_facts(step: dict, names: list[str], *, before: bool = False) -> list[str]:
@@ -159,6 +217,7 @@ def detect_ai_blocked_human_path(window: list[dict]) -> list[dict]:
                     },
                     severity=0.8,
                     confidence=0.8,
+                    **event_context(step),
                 )
             )
 
@@ -184,6 +243,7 @@ def detect_ai_blocked_human_path(window: list[dict]) -> list[dict]:
                     },
                     severity=None,
                     confidence=0.05,
+                    **event_context(window[-1]),
                     missing_required_facts=missing,
                 )
             ]
@@ -247,6 +307,7 @@ def detect_ai_ignored_ready_or_nearly_ready_pot(window: list[dict]) -> list[dict
                     },
                     severity=None,
                     confidence=0.05,
+                    **event_context(window[-1]),
                     missing_required_facts=missing,
                 )
             ]
@@ -307,6 +368,320 @@ def detect_ai_failed_to_prepare_ingredient_while_waiting(window: list[dict]) -> 
     return events
 
 
+def detect_ai_successfully_delivered_soup(window: list[dict]) -> list[dict]:
+    """Detect positive delivery moments from environment reward."""
+
+    events = []
+    for step in window:
+        try:
+            reward = float(step.get("environment_reward") or 0.0)
+        except (TypeError, ValueError):
+            reward = 0.0
+        if reward <= 0.0:
+            continue
+        after = step_state_after(step)
+        events.append(
+            candidate_event(
+                event_type="AI_successfully_delivered_soup",
+                start_timestep=int(step["total_step"]),
+                end_timestep=int(step["total_step"]),
+                evidence={
+                    "reason": "Environment reward increased, indicating a successful soup delivery.",
+                    "environment_reward": reward,
+                    "ai_action": step.get("ai_action_name"),
+                    "human_action": step.get("human_action_name"),
+                    "ai_pos": after.get("ai_pos"),
+                    "human_pos": after.get("human_pos"),
+                },
+                severity=0.2,
+                confidence=0.9,
+                related_subgoal=step_ai_subgoal(step) or "SERVE_SOUP",
+                condition_features=extract_condition_features(step),
+            )
+        )
+    return events
+
+
+def detect_ai_successfully_picked_up_soup(window: list[dict]) -> list[dict]:
+    """Detect when AI turns a dish into held soup."""
+
+    events = []
+    for step in window:
+        before = step_state_before(step)
+        after = step_state_after(step)
+        before_held = held_name(before.get("ai_held_object"))
+        after_held = held_name(after.get("ai_held_object"))
+        if before_held == "dish" and after_held == "soup":
+            events.append(
+                candidate_event(
+                    event_type="AI_successfully_picked_up_soup",
+                    start_timestep=int(step["total_step"]),
+                    end_timestep=int(step["total_step"]),
+                    evidence={
+                        "reason": "AI held a dish before the step and held soup after the step.",
+                        "ai_action": step.get("ai_action_name"),
+                        "ai_before": before.get("ai_pos"),
+                        "ai_after": after.get("ai_pos"),
+                    },
+                    severity=0.2,
+                    confidence=0.85,
+                    related_subgoal=step_ai_subgoal(step) or "PICKUP_SOUP",
+                    condition_features=extract_condition_features(step),
+                )
+            )
+    return events
+
+
+def detect_ai_successfully_put_ingredient_into_pot(window: list[dict]) -> list[dict]:
+    """Detect when AI's held ingredient appears in a pot soup."""
+
+    events = []
+    for step in window:
+        before = step_state_before(step)
+        after = step_state_after(step)
+        before_held = held_name(before.get("ai_held_object"))
+        after_held = held_name(after.get("ai_held_object"))
+        if before_held not in {"tomato", "onion"} or after_held is not None:
+            continue
+        before_count = soup_ingredients(before).count(before_held)
+        after_count = soup_ingredients(after).count(before_held)
+        if after_count <= before_count:
+            continue
+        subgoal = (
+            "PUT_TOMATO_IN_POT" if before_held == "tomato" else "PUT_ONION_IN_POT"
+        )
+        events.append(
+            candidate_event(
+                event_type="AI_successfully_put_ingredient_into_pot",
+                start_timestep=int(step["total_step"]),
+                end_timestep=int(step["total_step"]),
+                evidence={
+                    "reason": "AI's held ingredient count increased in soup after interaction.",
+                    "ingredient": before_held,
+                    "ai_action": step.get("ai_action_name"),
+                    "soup_ingredients_before": soup_ingredients(before),
+                    "soup_ingredients_after": soup_ingredients(after),
+                },
+                severity=0.2,
+                confidence=0.85,
+                related_subgoal=step_ai_subgoal(step) or subgoal,
+                condition_features=extract_condition_features(step),
+            )
+        )
+    return events
+
+
+def detect_ai_pick_drop_loop(window: list[dict]) -> list[dict]:
+    """Detect short pick/drop loops with little task progress."""
+
+    events = []
+    interaction_steps = []
+    previous_event_end = -1
+    for step in window:
+        before = step_state_before(step)
+        after = step_state_after(step)
+        before_held = held_name(before.get("ai_held_object"))
+        after_held = held_name(after.get("ai_held_object"))
+        changed_ingredient_hold = {
+            before_held,
+            after_held,
+        } & {"tomato", "onion", "dish"}
+        if (
+            step.get("ai_action_name") == "interact"
+            and before_held != after_held
+            and changed_ingredient_hold
+        ):
+            interaction_steps.append(step)
+
+    for index in range(len(interaction_steps)):
+        streak = [interaction_steps[index]]
+        first_total = int(interaction_steps[index]["total_step"])
+        for later in interaction_steps[index + 1 :]:
+            if int(later["total_step"]) - first_total > 12:
+                break
+            streak.append(later)
+        if len(streak) < 3:
+            continue
+        end_total = int(streak[-1]["total_step"])
+        if end_total <= previous_event_end:
+            continue
+        rewards = [float(step.get("environment_reward") or 0.0) for step in streak]
+        held_sequence = [
+            [
+                held_name(step_state_before(step).get("ai_held_object")),
+                held_name(step_state_after(step).get("ai_held_object")),
+            ]
+            for step in streak
+        ]
+        if any(reward > 0.0 for reward in rewards):
+            continue
+        previous_event_end = end_total
+        events.append(
+            candidate_event(
+                event_type="AI_pick_drop_loop",
+                start_timestep=first_total,
+                end_timestep=end_total,
+                evidence={
+                    "reason": "AI repeatedly changed held object through interact actions in a short window without delivery reward.",
+                    "duration_steps": end_total - first_total + 1,
+                    "interaction_timesteps": [
+                        int(step["total_step"]) for step in streak
+                    ],
+                    "held_sequence": held_sequence,
+                    "ai_actions": [step.get("ai_action_name") for step in streak],
+                    "ai_positions": [
+                        step_state_after(step).get("ai_pos") for step in streak
+                    ],
+                },
+                severity=0.75,
+                confidence=0.65,
+                related_subgoal=step_ai_subgoal(streak[-1]),
+                condition_features=extract_condition_features(streak[-1]),
+            )
+        )
+    return events
+
+
+def detect_ai_held_unneeded_object_too_long(window: list[dict]) -> list[dict]:
+    """Detect when AI keeps holding an ingredient that the recipe no longer needs."""
+
+    events = []
+    streak = []
+    for step in window:
+        after = step_state_after(step)
+        held = held_name(after.get("ai_held_object"))
+        if held not in {"tomato", "onion"}:
+            if len(streak) >= 6:
+                events.append(held_unneeded_event(streak))
+            streak = []
+            continue
+        needed = recipe_needs(step, held)
+        if needed is False:
+            streak.append(step)
+        else:
+            if len(streak) >= 6:
+                events.append(held_unneeded_event(streak))
+            streak = []
+    if len(streak) >= 6:
+        events.append(held_unneeded_event(streak))
+    return events
+
+
+def detect_ai_put_object_on_unhelpful_counter(window: list[dict]) -> list[dict]:
+    """Detect ingredient drops far from any pot."""
+
+    events = []
+    for step in window:
+        before = step_state_before(step)
+        after = step_state_after(step)
+        before_held = held_name(before.get("ai_held_object"))
+        after_held = held_name(after.get("ai_held_object"))
+        if before_held not in {"tomato", "onion", "dish"} or after_held is not None:
+            continue
+        if step.get("ai_action_name") != "interact":
+            continue
+        dropped_positions = object_positions(after, before_held)
+        pot_positions_ = pot_all_positions(after)
+        if not dropped_positions or not pot_positions_:
+            continue
+        nearest = min(
+            manhattan(obj_pos, pot_pos)
+            for obj_pos in dropped_positions
+            for pot_pos in pot_positions_
+            if manhattan(obj_pos, pot_pos) is not None
+        )
+        if nearest <= 3:
+            continue
+        events.append(
+            candidate_event(
+                event_type="AI_put_object_on_unhelpful_counter",
+                start_timestep=int(step["total_step"]),
+                end_timestep=int(step["total_step"]),
+                evidence={
+                    "reason": "AI put down an object far from the pot area.",
+                    "object": before_held,
+                    "dropped_positions": [list(pos) for pos in dropped_positions],
+                    "pot_positions": [list(pos) for pos in pot_positions_],
+                    "nearest_pot_distance": nearest,
+                    "ai_pos": after.get("ai_pos"),
+                },
+                severity=0.65,
+                confidence=0.6,
+                related_subgoal=step_ai_subgoal(step),
+                condition_features=extract_condition_features(step),
+            )
+        )
+    return events
+
+
+def detect_ai_missed_plate_pickup_opportunity(window: list[dict]) -> list[dict]:
+    """Detect ready/cooking soup windows where AI could help by getting a dish."""
+
+    events = []
+    streak = []
+    for step in window:
+        after = step_state_after(step)
+        pot_states = after.get("pot_states") or {}
+        soup_needs_plate = bool(pot_positions(pot_states, ("cooking", "ready")))
+        ai_holding = held_name(after.get("ai_held_object"))
+        human_holding = held_name(after.get("human_held_object"))
+        if soup_needs_plate and ai_holding is None and human_holding != "dish":
+            if step_ai_subgoal(step) not in {"GET_DISH", "PICKUP_SOUP", "SERVE_SOUP"}:
+                streak.append(step)
+                continue
+        if len(streak) >= 4:
+            events.append(missed_plate_event(streak))
+        streak = []
+    if len(streak) >= 4:
+        events.append(missed_plate_event(streak))
+    return events
+
+
+def held_unneeded_event(streak: list[dict]) -> dict:
+    first = streak[0]
+    last = streak[-1]
+    last_after = step_state_after(last)
+    return candidate_event(
+        event_type="AI_held_unneeded_object_too_long",
+        start_timestep=int(first["total_step"]),
+        end_timestep=int(last["total_step"]),
+        evidence={
+            "reason": "AI held an ingredient for several steps after the recipe no longer needed it.",
+            "duration_steps": len(streak),
+            "ai_held_object": last_after.get("ai_held_object"),
+            "ai_actions": [step.get("ai_action_name") for step in streak],
+            "ai_positions": [step_state_after(step).get("ai_pos") for step in streak],
+        },
+        severity=min(1.0, 0.3 + len(streak) * 0.05),
+        confidence=0.6,
+        related_subgoal=step_ai_subgoal(last),
+        condition_features=extract_condition_features(last),
+    )
+
+
+def missed_plate_event(streak: list[dict]) -> dict:
+    first = streak[0]
+    last = streak[-1]
+    last_after = step_state_after(last)
+    return candidate_event(
+        event_type="AI_missed_plate_pickup_opportunity",
+        start_timestep=int(first["total_step"]),
+        end_timestep=int(last["total_step"]),
+        evidence={
+            "reason": "Soup was cooking or ready while AI had free hands, but AI did not choose the dish-related subgoal.",
+            "duration_steps": len(streak),
+            "pot_states": last_after.get("pot_states"),
+            "ai_actions": [step.get("ai_action_name") for step in streak],
+            "ai_subgoals": [step_ai_subgoal(step) for step in streak],
+            "ai_positions": [step_state_after(step).get("ai_pos") for step in streak],
+        },
+        severity=min(1.0, 0.3 + len(streak) * 0.05),
+        confidence=0.6,
+        related_subgoal=step_ai_subgoal(last),
+        condition_features=extract_condition_features(last),
+    )
+
+
 def prep_wait_event(streak: list[dict]) -> dict:
     first = streak[0]
     last = streak[-1]
@@ -336,6 +711,8 @@ def prep_wait_event(streak: list[dict]) -> dict:
         },
         severity=min(1.0, 0.3 + len(streak) * 0.05),
         confidence=0.65,
+        related_subgoal=step_ai_subgoal(last),
+        condition_features=extract_condition_features(last),
     )
 
 
@@ -363,12 +740,21 @@ def ready_pot_event(streak: list[dict]) -> dict:
         },
         severity=min(1.0, 0.25 + len(streak) * 0.1),
         confidence=0.55 if nearest_ready_pot_dist is None else 0.7,
+        related_subgoal=step_ai_subgoal(last),
+        condition_features=extract_condition_features(last),
     )
 
 
 def detect_candidate_events(window: list[dict]) -> list[dict]:
     events: list[dict] = []
+    events.extend(detect_ai_successfully_delivered_soup(window))
+    events.extend(detect_ai_successfully_picked_up_soup(window))
+    events.extend(detect_ai_successfully_put_ingredient_into_pot(window))
     events.extend(detect_ai_blocked_human_path(window))
     events.extend(detect_ai_ignored_ready_or_nearly_ready_pot(window))
     events.extend(detect_ai_failed_to_prepare_ingredient_while_waiting(window))
+    events.extend(detect_ai_missed_plate_pickup_opportunity(window))
+    events.extend(detect_ai_pick_drop_loop(window))
+    events.extend(detect_ai_held_unneeded_object_too_long(window))
+    events.extend(detect_ai_put_object_on_unhelpful_counter(window))
     return events

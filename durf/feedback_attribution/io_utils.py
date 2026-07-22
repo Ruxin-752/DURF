@@ -30,7 +30,7 @@ def read_jsonl(path: Path) -> list[dict[str, Any]]:
     if not path.exists():
         return []
     records = []
-    with path.open("r", encoding="utf-8") as handle:
+    with path.open("r", encoding="utf-8-sig") as handle:
         for line in handle:
             line = line.strip()
             if line:

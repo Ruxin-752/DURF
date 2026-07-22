@@ -28,7 +28,8 @@ from durf.baseline.collect_rule_teacher_dataset import (
     first_action_to_feature,
     make_motion_planner,
     pots_needing_ingredient,
-    rule_teacher_decision,
+    choose_task_candidate,
+    rule_teacher_candidates,
 )
 from durf.baseline.runtime import (
     DEFAULT_AGENT_NAME,
@@ -41,7 +42,9 @@ from durf.baseline.runtime import (
     resolve_agent_dir,
     rllib_action_index,
 )
+from durf.feedback_attribution.condition_features import extract_condition_features
 from durf.group_a.deepseek_chat import DeepSeekChatError, chat_once
+from durf.hu.subgoal_reranker import LinearSubgoalReranker
 
 
 STAY = 4
@@ -249,6 +252,27 @@ def parse_args() -> argparse.Namespace:
         type=int,
         default=8,
         help="In annotation mode, pause for human feedback every N environment steps.",
+    )
+    parser.add_argument(
+        "--hu-model",
+        type=Path,
+        default=None,
+        help=(
+            "Optional Hu-v0 subgoal reranker JSON. By default it is used in "
+            "shadow logging only unless --hu-apply is set."
+        ),
+    )
+    parser.add_argument("--hu-user-id", default="PILOT01")
+    parser.add_argument(
+        "--hu-lambda",
+        type=float,
+        default=0.0,
+        help="Weight for Hu preference scores when --hu-apply is enabled.",
+    )
+    parser.add_argument(
+        "--hu-apply",
+        action="store_true",
+        help="Actually apply Hu reranking. Default is shadow logging only.",
     )
     return parser.parse_args()
 
@@ -743,6 +767,9 @@ def main() -> int:
         if args.ai_mode == "subgoal_executor"
         else None
     )
+    hu_model = LinearSubgoalReranker.load(args.hu_model) if args.hu_model else None
+    if args.hu_lambda < 0:
+        raise ValueError("--hu-lambda cannot be negative")
     ai_action_prior = StepPrefixPrior.from_name(args.ai_action_prior)
     env = make_direct_multi_env(current_layout, args.seed, horizon=args.horizon)
     envs_by_layout = {current_layout: env}
@@ -773,6 +800,10 @@ def main() -> int:
                 "horizon": args.horizon,
                 "human_player_index": 1,
                 "ai_player_index": 0,
+                "hu_model": str(args.hu_model) if args.hu_model else None,
+                "hu_user_id": args.hu_user_id,
+                "hu_lambda": args.hu_lambda,
+                "hu_apply": args.hu_apply,
             },
             indent=2,
             ensure_ascii=False,
@@ -791,6 +822,8 @@ def main() -> int:
         "ai_action",
         "ai_action_name",
         "ai_subgoal",
+        "ai_condition_features_json",
+        "ai_subgoal_candidates_json",
         "ai_event",
         "human_action",
         "human_action_name",
@@ -874,6 +907,7 @@ def main() -> int:
     last_key_debug = "no key yet"
     last_ai_action = STAY
     last_ai_subgoal = ""
+    last_ai_subgoal_candidates: list[dict] = []
     last_ai_event = ""
     last_predict_ms = 0.0
     last_environment_step_ms = 0.0
@@ -897,15 +931,58 @@ def main() -> int:
     last_layout_switch_at = -LAYOUT_SWITCH_DEBOUNCE_MS
     game_surface = render_game_surface(visualizer, env, episode_reward)
 
-    def subgoal_executor_action() -> tuple[int, str]:
+    def serialize_subgoal_candidates(candidates) -> list[dict]:
+        return [
+            {
+                "subgoal": candidate.subgoal,
+                "task_score": candidate.task_score,
+                "hu_score": candidate.hu_score,
+                "final_score": candidate.final_score,
+                "reason": candidate.reason,
+                "feasible": candidate.feasible,
+                "metadata": candidate.metadata,
+            }
+            for candidate in candidates
+        ]
+
+    def live_condition_features(human_action: int) -> dict:
+        facts = state_facts(env)
+        return extract_condition_features(
+            {
+                "state_facts": facts,
+                "extra": {"state_before": facts},
+                "human_action_name": ACTION_NAMES[int(human_action)],
+            }
+        )
+
+    def apply_hu_shadow_scores(candidates, condition_features: dict) -> None:
+        if hu_model is None:
+            return
+        for candidate in candidates:
+            try:
+                candidate.hu_score = hu_model.score(
+                    args.hu_user_id,
+                    condition_features,
+                    candidate.subgoal,
+                )
+            except KeyError:
+                candidate.hu_score = 0.0
+
+    def subgoal_executor_action(
+        human_action: int,
+    ) -> tuple[int, str, list[dict], dict]:
         if subgoal_model is None:
             raise RuntimeError("subgoal_executor_action called without a loaded model")
         motion_planner = motion_planners_by_layout[current_layout]
-        subgoal_name, planner_action = rule_teacher_decision(
-            env.base_env.state,
-            motion_planner,
-            0,
+        candidates = rule_teacher_candidates(env.base_env.state, motion_planner, 0)
+        condition_features = live_condition_features(human_action)
+        apply_hu_shadow_scores(candidates, condition_features)
+        chosen = choose_task_candidate(
+            candidates,
+            hu_lambda=args.hu_lambda if args.hu_apply else 0.0,
         )
+        subgoal_name = chosen.subgoal
+        planner_action = chosen.action
         if subgoal_name in {
             "GET_TOMATO",
             "PUT_TOMATO_IN_POT",
@@ -916,13 +993,23 @@ def main() -> int:
             "SERVE_SOUP",
             "WAIT",
         }:
-            return int(planner_action), subgoal_name
+            return (
+                int(planner_action),
+                subgoal_name,
+                serialize_subgoal_candidates(candidates),
+                condition_features,
+            )
         subgoal_id = SUBGOAL_TO_INDEX[subgoal_name]
         observations = env.base_env.lossless_state_encoding_mdp(env.base_env.state)
         observation = np.asarray(observations[0], dtype=np.float32)[None, ...]
         subgoal_one_hot = np.eye(len(SUBGOALS), dtype=np.float32)[[subgoal_id]]
         logits = subgoal_model.predict([observation, subgoal_one_hot], verbose=0)
-        return int(np.argmax(logits[0])), subgoal_name
+        return (
+            int(np.argmax(logits[0])),
+            subgoal_name,
+            serialize_subgoal_candidates(candidates),
+            condition_features,
+        )
 
     def motion_target(position, action_index: int):
         action_name = ACTION_NAMES[int(action_index)]
@@ -1521,14 +1608,25 @@ def main() -> int:
                     if args.ai_mode == "random":
                         ai_action_raw = random.randrange(len(ACTION_NAMES))
                         current_ai_subgoal = ""
+                        current_ai_condition_features = {}
+                        current_ai_subgoal_candidates = []
                     elif args.ai_mode == "subgoal_executor":
-                        ai_action_raw, current_ai_subgoal = subgoal_executor_action()
+                        (
+                            ai_action_raw,
+                            current_ai_subgoal,
+                            current_ai_subgoal_candidates,
+                            current_ai_condition_features,
+                        ) = subgoal_executor_action(human_action)
                     else:
                         ai_action_raw = rllib_action_index(ai_agent, env.base_env.state)
                         current_ai_subgoal = ""
+                        current_ai_condition_features = {}
+                        current_ai_subgoal_candidates = []
                 else:
                     ai_action_raw = prior_action
                     current_ai_subgoal = "action_prior"
+                    current_ai_condition_features = {}
+                    current_ai_subgoal_candidates = []
                 last_predict_ms = (time.perf_counter() - predict_started) * 1000
                 state_before = state_facts(env)
                 ai_action, current_ai_event = cooperative_action_wrapper(
@@ -1547,6 +1645,7 @@ def main() -> int:
                 ) * 1000
                 last_ai_action = ai_action
                 last_ai_subgoal = current_ai_subgoal
+                last_ai_subgoal_candidates = current_ai_subgoal_candidates
                 last_ai_event = current_ai_event
                 episode_step += 1
                 total_step += 1
@@ -1560,6 +1659,8 @@ def main() -> int:
                         "ai_action": ai_action,
                         "ai_action_name": ACTION_NAMES[ai_action],
                         "ai_subgoal": current_ai_subgoal,
+                        "ai_condition_features": current_ai_condition_features,
+                        "ai_subgoal_candidates": current_ai_subgoal_candidates,
                         "ai_event": current_ai_event,
                         "human_action": human_action,
                         "human_action_name": ACTION_NAMES[human_action],
@@ -1583,6 +1684,12 @@ def main() -> int:
                         "ai_action": ai_action,
                         "ai_action_name": ACTION_NAMES[ai_action],
                         "ai_subgoal": current_ai_subgoal,
+                        "ai_condition_features_json": json_dumps(
+                            current_ai_condition_features
+                        ),
+                        "ai_subgoal_candidates_json": json_dumps(
+                            current_ai_subgoal_candidates
+                        ),
                         "ai_event": current_ai_event,
                         "human_action": human_action,
                         "human_action_name": ACTION_NAMES[human_action],

@@ -6,6 +6,8 @@ This script is the minimum viable research-data pipeline:
 2. Generate candidate collaboration events.
 3. Align feedback events to nearby candidate events.
 4. Produce preview attribution records.
+5. Build Hu provenance records and pairwise subgoal labels.
+6. Detect reusable probe states for Hu-before/Hu-after evaluation.
 
 By default this uses the deterministic rule baseline. Pass `--use-llm` to call
 DeepSeek for semantic attribution; the script falls back to the rule baseline if
@@ -20,12 +22,20 @@ from pathlib import Path
 from .llm_attributor import run_llm_attribution
 from .event_detectors import DEFAULT_LOOKBACK_STEPS
 from .generate_candidate_events import generate_candidate_events
+from .hu_dataset_builder import build_hu_dataset
 from .io_utils import read_jsonl, write_jsonl
+from .probe_state_detector import generate_probe_hits
 from .sample_builder import build_preview_attribution
 from .session_converter import convert_session
 
 
-def run_demo(session_dir: Path, lookback_steps: int, use_llm: bool = False) -> dict[str, int]:
+def run_demo(
+    session_dir: Path,
+    lookback_steps: int,
+    *,
+    user_id: str,
+    use_llm: bool = False,
+) -> dict[str, int]:
     convert_counts = convert_session(session_dir)
     event_counts = generate_candidate_events(
         session_dir,
@@ -76,17 +86,24 @@ def run_demo(session_dir: Path, lookback_steps: int, use_llm: bool = False) -> d
             session_dir / "llm_attribution_audit.jsonl",
             llm_audits,
         )
+    hu_counts = build_hu_dataset(session_dir, user_id=user_id)
+    probe_counts = generate_probe_hits(session_dir, convert_csv=False)
     return {
         **convert_counts,
         "candidate_events": event_counts["candidate_events"],
         "attributions": attribution_count,
         "llm_audits": audit_count,
+        "hu_provenance": hu_counts["provenance_records"],
+        "hu_training_samples": hu_counts["hu_training_samples"],
+        "schema_updates": hu_counts["schema_updates"],
+        "probe_hits": probe_counts["probe_hits"],
     }
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--session", required=True, type=Path)
+    parser.add_argument("--user-id", default="PILOT01")
     parser.add_argument("--lookback-steps", type=int, default=DEFAULT_LOOKBACK_STEPS)
     parser.add_argument(
         "--use-llm",
@@ -95,12 +112,21 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    counts = run_demo(args.session, args.lookback_steps, use_llm=args.use_llm)
+    counts = run_demo(
+        args.session,
+        args.lookback_steps,
+        user_id=args.user_id,
+        use_llm=args.use_llm,
+    )
     print(f"Session: {args.session}")
     print(f"trajectory.jsonl records: {counts['trajectory']}")
     print(f"feedback_events.jsonl records: {counts['feedback']}")
     print(f"candidate_events.jsonl records: {counts['candidate_events']}")
     print(f"attribution_preview.jsonl records: {counts['attributions']}")
+    print(f"hu_attribution_provenance.jsonl records: {counts['hu_provenance']}")
+    print(f"hu_subgoal_preferences.jsonl records: {counts['hu_training_samples']}")
+    print(f"schema_updates.jsonl records: {counts['schema_updates']}")
+    print(f"probe_hits.jsonl records: {counts['probe_hits']}")
     if args.use_llm:
         print(f"llm_attribution_audit.jsonl records: {counts['llm_audits']}")
     return 0

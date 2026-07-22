@@ -5,6 +5,7 @@ from __future__ import annotations
 from .event_detectors import DEFAULT_LOOKBACK_STEPS, detect_candidate_events, recent_window
 from .feedback_type_router import polarity_from_feedback, route_feedback_type
 from .schemas import attribution_result
+from .subgoal_preferences import infer_subgoal_preferences
 
 
 EVENT_KEYWORDS = {
@@ -15,11 +16,6 @@ EVENT_KEYWORDS = {
         "stuck",
         "in my way",
         "path",
-        "堵",
-        "挡",
-        "卡",
-        "路",
-        "别堵",
     ),
     "AI_ignored_ready_or_nearly_ready_pot": (
         "pot",
@@ -27,13 +23,6 @@ EVENT_KEYWORDS = {
         "ready",
         "serve",
         "dish",
-        "锅",
-        "汤",
-        "菜",
-        "盘",
-        "好了",
-        "不拿",
-        "没拿",
     ),
     "AI_failed_to_prepare_ingredient_while_waiting": (
         "prepare",
@@ -49,11 +38,70 @@ EVENT_KEYWORDS = {
         "place",
         "beside",
         "next to",
-        "准备",
-        "备菜",
-        "放",
-        "旁边",
-        "等",
+    ),
+    "AI_pick_drop_loop": (
+        "pick",
+        "drop",
+        "pick it",
+        "drop it",
+        "pick up",
+        "put down",
+        "again",
+        "repeat",
+        "repeatedly",
+        "consistantly",
+        "consistently",
+        "loop",
+    ),
+    "AI_held_unneeded_object_too_long": (
+        "holding",
+        "held",
+        "unneeded",
+        "not needed",
+        "don't need",
+        "wrong ingredient",
+    ),
+    "AI_put_object_on_unhelpful_counter": (
+        "put it down",
+        "drop it",
+        "counter",
+        "far",
+        "near",
+        "beside",
+        "near the pot",
+        "next to the pot",
+        "bring it near",
+    ),
+    "AI_missed_plate_pickup_opportunity": (
+        "plate",
+        "dish",
+        "closer to the pot",
+        "turn",
+        "ask me",
+        "serve",
+    ),
+    "AI_successfully_delivered_soup": (
+        "good delivery",
+        "delivery",
+        "deliver",
+        "served",
+        "serve",
+        "good job",
+        "nice",
+    ),
+    "AI_successfully_picked_up_soup": (
+        "pick up soup",
+        "got soup",
+        "soup",
+    ),
+    "AI_successfully_put_ingredient_into_pot": (
+        "put into pot",
+        "put in the pot",
+        "ingredient into pot",
+        "good ingredient",
+        "nice ingredient",
+        "tomato",
+        "onion",
     ),
 }
 
@@ -61,6 +109,13 @@ EVENT_PREFERENCES = {
     "AI_blocked_human_path": "avoid_blocking_human_path",
     "AI_ignored_ready_or_nearly_ready_pot": "handle_ready_pot_when_possible",
     "AI_failed_to_prepare_ingredient_while_waiting": "prepare_ingredients_during_cooking_wait",
+    "AI_pick_drop_loop": "avoid_repeated_pick_drop",
+    "AI_held_unneeded_object_too_long": "put_down_unneeded_object",
+    "AI_put_object_on_unhelpful_counter": "stage_objects_near_pot",
+    "AI_missed_plate_pickup_opportunity": "pick_up_plate_when_useful",
+    "AI_successfully_delivered_soup": "deliver_soup_when_ready",
+    "AI_successfully_picked_up_soup": "pick_up_soup_when_ready",
+    "AI_successfully_put_ingredient_into_pot": "put_needed_ingredient_into_pot",
 }
 
 
@@ -128,7 +183,9 @@ def select_candidate_event(
     """
 
     feedback_text = feedback.get("feedback_text")
+    feedback_value = feedback.get("feedback_value")
     feedback_total_step = feedback.get("total_step")
+    feedback_polarity = polarity_from_feedback(feedback_text, feedback_value)
     nearby = [
         event
         for event in candidate_events
@@ -143,7 +200,10 @@ def select_candidate_event(
 
     scored = []
     for event in nearby:
-        keyword_score = event_keyword_score(event.get("event_type", ""), feedback_text)
+        event_type = event.get("event_type", "")
+        keyword_score = event_keyword_score(event_type, feedback_text)
+        if feedback_polarity == "negative" and str(event_type).startswith("AI_successfully"):
+            keyword_score = 0
         overlap_bonus = 2 if candidate_overlaps_feedback(event, feedback_total_step) else 0
         confidence = float(event.get("confidence") or 0.0)
         distance_penalty = candidate_recency_distance(event, feedback_total_step) * 0.01
@@ -154,6 +214,8 @@ def select_candidate_event(
     best_score, best_keyword_score, best_event = scored[0]
     runner_up_score = scored[1][0] if len(scored) > 1 else None
     ambiguous = runner_up_score is not None and best_score - runner_up_score < 1.0
+    if best_keyword_score >= 2:
+        ambiguous = False
 
     if best_keyword_score > 0:
         confidence = min(0.85, 0.45 + best_keyword_score * 0.15)
@@ -198,6 +260,32 @@ def key_conditions_from_event(event: dict | None) -> dict:
             "ai_positions": evidence.get("ai_positions"),
             "human_held_object": evidence.get("human_held_object"),
         }
+    if event_type == "AI_pick_drop_loop":
+        return {
+            "duration_steps": evidence.get("duration_steps"),
+            "interaction_timesteps": evidence.get("interaction_timesteps"),
+            "held_sequence": evidence.get("held_sequence"),
+            "ai_positions": evidence.get("ai_positions"),
+        }
+    if event_type == "AI_put_object_on_unhelpful_counter":
+        return {
+            "object": evidence.get("object"),
+            "dropped_positions": evidence.get("dropped_positions"),
+            "nearest_pot_distance": evidence.get("nearest_pot_distance"),
+        }
+    if event_type == "AI_held_unneeded_object_too_long":
+        return {
+            "duration_steps": evidence.get("duration_steps"),
+            "ai_held_object": evidence.get("ai_held_object"),
+            "ai_positions": evidence.get("ai_positions"),
+        }
+    if event_type == "AI_missed_plate_pickup_opportunity":
+        return {
+            "duration_steps": evidence.get("duration_steps"),
+            "pot_states": evidence.get("pot_states"),
+            "ai_subgoals": evidence.get("ai_subgoals"),
+            "ai_positions": evidence.get("ai_positions"),
+        }
     return evidence
 
 
@@ -231,8 +319,12 @@ def build_preview_attribution(
     )
 
     target_event = target.get("event_type") if target else None
+    condition_features = target.get("condition_features") if target else {}
+    preferred_subgoals, rejected_subgoals = infer_subgoal_preferences(
+        target_event=target_event,
+    )
     preference = None
-    if target_event and polarity in {"negative", "unknown"}:
+    if target_event and polarity in {"negative", "unknown", "positive"}:
         preference = EVENT_PREFERENCES.get(target_event)
 
     clarification = None
@@ -287,6 +379,9 @@ def build_preview_attribution(
         polarity=polarity,
         preference=preference,
         key_conditions=key_conditions_from_event(target),
+        condition_features=condition_features,
+        preferred_subgoals=preferred_subgoals,
+        rejected_subgoals=rejected_subgoals,
         candidate_events=nearby_candidates,
         confidence=confidence,
         needs_clarification=needs_clarification,

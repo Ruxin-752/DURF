@@ -12,6 +12,7 @@ import argparse
 import json
 import sys
 from collections import Counter, deque
+from dataclasses import dataclass, field
 from pathlib import Path
 
 import dill
@@ -37,6 +38,18 @@ SUBGOALS = (
     "WAIT",
 )
 SUBGOAL_TO_INDEX = {name: index for index, name in enumerate(SUBGOALS)}
+
+
+@dataclass
+class CandidateSubgoal:
+    subgoal: str
+    task_score: float
+    action: int
+    reason: str
+    feasible: bool = True
+    metadata: dict = field(default_factory=dict)
+    hu_score: float = 0.0
+    final_score: float | None = None
 
 
 def parse_args() -> argparse.Namespace:
@@ -222,6 +235,16 @@ def next_needed_ingredient(state, mdp) -> str | None:
     return best_missing[0] if best_missing else None
 
 
+def teammate_holding(state, player_index: int, object_name_: str) -> bool:
+    for index, other in enumerate(state.players):
+        if index == player_index:
+            continue
+        held = getattr(other, "held_object", None)
+        if getattr(held, "name", None) == object_name_:
+            return True
+    return False
+
+
 def adjacent_position(player) -> tuple[int, int]:
     return Action.move_in_direction(player.position, player.orientation)
 
@@ -374,11 +397,50 @@ def first_action_to_feature(
     )
 
 
-def rule_teacher_decision(
+def stay_candidate(reason: str, task_score: float = 0.0) -> CandidateSubgoal:
+    return CandidateSubgoal(
+        subgoal="WAIT",
+        task_score=task_score,
+        action=int(Action.ACTION_TO_INDEX[Action.STAY]),
+        reason=reason,
+        feasible=True,
+    )
+
+
+def feature_candidate(
+    *,
+    subgoal: str,
+    task_score: float,
+    reason: str,
+    motion_planner: MotionPlanner,
+    player,
+    feature_positions: list[tuple[int, int]],
+    blocked_positions: set[tuple[int, int]],
+    metadata: dict | None = None,
+) -> CandidateSubgoal | None:
+    action = first_action_to_feature(
+        motion_planner,
+        player,
+        feature_positions,
+        blocked_positions,
+    )
+    if action is None:
+        return None
+    return CandidateSubgoal(
+        subgoal=subgoal,
+        task_score=task_score,
+        action=int(action),
+        reason=reason,
+        feasible=True,
+        metadata=metadata or {},
+    )
+
+
+def generate_candidate_subgoals(
     state,
     motion_planner: MotionPlanner,
     player_index: int,
-) -> tuple[str, int]:
+) -> list[CandidateSubgoal]:
     mdp = motion_planner.mdp
     player = state.players[player_index]
     blocked_positions = {
@@ -388,82 +450,158 @@ def rule_teacher_decision(
     }
     held = player.held_object
     pot_states = mdp.get_pot_states(state)
+    candidates: list[CandidateSubgoal] = []
 
     if held is not None:
         held_name = getattr(held, "name", None)
         if held_name in ("tomato", "onion"):
             ingredient_targets = pots_needing_ingredient(state, mdp, held_name)
             if not ingredient_targets:
-                return "WAIT", Action.ACTION_TO_INDEX[Action.STAY]
+                return [stay_candidate("holding_unneeded_ingredient")]
             subgoal = (
                 "PUT_TOMATO_IN_POT"
                 if held_name == "tomato"
                 else "PUT_ONION_IN_POT"
             )
-            action = first_action_to_feature(
-                motion_planner,
-                player,
-                ingredient_targets,
-                blocked_positions,
+            candidate = feature_candidate(
+                subgoal=subgoal,
+                task_score=80.0,
+                reason="held_ingredient_needed_by_pot",
+                motion_planner=motion_planner,
+                player=player,
+                feature_positions=ingredient_targets,
+                blocked_positions=blocked_positions,
+                metadata={"held_object": held_name},
             )
-            return (
-                subgoal,
-                action if action is not None else Action.ACTION_TO_INDEX[Action.STAY],
-            )
+            return [candidate] if candidate else [stay_candidate("no_path_to_needed_pot")]
         if held_name == "dish":
             ready_pots = mdp.get_ready_pots(pot_states)
             if not ready_pots:
-                return "WAIT", Action.ACTION_TO_INDEX[Action.STAY]
-            action = first_action_to_feature(
-                motion_planner,
-                player,
-                ready_pots,
-                blocked_positions,
+                return [stay_candidate("holding_dish_waiting_for_soup", task_score=5.0)]
+            candidate = feature_candidate(
+                subgoal="PICKUP_SOUP",
+                task_score=95.0,
+                reason="held_dish_and_soup_ready",
+                motion_planner=motion_planner,
+                player=player,
+                feature_positions=ready_pots,
+                blocked_positions=blocked_positions,
             )
-            return (
-                "PICKUP_SOUP",
-                action if action is not None else Action.ACTION_TO_INDEX[Action.STAY],
-            )
+            return [candidate] if candidate else [stay_candidate("no_path_to_ready_pot")]
         if held_name == "soup":
-            action = first_action_to_feature(
-                motion_planner,
-                player,
-                mdp.get_serving_locations(),
-                blocked_positions,
+            candidate = feature_candidate(
+                subgoal="SERVE_SOUP",
+                task_score=100.0,
+                reason="held_soup_deliver_immediately",
+                motion_planner=motion_planner,
+                player=player,
+                feature_positions=mdp.get_serving_locations(),
+                blocked_positions=blocked_positions,
             )
-            return (
-                "SERVE_SOUP",
-                action if action is not None else Action.ACTION_TO_INDEX[Action.STAY],
-            )
+            return [candidate] if candidate else [stay_candidate("no_path_to_serving")]
 
     ready_pots = mdp.get_ready_pots(pot_states)
     if ready_pots:
-        action = first_action_to_feature(
-            motion_planner,
-            player,
-            mdp.get_dish_dispenser_locations(),
-            blocked_positions,
+        candidate = feature_candidate(
+            subgoal="GET_DISH",
+            task_score=90.0,
+            reason="soup_ready_get_dish",
+            motion_planner=motion_planner,
+            player=player,
+            feature_positions=mdp.get_dish_dispenser_locations(),
+            blocked_positions=blocked_positions,
         )
-        return (
-            "GET_DISH",
-            action if action is not None else Action.ACTION_TO_INDEX[Action.STAY],
-        )
+        if candidate:
+            candidates.append(candidate)
+
+    cooking_pots = mdp.get_cooking_pots(pot_states)
+    if cooking_pots:
+        if not teammate_holding(state, player_index, "dish"):
+            candidate = feature_candidate(
+                subgoal="GET_DISH",
+                task_score=60.0,
+                reason="soup_cooking_prepare_dish",
+                motion_planner=motion_planner,
+                player=player,
+                feature_positions=mdp.get_dish_dispenser_locations(),
+                blocked_positions=blocked_positions,
+            )
+            if candidate:
+                candidates.append(candidate)
+
+        recipe = target_recipe(mdp)
+        prep_ingredient = recipe[0] if recipe else None
+        if prep_ingredient in ("tomato", "onion"):
+            subgoal = "GET_TOMATO" if prep_ingredient == "tomato" else "GET_ONION"
+            candidate = feature_candidate(
+                subgoal=subgoal,
+                task_score=50.0,
+                reason="soup_cooking_prepare_next_cycle",
+                motion_planner=motion_planner,
+                player=player,
+                feature_positions=ingredient_pickup_locations(state, mdp, prep_ingredient),
+                blocked_positions=blocked_positions,
+                metadata={"ingredient": prep_ingredient},
+            )
+            if candidate:
+                candidates.append(candidate)
 
     needed = next_needed_ingredient(state, mdp)
     if needed is not None:
         subgoal = "GET_TOMATO" if needed == "tomato" else "GET_ONION"
-        action = first_action_to_feature(
-            motion_planner,
-            player,
-            ingredient_pickup_locations(state, mdp, needed),
-            blocked_positions,
+        candidate = feature_candidate(
+            subgoal=subgoal,
+            task_score=70.0,
+            reason="pot_needs_ingredient",
+            motion_planner=motion_planner,
+            player=player,
+            feature_positions=ingredient_pickup_locations(state, mdp, needed),
+            blocked_positions=blocked_positions,
+            metadata={"ingredient": needed},
         )
-        return (
-            subgoal,
-            action if action is not None else Action.ACTION_TO_INDEX[Action.STAY],
-        )
+        if candidate:
+            candidates.append(candidate)
 
-    return "WAIT", Action.ACTION_TO_INDEX[Action.STAY]
+    candidates.append(stay_candidate("fallback_wait", task_score=0.0))
+    return candidates
+
+
+def choose_task_candidate(
+    candidates: list[CandidateSubgoal],
+    *,
+    hu_lambda: float = 0.0,
+) -> CandidateSubgoal:
+    feasible = [candidate for candidate in candidates if candidate.feasible]
+    if not feasible:
+        return stay_candidate("no_feasible_candidate")
+    for candidate in feasible:
+        candidate.final_score = candidate.task_score + hu_lambda * candidate.hu_score
+    return max(
+        feasible,
+        key=lambda candidate: (
+            candidate.final_score if candidate.final_score is not None else candidate.task_score,
+            candidate.task_score,
+        ),
+    )
+
+
+def rule_teacher_candidates(
+    state,
+    motion_planner: MotionPlanner,
+    player_index: int,
+) -> list[CandidateSubgoal]:
+    return generate_candidate_subgoals(state, motion_planner, player_index)
+
+
+def rule_teacher_decision(
+    state,
+    motion_planner: MotionPlanner,
+    player_index: int,
+) -> tuple[str, int]:
+    chosen = choose_task_candidate(
+        rule_teacher_candidates(state, motion_planner, player_index)
+    )
+    return chosen.subgoal, chosen.action
 
 
 def rule_teacher_action(state, motion_planner: MotionPlanner, player_index: int) -> int:

@@ -28,6 +28,16 @@ def convert_trajectory(session_dir: Path) -> list[dict]:
                 environment_reward=as_float(row.get("environment_reward")),
                 episode_reward=as_float(row.get("episode_reward")),
                 done=as_bool(row.get("done")),
+                ai_subgoal=row.get("ai_subgoal") or None,
+                ai_event=row.get("ai_event") or None,
+                ai_condition_features=as_json(
+                    row.get("ai_condition_features_json")
+                )
+                or {},
+                ai_subgoal_candidates=as_json(
+                    row.get("ai_subgoal_candidates_json")
+                )
+                or [],
                 state_facts=as_json(row.get("state_after_json")),
                 extra={
                     "predict_ms": as_float(row.get("predict_ms")),
