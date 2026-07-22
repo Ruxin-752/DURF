@@ -129,6 +129,22 @@ def parse_args() -> argparse.Namespace:
         default=0.0,
         help="Curriculum reward for moving closer to a serving location while holding soup.",
     )
+    parser.add_argument(
+        "--comfort-shaping-weights",
+        type=Path,
+        default=None,
+        help=(
+            "Path to learned comfort weights JSON (from "
+            "evaluate_route2_subgoal.py). When set, PPO reward is shaped by the "
+            "learned comfort reward; omit for plain task training."
+        ),
+    )
+    parser.add_argument(
+        "--comfort-shaping-coeff",
+        type=float,
+        default=0.5,
+        help="Coefficient beta on the comfort shaping term.",
+    )
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--save-every", type=int, default=1)
     parser.add_argument("--old-dynamics", action="store_true", default=True)
@@ -195,10 +211,14 @@ def build_training_params(args: argparse.Namespace, results_dir: Path, ray_temp_
     from human_aware_rl.ppo.ppo_rllib import RllibLSTMPPOModel, RllibPPOModel
     from human_aware_rl.rllib.rllib import OvercookedMultiAgent
 
-    def env_creator(env_config):
-        from human_aware_rl.rllib.rllib import OvercookedMultiAgent
+    comfort_enabled = args.comfort_shaping_weights is not None
+    if comfort_enabled:
+        from durf.baseline.comfort_env import comfort_env_creator as env_creator
+    else:
+        def env_creator(env_config):
+            from human_aware_rl.rllib.rllib import OvercookedMultiAgent
 
-        return OvercookedMultiAgent.from_config(env_config)
+            return OvercookedMultiAgent.from_config(env_config)
 
     model_params = {
         "use_lstm": False,
@@ -258,6 +278,13 @@ def build_training_params(args: argparse.Namespace, results_dir: Path, ray_temp_
             "bc_schedule": OvercookedMultiAgent.self_play_bc_schedule,
         },
     }
+    if comfort_enabled:
+        # Ignored by OvercookedMultiAgent.from_config; read by comfort_env_creator.
+        environment_params["comfort_shaping"] = {
+            "enabled": True,
+            "weights_path": str(Path(args.comfort_shaping_weights).resolve()),
+            "coeff": float(args.comfort_shaping_coeff),
+        }
     return {
         "model_params": model_params,
         "training_params": training_params,

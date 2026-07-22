@@ -1,0 +1,1532 @@
+{
+  "layout": "ring_tomato_onion_10x6_h0_full_task",
+  "horizon": 200,
+  "episodes": 6,
+  "lambda_pref": 1.0,
+  "means": {
+    "h0_rule": {
+      "soup_reward": 40.0,
+      "comfort_per_step": 0.5245833333333333,
+      "discomfort_rate": 0.17833333333333334
+    },
+    "comfort_subgoal": {
+      "soup_reward": 36.666666666666664,
+      "comfort_per_step": 1.0170833333333336,
+      "discomfort_rate": 0.17416666666666666
+    }
+  },
+  "episodes_detail": {
+    "h0_rule": [
+      {
+        "ai_kind": "h0_rule",
+        "steps": 200,
+        "soup_reward": 40.0,
+        "comfort_per_step": 1.67,
+        "discomfort_rate": 0.14,
+        "transcript": [
+          {
+            "step": 0,
+            "human_subgoal": "GET_TOMATO",
+            "human_say": "I'll grab a tomato, you get the onion.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_TOMATO"
+          },
+          {
+            "step": 10,
+            "human_subgoal": "GET_ONION",
+            "human_say": "I'll grab an onion, you handle the tomato.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_TOMATO_IN_POT"
+          },
+          {
+            "step": 13,
+            "human_subgoal": "PUT_ONION_IN_POT",
+            "human_say": "I'll add the onion to the pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_TOMATO_IN_POT"
+          },
+          {
+            "step": 30,
+            "human_subgoal": "GET_TOMATO",
+            "human_say": "I'll grab a tomato too, we can each prep one.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_TOMATO_IN_POT"
+          },
+          {
+            "step": 35,
+            "human_subgoal": "WAIT",
+            "human_say": "I'll wait here, you take the lead.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "WAIT"
+          },
+          {
+            "step": 55,
+            "human_subgoal": "GET_DISH",
+            "human_say": "I'll grab a dish to plate that ready soup.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_DISH"
+          },
+          {
+            "step": 60,
+            "human_subgoal": "WAIT",
+            "human_say": "You've got the dish, go ahead and plate that soup!",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PICKUP_SOUP"
+          },
+          {
+            "step": 65,
+            "human_subgoal": "GET_TOMATO",
+            "human_say": "I'll grab a tomato, you handle the soup.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "SERVE_SOUP"
+          },
+          {
+            "step": 77,
+            "human_subgoal": "PUT_TOMATO_IN_POT",
+            "human_say": "I'll add my tomato to a pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "SERVE_SOUP"
+          },
+          {
+            "step": 85,
+            "human_subgoal": "GET_TOMATO",
+            "human_say": "I'll grab a tomato, you get the onion.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_TOMATO"
+          },
+          {
+            "step": 95,
+            "human_subgoal": "WAIT",
+            "human_say": "You go ahead and put your tomato in the pot, I'll wait.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_TOMATO_IN_POT"
+          },
+          {
+            "step": 160,
+            "human_subgoal": "PUT_TOMATO_IN_POT",
+            "human_say": "I'll add my tomato to the pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "SERVE_SOUP"
+          },
+          {
+            "step": 172,
+            "human_subgoal": "GET_TOMATO",
+            "human_say": "I'll grab a tomato, you get the onion.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_TOMATO"
+          },
+          {
+            "step": 180,
+            "human_subgoal": "GET_ONION",
+            "human_say": "I'll grab an onion, you handle the tomato.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_TOMATO_IN_POT"
+          },
+          {
+            "step": 187,
+            "human_subgoal": "PUT_ONION_IN_POT",
+            "human_say": "I'll add my onion to the pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_TOMATO_IN_POT"
+          }
+        ]
+      },
+      {
+        "ai_kind": "h0_rule",
+        "steps": 200,
+        "soup_reward": 40.0,
+        "comfort_per_step": -0.03,
+        "discomfort_rate": 0.19,
+        "transcript": [
+          {
+            "step": 0,
+            "human_subgoal": "GET_TOMATO",
+            "human_say": "I'll grab a tomato, you get the onion.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_TOMATO"
+          },
+          {
+            "step": 10,
+            "human_subgoal": "GET_ONION",
+            "human_say": "I'll grab an onion, you handle the tomato.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_TOMATO_IN_POT"
+          },
+          {
+            "step": 13,
+            "human_subgoal": "PUT_ONION_IN_POT",
+            "human_say": "I'll add my onion to a pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_TOMATO_IN_POT"
+          },
+          {
+            "step": 28,
+            "human_subgoal": "GET_TOMATO",
+            "human_say": "I'll grab a tomato too, we can make two soups.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_TOMATO_IN_POT"
+          },
+          {
+            "step": 35,
+            "human_subgoal": "WAIT",
+            "human_say": "I'll wait here so you can grab the pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "WAIT"
+          },
+          {
+            "step": 55,
+            "human_subgoal": "GET_DISH",
+            "human_say": "I'll grab a dish to plate the ready soup.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_DISH"
+          },
+          {
+            "step": 63,
+            "human_subgoal": "GET_TOMATO",
+            "human_say": "I'll grab a tomato, you handle the soup.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "SERVE_SOUP"
+          },
+          {
+            "step": 71,
+            "human_subgoal": "PUT_TOMATO_IN_POT",
+            "human_say": "I'll put this tomato in the pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_TOMATO"
+          },
+          {
+            "step": 79,
+            "human_subgoal": "GET_TOMATO",
+            "human_say": "I'll grab a tomato, you get the onion.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_TOMATO"
+          },
+          {
+            "step": 85,
+            "human_subgoal": "GET_ONION",
+            "human_say": "I'll grab an onion for the next soup.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_TOMATO_IN_POT"
+          },
+          {
+            "step": 95,
+            "human_subgoal": "PUT_ONION_IN_POT",
+            "human_say": "I'll add my onion to a pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_TOMATO_IN_POT"
+          },
+          {
+            "step": 108,
+            "human_subgoal": "WAIT",
+            "human_say": "I'll wait here so you can grab the pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "WAIT"
+          },
+          {
+            "step": 130,
+            "human_subgoal": "GET_DISH",
+            "human_say": "I'll grab a dish to plate the ready soup.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_DISH"
+          },
+          {
+            "step": 137,
+            "human_subgoal": "PICKUP_SOUP",
+            "human_say": "I'll plate the ready soup.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_DISH"
+          },
+          {
+            "step": 142,
+            "human_subgoal": "SERVE_SOUP",
+            "human_say": "I'll serve this soup, you can start a new one.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_TOMATO"
+          },
+          {
+            "step": 150,
+            "human_subgoal": "GET_ONION",
+            "human_say": "I'll grab an onion for the next soup.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_TOMATO_IN_POT"
+          },
+          {
+            "step": 155,
+            "human_subgoal": "GET_TOMATO",
+            "human_say": "I'll grab a tomato, you get the onion.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_TOMATO"
+          },
+          {
+            "step": 159,
+            "human_subgoal": "PUT_TOMATO_IN_POT",
+            "human_say": "I'll put this tomato in the pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_TOMATO"
+          },
+          {
+            "step": 170,
+            "human_subgoal": "WAIT",
+            "human_say": "You go ahead and put that tomato in the pot, I'll wait.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_TOMATO_IN_POT"
+          }
+        ]
+      },
+      {
+        "ai_kind": "h0_rule",
+        "steps": 200,
+        "soup_reward": 40.0,
+        "comfort_per_step": -0.645,
+        "discomfort_rate": 0.275,
+        "transcript": [
+          {
+            "step": 0,
+            "human_subgoal": "GET_TOMATO",
+            "human_say": "I'll grab a tomato, you get the onion.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_TOMATO"
+          },
+          {
+            "step": 10,
+            "human_subgoal": "GET_ONION",
+            "human_say": "I'll grab an onion for the next soup.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_TOMATO_IN_POT"
+          },
+          {
+            "step": 15,
+            "human_subgoal": "PUT_ONION_IN_POT",
+            "human_say": "I'll add my onion to the pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_TOMATO"
+          },
+          {
+            "step": 29,
+            "human_subgoal": "GET_TOMATO",
+            "human_say": "I'll grab a tomato too, we can make two soups.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_TOMATO_IN_POT"
+          },
+          {
+            "step": 33,
+            "human_subgoal": "WAIT",
+            "human_say": "I'll wait here so you can grab the pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "WAIT"
+          },
+          {
+            "step": 55,
+            "human_subgoal": "GET_DISH",
+            "human_say": "I'll grab a dish to plate that ready soup.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_DISH"
+          },
+          {
+            "step": 60,
+            "human_subgoal": "WAIT",
+            "human_say": "You've got the dish, I'll stay clear while you plate.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PICKUP_SOUP"
+          },
+          {
+            "step": 65,
+            "human_subgoal": "GET_TOMATO",
+            "human_say": "I'll grab a tomato for the next soup.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "SERVE_SOUP"
+          },
+          {
+            "step": 73,
+            "human_subgoal": "PUT_TOMATO_IN_POT",
+            "human_say": "I'll add my tomato to the pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_TOMATO"
+          },
+          {
+            "step": 81,
+            "human_subgoal": "GET_TOMATO",
+            "human_say": "I'll grab a tomato, you get the onion.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_TOMATO"
+          },
+          {
+            "step": 85,
+            "human_subgoal": "GET_ONION",
+            "human_say": "I'll grab an onion, you handle the tomato.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_TOMATO_IN_POT"
+          },
+          {
+            "step": 103,
+            "human_subgoal": "PUT_ONION_IN_POT",
+            "human_say": "I'll add this onion to the pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_ONION"
+          },
+          {
+            "step": 115,
+            "human_subgoal": "WAIT",
+            "human_say": "You go ahead and put your onion in the pot first.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_ONION_IN_POT"
+          },
+          {
+            "step": 170,
+            "human_subgoal": "PUT_ONION_IN_POT",
+            "human_say": "I'll add my onion to the pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "SERVE_SOUP"
+          },
+          {
+            "step": 175,
+            "human_subgoal": "GET_TOMATO",
+            "human_say": "I'll grab a tomato for the next soup.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "SERVE_SOUP"
+          },
+          {
+            "step": 187,
+            "human_subgoal": "PUT_TOMATO_IN_POT",
+            "human_say": "I'll add my tomato to the pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_TOMATO"
+          },
+          {
+            "step": 195,
+            "human_subgoal": "GET_TOMATO",
+            "human_say": "I'll grab a tomato for the next soup.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_TOMATO"
+          }
+        ]
+      },
+      {
+        "ai_kind": "h0_rule",
+        "steps": 200,
+        "soup_reward": 40.0,
+        "comfort_per_step": 0.5725,
+        "discomfort_rate": 0.165,
+        "transcript": [
+          {
+            "step": 0,
+            "human_subgoal": "GET_TOMATO",
+            "human_say": "I'll grab a tomato, you get the onion.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_TOMATO"
+          },
+          {
+            "step": 10,
+            "human_subgoal": "GET_ONION",
+            "human_say": "I'll grab an onion, you handle the tomato.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_TOMATO_IN_POT"
+          },
+          {
+            "step": 13,
+            "human_subgoal": "PUT_ONION_IN_POT",
+            "human_say": "I'll add my onion to the pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_TOMATO_IN_POT"
+          },
+          {
+            "step": 28,
+            "human_subgoal": "GET_TOMATO",
+            "human_say": "I'll grab a tomato too, we can each prep one.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_TOMATO_IN_POT"
+          },
+          {
+            "step": 33,
+            "human_subgoal": "WAIT",
+            "human_say": "I'll wait here, you take the lead.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "WAIT"
+          },
+          {
+            "step": 55,
+            "human_subgoal": "GET_DISH",
+            "human_say": "I'll grab a dish to plate that ready soup.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_DISH"
+          },
+          {
+            "step": 60,
+            "human_subgoal": "WAIT",
+            "human_say": "You go ahead and plate that soup, I'll wait here.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PICKUP_SOUP"
+          },
+          {
+            "step": 65,
+            "human_subgoal": "GET_TOMATO",
+            "human_say": "I'll grab a tomato for the next soup.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "SERVE_SOUP"
+          },
+          {
+            "step": 68,
+            "human_subgoal": "PUT_TOMATO_IN_POT",
+            "human_say": "I'll add my tomato to the pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "SERVE_SOUP"
+          },
+          {
+            "step": 76,
+            "human_subgoal": "GET_TOMATO",
+            "human_say": "I'll grab a tomato, you get the onion.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_TOMATO"
+          },
+          {
+            "step": 85,
+            "human_subgoal": "GET_ONION",
+            "human_say": "I'll grab an onion for the next soup.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_TOMATO_IN_POT"
+          },
+          {
+            "step": 92,
+            "human_subgoal": "PUT_ONION_IN_POT",
+            "human_say": "I'll add the onion to the pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_TOMATO_IN_POT"
+          },
+          {
+            "step": 107,
+            "human_subgoal": "WAIT",
+            "human_say": "I'll wait here so you can grab the pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "WAIT"
+          },
+          {
+            "step": 130,
+            "human_subgoal": "GET_DISH",
+            "human_say": "I'll grab a dish to plate the ready soup.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_DISH"
+          },
+          {
+            "step": 132,
+            "human_subgoal": "PICKUP_SOUP",
+            "human_say": "I'll plate the ready soup.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_DISH"
+          },
+          {
+            "step": 137,
+            "human_subgoal": "SERVE_SOUP",
+            "human_say": "I'll serve this soup, you can start the next one.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_TOMATO"
+          },
+          {
+            "step": 145,
+            "human_subgoal": "GET_ONION",
+            "human_say": "I'll grab an onion to start another soup.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_TOMATO_IN_POT"
+          },
+          {
+            "step": 150,
+            "human_subgoal": "GET_TOMATO",
+            "human_say": "I'll grab a tomato, you get the onion.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_TOMATO"
+          },
+          {
+            "step": 154,
+            "human_subgoal": "PUT_TOMATO_IN_POT",
+            "human_say": "I'll put this tomato in the pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_TOMATO"
+          },
+          {
+            "step": 165,
+            "human_subgoal": "WAIT",
+            "human_say": "You go ahead and put your tomato in the pot, I'll wait.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_TOMATO_IN_POT"
+          }
+        ]
+      },
+      {
+        "ai_kind": "h0_rule",
+        "steps": 200,
+        "soup_reward": 40.0,
+        "comfort_per_step": 0.95,
+        "discomfort_rate": 0.19,
+        "transcript": [
+          {
+            "step": 0,
+            "human_subgoal": "GET_TOMATO",
+            "human_say": "I'll grab a tomato, you get the onion.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_TOMATO"
+          },
+          {
+            "step": 10,
+            "human_subgoal": "GET_ONION",
+            "human_say": "I'll grab an onion for the next soup.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_TOMATO_IN_POT"
+          },
+          {
+            "step": 15,
+            "human_subgoal": "PUT_ONION_IN_POT",
+            "human_say": "I'll put this onion in the pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_TOMATO"
+          },
+          {
+            "step": 29,
+            "human_subgoal": "GET_TOMATO",
+            "human_say": "I'll grab a tomato too, we can start another soup.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_TOMATO_IN_POT"
+          },
+          {
+            "step": 35,
+            "human_subgoal": "WAIT",
+            "human_say": "I'll wait here so you can grab the pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "WAIT"
+          },
+          {
+            "step": 55,
+            "human_subgoal": "GET_DISH",
+            "human_say": "I'll grab a dish to plate the ready soup.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_DISH"
+          },
+          {
+            "step": 60,
+            "human_subgoal": "WAIT",
+            "human_say": "You've got the dish, I'll step aside so you can plate the soup.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PICKUP_SOUP"
+          },
+          {
+            "step": 65,
+            "human_subgoal": "GET_TOMATO",
+            "human_say": "I'll grab a tomato for the next soup.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "SERVE_SOUP"
+          },
+          {
+            "step": 75,
+            "human_subgoal": "PUT_TOMATO_IN_POT",
+            "human_say": "I'll put this tomato in the pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_TOMATO"
+          },
+          {
+            "step": 83,
+            "human_subgoal": "GET_TOMATO",
+            "human_say": "I'll grab a tomato, you get the onion.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_TOMATO"
+          },
+          {
+            "step": 91,
+            "human_subgoal": "PUT_TOMATO_IN_POT",
+            "human_say": "I'll drop this tomato into a pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_TOMATO"
+          },
+          {
+            "step": 95,
+            "human_subgoal": "WAIT",
+            "human_say": "You go ahead and put your tomato in the pot, I'll wait.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_TOMATO_IN_POT"
+          },
+          {
+            "step": 165,
+            "human_subgoal": "PUT_TOMATO_IN_POT",
+            "human_say": "I'll add my tomato to a pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "SERVE_SOUP"
+          },
+          {
+            "step": 175,
+            "human_subgoal": "GET_TOMATO",
+            "human_say": "I'll grab a tomato, you get the onion.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_TOMATO"
+          },
+          {
+            "step": 186,
+            "human_subgoal": "PUT_TOMATO_IN_POT",
+            "human_say": "I'll put this tomato in the pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_TOMATO"
+          },
+          {
+            "step": 194,
+            "human_subgoal": "GET_ONION",
+            "human_say": "I'll grab an onion for the next soup.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "WAIT"
+          }
+        ]
+      },
+      {
+        "ai_kind": "h0_rule",
+        "steps": 200,
+        "soup_reward": 40.0,
+        "comfort_per_step": 0.63,
+        "discomfort_rate": 0.11,
+        "transcript": [
+          {
+            "step": 0,
+            "human_subgoal": "GET_TOMATO",
+            "human_say": "I'll grab a tomato, you get the onion.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_TOMATO"
+          },
+          {
+            "step": 10,
+            "human_subgoal": "GET_ONION",
+            "human_say": "I'll grab an onion for the next soup.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_TOMATO_IN_POT"
+          },
+          {
+            "step": 15,
+            "human_subgoal": "PUT_ONION_IN_POT",
+            "human_say": "I'll put this onion in the pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_TOMATO"
+          },
+          {
+            "step": 29,
+            "human_subgoal": "GET_TOMATO",
+            "human_say": "I'll grab a tomato too, we can make two soups.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_TOMATO_IN_POT"
+          },
+          {
+            "step": 35,
+            "human_subgoal": "WAIT",
+            "human_say": "I'll wait here, you take the lead.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "WAIT"
+          },
+          {
+            "step": 55,
+            "human_subgoal": "GET_DISH",
+            "human_say": "I'll grab a dish to plate the ready soup.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_DISH"
+          },
+          {
+            "step": 64,
+            "human_subgoal": "GET_TOMATO",
+            "human_say": "I'll grab a tomato for the next soup.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "SERVE_SOUP"
+          },
+          {
+            "step": 68,
+            "human_subgoal": "PUT_TOMATO_IN_POT",
+            "human_say": "I'll add my tomato to the pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "SERVE_SOUP"
+          },
+          {
+            "step": 76,
+            "human_subgoal": "GET_TOMATO",
+            "human_say": "I'll grab a tomato, you get the onion.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_TOMATO"
+          },
+          {
+            "step": 85,
+            "human_subgoal": "GET_ONION",
+            "human_say": "I'll grab an onion for the next soup.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_TOMATO_IN_POT"
+          },
+          {
+            "step": 91,
+            "human_subgoal": "PUT_ONION_IN_POT",
+            "human_say": "I'll add my onion to a pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_TOMATO_IN_POT"
+          },
+          {
+            "step": 106,
+            "human_subgoal": "WAIT",
+            "human_say": "I'll wait here so you can grab the pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "WAIT"
+          },
+          {
+            "step": 125,
+            "human_subgoal": "GET_DISH",
+            "human_say": "I'll grab a dish to plate the ready soup.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_DISH"
+          },
+          {
+            "step": 129,
+            "human_subgoal": "PICKUP_SOUP",
+            "human_say": "I'll plate the ready soup.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_DISH"
+          },
+          {
+            "step": 134,
+            "human_subgoal": "SERVE_SOUP",
+            "human_say": "I'll serve this soup, you can start the next one.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_TOMATO"
+          },
+          {
+            "step": 142,
+            "human_subgoal": "GET_ONION",
+            "human_say": "I'll grab an onion, you handle the tomato.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_TOMATO_IN_POT"
+          },
+          {
+            "step": 149,
+            "human_subgoal": "PUT_ONION_IN_POT",
+            "human_say": "I'll drop this onion into the pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_TOMATO"
+          },
+          {
+            "step": 174,
+            "human_subgoal": "WAIT",
+            "human_say": "I'll wait here so you can grab the pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "WAIT"
+          },
+          {
+            "step": 195,
+            "human_subgoal": "GET_DISH",
+            "human_say": "I'll grab a dish for the ready soup.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_DISH"
+          }
+        ]
+      }
+    ],
+    "comfort_subgoal": [
+      {
+        "ai_kind": "comfort_subgoal",
+        "steps": 200,
+        "soup_reward": 40.0,
+        "comfort_per_step": 1.6625,
+        "discomfort_rate": 0.06,
+        "transcript": [
+          {
+            "step": 0,
+            "human_subgoal": "GET_TOMATO",
+            "human_say": "I'll grab a tomato, you get the onion.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_ONION"
+          },
+          {
+            "step": 23,
+            "human_subgoal": "PUT_TOMATO_IN_POT",
+            "human_say": "I'll add my tomato to a pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_ONION_IN_POT"
+          },
+          {
+            "step": 38,
+            "human_subgoal": "GET_TOMATO",
+            "human_say": "I'll grab a tomato to start a new soup.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_TOMATO"
+          },
+          {
+            "step": 46,
+            "human_subgoal": "PUT_TOMATO_IN_POT",
+            "human_say": "I'll add my tomato to a pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_TOMATO"
+          },
+          {
+            "step": 54,
+            "human_subgoal": "WAIT",
+            "human_say": "I'll wait here so you can finish that soup.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "WAIT"
+          },
+          {
+            "step": 75,
+            "human_subgoal": "GET_DISH",
+            "human_say": "I'll grab a dish for the ready soup.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "WAIT"
+          },
+          {
+            "step": 76,
+            "human_subgoal": "PICKUP_SOUP",
+            "human_say": "I'll plate the soup while you get the tomato.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "WAIT"
+          },
+          {
+            "step": 83,
+            "human_subgoal": "SERVE_SOUP",
+            "human_say": "I'll serve this soup, you handle the tomato.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_TOMATO_IN_POT"
+          },
+          {
+            "step": 91,
+            "human_subgoal": "GET_ONION",
+            "human_say": "I'll grab an onion, you handle the tomato.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_TOMATO_IN_POT"
+          },
+          {
+            "step": 98,
+            "human_subgoal": "PUT_ONION_IN_POT",
+            "human_say": "I'll put this onion in the pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_TOMATO"
+          },
+          {
+            "step": 111,
+            "human_subgoal": "GET_TOMATO",
+            "human_say": "I'll grab a tomato too, we can start another soup.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_TOMATO_IN_POT"
+          },
+          {
+            "step": 117,
+            "human_subgoal": "WAIT",
+            "human_say": "I'll wait here, you take the lead.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "WAIT"
+          },
+          {
+            "step": 140,
+            "human_subgoal": "GET_DISH",
+            "human_say": "I'll grab a dish to plate that ready soup.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_DISH"
+          },
+          {
+            "step": 145,
+            "human_subgoal": "WAIT",
+            "human_say": "You've got a dish, I'll wait here so you can plate the soup.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PICKUP_SOUP"
+          },
+          {
+            "step": 150,
+            "human_subgoal": "GET_TOMATO",
+            "human_say": "I'll grab a tomato for the next soup.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "SERVE_SOUP"
+          },
+          {
+            "step": 154,
+            "human_subgoal": "PUT_TOMATO_IN_POT",
+            "human_say": "I'll add my tomato to the pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "SERVE_SOUP"
+          },
+          {
+            "step": 162,
+            "human_subgoal": "GET_TOMATO",
+            "human_say": "I'll grab a tomato, you handle the onion.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_ONION_IN_POT"
+          },
+          {
+            "step": 170,
+            "human_subgoal": "PUT_TOMATO_IN_POT",
+            "human_say": "I'll add my tomato to the pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_ONION_IN_POT"
+          },
+          {
+            "step": 186,
+            "human_subgoal": "GET_ONION",
+            "human_say": "I'll grab an onion too, we can prep another soup.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_ONION_IN_POT"
+          },
+          {
+            "step": 192,
+            "human_subgoal": "WAIT",
+            "human_say": "I'll wait here, you take the lead.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "WAIT"
+          }
+        ]
+      },
+      {
+        "ai_kind": "comfort_subgoal",
+        "steps": 200,
+        "soup_reward": 20.0,
+        "comfort_per_step": 0.66,
+        "discomfort_rate": 0.275,
+        "transcript": [
+          {
+            "step": 0,
+            "human_subgoal": "GET_TOMATO",
+            "human_say": "I'll grab a tomato, you get the onion.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_ONION"
+          },
+          {
+            "step": 31,
+            "human_subgoal": "PUT_TOMATO_IN_POT",
+            "human_say": "I'll add my tomato to the pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_ONION_IN_POT"
+          },
+          {
+            "step": 51,
+            "human_subgoal": "GET_TOMATO",
+            "human_say": "I'll grab a tomato, you handle the pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_TOMATO"
+          },
+          {
+            "step": 59,
+            "human_subgoal": "PUT_TOMATO_IN_POT",
+            "human_say": "I'll put this tomato in the pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_TOMATO"
+          },
+          {
+            "step": 65,
+            "human_subgoal": "WAIT",
+            "human_say": "You go ahead and put your tomato in the pot first.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_TOMATO_IN_POT"
+          },
+          {
+            "step": 160,
+            "human_subgoal": "PUT_TOMATO_IN_POT",
+            "human_say": "I'll add my tomato to a pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "SERVE_SOUP"
+          },
+          {
+            "step": 165,
+            "human_subgoal": "GET_TOMATO",
+            "human_say": "I'll grab a tomato for the next soup.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "SERVE_SOUP"
+          },
+          {
+            "step": 170,
+            "human_subgoal": "GET_ONION",
+            "human_say": "I'll grab an onion for the next soup.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "SERVE_SOUP"
+          },
+          {
+            "step": 175,
+            "human_subgoal": "GET_TOMATO",
+            "human_say": "I'll grab a tomato, you get the onion.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_ONION"
+          },
+          {
+            "step": 179,
+            "human_subgoal": "PUT_TOMATO_IN_POT",
+            "human_say": "I'll put this tomato in the pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_ONION"
+          },
+          {
+            "step": 187,
+            "human_subgoal": "GET_ONION",
+            "human_say": "I'll grab an onion too, we can make two soups.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_ONION_IN_POT"
+          },
+          {
+            "step": 198,
+            "human_subgoal": "WAIT",
+            "human_say": "You go ahead and put your onion in the pot, I'll wait.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_ONION_IN_POT"
+          }
+        ]
+      },
+      {
+        "ai_kind": "comfort_subgoal",
+        "steps": 200,
+        "soup_reward": 40.0,
+        "comfort_per_step": -0.59,
+        "discomfort_rate": 0.25,
+        "transcript": [
+          {
+            "step": 0,
+            "human_subgoal": "GET_TOMATO",
+            "human_say": "I'll grab a tomato, you get the onion.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_ONION"
+          },
+          {
+            "step": 37,
+            "human_subgoal": "WAIT",
+            "human_say": "You go ahead and put your tomato in the pot, I'll wait.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_TOMATO_IN_POT"
+          },
+          {
+            "step": 40,
+            "human_subgoal": "PUT_TOMATO_IN_POT",
+            "human_say": "I'll put my tomato in the pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_TOMATO_IN_POT"
+          },
+          {
+            "step": 49,
+            "human_subgoal": "WAIT",
+            "human_say": "I'll wait here, you handle the pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "WAIT"
+          },
+          {
+            "step": 70,
+            "human_subgoal": "GET_DISH",
+            "human_say": "I'll grab a dish to plate the ready soup.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_DISH"
+          },
+          {
+            "step": 73,
+            "human_subgoal": "PICKUP_SOUP",
+            "human_say": "I'll plate the ready soup.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "WAIT"
+          },
+          {
+            "step": 78,
+            "human_subgoal": "SERVE_SOUP",
+            "human_say": "I'll serve this soup, you can start the next one.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_ONION"
+          },
+          {
+            "step": 86,
+            "human_subgoal": "GET_TOMATO",
+            "human_say": "I'll grab a tomato, you handle the onion.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_ONION_IN_POT"
+          },
+          {
+            "step": 95,
+            "human_subgoal": "PUT_TOMATO_IN_POT",
+            "human_say": "I'll add my tomato to the pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_TOMATO"
+          },
+          {
+            "step": 120,
+            "human_subgoal": "WAIT",
+            "human_say": "You go ahead and put your tomato in the pot, I'll wait.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_TOMATO_IN_POT"
+          },
+          {
+            "step": 125,
+            "human_subgoal": "PUT_TOMATO_IN_POT",
+            "human_say": "I'll put this tomato in the pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_TOMATO"
+          },
+          {
+            "step": 133,
+            "human_subgoal": "WAIT",
+            "human_say": "I'll wait here so you can finish that soup.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "WAIT"
+          },
+          {
+            "step": 155,
+            "human_subgoal": "GET_DISH",
+            "human_say": "I'll grab a dish to plate that ready soup.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "WAIT"
+          },
+          {
+            "step": 158,
+            "human_subgoal": "PICKUP_SOUP",
+            "human_say": "I'll plate the soup while you grab ingredients.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "WAIT"
+          },
+          {
+            "step": 163,
+            "human_subgoal": "SERVE_SOUP",
+            "human_say": "I'll serve this soup, you handle the tomato.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_TOMATO_IN_POT"
+          },
+          {
+            "step": 171,
+            "human_subgoal": "GET_ONION",
+            "human_say": "I'll grab an onion for the next soup.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_TOMATO_IN_POT"
+          },
+          {
+            "step": 175,
+            "human_subgoal": "GET_TOMATO",
+            "human_say": "I'll grab a tomato, you get the onion.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_ONION"
+          },
+          {
+            "step": 180,
+            "human_subgoal": "PUT_TOMATO_IN_POT",
+            "human_say": "I'll add my tomato to the pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_ONION"
+          },
+          {
+            "step": 191,
+            "human_subgoal": "GET_ONION",
+            "human_say": "I'll grab an onion for the next soup.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_ONION"
+          }
+        ]
+      },
+      {
+        "ai_kind": "comfort_subgoal",
+        "steps": 200,
+        "soup_reward": 40.0,
+        "comfort_per_step": 0.9225,
+        "discomfort_rate": 0.225,
+        "transcript": [
+          {
+            "step": 0,
+            "human_subgoal": "GET_TOMATO",
+            "human_say": "I'll grab a tomato, you get the onion.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_ONION"
+          },
+          {
+            "step": 37,
+            "human_subgoal": "PUT_TOMATO_IN_POT",
+            "human_say": "I'll put this tomato in the pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_TOMATO"
+          },
+          {
+            "step": 45,
+            "human_subgoal": "WAIT",
+            "human_say": "You go ahead and put your tomato in the pot, I'll wait.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_TOMATO_IN_POT"
+          },
+          {
+            "step": 55,
+            "human_subgoal": "PUT_TOMATO_IN_POT",
+            "human_say": "I'll add my tomato to the pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_TOMATO"
+          },
+          {
+            "step": 60,
+            "human_subgoal": "WAIT",
+            "human_say": "You go ahead and put your tomato in the pot, I'll wait.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_TOMATO_IN_POT"
+          },
+          {
+            "step": 95,
+            "human_subgoal": "PUT_TOMATO_IN_POT",
+            "human_say": "I'll add my tomato to a pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "SERVE_SOUP"
+          },
+          {
+            "step": 100,
+            "human_subgoal": "GET_TOMATO",
+            "human_say": "I'll grab a tomato, you handle the soup.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "SERVE_SOUP"
+          },
+          {
+            "step": 111,
+            "human_subgoal": "PUT_TOMATO_IN_POT",
+            "human_say": "I'll put this tomato in the pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_ONION"
+          },
+          {
+            "step": 119,
+            "human_subgoal": "GET_ONION",
+            "human_say": "I'll grab an onion too so we can start another soup.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_ONION_IN_POT"
+          },
+          {
+            "step": 130,
+            "human_subgoal": "WAIT",
+            "human_say": "You go ahead and put your onion in the pot first.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_ONION_IN_POT"
+          },
+          {
+            "step": 165,
+            "human_subgoal": "PUT_ONION_IN_POT",
+            "human_say": "I'll add my onion to the pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "SERVE_SOUP"
+          },
+          {
+            "step": 176,
+            "human_subgoal": "GET_TOMATO",
+            "human_say": "I'll grab a tomato for the next soup.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_TOMATO"
+          },
+          {
+            "step": 188,
+            "human_subgoal": "WAIT",
+            "human_say": "You go ahead and put your tomato in the pot first.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_TOMATO_IN_POT"
+          },
+          {
+            "step": 195,
+            "human_subgoal": "PUT_TOMATO_IN_POT",
+            "human_say": "I'll put this tomato in the pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_TOMATO"
+          }
+        ]
+      },
+      {
+        "ai_kind": "comfort_subgoal",
+        "steps": 200,
+        "soup_reward": 40.0,
+        "comfort_per_step": 1.8025,
+        "discomfort_rate": 0.08,
+        "transcript": [
+          {
+            "step": 0,
+            "human_subgoal": "GET_TOMATO",
+            "human_say": "I'll grab a tomato, you get the onion.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_ONION"
+          },
+          {
+            "step": 31,
+            "human_subgoal": "PUT_TOMATO_IN_POT",
+            "human_say": "I'll add my tomato to a pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_ONION_IN_POT"
+          },
+          {
+            "step": 42,
+            "human_subgoal": "GET_TOMATO",
+            "human_say": "I'll grab a tomato, you handle the onion.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_ONION_IN_POT"
+          },
+          {
+            "step": 50,
+            "human_subgoal": "PUT_TOMATO_IN_POT",
+            "human_say": "I'll add my tomato to the pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_TOMATO"
+          },
+          {
+            "step": 60,
+            "human_subgoal": "WAIT",
+            "human_say": "You go ahead and put your tomato in the pot first.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_TOMATO_IN_POT"
+          },
+          {
+            "step": 115,
+            "human_subgoal": "PUT_TOMATO_IN_POT",
+            "human_say": "I'll add my tomato to a pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "SERVE_SOUP"
+          },
+          {
+            "step": 118,
+            "human_subgoal": "GET_TOMATO",
+            "human_say": "I'll grab a tomato, you handle the soup.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "SERVE_SOUP"
+          },
+          {
+            "step": 126,
+            "human_subgoal": "PUT_TOMATO_IN_POT",
+            "human_say": "I'll add my tomato to the pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "SERVE_SOUP"
+          },
+          {
+            "step": 134,
+            "human_subgoal": "GET_ONION",
+            "human_say": "I'll grab an onion too, we can make two soups.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_ONION_IN_POT"
+          },
+          {
+            "step": 158,
+            "human_subgoal": "WAIT",
+            "human_say": "I'll wait here, you handle the cooking pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "WAIT"
+          },
+          {
+            "step": 180,
+            "human_subgoal": "GET_DISH",
+            "human_say": "I'll grab a dish to plate the ready soup.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_DISH"
+          },
+          {
+            "step": 185,
+            "human_subgoal": "WAIT",
+            "human_say": "You take the dish, I'll wait here.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PICKUP_SOUP"
+          },
+          {
+            "step": 190,
+            "human_subgoal": "GET_TOMATO",
+            "human_say": "I'll grab a tomato for the next soup.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "SERVE_SOUP"
+          },
+          {
+            "step": 195,
+            "human_subgoal": "PUT_TOMATO_IN_POT",
+            "human_say": "I'll put this tomato in the pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_ONION"
+          }
+        ]
+      },
+      {
+        "ai_kind": "comfort_subgoal",
+        "steps": 200,
+        "soup_reward": 40.0,
+        "comfort_per_step": 1.645,
+        "discomfort_rate": 0.155,
+        "transcript": [
+          {
+            "step": 0,
+            "human_subgoal": "GET_TOMATO",
+            "human_say": "I'll grab a tomato, you get the onion.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_ONION"
+          },
+          {
+            "step": 27,
+            "human_subgoal": "PUT_TOMATO_IN_POT",
+            "human_say": "I'll put the tomato in the pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_ONION_IN_POT"
+          },
+          {
+            "step": 44,
+            "human_subgoal": "GET_TOMATO",
+            "human_say": "I'll grab a tomato for the next soup.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_TOMATO"
+          },
+          {
+            "step": 52,
+            "human_subgoal": "PUT_TOMATO_IN_POT",
+            "human_say": "I'll add my tomato to the pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_TOMATO"
+          },
+          {
+            "step": 55,
+            "human_subgoal": "WAIT",
+            "human_say": "You go ahead and put your tomato in the pot, I'll wait.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_TOMATO_IN_POT"
+          },
+          {
+            "step": 60,
+            "human_subgoal": "PUT_TOMATO_IN_POT",
+            "human_say": "I'll put my tomato in the pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_TOMATO_IN_POT"
+          },
+          {
+            "step": 64,
+            "human_subgoal": "WAIT",
+            "human_say": "I'll wait here while you handle the tomato.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "WAIT"
+          },
+          {
+            "step": 85,
+            "human_subgoal": "GET_DISH",
+            "human_say": "I'll grab a dish to plate that ready soup.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "WAIT"
+          },
+          {
+            "step": 89,
+            "human_subgoal": "PICKUP_SOUP",
+            "human_say": "I'll plate the soup while you get the tomato.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "WAIT"
+          },
+          {
+            "step": 94,
+            "human_subgoal": "SERVE_SOUP",
+            "human_say": "I'll serve this soup, you can start the next one.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_TOMATO_IN_POT"
+          },
+          {
+            "step": 110,
+            "human_subgoal": "GET_TOMATO",
+            "human_say": "I'll grab a tomato, you get the onion.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_ONION"
+          },
+          {
+            "step": 135,
+            "human_subgoal": "PUT_TOMATO_IN_POT",
+            "human_say": "I'll add my tomato to the pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "GET_TOMATO"
+          },
+          {
+            "step": 140,
+            "human_subgoal": "WAIT",
+            "human_say": "You go ahead and put your tomato in the pot, I'll wait.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_TOMATO_IN_POT"
+          },
+          {
+            "step": 180,
+            "human_subgoal": "PUT_TOMATO_IN_POT",
+            "human_say": "I'll add my tomato to the pot.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "SERVE_SOUP"
+          },
+          {
+            "step": 195,
+            "human_subgoal": "GET_TOMATO",
+            "human_say": "I'll grab a tomato, you handle the onion.",
+            "human_reason": "deepseek",
+            "ai_subgoal": "PUT_ONION_IN_POT"
+          }
+        ]
+      }
+    ]
+  }
+}

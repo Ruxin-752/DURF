@@ -1,99 +1,69 @@
-"""Small deterministic sentiment extractor for linguistic feedback."""
+"""VADER-based sentiment / valence extraction (English only).
+
+Faithful port of the paper's ``science/observations/text_analysis.py``:
+
+- ``vader_observation``  -> raw VADER compound score in ``[-1, 1]``;
+- ``modified_vader_observation`` -> the variant actually used by the paper's
+  experiment learners:
+    * phrases containing ``zero / worthless / nothing / " 0"`` return exactly 0
+      (these really mean "no value", so no positive bias);
+    * otherwise, if VADER detects any valence, return the compound score;
+    * if VADER is neutral, fall back to a positive default (+0.5), the paper's
+      "positive implicature".
+
+VADER is English-only, and per project decision the feedback corpus is now
+English-only as well. The ``valence_scale`` (paper default 30) is applied later
+by the learner / observation builder, not here.
+"""
 
 from __future__ import annotations
 
+from functools import lru_cache
 
-POSITIVE_MARKERS = (
-    "good",
-    "nice",
-    "great",
-    "correct",
-    "right",
-    "thanks",
-    "useful",
-    "helpful",
-    "好",
-    "不错",
-    "对",
-    "棒",
-    "有用",
-    "有帮助",
-    "帮助",
-    "帮我",
-)
 
-POSITIVE_PHRASES = (
-    "did well",
-    "well by",
-    "good job",
-    "that was smoother",
-    "much better",
-    "better if",
-    "without blocking",
-    "not blocking",
-    "did not block",
-    "helping is good",
-    "没有挡",
-    "没挡",
-    "绕开",
-    "好多了",
-    "更顺",
-    "舒服",
-    "留出路",
-)
+DEFAULT_SENTIMENT = 0.5
+ZERO_MARKERS = ("zero", "worthless", "nothing", " 0")
 
-NEGATIVE_MARKERS = (
-    "bad",
-    "wrong",
-    "do not",
-    "don't",
-    "not good",
-    "useless",
-    "block",
-    "blocking",
-    "duplicate",
-    "repeat",
-    "不好",
-    "错",
-    "别",
-    "不要",
-    "堵",
-    "挡",
-    "抢",
-    "重复",
-    "很差",
-    "差",
-    "没用",
-    "添乱",
-    "碍事",
-    "挤",
-    "乱",
-)
 
-NEGATIVE_PHRASES = (
-    "not helpful",
-    "not useful",
-    "not working",
-    "not smooth",
-    "too crowded",
-    "too messy",
-    "made me wait",
-    "makes me wait",
-    "in my way",
-    "cut in front",
-    "interrupted my plan",
-    "breaking my flow",
-    "不太行",
-    "不太舒服",
-    "有点乱",
-    "有点挤",
-    "打乱",
-    "卡住我",
-    "没必要",
-)
+@lru_cache(maxsize=1)
+def _analyzer():
+    from nltk.sentiment.vader import SentimentIntensityAnalyzer
+
+    return SentimentIntensityAnalyzer()
+
+
+def vader_compound(text: str | None) -> float:
+    """Raw VADER compound score in [-1, 1]."""
+
+    if not text:
+        return 0.0
+    return float(_analyzer().polarity_scores(str(text))["compound"])
+
+
+def modified_vader_observation(
+    text: str | None, *, default_sentiment: float = DEFAULT_SENTIMENT
+) -> float:
+    """Reproduce the paper's ``modified_vader_observation`` valence."""
+
+    phrase = (text or "").lower()
+    if any(marker in phrase for marker in ZERO_MARKERS):
+        return 0.0
+
+    compound = vader_compound(text)
+    if compound != 0.0:
+        return compound
+
+    return default_sentiment
 
 
 def extract_sentiment(text: str | None, *, scalar_value: int | None = None) -> dict:
+    """Return a sentiment label + continuous score for one feedback utterance.
+
+    ``scalar_value`` (an explicit numeric rating, if any) takes precedence and
+    is mapped to a unit valence, mirroring an explicit evaluative signal.
+    Otherwise the continuous ``modified_vader_observation`` score is used.
+    """
+
     if scalar_value is not None:
         if scalar_value > 0:
             return {"sentiment": "positive", "sentiment_score": 1.0}
@@ -101,19 +71,14 @@ def extract_sentiment(text: str | None, *, scalar_value: int | None = None) -> d
             return {"sentiment": "negative", "sentiment_score": -1.0}
         return {"sentiment": "neutral", "sentiment_score": 0.0}
 
-    lowered = (text or "").strip().lower()
-    if any(phrase in lowered for phrase in NEGATIVE_PHRASES):
-        return {"sentiment": "negative", "sentiment_score": -1.0}
-    if any(phrase in lowered for phrase in POSITIVE_PHRASES):
-        return {"sentiment": "positive", "sentiment_score": 1.0}
-
-    positive = sum(marker in lowered for marker in POSITIVE_MARKERS)
-    negative = sum(marker in lowered for marker in NEGATIVE_MARKERS)
-    if positive > negative:
-        return {"sentiment": "positive", "sentiment_score": 1.0}
-    if negative > positive:
-        return {"sentiment": "negative", "sentiment_score": -1.0}
-    return {"sentiment": "neutral", "sentiment_score": 0.0}
+    score = modified_vader_observation(text)
+    if score > 0:
+        label = "positive"
+    elif score < 0:
+        label = "negative"
+    else:
+        label = "neutral"
+    return {"sentiment": label, "sentiment_score": float(score)}
 
 
 def desired_action_sentiment(feedback_type: str, target_features: dict[str, float]) -> float:

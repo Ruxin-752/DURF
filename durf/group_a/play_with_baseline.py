@@ -172,9 +172,29 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--ai-mode",
-        choices=("ppo", "subgoal_executor"),
+        choices=("ppo", "subgoal_executor", "comfort_subgoal"),
         default="subgoal_executor",
-        help="Blue-agent backend. Defaults to the bundled H0 subgoal executor.",
+        help=(
+            "Blue-agent backend. 'subgoal_executor' is the bundled H0 rule "
+            "policy; 'comfort_subgoal' is H0 with subgoals re-ranked by the "
+            "reward learned from language feedback (Path A)."
+        ),
+    )
+    parser.add_argument(
+        "--comfort-weights",
+        type=Path,
+        default=None,
+        help=(
+            "Learned comfort weights JSON for --ai-mode comfort_subgoal. "
+            "Defaults to outputs/route2/learned_comfort_weights.json, falling "
+            "back to the gold teacher weights if absent."
+        ),
+    )
+    parser.add_argument(
+        "--comfort-lambda",
+        type=float,
+        default=1.0,
+        help="lambda_pref weight on comfort vs task score for comfort_subgoal.",
     )
     parser.add_argument(
         "--agent",
@@ -221,7 +241,7 @@ def parse_args() -> argparse.Namespace:
     if args.layout is None:
         args.layout = (
             RING_TOMATO_ONION_H0_LAYOUT
-            if args.ai_mode == "subgoal_executor"
+            if args.ai_mode in ("subgoal_executor", "comfort_subgoal")
             else DEFAULT_LAYOUT_NAME
         )
     if args.ai_mode == "ppo" and args.agent is None:
@@ -736,6 +756,7 @@ def main() -> int:
 
     subgoal_model = None
     motion_planner = None
+    comfort_agent = None
     if args.ai_mode == "subgoal_executor":
         if args.layout != RING_TOMATO_ONION_H0_LAYOUT:
             raise ValueError(
@@ -750,6 +771,24 @@ def main() -> int:
             args.layout,
             args.seed,
             args.horizon,
+        )
+    elif args.ai_mode == "comfort_subgoal":
+        if args.layout != RING_TOMATO_ONION_H0_LAYOUT:
+            raise ValueError(
+                "--ai-mode comfort_subgoal requires layout "
+                f"{RING_TOMATO_ONION_H0_LAYOUT!r}"
+            )
+        from durf.baseline.comfort_subgoal_agent import ComfortSubgoalAgent
+
+        layouts = [RING_TOMATO_ONION_H0_LAYOUT]
+        agent_dir = f"comfort_subgoal (lambda={args.comfort_lambda})"
+        ai_agent = None
+        motion_planner = make_motion_planner(args.layout, args.seed, args.horizon)
+        comfort_agent = ComfortSubgoalAgent(
+            motion_planner,
+            weights_path=args.comfort_weights,
+            lambda_pref=args.comfort_lambda,
+            ai_index=0,
         )
     else:
         requested_layouts = list(dict.fromkeys([args.layout, *args.layouts]))
@@ -904,7 +943,7 @@ def main() -> int:
 
     def request_layout_switch(new_layout_index: int) -> bool:
         nonlocal last_layout_switch_at
-        if args.ai_mode == "subgoal_executor":
+        if args.ai_mode in ("subgoal_executor", "comfort_subgoal"):
             return False
         now = pygame.time.get_ticks()
         if not 0 <= new_layout_index < len(layouts):
@@ -936,8 +975,17 @@ def main() -> int:
 
         chat_messages.append({"role": "user", "content": prompt})
         log_chat_message("user", prompt)
+        # Path A: treat the human chat as linguistic feedback and blend a
+        # Route 2 per-utterance reward prediction into the live comfort weights.
+        if args.ai_mode == "comfort_subgoal" and comfort_agent is not None:
+            try:
+                comfort_agent.update_from_feedback(prompt)
+                chat_status = "Comfort weights updated from your feedback."
+            except Exception as exc:
+                chat_status = f"Comfort update skipped: {exc}"
         chat_pending = True
-        chat_status = ""
+        if not chat_status:
+            chat_status = ""
         history = [
             {
                 "role": "system",
@@ -1167,12 +1215,18 @@ def main() -> int:
                         subgoal_model,
                         motion_planner,
                     )
+                elif args.ai_mode == "comfort_subgoal":
+                    if comfort_agent is None:
+                        raise RuntimeError("comfort_subgoal runtime was not initialized")
+                    ai_action_raw, last_ai_subgoal = comfort_agent.act(
+                        env.base_env.state
+                    )
                 else:
                     ai_action_raw = rllib_action_index(ai_agent, env.base_env.state)
                     last_ai_subgoal = "PPO"
                 last_predict_ms = (time.perf_counter() - predict_started) * 1000
                 state_before = state_facts(env)
-                if args.ai_mode == "subgoal_executor":
+                if args.ai_mode in ("subgoal_executor", "comfort_subgoal"):
                     ai_action, last_ai_event = cooperative_action_wrapper(
                         env.base_env,
                         motion_planner,

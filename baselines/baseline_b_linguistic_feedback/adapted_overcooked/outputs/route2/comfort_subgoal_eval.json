@@ -1,0 +1,47 @@
+{
+  "layout": "ring_tomato_onion_10x6_h0_full_task",
+  "seed": 42,
+  "horizon": 400,
+  "lambda_pref": 1.0,
+  "h0_rule": {
+    "kind": "h0_rule",
+    "steps": 400,
+    "soup_reward": 80.0,
+    "comfort_sum": 331.5,
+    "comfort_per_step": 0.82875,
+    "discomfort_steps": 57,
+    "discomfort_rate": 0.1425,
+    "subgoal_counts": {
+      "GET_TOMATO": 47,
+      "PUT_TOMATO_IN_POT": 45,
+      "GET_ONION": 30,
+      "PUT_ONION_IN_POT": 35,
+      "WAIT": 181,
+      "GET_DISH": 11,
+      "PICKUP_SOUP": 27,
+      "SERVE_SOUP": 24
+    }
+  },
+  "comfort_subgoal": {
+    "kind": "comfort_subgoal",
+    "steps": 400,
+    "soup_reward": 60.0,
+    "comfort_sum": 1050.0,
+    "comfort_per_step": 2.625,
+    "discomfort_steps": 0,
+    "discomfort_rate": 0.0,
+    "subgoal_counts": {
+      "GET_ONION": 10,
+      "PUT_ONION_IN_POT": 43,
+      "GET_TOMATO": 2,
+      "WAIT": 329,
+      "GET_DISH": 3,
+      "PICKUP_SOUP": 13
+    }
+  },
+  "delta": {
+    "soup_reward": -20.0,
+    "comfort_per_step": 1.7962500000000001,
+    "discomfort_rate": -0.1425
+  }
+}

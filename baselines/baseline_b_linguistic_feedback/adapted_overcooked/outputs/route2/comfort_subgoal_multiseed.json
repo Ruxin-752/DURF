@@ -1,0 +1,107 @@
+{
+  "layout": "ring_tomato_onion_10x6_h0_full_task",
+  "horizon": 400,
+  "lambda_pref": 1.0,
+  "seeds": [
+    42,
+    1,
+    2,
+    7,
+    13,
+    100
+  ],
+  "judge": "gold w* comfort partition (not learned weights)",
+  "weights": "outputs/route2/learned_comfort_weights.json",
+  "mean": {
+    "h0_rule": {
+      "soup_reward": 80.0,
+      "comfort_per_step": 0.9714583333333333,
+      "discomfort_rate": 0.19958333333333333
+    },
+    "comfort_subgoal": {
+      "soup_reward": 76.66666666666667,
+      "comfort_per_step": 2.763333333333333,
+      "discomfort_rate": 0.0033333333333333335
+    }
+  },
+  "per_seed": [
+    {
+      "seed": 42,
+      "h0_rule": {
+        "soup": 80.0,
+        "comfort_per_step": 0.82875,
+        "discomfort_rate": 0.1425
+      },
+      "comfort_subgoal": {
+        "soup": 60.0,
+        "comfort_per_step": 2.625,
+        "discomfort_rate": 0.0
+      }
+    },
+    {
+      "seed": 1,
+      "h0_rule": {
+        "soup": 80.0,
+        "comfort_per_step": 1.20625,
+        "discomfort_rate": 0.215
+      },
+      "comfort_subgoal": {
+        "soup": 80.0,
+        "comfort_per_step": 2.8425,
+        "discomfort_rate": 0.005
+      }
+    },
+    {
+      "seed": 2,
+      "h0_rule": {
+        "soup": 80.0,
+        "comfort_per_step": 1.0675,
+        "discomfort_rate": 0.205
+      },
+      "comfort_subgoal": {
+        "soup": 80.0,
+        "comfort_per_step": 3.195,
+        "discomfort_rate": 0.01
+      }
+    },
+    {
+      "seed": 7,
+      "h0_rule": {
+        "soup": 80.0,
+        "comfort_per_step": 0.0075,
+        "discomfort_rate": 0.29
+      },
+      "comfort_subgoal": {
+        "soup": 80.0,
+        "comfort_per_step": 2.56875,
+        "discomfort_rate": 0.0
+      }
+    },
+    {
+      "seed": 13,
+      "h0_rule": {
+        "soup": 80.0,
+        "comfort_per_step": 1.3325,
+        "discomfort_rate": 0.17
+      },
+      "comfort_subgoal": {
+        "soup": 80.0,
+        "comfort_per_step": 2.55875,
+        "discomfort_rate": 0.0
+      }
+    },
+    {
+      "seed": 100,
+      "h0_rule": {
+        "soup": 80.0,
+        "comfort_per_step": 1.38625,
+        "discomfort_rate": 0.175
+      },
+      "comfort_subgoal": {
+        "soup": 80.0,
+        "comfort_per_step": 2.79,
+        "discomfort_rate": 0.005
+      }
+    }
+  ]
+}

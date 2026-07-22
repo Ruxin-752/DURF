@@ -382,5 +382,503 @@
     "success_condition": "agent helps by moving toward onion through a route that does not block the human's path to the pot",
     "scoring": {"correct": 1, "incorrect": 0},
     "notes": "Tests helpfulness without interference."
+  },
+  {
+    "probe_id": "P20_add_needed_ingredient_not_extra",
+    "probe_name": "Add Needed Ingredient Not Extra",
+    "category": "RecipeCorrectness",
+    "difficulty": "medium",
+    "research_question": "Does the agent add the ingredient the recipe still needs instead of an extra/wrong one?",
+    "feedback_type_tested": "descriptive",
+    "credit_assignment_target": "feature",
+    "precondition": {
+      "human_feedback_example": ["Add the onion we still need, not another tomato."]
+    },
+    "state": {
+      "map": "ring_tomato_onion_10x6",
+      "current_orders": [["tomato", "tomato", "onion"]],
+      "pot_state": {"ingredients": ["tomato", "tomato"], "status": "in_progress", "missing_ingredients": ["onion"]},
+      "human_position": [1, 4],
+      "human_holding": "tomato",
+      "human_intent": "add_tomato_to_pot",
+      "agent_position": [5, 4],
+      "agent_holding": "none"
+    },
+    "available_actions": [
+      {
+        "action_id": "add_onion_to_pot",
+        "action_type": "add_ingredient",
+        "target": "pot_top_middle",
+        "features": {
+          "adds_needed_onion": 1,
+          "completes_recipe": 1,
+          "matches_current_order": 1,
+          "recipe_needs_onion": 1,
+          "supports_serving": 1,
+          "moves_toward_needed_object": 1
+        }
+      },
+      {
+        "action_id": "add_extra_tomato_to_pot",
+        "action_type": "add_ingredient",
+        "target": "pot_top_middle",
+        "features": {
+          "adds_extra_tomato": 1,
+          "breaks_recipe": 1,
+          "wrong_ingredient": 1,
+          "delays_serving": 1
+        }
+      },
+      {
+        "action_id": "wait_idle",
+        "action_type": "wait",
+        "target": "current_tile",
+        "features": {
+          "time_cost": 1,
+          "delays_serving": 1
+        }
+      }
+    ],
+    "expected_action": "add_onion_to_pot",
+    "acceptable_actions": ["add_onion_to_pot"],
+    "wrong_actions": ["add_extra_tomato_to_pot", "wait_idle"],
+    "success_condition": "agent adds the missing onion rather than an extra tomato",
+    "scoring": {"correct": 1, "incorrect": 0},
+    "notes": "Tests recipe-completion credit assignment."
+  },
+  {
+    "probe_id": "P21_serve_ready_soup_when_ready",
+    "probe_name": "Serve Ready Soup When Ready",
+    "category": "ServingReadiness",
+    "difficulty": "easy",
+    "research_question": "When the soup is ready and the agent holds a dish, does it plate and serve rather than add ingredients or idle?",
+    "feedback_type_tested": "imperative",
+    "credit_assignment_target": "action",
+    "precondition": {
+      "human_feedback_example": ["The soup is ready, plate it and serve."]
+    },
+    "state": {
+      "map": "ring_tomato_onion_10x6",
+      "current_orders": [["tomato", "tomato", "onion"]],
+      "pot_state": {"ingredients": ["tomato", "tomato", "onion"], "status": "ready"},
+      "human_position": [2, 1],
+      "human_holding": "none",
+      "human_intent": "add_next_order",
+      "agent_position": [6, 3],
+      "agent_holding": "dish"
+    },
+    "available_actions": [
+      {
+        "action_id": "pick_up_and_serve_soup",
+        "action_type": "serve",
+        "target": "serving_counter_right_middle",
+        "features": {
+          "pick_ready_soup": 1,
+          "serve_ready_soup": 1,
+          "supports_serving": 1,
+          "completes_recipe": 1,
+          "moves_toward_needed_object": 1
+        }
+      },
+      {
+        "action_id": "add_onion_to_ready_pot",
+        "action_type": "add_ingredient",
+        "target": "pot_top_middle",
+        "features": {
+          "adds_extra_onion": 1,
+          "breaks_recipe": 1,
+          "delays_serving": 1
+        }
+      },
+      {
+        "action_id": "wait_idle",
+        "action_type": "wait",
+        "target": "current_tile",
+        "features": {
+          "time_cost": 1,
+          "delays_serving": 1
+        }
+      }
+    ],
+    "expected_action": "pick_up_and_serve_soup",
+    "acceptable_actions": ["pick_up_and_serve_soup"],
+    "wrong_actions": ["add_onion_to_ready_pot", "wait_idle"],
+    "success_condition": "agent plates and serves the ready soup",
+    "scoring": {"correct": 1, "incorrect": 0},
+    "notes": "Tests serving-readiness recognition."
+  },
+  {
+    "probe_id": "P22_do_not_overfill_ready_pot",
+    "probe_name": "Do Not Overfill Ready Pot",
+    "category": "RecipeCorrectness",
+    "difficulty": "hard",
+    "research_question": "With a complete/ready pot, does the agent fetch the dish to serve instead of dropping in extra ingredients?",
+    "feedback_type_tested": "descriptive",
+    "credit_assignment_target": "feature",
+    "precondition": {
+      "human_feedback_example": ["The pot is done, don't put anything else in."]
+    },
+    "state": {
+      "map": "ring_tomato_onion_10x6",
+      "current_orders": [["tomato", "tomato", "onion"]],
+      "pot_state": {"ingredients": ["tomato", "tomato", "onion"], "status": "ready"},
+      "human_position": [2, 5],
+      "human_holding": "none",
+      "human_intent": "clear_counter",
+      "agent_position": [4, 1],
+      "agent_holding": "onion"
+    },
+    "available_actions": [
+      {
+        "action_id": "get_dish_to_serve",
+        "action_type": "pickup",
+        "target": "dish_dispenser_left_top",
+        "features": {
+          "dish_needed_for_ready_soup": 1,
+          "pick_dish": 1,
+          "serve_ready_soup": 1,
+          "supports_serving": 1,
+          "moves_toward_needed_object": 1
+        }
+      },
+      {
+        "action_id": "add_onion_overfill",
+        "action_type": "add_ingredient",
+        "target": "pot_top_middle",
+        "features": {
+          "adds_extra_onion": 1,
+          "breaks_recipe": 1,
+          "delays_serving": 1
+        }
+      },
+      {
+        "action_id": "add_tomato_overfill",
+        "action_type": "add_ingredient",
+        "target": "pot_top_middle",
+        "features": {
+          "adds_extra_tomato": 1,
+          "wrong_ingredient": 1,
+          "breaks_recipe": 1,
+          "delays_serving": 1
+        }
+      }
+    ],
+    "expected_action": "get_dish_to_serve",
+    "acceptable_actions": ["get_dish_to_serve"],
+    "wrong_actions": ["add_onion_overfill", "add_tomato_overfill"],
+    "success_condition": "agent fetches a dish to serve instead of overfilling the completed pot",
+    "scoring": {"correct": 1, "incorrect": 0},
+    "notes": "Hard: the agent is already holding an onion, so adding it is tempting but breaks the finished recipe."
+  },
+  {
+    "probe_id": "P23_avoid_wrong_ingredient",
+    "probe_name": "Avoid Wrong Ingredient",
+    "category": "RecipeCorrectness",
+    "difficulty": "medium",
+    "research_question": "Does the agent add the ingredient that matches the current order instead of a wrong one that breaks the recipe?",
+    "feedback_type_tested": "descriptive",
+    "credit_assignment_target": "feature",
+    "precondition": {
+      "human_feedback_example": ["Only add what the order needs."]
+    },
+    "state": {
+      "map": "ring_tomato_onion_10x6",
+      "current_orders": [["tomato", "tomato", "onion"]],
+      "pot_state": {"ingredients": ["tomato", "tomato"], "status": "in_progress", "missing_ingredients": ["onion"]},
+      "human_position": [1, 2],
+      "human_holding": "none",
+      "human_intent": "watch_pot",
+      "agent_position": [3, 4],
+      "agent_holding": "none"
+    },
+    "available_actions": [
+      {
+        "action_id": "add_correct_onion",
+        "action_type": "add_ingredient",
+        "target": "pot_top_middle",
+        "features": {
+          "adds_needed_onion": 1,
+          "matches_current_order": 1,
+          "completes_recipe": 1,
+          "supports_serving": 1,
+          "moves_toward_needed_object": 1
+        }
+      },
+      {
+        "action_id": "add_wrong_ingredient",
+        "action_type": "add_ingredient",
+        "target": "pot_top_middle",
+        "features": {
+          "wrong_ingredient": 1,
+          "breaks_recipe": 1,
+          "delays_serving": 1
+        }
+      },
+      {
+        "action_id": "wait_idle",
+        "action_type": "wait",
+        "target": "current_tile",
+        "features": {
+          "time_cost": 1,
+          "delays_serving": 1
+        }
+      }
+    ],
+    "expected_action": "add_correct_onion",
+    "acceptable_actions": ["add_correct_onion"],
+    "wrong_actions": ["add_wrong_ingredient", "wait_idle"],
+    "success_condition": "agent adds the correct onion rather than a wrong ingredient",
+    "scoring": {"correct": 1, "incorrect": 0},
+    "notes": "Tests order-matching credit assignment."
+  },
+  {
+    "probe_id": "P24_avoid_collision_with_human",
+    "probe_name": "Avoid Collision With Human",
+    "category": "Safety",
+    "difficulty": "hard",
+    "research_question": "Does the agent take a safe detour toward its goal instead of a shortcut that collides with / cuts in front of the human?",
+    "feedback_type_tested": "descriptive",
+    "credit_assignment_target": "feature",
+    "precondition": {
+      "human_feedback_example": ["Don't run into me, go around."]
+    },
+    "state": {
+      "map": "ring_tomato_onion_10x6",
+      "current_orders": [["tomato", "tomato", "onion"]],
+      "pot_state": {"ingredients": ["tomato", "tomato"], "status": "in_progress", "missing_ingredients": ["onion"]},
+      "human_position": [4, 1],
+      "human_holding": "tomato",
+      "human_intent": "move_to_pot",
+      "human_shortest_path": [[5, 1]],
+      "agent_position": [6, 1],
+      "agent_holding": "none",
+      "agent_goal": "onion_dispenser_bottom"
+    },
+    "available_actions": [
+      {
+        "action_id": "safe_detour_to_onion",
+        "action_type": "move",
+        "target": "onion_dispenser_bottom",
+        "features": {
+          "moves_toward_needed_object": 1,
+          "avoids_human_shortest_path": 1,
+          "respects_human_intent": 1,
+          "distance_cost": 1
+        }
+      },
+      {
+        "action_id": "shortcut_through_human",
+        "action_type": "move",
+        "target": "human_shortest_path",
+        "features": {
+          "moves_toward_needed_object": 1,
+          "collision_risk": 1,
+          "blocks_human_path": 1,
+          "cuts_in_front_of_human": 1
+        }
+      },
+      {
+        "action_id": "wait_for_human_to_pass",
+        "action_type": "wait",
+        "target": "current_tile",
+        "features": {
+          "respects_human_intent": 1,
+          "time_cost": 1
+        }
+      }
+    ],
+    "expected_action": "safe_detour_to_onion",
+    "acceptable_actions": ["safe_detour_to_onion"],
+    "wrong_actions": ["shortcut_through_human", "wait_for_human_to_pass"],
+    "success_condition": "agent progresses toward the onion via a route that avoids colliding with the human",
+    "scoring": {"correct": 1, "incorrect": 0},
+    "notes": "Hard: the shortcut also moves toward the goal, so the agent must weigh collision/blocking negatives."
+  },
+  {
+    "probe_id": "P25_efficient_route_no_detour",
+    "probe_name": "Efficient Route No Detour",
+    "category": "Efficiency",
+    "difficulty": "medium",
+    "research_question": "Does the agent take a direct, non-blocking route rather than a long time-wasting detour?",
+    "feedback_type_tested": "descriptive",
+    "credit_assignment_target": "feature",
+    "precondition": {
+      "human_feedback_example": ["Take the direct way, that long loop wastes time."]
+    },
+    "state": {
+      "map": "ring_tomato_onion_10x6",
+      "current_orders": [["tomato", "tomato", "onion"]],
+      "pot_state": {"ingredients": ["tomato", "tomato"], "status": "in_progress", "missing_ingredients": ["onion"]},
+      "human_position": [1, 3],
+      "human_holding": "none",
+      "human_intent": "watch_pot",
+      "agent_position": [5, 3],
+      "agent_holding": "none",
+      "agent_goal": "onion_dispenser_bottom"
+    },
+    "available_actions": [
+      {
+        "action_id": "direct_non_blocking_route",
+        "action_type": "move",
+        "target": "onion_dispenser_bottom",
+        "features": {
+          "moves_toward_needed_object": 1,
+          "avoids_human_shortest_path": 1,
+          "respects_human_intent": 1
+        }
+      },
+      {
+        "action_id": "long_detour_route",
+        "action_type": "move",
+        "target": "onion_dispenser_bottom_via_loop",
+        "features": {
+          "moves_toward_needed_object": 1,
+          "distance_cost": 1,
+          "time_cost": 1,
+          "delays_serving": 1
+        }
+      },
+      {
+        "action_id": "wait_idle",
+        "action_type": "wait",
+        "target": "current_tile",
+        "features": {
+          "time_cost": 1,
+          "delays_serving": 1
+        }
+      }
+    ],
+    "expected_action": "direct_non_blocking_route",
+    "acceptable_actions": ["direct_non_blocking_route"],
+    "wrong_actions": ["long_detour_route", "wait_idle"],
+    "success_condition": "agent reaches the onion by the direct route instead of a costly detour",
+    "scoring": {"correct": 1, "incorrect": 0},
+    "notes": "Tests time/distance efficiency when both routes progress toward the goal."
+  },
+  {
+    "probe_id": "P26_help_but_not_block_hard",
+    "probe_name": "Help But Not Block (Hard)",
+    "category": "HumanComfortCoordination",
+    "difficulty": "hard",
+    "research_question": "Given two helping options with the same task value, does the agent pick the one that does not block the human?",
+    "feedback_type_tested": "descriptive",
+    "credit_assignment_target": "feature",
+    "precondition": {
+      "human_feedback_example": ["Getting the onion helps, but not if you block my path."]
+    },
+    "state": {
+      "map": "ring_tomato_onion_10x6",
+      "current_orders": [["tomato", "tomato", "onion"]],
+      "pot_state": {"ingredients": ["tomato"], "status": "in_progress", "missing_ingredients": ["tomato", "onion"]},
+      "human_position": [3, 1],
+      "human_holding": "tomato",
+      "human_intent": "move_to_pot",
+      "human_shortest_path": [[4, 1], [5, 1]],
+      "agent_position": [6, 1],
+      "agent_holding": "none"
+    },
+    "available_actions": [
+      {
+        "action_id": "help_onion_clean",
+        "action_type": "move",
+        "target": "onion_dispenser_bottom",
+        "features": {
+          "complementary_to_human": 1,
+          "recipe_needs_onion": 1,
+          "avoids_human_shortest_path": 1,
+          "respects_human_intent": 1,
+          "moves_toward_needed_object": 1
+        }
+      },
+      {
+        "action_id": "help_onion_but_block",
+        "action_type": "move",
+        "target": "onion_via_human_path",
+        "features": {
+          "complementary_to_human": 1,
+          "recipe_needs_onion": 1,
+          "blocks_human_path": 1,
+          "cuts_in_front_of_human": 1,
+          "human_wait_cost": 1,
+          "frustrates_human": 1
+        }
+      },
+      {
+        "action_id": "duplicate_tomato",
+        "action_type": "move",
+        "target": "tomato_dispenser_left_bottom",
+        "features": {
+          "duplicate_human_task": 1,
+          "crowds_human_target": 1,
+          "frustrates_human": 1
+        }
+      }
+    ],
+    "expected_action": "help_onion_clean",
+    "acceptable_actions": ["help_onion_clean"],
+    "wrong_actions": ["help_onion_but_block", "duplicate_tomato"],
+    "success_condition": "agent helps with onion via the route that does not block the human",
+    "scoring": {"correct": 1, "incorrect": 0},
+    "notes": "Hard: both onion options share the same positive task features; only the coordination negatives break the tie."
+  },
+  {
+    "probe_id": "P27_get_dish_for_ready_soup",
+    "probe_name": "Get Dish For Ready Soup",
+    "category": "ServingReadiness",
+    "difficulty": "medium",
+    "research_question": "With a ready soup and no dish held, does the agent fetch the dish rather than add ingredients or wander off?",
+    "feedback_type_tested": "imperative",
+    "credit_assignment_target": "action",
+    "precondition": {
+      "human_feedback_example": ["Soup's ready, go grab a dish."]
+    },
+    "state": {
+      "map": "ring_tomato_onion_10x6",
+      "current_orders": [["tomato", "tomato", "onion"]],
+      "pot_state": {"ingredients": ["tomato", "tomato", "onion"], "status": "ready"},
+      "human_position": [2, 4],
+      "human_holding": "tomato",
+      "human_intent": "add_next_order",
+      "agent_position": [5, 1],
+      "agent_holding": "none"
+    },
+    "available_actions": [
+      {
+        "action_id": "go_get_dish",
+        "action_type": "pickup",
+        "target": "dish_dispenser_left_top",
+        "features": {
+          "dish_needed_for_ready_soup": 1,
+          "pick_dish": 1,
+          "moves_toward_needed_object": 1,
+          "supports_serving": 1
+        }
+      },
+      {
+        "action_id": "add_ingredient_to_ready_pot",
+        "action_type": "add_ingredient",
+        "target": "pot_top_middle",
+        "features": {
+          "adds_extra_onion": 1,
+          "breaks_recipe": 1,
+          "delays_serving": 1
+        }
+      },
+      {
+        "action_id": "move_to_tomato_unneeded",
+        "action_type": "move",
+        "target": "tomato_dispenser_left_bottom",
+        "features": {
+          "moves_away_from_needed_object": 1,
+          "time_cost": 1
+        }
+      }
+    ],
+    "expected_action": "go_get_dish",
+    "acceptable_actions": ["go_get_dish"],
+    "wrong_actions": ["add_ingredient_to_ready_pot", "move_to_tomato_unneeded"],
+    "success_condition": "agent fetches a dish so the ready soup can be served",
+    "scoring": {"correct": 1, "incorrect": 0},
+    "notes": "Tests dish-for-ready-soup credit assignment."
   }
 ]

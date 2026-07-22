@@ -1,0 +1,2282 @@
+[
+  {
+    "acceptable_subgoals": [
+      "GET_ONION"
+    ],
+    "context": {
+      "agent_holding": null,
+      "human_holding": null,
+      "human_intent": null,
+      "pot_ingredients": [],
+      "pot_status": "empty",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "GET_ONION",
+    "feasible_subgoals": [
+      "GET_TOMATO",
+      "GET_ONION",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0000_pot[empty]_empty_hold[empty]_human[idle]"
+  },
+  {
+    "acceptable_subgoals": [
+      "GET_ONION"
+    ],
+    "context": {
+      "agent_holding": null,
+      "human_holding": null,
+      "human_intent": "get_tomato",
+      "pot_ingredients": [],
+      "pot_status": "empty",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "GET_ONION",
+    "feasible_subgoals": [
+      "GET_TOMATO",
+      "GET_ONION",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0001_pot[empty]_empty_hold[empty]_human[get_tomato]"
+  },
+  {
+    "acceptable_subgoals": [
+      "GET_TOMATO"
+    ],
+    "context": {
+      "agent_holding": null,
+      "human_holding": null,
+      "human_intent": "get_onion",
+      "pot_ingredients": [],
+      "pot_status": "empty",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "GET_TOMATO",
+    "feasible_subgoals": [
+      "GET_TOMATO",
+      "GET_ONION",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0002_pot[empty]_empty_hold[empty]_human[get_onion]"
+  },
+  {
+    "acceptable_subgoals": [
+      "GET_ONION"
+    ],
+    "context": {
+      "agent_holding": null,
+      "human_holding": null,
+      "human_intent": "pick_dish_then_serve",
+      "pot_ingredients": [],
+      "pot_status": "empty",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "GET_ONION",
+    "feasible_subgoals": [
+      "GET_TOMATO",
+      "GET_ONION",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0003_pot[empty]_empty_hold[empty]_human[pick_dish_then_serve]"
+  },
+  {
+    "acceptable_subgoals": [
+      "GET_ONION"
+    ],
+    "context": {
+      "agent_holding": null,
+      "human_holding": null,
+      "human_intent": "pickup_soup",
+      "pot_ingredients": [],
+      "pot_status": "empty",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "GET_ONION",
+    "feasible_subgoals": [
+      "GET_TOMATO",
+      "GET_ONION",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0004_pot[empty]_empty_hold[empty]_human[pickup_soup]"
+  },
+  {
+    "acceptable_subgoals": [
+      "GET_ONION"
+    ],
+    "context": {
+      "agent_holding": null,
+      "human_holding": null,
+      "human_intent": "serve_soup",
+      "pot_ingredients": [],
+      "pot_status": "empty",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "GET_ONION",
+    "feasible_subgoals": [
+      "GET_TOMATO",
+      "GET_ONION",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0005_pot[empty]_empty_hold[empty]_human[serve_soup]"
+  },
+  {
+    "acceptable_subgoals": [
+      "PUT_TOMATO_IN_POT"
+    ],
+    "context": {
+      "agent_holding": "tomato",
+      "human_holding": null,
+      "human_intent": null,
+      "pot_ingredients": [],
+      "pot_status": "empty",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "PUT_TOMATO_IN_POT",
+    "feasible_subgoals": [
+      "PUT_TOMATO_IN_POT",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0006_pot[empty]_empty_hold[tomato]_human[idle]"
+  },
+  {
+    "acceptable_subgoals": [
+      "WAIT"
+    ],
+    "context": {
+      "agent_holding": "tomato",
+      "human_holding": null,
+      "human_intent": "get_tomato",
+      "pot_ingredients": [],
+      "pot_status": "empty",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "WAIT",
+    "feasible_subgoals": [
+      "PUT_TOMATO_IN_POT",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0007_pot[empty]_empty_hold[tomato]_human[get_tomato]"
+  },
+  {
+    "acceptable_subgoals": [
+      "PUT_TOMATO_IN_POT"
+    ],
+    "context": {
+      "agent_holding": "tomato",
+      "human_holding": null,
+      "human_intent": "get_onion",
+      "pot_ingredients": [],
+      "pot_status": "empty",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "PUT_TOMATO_IN_POT",
+    "feasible_subgoals": [
+      "PUT_TOMATO_IN_POT",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0008_pot[empty]_empty_hold[tomato]_human[get_onion]"
+  },
+  {
+    "acceptable_subgoals": [
+      "PUT_TOMATO_IN_POT"
+    ],
+    "context": {
+      "agent_holding": "tomato",
+      "human_holding": null,
+      "human_intent": "pick_dish_then_serve",
+      "pot_ingredients": [],
+      "pot_status": "empty",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "PUT_TOMATO_IN_POT",
+    "feasible_subgoals": [
+      "PUT_TOMATO_IN_POT",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0009_pot[empty]_empty_hold[tomato]_human[pick_dish_then_serve]"
+  },
+  {
+    "acceptable_subgoals": [
+      "PUT_TOMATO_IN_POT"
+    ],
+    "context": {
+      "agent_holding": "tomato",
+      "human_holding": null,
+      "human_intent": "pickup_soup",
+      "pot_ingredients": [],
+      "pot_status": "empty",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "PUT_TOMATO_IN_POT",
+    "feasible_subgoals": [
+      "PUT_TOMATO_IN_POT",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0010_pot[empty]_empty_hold[tomato]_human[pickup_soup]"
+  },
+  {
+    "acceptable_subgoals": [
+      "PUT_TOMATO_IN_POT"
+    ],
+    "context": {
+      "agent_holding": "tomato",
+      "human_holding": null,
+      "human_intent": "serve_soup",
+      "pot_ingredients": [],
+      "pot_status": "empty",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "PUT_TOMATO_IN_POT",
+    "feasible_subgoals": [
+      "PUT_TOMATO_IN_POT",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0011_pot[empty]_empty_hold[tomato]_human[serve_soup]"
+  },
+  {
+    "acceptable_subgoals": [
+      "PUT_ONION_IN_POT"
+    ],
+    "context": {
+      "agent_holding": "onion",
+      "human_holding": null,
+      "human_intent": null,
+      "pot_ingredients": [],
+      "pot_status": "empty",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "PUT_ONION_IN_POT",
+    "feasible_subgoals": [
+      "PUT_ONION_IN_POT",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0012_pot[empty]_empty_hold[onion]_human[idle]"
+  },
+  {
+    "acceptable_subgoals": [
+      "PUT_ONION_IN_POT"
+    ],
+    "context": {
+      "agent_holding": "onion",
+      "human_holding": null,
+      "human_intent": "get_tomato",
+      "pot_ingredients": [],
+      "pot_status": "empty",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "PUT_ONION_IN_POT",
+    "feasible_subgoals": [
+      "PUT_ONION_IN_POT",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0013_pot[empty]_empty_hold[onion]_human[get_tomato]"
+  },
+  {
+    "acceptable_subgoals": [
+      "WAIT"
+    ],
+    "context": {
+      "agent_holding": "onion",
+      "human_holding": null,
+      "human_intent": "get_onion",
+      "pot_ingredients": [],
+      "pot_status": "empty",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "WAIT",
+    "feasible_subgoals": [
+      "PUT_ONION_IN_POT",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0014_pot[empty]_empty_hold[onion]_human[get_onion]"
+  },
+  {
+    "acceptable_subgoals": [
+      "PUT_ONION_IN_POT"
+    ],
+    "context": {
+      "agent_holding": "onion",
+      "human_holding": null,
+      "human_intent": "pick_dish_then_serve",
+      "pot_ingredients": [],
+      "pot_status": "empty",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "PUT_ONION_IN_POT",
+    "feasible_subgoals": [
+      "PUT_ONION_IN_POT",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0015_pot[empty]_empty_hold[onion]_human[pick_dish_then_serve]"
+  },
+  {
+    "acceptable_subgoals": [
+      "PUT_ONION_IN_POT"
+    ],
+    "context": {
+      "agent_holding": "onion",
+      "human_holding": null,
+      "human_intent": "pickup_soup",
+      "pot_ingredients": [],
+      "pot_status": "empty",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "PUT_ONION_IN_POT",
+    "feasible_subgoals": [
+      "PUT_ONION_IN_POT",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0016_pot[empty]_empty_hold[onion]_human[pickup_soup]"
+  },
+  {
+    "acceptable_subgoals": [
+      "PUT_ONION_IN_POT"
+    ],
+    "context": {
+      "agent_holding": "onion",
+      "human_holding": null,
+      "human_intent": "serve_soup",
+      "pot_ingredients": [],
+      "pot_status": "empty",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "PUT_ONION_IN_POT",
+    "feasible_subgoals": [
+      "PUT_ONION_IN_POT",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0017_pot[empty]_empty_hold[onion]_human[serve_soup]"
+  },
+  {
+    "acceptable_subgoals": [
+      "SERVE_SOUP"
+    ],
+    "context": {
+      "agent_holding": "soup",
+      "human_holding": null,
+      "human_intent": null,
+      "pot_ingredients": [],
+      "pot_status": "empty",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "SERVE_SOUP",
+    "feasible_subgoals": [
+      "SERVE_SOUP",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0018_pot[empty]_empty_hold[soup]_human[idle]"
+  },
+  {
+    "acceptable_subgoals": [
+      "SERVE_SOUP"
+    ],
+    "context": {
+      "agent_holding": "soup",
+      "human_holding": null,
+      "human_intent": "get_tomato",
+      "pot_ingredients": [],
+      "pot_status": "empty",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "SERVE_SOUP",
+    "feasible_subgoals": [
+      "SERVE_SOUP",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0019_pot[empty]_empty_hold[soup]_human[get_tomato]"
+  },
+  {
+    "acceptable_subgoals": [
+      "SERVE_SOUP"
+    ],
+    "context": {
+      "agent_holding": "soup",
+      "human_holding": null,
+      "human_intent": "get_onion",
+      "pot_ingredients": [],
+      "pot_status": "empty",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "SERVE_SOUP",
+    "feasible_subgoals": [
+      "SERVE_SOUP",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0020_pot[empty]_empty_hold[soup]_human[get_onion]"
+  },
+  {
+    "acceptable_subgoals": [
+      "WAIT"
+    ],
+    "context": {
+      "agent_holding": "soup",
+      "human_holding": null,
+      "human_intent": "pick_dish_then_serve",
+      "pot_ingredients": [],
+      "pot_status": "empty",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "WAIT",
+    "feasible_subgoals": [
+      "SERVE_SOUP",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0021_pot[empty]_empty_hold[soup]_human[pick_dish_then_serve]"
+  },
+  {
+    "acceptable_subgoals": [
+      "WAIT"
+    ],
+    "context": {
+      "agent_holding": "soup",
+      "human_holding": null,
+      "human_intent": "pickup_soup",
+      "pot_ingredients": [],
+      "pot_status": "empty",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "WAIT",
+    "feasible_subgoals": [
+      "SERVE_SOUP",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0022_pot[empty]_empty_hold[soup]_human[pickup_soup]"
+  },
+  {
+    "acceptable_subgoals": [
+      "WAIT"
+    ],
+    "context": {
+      "agent_holding": "soup",
+      "human_holding": null,
+      "human_intent": "serve_soup",
+      "pot_ingredients": [],
+      "pot_status": "empty",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "WAIT",
+    "feasible_subgoals": [
+      "SERVE_SOUP",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0023_pot[empty]_empty_hold[soup]_human[serve_soup]"
+  },
+  {
+    "acceptable_subgoals": [
+      "GET_ONION"
+    ],
+    "context": {
+      "agent_holding": null,
+      "human_holding": null,
+      "human_intent": null,
+      "pot_ingredients": [
+        "tomato"
+      ],
+      "pot_status": "partial",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "GET_ONION",
+    "feasible_subgoals": [
+      "GET_TOMATO",
+      "GET_ONION",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0024_pot[tomato]_partial_hold[empty]_human[idle]"
+  },
+  {
+    "acceptable_subgoals": [
+      "GET_ONION"
+    ],
+    "context": {
+      "agent_holding": null,
+      "human_holding": null,
+      "human_intent": "get_tomato",
+      "pot_ingredients": [
+        "tomato"
+      ],
+      "pot_status": "partial",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "GET_ONION",
+    "feasible_subgoals": [
+      "GET_TOMATO",
+      "GET_ONION",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0025_pot[tomato]_partial_hold[empty]_human[get_tomato]"
+  },
+  {
+    "acceptable_subgoals": [
+      "GET_TOMATO"
+    ],
+    "context": {
+      "agent_holding": null,
+      "human_holding": null,
+      "human_intent": "get_onion",
+      "pot_ingredients": [
+        "tomato"
+      ],
+      "pot_status": "partial",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "GET_TOMATO",
+    "feasible_subgoals": [
+      "GET_TOMATO",
+      "GET_ONION",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0026_pot[tomato]_partial_hold[empty]_human[get_onion]"
+  },
+  {
+    "acceptable_subgoals": [
+      "GET_ONION"
+    ],
+    "context": {
+      "agent_holding": null,
+      "human_holding": null,
+      "human_intent": "pick_dish_then_serve",
+      "pot_ingredients": [
+        "tomato"
+      ],
+      "pot_status": "partial",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "GET_ONION",
+    "feasible_subgoals": [
+      "GET_TOMATO",
+      "GET_ONION",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0027_pot[tomato]_partial_hold[empty]_human[pick_dish_then_serve]"
+  },
+  {
+    "acceptable_subgoals": [
+      "GET_ONION"
+    ],
+    "context": {
+      "agent_holding": null,
+      "human_holding": null,
+      "human_intent": "pickup_soup",
+      "pot_ingredients": [
+        "tomato"
+      ],
+      "pot_status": "partial",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "GET_ONION",
+    "feasible_subgoals": [
+      "GET_TOMATO",
+      "GET_ONION",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0028_pot[tomato]_partial_hold[empty]_human[pickup_soup]"
+  },
+  {
+    "acceptable_subgoals": [
+      "GET_ONION"
+    ],
+    "context": {
+      "agent_holding": null,
+      "human_holding": null,
+      "human_intent": "serve_soup",
+      "pot_ingredients": [
+        "tomato"
+      ],
+      "pot_status": "partial",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "GET_ONION",
+    "feasible_subgoals": [
+      "GET_TOMATO",
+      "GET_ONION",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0029_pot[tomato]_partial_hold[empty]_human[serve_soup]"
+  },
+  {
+    "acceptable_subgoals": [
+      "PUT_TOMATO_IN_POT"
+    ],
+    "context": {
+      "agent_holding": "tomato",
+      "human_holding": null,
+      "human_intent": null,
+      "pot_ingredients": [
+        "tomato"
+      ],
+      "pot_status": "partial",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "PUT_TOMATO_IN_POT",
+    "feasible_subgoals": [
+      "PUT_TOMATO_IN_POT",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0030_pot[tomato]_partial_hold[tomato]_human[idle]"
+  },
+  {
+    "acceptable_subgoals": [
+      "WAIT"
+    ],
+    "context": {
+      "agent_holding": "tomato",
+      "human_holding": null,
+      "human_intent": "get_tomato",
+      "pot_ingredients": [
+        "tomato"
+      ],
+      "pot_status": "partial",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "WAIT",
+    "feasible_subgoals": [
+      "PUT_TOMATO_IN_POT",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0031_pot[tomato]_partial_hold[tomato]_human[get_tomato]"
+  },
+  {
+    "acceptable_subgoals": [
+      "PUT_TOMATO_IN_POT"
+    ],
+    "context": {
+      "agent_holding": "tomato",
+      "human_holding": null,
+      "human_intent": "get_onion",
+      "pot_ingredients": [
+        "tomato"
+      ],
+      "pot_status": "partial",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "PUT_TOMATO_IN_POT",
+    "feasible_subgoals": [
+      "PUT_TOMATO_IN_POT",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0032_pot[tomato]_partial_hold[tomato]_human[get_onion]"
+  },
+  {
+    "acceptable_subgoals": [
+      "PUT_TOMATO_IN_POT"
+    ],
+    "context": {
+      "agent_holding": "tomato",
+      "human_holding": null,
+      "human_intent": "pick_dish_then_serve",
+      "pot_ingredients": [
+        "tomato"
+      ],
+      "pot_status": "partial",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "PUT_TOMATO_IN_POT",
+    "feasible_subgoals": [
+      "PUT_TOMATO_IN_POT",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0033_pot[tomato]_partial_hold[tomato]_human[pick_dish_then_serve]"
+  },
+  {
+    "acceptable_subgoals": [
+      "PUT_TOMATO_IN_POT"
+    ],
+    "context": {
+      "agent_holding": "tomato",
+      "human_holding": null,
+      "human_intent": "pickup_soup",
+      "pot_ingredients": [
+        "tomato"
+      ],
+      "pot_status": "partial",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "PUT_TOMATO_IN_POT",
+    "feasible_subgoals": [
+      "PUT_TOMATO_IN_POT",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0034_pot[tomato]_partial_hold[tomato]_human[pickup_soup]"
+  },
+  {
+    "acceptable_subgoals": [
+      "PUT_TOMATO_IN_POT"
+    ],
+    "context": {
+      "agent_holding": "tomato",
+      "human_holding": null,
+      "human_intent": "serve_soup",
+      "pot_ingredients": [
+        "tomato"
+      ],
+      "pot_status": "partial",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "PUT_TOMATO_IN_POT",
+    "feasible_subgoals": [
+      "PUT_TOMATO_IN_POT",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0035_pot[tomato]_partial_hold[tomato]_human[serve_soup]"
+  },
+  {
+    "acceptable_subgoals": [
+      "PUT_ONION_IN_POT"
+    ],
+    "context": {
+      "agent_holding": "onion",
+      "human_holding": null,
+      "human_intent": null,
+      "pot_ingredients": [
+        "tomato"
+      ],
+      "pot_status": "partial",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "PUT_ONION_IN_POT",
+    "feasible_subgoals": [
+      "PUT_ONION_IN_POT",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0036_pot[tomato]_partial_hold[onion]_human[idle]"
+  },
+  {
+    "acceptable_subgoals": [
+      "PUT_ONION_IN_POT"
+    ],
+    "context": {
+      "agent_holding": "onion",
+      "human_holding": null,
+      "human_intent": "get_tomato",
+      "pot_ingredients": [
+        "tomato"
+      ],
+      "pot_status": "partial",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "PUT_ONION_IN_POT",
+    "feasible_subgoals": [
+      "PUT_ONION_IN_POT",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0037_pot[tomato]_partial_hold[onion]_human[get_tomato]"
+  },
+  {
+    "acceptable_subgoals": [
+      "WAIT"
+    ],
+    "context": {
+      "agent_holding": "onion",
+      "human_holding": null,
+      "human_intent": "get_onion",
+      "pot_ingredients": [
+        "tomato"
+      ],
+      "pot_status": "partial",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "WAIT",
+    "feasible_subgoals": [
+      "PUT_ONION_IN_POT",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0038_pot[tomato]_partial_hold[onion]_human[get_onion]"
+  },
+  {
+    "acceptable_subgoals": [
+      "PUT_ONION_IN_POT"
+    ],
+    "context": {
+      "agent_holding": "onion",
+      "human_holding": null,
+      "human_intent": "pick_dish_then_serve",
+      "pot_ingredients": [
+        "tomato"
+      ],
+      "pot_status": "partial",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "PUT_ONION_IN_POT",
+    "feasible_subgoals": [
+      "PUT_ONION_IN_POT",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0039_pot[tomato]_partial_hold[onion]_human[pick_dish_then_serve]"
+  },
+  {
+    "acceptable_subgoals": [
+      "PUT_ONION_IN_POT"
+    ],
+    "context": {
+      "agent_holding": "onion",
+      "human_holding": null,
+      "human_intent": "pickup_soup",
+      "pot_ingredients": [
+        "tomato"
+      ],
+      "pot_status": "partial",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "PUT_ONION_IN_POT",
+    "feasible_subgoals": [
+      "PUT_ONION_IN_POT",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0040_pot[tomato]_partial_hold[onion]_human[pickup_soup]"
+  },
+  {
+    "acceptable_subgoals": [
+      "PUT_ONION_IN_POT"
+    ],
+    "context": {
+      "agent_holding": "onion",
+      "human_holding": null,
+      "human_intent": "serve_soup",
+      "pot_ingredients": [
+        "tomato"
+      ],
+      "pot_status": "partial",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "PUT_ONION_IN_POT",
+    "feasible_subgoals": [
+      "PUT_ONION_IN_POT",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0041_pot[tomato]_partial_hold[onion]_human[serve_soup]"
+  },
+  {
+    "acceptable_subgoals": [
+      "SERVE_SOUP"
+    ],
+    "context": {
+      "agent_holding": "soup",
+      "human_holding": null,
+      "human_intent": null,
+      "pot_ingredients": [
+        "tomato"
+      ],
+      "pot_status": "partial",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "SERVE_SOUP",
+    "feasible_subgoals": [
+      "SERVE_SOUP",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0042_pot[tomato]_partial_hold[soup]_human[idle]"
+  },
+  {
+    "acceptable_subgoals": [
+      "SERVE_SOUP"
+    ],
+    "context": {
+      "agent_holding": "soup",
+      "human_holding": null,
+      "human_intent": "get_tomato",
+      "pot_ingredients": [
+        "tomato"
+      ],
+      "pot_status": "partial",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "SERVE_SOUP",
+    "feasible_subgoals": [
+      "SERVE_SOUP",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0043_pot[tomato]_partial_hold[soup]_human[get_tomato]"
+  },
+  {
+    "acceptable_subgoals": [
+      "SERVE_SOUP"
+    ],
+    "context": {
+      "agent_holding": "soup",
+      "human_holding": null,
+      "human_intent": "get_onion",
+      "pot_ingredients": [
+        "tomato"
+      ],
+      "pot_status": "partial",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "SERVE_SOUP",
+    "feasible_subgoals": [
+      "SERVE_SOUP",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0044_pot[tomato]_partial_hold[soup]_human[get_onion]"
+  },
+  {
+    "acceptable_subgoals": [
+      "WAIT"
+    ],
+    "context": {
+      "agent_holding": "soup",
+      "human_holding": null,
+      "human_intent": "pick_dish_then_serve",
+      "pot_ingredients": [
+        "tomato"
+      ],
+      "pot_status": "partial",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "WAIT",
+    "feasible_subgoals": [
+      "SERVE_SOUP",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0045_pot[tomato]_partial_hold[soup]_human[pick_dish_then_serve]"
+  },
+  {
+    "acceptable_subgoals": [
+      "WAIT"
+    ],
+    "context": {
+      "agent_holding": "soup",
+      "human_holding": null,
+      "human_intent": "pickup_soup",
+      "pot_ingredients": [
+        "tomato"
+      ],
+      "pot_status": "partial",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "WAIT",
+    "feasible_subgoals": [
+      "SERVE_SOUP",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0046_pot[tomato]_partial_hold[soup]_human[pickup_soup]"
+  },
+  {
+    "acceptable_subgoals": [
+      "WAIT"
+    ],
+    "context": {
+      "agent_holding": "soup",
+      "human_holding": null,
+      "human_intent": "serve_soup",
+      "pot_ingredients": [
+        "tomato"
+      ],
+      "pot_status": "partial",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "WAIT",
+    "feasible_subgoals": [
+      "SERVE_SOUP",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0047_pot[tomato]_partial_hold[soup]_human[serve_soup]"
+  },
+  {
+    "acceptable_subgoals": [
+      "GET_ONION"
+    ],
+    "context": {
+      "agent_holding": null,
+      "human_holding": null,
+      "human_intent": null,
+      "pot_ingredients": [
+        "tomato",
+        "tomato"
+      ],
+      "pot_status": "partial",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "GET_ONION",
+    "feasible_subgoals": [
+      "GET_ONION",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0048_pot[tomato-tomato]_partial_hold[empty]_human[idle]"
+  },
+  {
+    "acceptable_subgoals": [
+      "GET_ONION"
+    ],
+    "context": {
+      "agent_holding": null,
+      "human_holding": null,
+      "human_intent": "get_tomato",
+      "pot_ingredients": [
+        "tomato",
+        "tomato"
+      ],
+      "pot_status": "partial",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "GET_ONION",
+    "feasible_subgoals": [
+      "GET_ONION",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0049_pot[tomato-tomato]_partial_hold[empty]_human[get_tomato]"
+  },
+  {
+    "acceptable_subgoals": [
+      "WAIT"
+    ],
+    "context": {
+      "agent_holding": null,
+      "human_holding": null,
+      "human_intent": "get_onion",
+      "pot_ingredients": [
+        "tomato",
+        "tomato"
+      ],
+      "pot_status": "partial",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "WAIT",
+    "feasible_subgoals": [
+      "GET_ONION",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0050_pot[tomato-tomato]_partial_hold[empty]_human[get_onion]"
+  },
+  {
+    "acceptable_subgoals": [
+      "GET_ONION"
+    ],
+    "context": {
+      "agent_holding": null,
+      "human_holding": null,
+      "human_intent": "pick_dish_then_serve",
+      "pot_ingredients": [
+        "tomato",
+        "tomato"
+      ],
+      "pot_status": "partial",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "GET_ONION",
+    "feasible_subgoals": [
+      "GET_ONION",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0051_pot[tomato-tomato]_partial_hold[empty]_human[pick_dish_then_serve]"
+  },
+  {
+    "acceptable_subgoals": [
+      "GET_ONION"
+    ],
+    "context": {
+      "agent_holding": null,
+      "human_holding": null,
+      "human_intent": "pickup_soup",
+      "pot_ingredients": [
+        "tomato",
+        "tomato"
+      ],
+      "pot_status": "partial",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "GET_ONION",
+    "feasible_subgoals": [
+      "GET_ONION",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0052_pot[tomato-tomato]_partial_hold[empty]_human[pickup_soup]"
+  },
+  {
+    "acceptable_subgoals": [
+      "GET_ONION"
+    ],
+    "context": {
+      "agent_holding": null,
+      "human_holding": null,
+      "human_intent": "serve_soup",
+      "pot_ingredients": [
+        "tomato",
+        "tomato"
+      ],
+      "pot_status": "partial",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "GET_ONION",
+    "feasible_subgoals": [
+      "GET_ONION",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0053_pot[tomato-tomato]_partial_hold[empty]_human[serve_soup]"
+  },
+  {
+    "acceptable_subgoals": [
+      "PUT_ONION_IN_POT"
+    ],
+    "context": {
+      "agent_holding": "onion",
+      "human_holding": null,
+      "human_intent": null,
+      "pot_ingredients": [
+        "tomato",
+        "tomato"
+      ],
+      "pot_status": "partial",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "PUT_ONION_IN_POT",
+    "feasible_subgoals": [
+      "PUT_ONION_IN_POT",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0054_pot[tomato-tomato]_partial_hold[onion]_human[idle]"
+  },
+  {
+    "acceptable_subgoals": [
+      "PUT_ONION_IN_POT"
+    ],
+    "context": {
+      "agent_holding": "onion",
+      "human_holding": null,
+      "human_intent": "get_tomato",
+      "pot_ingredients": [
+        "tomato",
+        "tomato"
+      ],
+      "pot_status": "partial",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "PUT_ONION_IN_POT",
+    "feasible_subgoals": [
+      "PUT_ONION_IN_POT",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0055_pot[tomato-tomato]_partial_hold[onion]_human[get_tomato]"
+  },
+  {
+    "acceptable_subgoals": [
+      "WAIT"
+    ],
+    "context": {
+      "agent_holding": "onion",
+      "human_holding": null,
+      "human_intent": "get_onion",
+      "pot_ingredients": [
+        "tomato",
+        "tomato"
+      ],
+      "pot_status": "partial",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "WAIT",
+    "feasible_subgoals": [
+      "PUT_ONION_IN_POT",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0056_pot[tomato-tomato]_partial_hold[onion]_human[get_onion]"
+  },
+  {
+    "acceptable_subgoals": [
+      "PUT_ONION_IN_POT"
+    ],
+    "context": {
+      "agent_holding": "onion",
+      "human_holding": null,
+      "human_intent": "pick_dish_then_serve",
+      "pot_ingredients": [
+        "tomato",
+        "tomato"
+      ],
+      "pot_status": "partial",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "PUT_ONION_IN_POT",
+    "feasible_subgoals": [
+      "PUT_ONION_IN_POT",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0057_pot[tomato-tomato]_partial_hold[onion]_human[pick_dish_then_serve]"
+  },
+  {
+    "acceptable_subgoals": [
+      "PUT_ONION_IN_POT"
+    ],
+    "context": {
+      "agent_holding": "onion",
+      "human_holding": null,
+      "human_intent": "pickup_soup",
+      "pot_ingredients": [
+        "tomato",
+        "tomato"
+      ],
+      "pot_status": "partial",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "PUT_ONION_IN_POT",
+    "feasible_subgoals": [
+      "PUT_ONION_IN_POT",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0058_pot[tomato-tomato]_partial_hold[onion]_human[pickup_soup]"
+  },
+  {
+    "acceptable_subgoals": [
+      "PUT_ONION_IN_POT"
+    ],
+    "context": {
+      "agent_holding": "onion",
+      "human_holding": null,
+      "human_intent": "serve_soup",
+      "pot_ingredients": [
+        "tomato",
+        "tomato"
+      ],
+      "pot_status": "partial",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "PUT_ONION_IN_POT",
+    "feasible_subgoals": [
+      "PUT_ONION_IN_POT",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0059_pot[tomato-tomato]_partial_hold[onion]_human[serve_soup]"
+  },
+  {
+    "acceptable_subgoals": [
+      "SERVE_SOUP"
+    ],
+    "context": {
+      "agent_holding": "soup",
+      "human_holding": null,
+      "human_intent": null,
+      "pot_ingredients": [
+        "tomato",
+        "tomato"
+      ],
+      "pot_status": "partial",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "SERVE_SOUP",
+    "feasible_subgoals": [
+      "SERVE_SOUP",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0060_pot[tomato-tomato]_partial_hold[soup]_human[idle]"
+  },
+  {
+    "acceptable_subgoals": [
+      "SERVE_SOUP"
+    ],
+    "context": {
+      "agent_holding": "soup",
+      "human_holding": null,
+      "human_intent": "get_tomato",
+      "pot_ingredients": [
+        "tomato",
+        "tomato"
+      ],
+      "pot_status": "partial",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "SERVE_SOUP",
+    "feasible_subgoals": [
+      "SERVE_SOUP",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0061_pot[tomato-tomato]_partial_hold[soup]_human[get_tomato]"
+  },
+  {
+    "acceptable_subgoals": [
+      "SERVE_SOUP"
+    ],
+    "context": {
+      "agent_holding": "soup",
+      "human_holding": null,
+      "human_intent": "get_onion",
+      "pot_ingredients": [
+        "tomato",
+        "tomato"
+      ],
+      "pot_status": "partial",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "SERVE_SOUP",
+    "feasible_subgoals": [
+      "SERVE_SOUP",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0062_pot[tomato-tomato]_partial_hold[soup]_human[get_onion]"
+  },
+  {
+    "acceptable_subgoals": [
+      "WAIT"
+    ],
+    "context": {
+      "agent_holding": "soup",
+      "human_holding": null,
+      "human_intent": "pick_dish_then_serve",
+      "pot_ingredients": [
+        "tomato",
+        "tomato"
+      ],
+      "pot_status": "partial",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "WAIT",
+    "feasible_subgoals": [
+      "SERVE_SOUP",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0063_pot[tomato-tomato]_partial_hold[soup]_human[pick_dish_then_serve]"
+  },
+  {
+    "acceptable_subgoals": [
+      "WAIT"
+    ],
+    "context": {
+      "agent_holding": "soup",
+      "human_holding": null,
+      "human_intent": "pickup_soup",
+      "pot_ingredients": [
+        "tomato",
+        "tomato"
+      ],
+      "pot_status": "partial",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "WAIT",
+    "feasible_subgoals": [
+      "SERVE_SOUP",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0064_pot[tomato-tomato]_partial_hold[soup]_human[pickup_soup]"
+  },
+  {
+    "acceptable_subgoals": [
+      "WAIT"
+    ],
+    "context": {
+      "agent_holding": "soup",
+      "human_holding": null,
+      "human_intent": "serve_soup",
+      "pot_ingredients": [
+        "tomato",
+        "tomato"
+      ],
+      "pot_status": "partial",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "WAIT",
+    "feasible_subgoals": [
+      "SERVE_SOUP",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0065_pot[tomato-tomato]_partial_hold[soup]_human[serve_soup]"
+  },
+  {
+    "acceptable_subgoals": [
+      "SERVE_SOUP"
+    ],
+    "context": {
+      "agent_holding": "soup",
+      "human_holding": null,
+      "human_intent": null,
+      "pot_ingredients": [
+        "tomato",
+        "tomato",
+        "onion"
+      ],
+      "pot_status": "cooking",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "SERVE_SOUP",
+    "feasible_subgoals": [
+      "SERVE_SOUP",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0066_pot[tomato-tomato-onion]_cooking_hold[soup]_human[idle]"
+  },
+  {
+    "acceptable_subgoals": [
+      "SERVE_SOUP"
+    ],
+    "context": {
+      "agent_holding": "soup",
+      "human_holding": null,
+      "human_intent": "get_tomato",
+      "pot_ingredients": [
+        "tomato",
+        "tomato",
+        "onion"
+      ],
+      "pot_status": "cooking",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "SERVE_SOUP",
+    "feasible_subgoals": [
+      "SERVE_SOUP",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0067_pot[tomato-tomato-onion]_cooking_hold[soup]_human[get_tomato]"
+  },
+  {
+    "acceptable_subgoals": [
+      "SERVE_SOUP"
+    ],
+    "context": {
+      "agent_holding": "soup",
+      "human_holding": null,
+      "human_intent": "get_onion",
+      "pot_ingredients": [
+        "tomato",
+        "tomato",
+        "onion"
+      ],
+      "pot_status": "cooking",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "SERVE_SOUP",
+    "feasible_subgoals": [
+      "SERVE_SOUP",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0068_pot[tomato-tomato-onion]_cooking_hold[soup]_human[get_onion]"
+  },
+  {
+    "acceptable_subgoals": [
+      "WAIT"
+    ],
+    "context": {
+      "agent_holding": "soup",
+      "human_holding": null,
+      "human_intent": "pick_dish_then_serve",
+      "pot_ingredients": [
+        "tomato",
+        "tomato",
+        "onion"
+      ],
+      "pot_status": "cooking",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "WAIT",
+    "feasible_subgoals": [
+      "SERVE_SOUP",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0069_pot[tomato-tomato-onion]_cooking_hold[soup]_human[pick_dish_then_serve]"
+  },
+  {
+    "acceptable_subgoals": [
+      "WAIT"
+    ],
+    "context": {
+      "agent_holding": "soup",
+      "human_holding": null,
+      "human_intent": "pickup_soup",
+      "pot_ingredients": [
+        "tomato",
+        "tomato",
+        "onion"
+      ],
+      "pot_status": "cooking",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "WAIT",
+    "feasible_subgoals": [
+      "SERVE_SOUP",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0070_pot[tomato-tomato-onion]_cooking_hold[soup]_human[pickup_soup]"
+  },
+  {
+    "acceptable_subgoals": [
+      "WAIT"
+    ],
+    "context": {
+      "agent_holding": "soup",
+      "human_holding": null,
+      "human_intent": "serve_soup",
+      "pot_ingredients": [
+        "tomato",
+        "tomato",
+        "onion"
+      ],
+      "pot_status": "cooking",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "WAIT",
+    "feasible_subgoals": [
+      "SERVE_SOUP",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0071_pot[tomato-tomato-onion]_cooking_hold[soup]_human[serve_soup]"
+  },
+  {
+    "acceptable_subgoals": [
+      "GET_DISH"
+    ],
+    "context": {
+      "agent_holding": null,
+      "human_holding": null,
+      "human_intent": null,
+      "pot_ingredients": [
+        "tomato",
+        "tomato",
+        "onion"
+      ],
+      "pot_status": "ready",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "GET_DISH",
+    "feasible_subgoals": [
+      "GET_DISH",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0072_pot[tomato-tomato-onion]_ready_hold[empty]_human[idle]"
+  },
+  {
+    "acceptable_subgoals": [
+      "GET_DISH"
+    ],
+    "context": {
+      "agent_holding": null,
+      "human_holding": null,
+      "human_intent": "get_tomato",
+      "pot_ingredients": [
+        "tomato",
+        "tomato",
+        "onion"
+      ],
+      "pot_status": "ready",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "GET_DISH",
+    "feasible_subgoals": [
+      "GET_DISH",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0073_pot[tomato-tomato-onion]_ready_hold[empty]_human[get_tomato]"
+  },
+  {
+    "acceptable_subgoals": [
+      "GET_DISH"
+    ],
+    "context": {
+      "agent_holding": null,
+      "human_holding": null,
+      "human_intent": "get_onion",
+      "pot_ingredients": [
+        "tomato",
+        "tomato",
+        "onion"
+      ],
+      "pot_status": "ready",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "GET_DISH",
+    "feasible_subgoals": [
+      "GET_DISH",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0074_pot[tomato-tomato-onion]_ready_hold[empty]_human[get_onion]"
+  },
+  {
+    "acceptable_subgoals": [
+      "WAIT"
+    ],
+    "context": {
+      "agent_holding": null,
+      "human_holding": null,
+      "human_intent": "pick_dish_then_serve",
+      "pot_ingredients": [
+        "tomato",
+        "tomato",
+        "onion"
+      ],
+      "pot_status": "ready",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "WAIT",
+    "feasible_subgoals": [
+      "GET_DISH",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0075_pot[tomato-tomato-onion]_ready_hold[empty]_human[pick_dish_then_serve]"
+  },
+  {
+    "acceptable_subgoals": [
+      "WAIT"
+    ],
+    "context": {
+      "agent_holding": null,
+      "human_holding": null,
+      "human_intent": "pickup_soup",
+      "pot_ingredients": [
+        "tomato",
+        "tomato",
+        "onion"
+      ],
+      "pot_status": "ready",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "WAIT",
+    "feasible_subgoals": [
+      "GET_DISH",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0076_pot[tomato-tomato-onion]_ready_hold[empty]_human[pickup_soup]"
+  },
+  {
+    "acceptable_subgoals": [
+      "WAIT"
+    ],
+    "context": {
+      "agent_holding": null,
+      "human_holding": null,
+      "human_intent": "serve_soup",
+      "pot_ingredients": [
+        "tomato",
+        "tomato",
+        "onion"
+      ],
+      "pot_status": "ready",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "WAIT",
+    "feasible_subgoals": [
+      "GET_DISH",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0077_pot[tomato-tomato-onion]_ready_hold[empty]_human[serve_soup]"
+  },
+  {
+    "acceptable_subgoals": [
+      "PICKUP_SOUP"
+    ],
+    "context": {
+      "agent_holding": "dish",
+      "human_holding": null,
+      "human_intent": null,
+      "pot_ingredients": [
+        "tomato",
+        "tomato",
+        "onion"
+      ],
+      "pot_status": "ready",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "PICKUP_SOUP",
+    "feasible_subgoals": [
+      "PICKUP_SOUP",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0078_pot[tomato-tomato-onion]_ready_hold[dish]_human[idle]"
+  },
+  {
+    "acceptable_subgoals": [
+      "PICKUP_SOUP"
+    ],
+    "context": {
+      "agent_holding": "dish",
+      "human_holding": null,
+      "human_intent": "get_tomato",
+      "pot_ingredients": [
+        "tomato",
+        "tomato",
+        "onion"
+      ],
+      "pot_status": "ready",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "PICKUP_SOUP",
+    "feasible_subgoals": [
+      "PICKUP_SOUP",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0079_pot[tomato-tomato-onion]_ready_hold[dish]_human[get_tomato]"
+  },
+  {
+    "acceptable_subgoals": [
+      "PICKUP_SOUP"
+    ],
+    "context": {
+      "agent_holding": "dish",
+      "human_holding": null,
+      "human_intent": "get_onion",
+      "pot_ingredients": [
+        "tomato",
+        "tomato",
+        "onion"
+      ],
+      "pot_status": "ready",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "PICKUP_SOUP",
+    "feasible_subgoals": [
+      "PICKUP_SOUP",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0080_pot[tomato-tomato-onion]_ready_hold[dish]_human[get_onion]"
+  },
+  {
+    "acceptable_subgoals": [
+      "WAIT"
+    ],
+    "context": {
+      "agent_holding": "dish",
+      "human_holding": null,
+      "human_intent": "pick_dish_then_serve",
+      "pot_ingredients": [
+        "tomato",
+        "tomato",
+        "onion"
+      ],
+      "pot_status": "ready",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "WAIT",
+    "feasible_subgoals": [
+      "PICKUP_SOUP",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0081_pot[tomato-tomato-onion]_ready_hold[dish]_human[pick_dish_then_serve]"
+  },
+  {
+    "acceptable_subgoals": [
+      "WAIT"
+    ],
+    "context": {
+      "agent_holding": "dish",
+      "human_holding": null,
+      "human_intent": "pickup_soup",
+      "pot_ingredients": [
+        "tomato",
+        "tomato",
+        "onion"
+      ],
+      "pot_status": "ready",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "WAIT",
+    "feasible_subgoals": [
+      "PICKUP_SOUP",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0082_pot[tomato-tomato-onion]_ready_hold[dish]_human[pickup_soup]"
+  },
+  {
+    "acceptable_subgoals": [
+      "WAIT"
+    ],
+    "context": {
+      "agent_holding": "dish",
+      "human_holding": null,
+      "human_intent": "serve_soup",
+      "pot_ingredients": [
+        "tomato",
+        "tomato",
+        "onion"
+      ],
+      "pot_status": "ready",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "WAIT",
+    "feasible_subgoals": [
+      "PICKUP_SOUP",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0083_pot[tomato-tomato-onion]_ready_hold[dish]_human[serve_soup]"
+  },
+  {
+    "acceptable_subgoals": [
+      "SERVE_SOUP"
+    ],
+    "context": {
+      "agent_holding": "soup",
+      "human_holding": null,
+      "human_intent": null,
+      "pot_ingredients": [
+        "tomato",
+        "tomato",
+        "onion"
+      ],
+      "pot_status": "ready",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "SERVE_SOUP",
+    "feasible_subgoals": [
+      "SERVE_SOUP",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0084_pot[tomato-tomato-onion]_ready_hold[soup]_human[idle]"
+  },
+  {
+    "acceptable_subgoals": [
+      "SERVE_SOUP"
+    ],
+    "context": {
+      "agent_holding": "soup",
+      "human_holding": null,
+      "human_intent": "get_tomato",
+      "pot_ingredients": [
+        "tomato",
+        "tomato",
+        "onion"
+      ],
+      "pot_status": "ready",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "SERVE_SOUP",
+    "feasible_subgoals": [
+      "SERVE_SOUP",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0085_pot[tomato-tomato-onion]_ready_hold[soup]_human[get_tomato]"
+  },
+  {
+    "acceptable_subgoals": [
+      "SERVE_SOUP"
+    ],
+    "context": {
+      "agent_holding": "soup",
+      "human_holding": null,
+      "human_intent": "get_onion",
+      "pot_ingredients": [
+        "tomato",
+        "tomato",
+        "onion"
+      ],
+      "pot_status": "ready",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "SERVE_SOUP",
+    "feasible_subgoals": [
+      "SERVE_SOUP",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0086_pot[tomato-tomato-onion]_ready_hold[soup]_human[get_onion]"
+  },
+  {
+    "acceptable_subgoals": [
+      "WAIT"
+    ],
+    "context": {
+      "agent_holding": "soup",
+      "human_holding": null,
+      "human_intent": "pick_dish_then_serve",
+      "pot_ingredients": [
+        "tomato",
+        "tomato",
+        "onion"
+      ],
+      "pot_status": "ready",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "WAIT",
+    "feasible_subgoals": [
+      "SERVE_SOUP",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0087_pot[tomato-tomato-onion]_ready_hold[soup]_human[pick_dish_then_serve]"
+  },
+  {
+    "acceptable_subgoals": [
+      "WAIT"
+    ],
+    "context": {
+      "agent_holding": "soup",
+      "human_holding": null,
+      "human_intent": "pickup_soup",
+      "pot_ingredients": [
+        "tomato",
+        "tomato",
+        "onion"
+      ],
+      "pot_status": "ready",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "WAIT",
+    "feasible_subgoals": [
+      "SERVE_SOUP",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0088_pot[tomato-tomato-onion]_ready_hold[soup]_human[pickup_soup]"
+  },
+  {
+    "acceptable_subgoals": [
+      "WAIT"
+    ],
+    "context": {
+      "agent_holding": "soup",
+      "human_holding": null,
+      "human_intent": "serve_soup",
+      "pot_ingredients": [
+        "tomato",
+        "tomato",
+        "onion"
+      ],
+      "pot_status": "ready",
+      "recipe": [
+        "tomato",
+        "tomato",
+        "onion"
+      ]
+    },
+    "expected_subgoal": "WAIT",
+    "feasible_subgoals": [
+      "SERVE_SOUP",
+      "WAIT"
+    ],
+    "scenario_id": "ctx_0089_pot[tomato-tomato-onion]_ready_hold[soup]_human[serve_soup]"
+  }
+]

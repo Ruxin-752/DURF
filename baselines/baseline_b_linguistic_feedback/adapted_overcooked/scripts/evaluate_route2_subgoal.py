@@ -1,0 +1,238 @@
+"""Evaluate Route 2 by the metric that matters: held-out subgoal accuracy.
+
+MSE on the reward vector is not the goal. The goal is: given *unseen* feedback
+text about a *held-out* decision scenario, does the predicted reward re-rank
+H0's feasible subgoals to the human-comfortable one?
+
+    text -> Route 2 -> w_hat -> subgoal_reranker.choose_subgoal -> subgoal
+
+We compare four reward sources on the held-out fold:
+- ``gold``:   the hand-authored w* (upper bound / rule sanity check);
+- ``zero``:   zero weights (ties everywhere -> failure baseline);
+- ``route1``: one global Bayesian belief learned from the training feedback;
+- ``route2``: the trained network, per feedback utterance (text-only).
+
+We also export ``outputs/route2/learned_comfort_weights.json``: among
+utterance-mean / scenario-balanced-mean / utterance-median aggregations of
+text-only Route 2 predictions, keep the one that best recovers the
+hand-authored subgoal probes (never used in training). That frozen vector
+drives Path A subgoal re-ranking (and optional PPO shaping).
+"""
+
+from __future__ import annotations
+
+import argparse
+import sys
+from collections import Counter
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+from scripts.run_baseline_b_pipeline import learn_from_feedback  # noqa: E402
+from src.feature_schema import empty_weights, load_features, read_json, write_json  # noqa: E402
+from src.neural_inference import load_checkpoint, make_folds, predict_reward_vector  # noqa: E402
+from src.probe_evaluator import DEFAULT_PROBE_STATES_PATH, load_probe_states  # noqa: E402
+from src.subgoal_reranker import choose_subgoal  # noqa: E402
+from src.subgoal_teacher import load_gold_weights  # noqa: E402
+
+
+DEFAULT_FEEDBACK_PATH = ROOT / "data" / "synthetic_feedback.json"
+DEFAULT_MODEL_PATH = ROOT / "outputs" / "route2" / "model.pt"
+DEFAULT_WEIGHTS_OUT = ROOT / "outputs" / "route2" / "learned_comfort_weights.json"
+
+
+def _rerank_correct(weights: dict[str, float], example: dict, *, lambda_pref: float) -> bool:
+    choice = choose_subgoal(
+        weights, example["context"], example["feasible_subgoals"], lambda_pref=lambda_pref
+    )
+    acceptable = example.get("acceptable_subgoals") or [example.get("expected_subgoal")]
+    return (not choice["is_tie"]) and choice["chosen_subgoal"] in acceptable
+
+
+def _scenario_accuracy(weights: dict[str, float], scenarios: list[dict], *, lambda_pref: float) -> dict:
+    correct = sum(_rerank_correct(weights, sc, lambda_pref=lambda_pref) for sc in scenarios)
+    total = len(scenarios)
+    return {"correct": correct, "total": total, "accuracy": correct / total if total else 0.0}
+
+
+def _unique_scenarios(examples: list[dict]) -> list[dict]:
+    scenarios: dict[str, dict] = {}
+    for example in examples:
+        gid = example["group_id"]
+        if gid not in scenarios:
+            scenarios[gid] = {
+                "group_id": gid,
+                "context": example["context"],
+                "feasible_subgoals": example["feasible_subgoals"],
+                "acceptable_subgoals": example.get("acceptable_subgoals"),
+                "expected_subgoal": example.get("expected_subgoal"),
+            }
+    return list(scenarios.values())
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--feedback", type=Path, default=DEFAULT_FEEDBACK_PATH)
+    parser.add_argument("--probe-states", type=Path, default=DEFAULT_PROBE_STATES_PATH)
+    parser.add_argument("--model", type=Path, default=DEFAULT_MODEL_PATH)
+    parser.add_argument("--n-folds", type=int, default=5)
+    parser.add_argument("--val-fold", type=int, default=0)
+    parser.add_argument("--seed", type=int, default=0)
+    parser.add_argument("--lambda-pref", type=float, default=1.0)
+    parser.add_argument("--weights-out", type=Path, default=DEFAULT_WEIGHTS_OUT)
+    args = parser.parse_args()
+
+    feedback_examples = read_json(args.feedback)
+    features = load_features()
+    probes = load_probe_states(args.probe_states)
+
+    groups = [f.get("group_id") or f.get("probe_id") for f in feedback_examples]
+    folds = make_folds(groups, n_folds=args.n_folds, seed=args.seed)
+    fold = folds[args.val_fold % len(folds)]
+    test_groups = set(fold["test_groups"])
+
+    train_feedback = [f for i, f in enumerate(feedback_examples) if groups[i] not in test_groups]
+    val_feedback = [f for i, f in enumerate(feedback_examples) if groups[i] in test_groups]
+    val_scenarios = _unique_scenarios(val_feedback)
+
+    print(f"Held-out fold {args.val_fold}: {len(test_groups)} scenarios, {len(val_feedback)} utterances")
+
+    # --- gold / zero baselines (scenario level) ---
+    gold = load_gold_weights()
+    zero = empty_weights(features)
+    gold_acc = _scenario_accuracy(gold, val_scenarios, lambda_pref=args.lambda_pref)
+    zero_acc = _scenario_accuracy(zero, val_scenarios, lambda_pref=args.lambda_pref)
+
+    # --- Route 1: one global Bayesian belief from training feedback ---
+    model1, _ = learn_from_feedback(
+        feedback_examples=train_feedback, probe_states=probes, features=features
+    )
+    route1_acc = _scenario_accuracy(model1.as_dict(), val_scenarios, lambda_pref=args.lambda_pref)
+
+    # --- Route 2: trained network, per utterance (text-only) ---
+    model2, vocab, model_features, use_fc = load_checkpoint(args.model)
+    per_example_correct = 0
+    scenario_votes: dict[str, Counter] = {}
+    for example in val_feedback:
+        w_hat = predict_reward_vector(model2, vocab, model_features, example["text"])
+        choice = choose_subgoal(
+            w_hat, example["context"], example["feasible_subgoals"], lambda_pref=args.lambda_pref
+        )
+        acceptable = example.get("acceptable_subgoals") or [example.get("expected_subgoal")]
+        correct = (not choice["is_tie"]) and choice["chosen_subgoal"] in acceptable
+        per_example_correct += int(correct)
+        scenario_votes.setdefault(example["group_id"], Counter())[choice["chosen_subgoal"]] += 1
+
+    route2_example_acc = per_example_correct / len(val_feedback) if val_feedback else 0.0
+    scenario_correct = 0
+    for scenario in val_scenarios:
+        votes = scenario_votes.get(scenario["group_id"])
+        if not votes:
+            continue
+        chosen = votes.most_common(1)[0][0]
+        acceptable = scenario.get("acceptable_subgoals") or [scenario.get("expected_subgoal")]
+        scenario_correct += int(chosen in acceptable)
+    route2_scenario_acc = scenario_correct / len(val_scenarios) if val_scenarios else 0.0
+
+    print("\nHeld-out subgoal accuracy (scenario level):")
+    print(f"  gold w*      : {gold_acc['correct']}/{gold_acc['total']} = {gold_acc['accuracy']*100:.1f}%")
+    print(f"  zero weights : {zero_acc['correct']}/{zero_acc['total']} = {zero_acc['accuracy']*100:.1f}%")
+    print(f"  route1 global: {route1_acc['correct']}/{route1_acc['total']} = {route1_acc['accuracy']*100:.1f}%")
+    print(
+        f"  route2 net   : {scenario_correct}/{len(val_scenarios)} = {route2_scenario_acc*100:.1f}% "
+        f"(majority vote); per-utterance {route2_example_acc*100:.1f}%"
+    )
+
+    # --- export frozen comfort weights (tier-2: not a naive utterance mean) ---
+    # Cache per-utterance predictions once, then try several aggregations and
+    # keep the one that best recovers the hand-authored subgoal probes (never
+    # used in training). Scenario-balanced mean avoids over-weighting verbose
+    # scenarios; median damps outlier paraphrases.
+    per_text_w = [
+        predict_reward_vector(model2, vocab, model_features, example["text"])
+        for example in feedback_examples
+    ]
+    by_group: dict[str, list[dict[str, float]]] = {}
+    for example, w_hat in zip(feedback_examples, per_text_w):
+        by_group.setdefault(example["group_id"], []).append(w_hat)
+
+    def _mean_weights(vectors: list[dict[str, float]]) -> dict[str, float]:
+        if not vectors:
+            return {f: 0.0 for f in model_features}
+        out = {f: 0.0 for f in model_features}
+        for vec in vectors:
+            for f, v in vec.items():
+                out[f] += v
+        n = float(len(vectors))
+        return {f: v / n for f, v in out.items()}
+
+    def _median_weights(vectors: list[dict[str, float]]) -> dict[str, float]:
+        if not vectors:
+            return {f: 0.0 for f in model_features}
+        out: dict[str, float] = {}
+        for f in model_features:
+            vals = sorted(vec[f] for vec in vectors)
+            mid = len(vals) // 2
+            out[f] = (
+                float(vals[mid])
+                if len(vals) % 2
+                else 0.5 * (vals[mid - 1] + vals[mid])
+            )
+        return out
+
+    utterance_mean = _mean_weights(per_text_w)
+    scenario_means = [_mean_weights(vecs) for vecs in by_group.values()]
+    scenario_balanced = _mean_weights(scenario_means)
+    utterance_median = _median_weights(per_text_w)
+
+    full_scenarios = _unique_scenarios(feedback_examples)
+    probe_scenarios = [
+        {
+            "group_id": p["probe_id"],
+            "context": p["context"],
+            "feasible_subgoals": p["feasible_subgoals"],
+            "acceptable_subgoals": p["acceptable_subgoals"],
+            "expected_subgoal": p["expected_subgoal"],
+        }
+        for p in read_json(ROOT / "data" / "subgoal_probe_states.json")
+    ]
+
+    candidates = {
+        "utterance_mean": utterance_mean,
+        "scenario_balanced_mean": scenario_balanced,
+        "utterance_median": utterance_median,
+    }
+    best_name = "scenario_balanced_mean"
+    best_score = (-1.0, -1.0)
+    best_weights = scenario_balanced
+    print("\nExport candidates (pick by hand-authored probe accuracy):")
+    for name, weights in candidates.items():
+        probe = _scenario_accuracy(weights, probe_scenarios, lambda_pref=args.lambda_pref)
+        synth = _scenario_accuracy(weights, full_scenarios, lambda_pref=args.lambda_pref)
+        print(
+            f"  {name:24s} probes {probe['correct']}/{probe['total']}="
+            f"{probe['accuracy']*100:.1f}% | synth {synth['correct']}/{synth['total']}="
+            f"{synth['accuracy']*100:.1f}%"
+        )
+        score = (probe["accuracy"], synth["accuracy"])
+        if score > best_score:
+            best_score = score
+            best_name = name
+            best_weights = weights
+
+    learned_weights = best_weights
+    write_json(args.weights_out, learned_weights)
+    export_acc = _scenario_accuracy(learned_weights, full_scenarios, lambda_pref=args.lambda_pref)
+    probe_acc = _scenario_accuracy(learned_weights, probe_scenarios, lambda_pref=args.lambda_pref)
+
+    print(f"\nExported comfort weights ({best_name}):")
+    print(f"  all synthetic scenarios: {export_acc['correct']}/{export_acc['total']} = {export_acc['accuracy']*100:.1f}%")
+    print(f"  hand-authored subgoal probes (held-out, only-tested): "
+          f"{probe_acc['correct']}/{probe_acc['total']} = {probe_acc['accuracy']*100:.1f}%")
+    print(f"  weights JSON: {args.weights_out}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

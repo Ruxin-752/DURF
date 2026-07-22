@@ -357,6 +357,58 @@ def rule_teacher_decision(
     return "WAIT", int(Action.ACTION_TO_INDEX[Action.STAY])
 
 
+def subgoal_target_positions(
+    state, mdp, subgoal: str, player_index: int = 0
+) -> list[tuple[int, int]]:
+    """Feature positions a given subgoal wants to reach.
+
+    Mirrors the per-subgoal target logic inside ``rule_teacher_decision`` but
+    keyed by an *externally chosen* subgoal, so a comfort reranker can decide
+    WHICH subgoal to pursue while H0 keeps owning execution.
+    """
+
+    pot_states = mdp.get_pot_states(state)
+    if subgoal == "GET_TOMATO":
+        return ingredient_pickup_locations(state, mdp, "tomato")
+    if subgoal == "GET_ONION":
+        return ingredient_pickup_locations(state, mdp, "onion")
+    if subgoal == "PUT_TOMATO_IN_POT":
+        return pots_needing_ingredient(state, mdp, "tomato")
+    if subgoal == "PUT_ONION_IN_POT":
+        return pots_needing_ingredient(state, mdp, "onion")
+    if subgoal == "GET_DISH":
+        return mdp.get_dish_dispenser_locations()
+    if subgoal == "PICKUP_SOUP":
+        return mdp.get_ready_pots(pot_states)
+    if subgoal == "SERVE_SOUP":
+        return mdp.get_serving_locations()
+    return []  # WAIT or unknown
+
+
+def execute_subgoal(
+    state, motion_planner: MotionPlanner, subgoal: str, player_index: int = 0
+) -> int:
+    """Return the next action that advances ``subgoal`` (H0-owned execution).
+
+    ``WAIT`` (and any subgoal with no reachable target) resolves to ``STAY``.
+    """
+
+    if subgoal == "WAIT":
+        return int(Action.ACTION_TO_INDEX[Action.STAY])
+    mdp = motion_planner.mdp
+    player = state.players[player_index]
+    blocked_positions = {
+        other.position
+        for index, other in enumerate(state.players)
+        if index != player_index
+    }
+    targets = subgoal_target_positions(state, mdp, subgoal, player_index)
+    action = first_action_to_feature(motion_planner, player, targets, blocked_positions)
+    if action is None:
+        return int(Action.ACTION_TO_INDEX[Action.STAY])
+    return int(action)
+
+
 def make_motion_planner(layout: str, seed: int, horizon: int) -> MotionPlanner:
     from durf.baseline.runtime import make_direct_multi_env
 

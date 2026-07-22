@@ -5,7 +5,7 @@ from __future__ import annotations
 
 KEYWORD_FEATURES: tuple[tuple[tuple[str, ...], dict[str, float]], ...] = (
     (
-        ("block", "blocking", "in my way", "堵", "挡", "卡", "路"),
+        ("block", "blocking", "in my way"),
         {
             "blocks_human_path": 1,
             "human_wait_cost": 1,
@@ -13,28 +13,28 @@ KEYWORD_FEATURES: tuple[tuple[tuple[str, ...], dict[str, float]], ...] = (
         },
     ),
     (
-        ("move away", "step aside", "clear", "让开", "移开"),
+        ("move away", "step aside", "clear"),
         {
             "clears_human_path": 1,
             "respects_human_intent": 1,
         },
     ),
     (
-        ("dish", "盘"),
+        ("dish",),
         {
             "pick_dish": 1,
             "supports_serving": 1,
         },
     ),
     (
-        ("tomato", "番茄"),
+        ("tomato",),
         {
             "ingredient_tomato": 1,
             "pick_tomato": 1,
         },
     ),
     (
-        ("onion", "洋葱", "葱"),
+        ("onion",),
         {
             "ingredient_onion": 1,
             "pick_onion": 1,
@@ -42,7 +42,7 @@ KEYWORD_FEATURES: tuple[tuple[tuple[str, ...], dict[str, float]], ...] = (
         },
     ),
     (
-        ("duplicate", "repeat", "same task", "重复", "也去拿"),
+        ("duplicate", "repeat", "same task"),
         {
             "duplicate_human_task": 1,
             "crowds_human_target": 1,
@@ -50,7 +50,7 @@ KEYWORD_FEATURES: tuple[tuple[tuple[str, ...], dict[str, float]], ...] = (
         },
     ),
     (
-        ("shortest path", "cut in", "插", "最短路径"),
+        ("shortest path", "cut in"),
         {
             "cuts_in_front_of_human": 1,
             "blocks_human_path": 1,
@@ -58,7 +58,7 @@ KEYWORD_FEATURES: tuple[tuple[tuple[str, ...], dict[str, float]], ...] = (
         },
     ),
     (
-        ("serve", "serving", "出餐", "上菜"),
+        ("serve", "serving"),
         {
             "serve_ready_soup": 1,
             "supports_serving": 1,

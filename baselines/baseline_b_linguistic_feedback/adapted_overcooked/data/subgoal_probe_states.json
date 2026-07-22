@@ -1,0 +1,92 @@
+[
+  {
+    "probe_id": "SG01_do_not_take_dish_human_wants",
+    "probe_name": "Do Not Take The Dish The Human Is Getting",
+    "category": "SubgoalComfort",
+    "research_question": "When the soup is ready and the human is going for the dish, does the agent avoid grabbing the dish and blocking the serving route?",
+    "context": {
+      "recipe": ["tomato", "tomato", "onion"],
+      "pot_ingredients": ["tomato", "tomato", "onion"],
+      "pot_status": "ready",
+      "agent_holding": null,
+      "human_holding": null,
+      "human_intent": "pick_dish_then_serve"
+    },
+    "feasible_subgoals": ["GET_DISH", "WAIT"],
+    "acceptable_subgoals": ["WAIT"],
+    "expected_subgoal": "WAIT",
+    "notes": "Human already committed to the dish-serving plan; agent should yield."
+  },
+  {
+    "probe_id": "SG02_do_not_duplicate_onion",
+    "probe_name": "Do Not Duplicate The Onion The Human Is Getting",
+    "category": "SubgoalComfort",
+    "research_question": "When only onion is missing and the human is already getting it, does the agent avoid duplicating that task?",
+    "context": {
+      "recipe": ["tomato", "tomato", "onion"],
+      "pot_ingredients": ["tomato", "tomato"],
+      "pot_status": "partial",
+      "agent_holding": null,
+      "human_holding": null,
+      "human_intent": "get_onion"
+    },
+    "feasible_subgoals": ["GET_ONION", "WAIT"],
+    "acceptable_subgoals": ["WAIT"],
+    "expected_subgoal": "WAIT",
+    "notes": "Nothing complementary remains; duplicating the onion crowds the human."
+  },
+  {
+    "probe_id": "SG03_choose_complementary_ingredient",
+    "probe_name": "Choose The Complementary Ingredient",
+    "category": "SubgoalComfort",
+    "research_question": "When both tomato and onion are needed and the human is getting tomato, does the agent pick the complementary onion?",
+    "context": {
+      "recipe": ["tomato", "tomato", "onion"],
+      "pot_ingredients": [],
+      "pot_status": "empty",
+      "agent_holding": null,
+      "human_holding": null,
+      "human_intent": "get_tomato"
+    },
+    "feasible_subgoals": ["GET_TOMATO", "GET_ONION"],
+    "acceptable_subgoals": ["GET_ONION"],
+    "expected_subgoal": "GET_ONION",
+    "notes": "Complementary division of labor instead of both grabbing tomato."
+  },
+  {
+    "probe_id": "SG04_serve_when_uncontested",
+    "probe_name": "Serve When The Human Is Not On The Serving Route",
+    "category": "SubgoalComfort",
+    "research_question": "When the soup is ready, the agent holds a dish, and the human is prepping the next order, does the agent proceed to pick up the soup?",
+    "context": {
+      "recipe": ["tomato", "tomato", "onion"],
+      "pot_ingredients": ["tomato", "tomato", "onion"],
+      "pot_status": "ready",
+      "agent_holding": "dish",
+      "human_holding": null,
+      "human_intent": "get_tomato"
+    },
+    "feasible_subgoals": ["PICKUP_SOUP", "WAIT"],
+    "acceptable_subgoals": ["PICKUP_SOUP"],
+    "expected_subgoal": "PICKUP_SOUP",
+    "notes": "Serving does not conflict with the human, so progress the recipe."
+  },
+  {
+    "probe_id": "SG05_get_dish_when_uncontested",
+    "probe_name": "Get The Dish When The Human Is Not Serving",
+    "category": "SubgoalComfort",
+    "research_question": "When the soup is ready and the human is getting an ingredient (not serving), does the agent support serving by getting the dish?",
+    "context": {
+      "recipe": ["tomato", "tomato", "onion"],
+      "pot_ingredients": ["tomato", "tomato", "onion"],
+      "pot_status": "ready",
+      "agent_holding": null,
+      "human_holding": null,
+      "human_intent": "get_onion"
+    },
+    "feasible_subgoals": ["GET_DISH", "WAIT"],
+    "acceptable_subgoals": ["GET_DISH"],
+    "expected_subgoal": "GET_DISH",
+    "notes": "Human is not on the serving route, so supporting serving is complementary."
+  }
+]

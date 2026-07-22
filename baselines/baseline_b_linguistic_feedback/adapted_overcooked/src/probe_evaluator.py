@@ -6,8 +6,10 @@ from collections import defaultdict
 import math
 from pathlib import Path
 
+import numpy as np
+
+from .belief_model import GaussianBelief, score_action
 from .feature_schema import read_json
-from .reward_weight_model import RewardWeightModel
 
 
 DEFAULT_PROBE_STATES_PATH = Path(__file__).resolve().parents[1] / "data" / "probe_states.json"
@@ -22,14 +24,14 @@ def load_probe_states(path: str | Path = DEFAULT_PROBE_STATES_PATH) -> list[dict
 
 def choose_action(
     probe: dict,
-    model: RewardWeightModel,
+    weights: dict[str, float],
     *,
     tie_tolerance: float = 1e-9,
 ) -> dict:
     scored_actions = []
     for action in probe.get("available_actions", []):
         features = action.get("features", {})
-        score = model.score_action(features)
+        score = score_action(weights, features)
         scored_actions.append(
             {
                 "action_id": action.get("action_id"),
@@ -61,12 +63,11 @@ def evaluate_probes(
     probes: list[dict],
     weights: dict[str, float],
 ) -> dict:
-    model = RewardWeightModel(weights)
     results = []
     category_counts: dict[str, dict[str, int]] = defaultdict(lambda: {"correct": 0, "total": 0})
 
     for probe in probes:
-        choice = choose_action(probe, model)
+        choice = choose_action(probe, weights)
         acceptable_actions = probe.get("acceptable_actions") or [probe.get("expected_action")]
         acceptable_scores = [
             action["score"]
@@ -130,5 +131,79 @@ def evaluate_probes(
             else None
         ),
         "category_accuracy": category_accuracy,
+        "results": results,
+    }
+
+
+def evaluate_probes_sampled(
+    probes: list[dict],
+    belief: GaussianBelief,
+    *,
+    n_samples: int = 500,
+    seed: int = 0,
+) -> dict:
+    """Paper-style stochastic action selection under the posterior belief.
+
+    Mirrors the original ``BaseAgent.execute_trajectories``: draw ``n_samples``
+    weight hypotheses from the belief, pick the argmax action under each, and
+    report how often the chosen action is acceptable (expected accuracy) plus
+    the per-action selection probability.
+    """
+
+    rng = np.random.default_rng(seed)
+    samples = belief.sample(n_samples, rng)
+    feature_index = {feature: position for position, feature in enumerate(belief.features)}
+
+    results = []
+    expected_correct = 0.0
+    for probe in probes:
+        actions = probe.get("available_actions", [])
+        if not actions:
+            raise ValueError(f"Probe has no available actions: {probe.get('probe_id')}")
+
+        action_matrix = np.zeros((len(actions), len(belief.features)), dtype=float)
+        for row, action in enumerate(actions):
+            for feature, value in action.get("features", {}).items():
+                position = feature_index.get(str(feature))
+                if position is not None:
+                    action_matrix[row, position] = float(value)
+
+        # values[sample, action]
+        values = samples @ action_matrix.T
+        chosen_per_sample = np.argmax(values, axis=1)
+        counts = np.bincount(chosen_per_sample, minlength=len(actions))
+        selection_probability = counts / n_samples
+
+        acceptable_actions = probe.get("acceptable_actions") or [probe.get("expected_action")]
+        acceptable_prob = float(
+            sum(
+                selection_probability[row]
+                for row, action in enumerate(actions)
+                if action.get("action_id") in acceptable_actions
+            )
+        )
+        expected_correct += acceptable_prob
+        top_row = int(np.argmax(counts))
+        results.append(
+            {
+                "probe_id": probe.get("probe_id"),
+                "category": probe.get("category", "unknown"),
+                "expected_action": probe.get("expected_action"),
+                "acceptable_actions": acceptable_actions,
+                "most_selected_action": actions[top_row].get("action_id"),
+                "acceptable_probability": acceptable_prob,
+                "selection_probability": {
+                    action.get("action_id"): float(selection_probability[row])
+                    for row, action in enumerate(actions)
+                },
+            }
+        )
+
+    total = len(results)
+    return {
+        "n_samples": n_samples,
+        "seed": seed,
+        "expected_accuracy": expected_correct / total if total else 0.0,
+        "total": total,
         "results": results,
     }

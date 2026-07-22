@@ -21,13 +21,30 @@ from src.feature_schema import (  # noqa: E402
     write_json,
 )
 from src.feedback_form_classifier import classify_feedback  # noqa: E402
-from src.overcooked_grounding import ground_feedback  # noqa: E402
-from src.probe_evaluator import DEFAULT_PROBE_STATES_PATH, evaluate_probes, load_probe_states  # noqa: E402
-from src.reward_weight_model import RewardWeightModel  # noqa: E402
-from src.sentiment_extractor import desired_action_sentiment, extract_sentiment  # noqa: E402
+from src.overcooked_grounding import features_from_keywords, ground_feedback  # noqa: E402
+from src.feature_schema import load_features  # noqa: E402
+from src.text_analysis import limited_punc_tokenization  # noqa: E402
+from src.probe_evaluator import (  # noqa: E402
+    DEFAULT_PROBE_STATES_PATH,
+    evaluate_probes,
+    evaluate_probes_sampled,
+    load_probe_states,
+)
+from src.reward_weight_model import BayesianRewardLearner  # noqa: E402
+from src.sentiment_extractor import (  # noqa: E402
+    desired_action_sentiment,
+    extract_sentiment,
+    modified_vader_observation,
+)
 
 
 DEFAULT_FEEDBACK_PATH = ROOT / "data" / "feedback_examples.json"
+
+# Paper defaults (science/agents/agents.py ExpLiteralLearner / ExpPseudoPragmatic).
+DEFAULT_VALENCE_SCALE = 30.0
+DEFAULT_PRECISION_SCALE = 2.0
+DEFAULT_PRAGMATIC_VALENCE = -30.0
+DEFAULT_PRAGMATIC_PRECISION = 2.0
 
 
 def effective_sentiment_score(
@@ -44,14 +61,87 @@ def effective_sentiment_score(
     return float(sentiment["sentiment_score"])
 
 
+def build_feedback_observations(
+    feedback: dict,
+    *,
+    feedback_type: str,
+    action_feature_library: dict[str, dict[str, float]],
+) -> list[dict]:
+    """Decompose one feedback utterance into per-phrase Gaussian sub-observations.
+
+    Mirrors the paper's ``observations_from_utterance``: an utterance is split
+    on punctuation (``limited_punc_tokenization``) and each phrase becomes its
+    own observation with its own VADER valence. Feedback that carries an
+    explicit grounding (``target_features`` / ``trajectory_features`` /
+    ``target_action``) is treated as a single whole-utterance reference, since
+    that authored vector -- not the text -- is the effective reference here.
+    """
+
+    text = feedback.get("text") or feedback.get("feedback_text") or ""
+    grounding = ground_feedback(
+        feedback,
+        feedback_type=feedback_type,
+        action_feature_library=action_feature_library,
+    )
+
+    if grounding["grounding_source"] != "keyword_features":
+        sentiment = extract_sentiment(text)
+        valence = effective_sentiment_score(
+            feedback_type=feedback_type,
+            sentiment=sentiment,
+            target_features=grounding["target_features"],
+            feedback=feedback,
+        )
+        return [
+            {
+                "target_features": grounding["target_features"],
+                "valence": valence,
+                "phrase": text,
+                "grounding_source": grounding["grounding_source"],
+            }
+        ]
+
+    sub_observations: list[dict] = []
+    for phrase in limited_punc_tokenization(text):
+        phrase_features = features_from_keywords(phrase)
+        if phrase_features:
+            sub_observations.append(
+                {
+                    "target_features": phrase_features,
+                    "valence": modified_vader_observation(phrase),
+                    "phrase": phrase,
+                    "grounding_source": "keyword_features",
+                }
+            )
+    if not sub_observations:
+        sub_observations.append(
+            {
+                "target_features": features_from_keywords(text),
+                "valence": modified_vader_observation(text),
+                "phrase": text,
+                "grounding_source": "keyword_features",
+            }
+        )
+    return sub_observations
+
+
 def learn_from_feedback(
     *,
     feedback_examples: list[dict],
     probe_states: list[dict],
-    initial_weights: dict[str, float],
-    learning_rate: float,
-) -> tuple[RewardWeightModel, list[dict]]:
-    model = RewardWeightModel(initial_weights, learning_rate=learning_rate)
+    features: list[str],
+    valence_scale: float = DEFAULT_VALENCE_SCALE,
+    precision_scale: float = DEFAULT_PRECISION_SCALE,
+    pragmatic_valence: float | None = None,
+    pragmatic_precision: float | None = None,
+) -> tuple[BayesianRewardLearner, list[dict]]:
+    model = BayesianRewardLearner(
+        features,
+        valence_scale=valence_scale,
+        precision_scale=precision_scale,
+        pragmatic_valence=pragmatic_valence,
+        pragmatic_precision=pragmatic_precision,
+    )
     action_library = collect_action_feature_library(probe_states)
     updates = []
 
@@ -59,29 +149,41 @@ def learn_from_feedback(
         feedback_type = feedback.get("expected_feedback_type") or classify_feedback(
             feedback.get("text")
         )
-        sentiment = extract_sentiment(feedback.get("text"))
-        grounding = ground_feedback(
+        sub_observations = build_feedback_observations(
             feedback,
             feedback_type=feedback_type,
             action_feature_library=action_library,
         )
-        target_features = grounding["target_features"]
-        sentiment_score = effective_sentiment_score(
-            feedback_type=feedback_type,
-            sentiment=sentiment,
-            target_features=target_features,
-            feedback=feedback,
+
+        before = model.as_dict()
+        merged_features: dict[str, float] = {}
+        valences: list[float] = []
+        for sub in sub_observations:
+            model.update(sub["target_features"], sub["valence"])
+            for feature, value in sub["target_features"].items():
+                merged_features[feature] = merged_features.get(feature, 0.0) + float(value)
+            valences.append(sub["valence"])
+        after = model.as_dict()
+
+        delta = {
+            feature: round(after[feature] - before[feature], 12)
+            for feature in after
+            if abs(after[feature] - before[feature]) > 1e-9
+        }
+        mean_valence = sum(valences) / len(valences) if valences else 0.0
+        sentiment_label = (
+            "positive" if mean_valence > 0 else "negative" if mean_valence < 0 else "neutral"
         )
-        delta = model.update(target_features, sentiment_score)
         updates.append(
             {
                 "feedback_id": feedback.get("feedback_id"),
                 "text": feedback.get("text"),
                 "feedback_type": feedback_type,
-                "sentiment": sentiment["sentiment"],
-                "sentiment_score": sentiment_score,
-                "grounding_source": grounding["grounding_source"],
-                "target_features": target_features,
+                "sentiment": sentiment_label,
+                "sentiment_score": mean_valence,
+                "n_observations": len(sub_observations),
+                "grounding_source": sub_observations[0]["grounding_source"],
+                "target_features": merged_features,
                 "weight_delta": delta,
             }
         )
@@ -92,8 +194,11 @@ def evaluate_leave_one_probe_out(
     *,
     feedback_examples: list[dict],
     probe_states: list[dict],
-    initial_weights: dict[str, float],
-    learning_rate: float,
+    features: list[str],
+    valence_scale: float = DEFAULT_VALENCE_SCALE,
+    precision_scale: float = DEFAULT_PRECISION_SCALE,
+    pragmatic_valence: float | None = None,
+    pragmatic_precision: float | None = None,
 ) -> dict:
     results = []
     for probe in probe_states:
@@ -106,8 +211,11 @@ def evaluate_leave_one_probe_out(
         model, _ = learn_from_feedback(
             feedback_examples=training_examples,
             probe_states=probe_states,
-            initial_weights=initial_weights,
-            learning_rate=learning_rate,
+            features=features,
+            valence_scale=valence_scale,
+            precision_scale=precision_scale,
+            pragmatic_valence=pragmatic_valence,
+            pragmatic_precision=pragmatic_precision,
         )
         evaluation = evaluate_probes([probe], model.as_dict())
         probe_result = evaluation["results"][0]
@@ -139,17 +247,33 @@ def run_pipeline(
     feedback_examples: list[dict],
     probe_states: list[dict],
     initial_weights: dict[str, float],
-    learning_rate: float,
+    learning_rate: float = 1.0,  # deprecated: point-estimate step size, ignored by Bayesian learner
+    valence_scale: float = DEFAULT_VALENCE_SCALE,
+    precision_scale: float = DEFAULT_PRECISION_SCALE,
+    pragmatic_valence: float | None = None,
+    pragmatic_precision: float | None = None,
+    n_samples: int = 500,
+    seed: int = 0,
 ) -> dict:
     validate_feedback_examples(feedback_examples, probe_states=probe_states)
+    features = sorted(initial_weights) if initial_weights else load_features()
+    learn_kwargs = dict(
+        probe_states=probe_states,
+        features=features,
+        valence_scale=valence_scale,
+        precision_scale=precision_scale,
+        pragmatic_valence=pragmatic_valence,
+        pragmatic_precision=pragmatic_precision,
+    )
     model, updates = learn_from_feedback(
         feedback_examples=feedback_examples,
-        probe_states=probe_states,
-        initial_weights=initial_weights,
-        learning_rate=learning_rate,
+        **learn_kwargs,
     )
 
     learned_evaluation = evaluate_probes(probe_states, model.as_dict())
+    learned_evaluation_sampled = evaluate_probes_sampled(
+        probe_states, model.belief, n_samples=n_samples, seed=seed
+    )
     zero_evaluation = evaluate_probes(
         probe_states,
         empty_weights(list(initial_weights)),
@@ -157,9 +281,7 @@ def run_pipeline(
     initial_evaluation = evaluate_probes(probe_states, initial_weights)
     holdout_evaluation = evaluate_leave_one_probe_out(
         feedback_examples=feedback_examples,
-        probe_states=probe_states,
-        initial_weights=initial_weights,
-        learning_rate=learning_rate,
+        **learn_kwargs,
     )
     classification_correct = sum(
         classify_feedback(feedback.get("text")) == feedback.get("expected_feedback_type")
@@ -170,9 +292,19 @@ def run_pipeline(
         source = update["grounding_source"].split(":", 1)[0]
         grounding_counts[source] = grounding_counts.get(source, 0) + 1
 
+    learner_mode = "pseudopragmatic" if pragmatic_valence is not None else "literal"
     return {
+        "learner": {
+            "type": "BayesianRewardLearner",
+            "mode": learner_mode,
+            "valence_scale": valence_scale,
+            "precision_scale": precision_scale,
+            "pragmatic_valence": pragmatic_valence,
+            "pragmatic_precision": pragmatic_precision,
+        },
         "updates": updates,
         "learned_weights": model.as_dict(),
+        "learned_weight_variance": model.belief.variance_as_dict(),
         "top_weights": model.top_weights(),
         "pipeline_metrics": {
             "feedback_examples": len(feedback_examples),
@@ -185,6 +317,7 @@ def run_pipeline(
             "grounding_source_counts": dict(sorted(grounding_counts.items())),
         },
         "probe_evaluation": learned_evaluation,
+        "probe_evaluation_sampled": learned_evaluation_sampled,
         "probe_evaluations": {
             "zero_weights": zero_evaluation,
             "initial_weights": initial_evaluation,
@@ -195,7 +328,12 @@ def run_pipeline(
 
 
 def print_summary(result: dict) -> None:
-    print("Updated feature weights:")
+    learner = result.get("learner", {})
+    print(
+        f"Learner: {learner.get('type')} mode={learner.get('mode')} "
+        f"(V{learner.get('valence_scale')},P{learner.get('precision_scale')})"
+    )
+    print("Posterior mean feature weights (top):")
     for feature, weight in result["top_weights"]:
         print(f"  {feature}: {weight:.2f}")
     evaluation = result["probe_evaluation"]
@@ -203,9 +341,15 @@ def print_summary(result: dict) -> None:
     total = evaluation["total"]
     accuracy = evaluation["overall_accuracy"] * 100
     print(
-        f"\nLearned Probe Accuracy: {correct}/{total} = {accuracy:.1f}% "
+        f"\nLearned Probe Accuracy (posterior mean): {correct}/{total} = {accuracy:.1f}% "
         f"(ties={evaluation['tie_count']})"
     )
+    sampled = result.get("probe_evaluation_sampled")
+    if sampled:
+        print(
+            f"Learned Probe Accuracy (sampled policy, n={sampled['n_samples']}): "
+            f"{sampled['expected_accuracy'] * 100:.1f}% expected"
+        )
     print("Evaluation baselines:")
     for name in ("zero_weights", "initial_weights", "leave_one_probe_out"):
         baseline = result["probe_evaluations"][name]
@@ -235,7 +379,18 @@ def main() -> int:
     parser.add_argument("--feedback", type=Path, default=DEFAULT_FEEDBACK_PATH)
     parser.add_argument("--probe-states", type=Path, default=DEFAULT_PROBE_STATES_PATH)
     parser.add_argument("--weights", type=Path, default=DEFAULT_WEIGHTS_PATH)
-    parser.add_argument("--learning-rate", type=float, default=1.0)
+    parser.add_argument(
+        "--mode",
+        choices=("literal", "pseudopragmatic"),
+        default="literal",
+        help="Bayesian learner variant from the paper.",
+    )
+    parser.add_argument("--valence-scale", type=float, default=DEFAULT_VALENCE_SCALE)
+    parser.add_argument("--precision-scale", type=float, default=DEFAULT_PRECISION_SCALE)
+    parser.add_argument("--pragmatic-valence", type=float, default=DEFAULT_PRAGMATIC_VALENCE)
+    parser.add_argument("--pragmatic-precision", type=float, default=DEFAULT_PRAGMATIC_PRECISION)
+    parser.add_argument("--n-samples", type=int, default=500)
+    parser.add_argument("--seed", type=int, default=0)
     parser.add_argument(
         "--output",
         type=Path,
@@ -247,11 +402,17 @@ def main() -> int:
     feedback_examples = read_json(args.feedback)
     probe_states = load_probe_states(args.probe_states)
     initial_weights = load_weights(args.weights)
+    pragmatic = args.mode == "pseudopragmatic"
     result = run_pipeline(
         feedback_examples=feedback_examples,
         probe_states=probe_states,
         initial_weights=initial_weights,
-        learning_rate=args.learning_rate,
+        valence_scale=args.valence_scale,
+        precision_scale=args.precision_scale,
+        pragmatic_valence=args.pragmatic_valence if pragmatic else None,
+        pragmatic_precision=args.pragmatic_precision if pragmatic else None,
+        n_samples=args.n_samples,
+        seed=args.seed,
     )
     write_json(args.output, result)
 

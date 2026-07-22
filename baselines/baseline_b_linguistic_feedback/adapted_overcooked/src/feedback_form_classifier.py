@@ -17,12 +17,6 @@ IMPERATIVE_MARKERS = (
     "serve",
     "move",
     "clear",
-    "你应该",
-    "应该",
-    "去",
-    "拿",
-    "放",
-    "让开",
 )
 
 EVALUATIVE_MARKERS = (
@@ -33,11 +27,6 @@ EVALUATIVE_MARKERS = (
     "wrong",
     "correct",
     "thanks",
-    "好",
-    "不好",
-    "不错",
-    "错",
-    "棒",
 )
 
 DESCRIPTIVE_MARKERS = (
@@ -49,13 +38,6 @@ DESCRIPTIVE_MARKERS = (
     "repeat",
     "shortest path",
     "crowd",
-    "抢",
-    "堵",
-    "挡",
-    "卡",
-    "重复",
-    "最短路径",
-    "插",
 )
 
 

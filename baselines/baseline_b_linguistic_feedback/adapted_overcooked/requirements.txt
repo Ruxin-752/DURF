@@ -1,0 +1,21 @@
+# Baseline B (adapted_overcooked) dependencies.
+#
+# There are TWO separate environments in this project; keep them apart:
+#
+# 1. Reward-learning env (Route 1 + Route 2, offline). Everything in THIS file.
+#    torch + nltk live here. Recommended: the existing `pantheonrl_env`.
+#      python -m nltk.downloader vader_lexicon punkt punkt_tab wordnet omw-1.4 stopwords
+#
+# 2. PPO training env (Phase 4 reward shaping). Needs ray[rllib] + tensorflow +
+#    human_aware_rl (the RLlib stack). Recommended: the `durf310` env used by
+#    `durf/baseline/train_rllib_agent.py`. Do NOT install torch/nltk there and
+#    do NOT install ray/tf here -- the two stages hand off via a JSON weight
+#    vector (outputs/route2/learned_comfort_weights.json), so they stay decoupled.
+#
+# The comfort bridge (durf/baseline/comfort_reward.py) only uses numpy-level
+# modules from this package, so it is safe to import inside the PPO env.
+#
+numpy>=1.21
+scipy>=1.7          # 95% CI t-multiplier in evaluate_learning_curve.py (optional; falls back to 1.96)
+nltk>=3.6           # VADER sentiment + tokenization/lemmatization (English only)
+torch>=1.13         # Route 2 inference network (training + runtime inference)
