@@ -633,12 +633,22 @@ python -m durf.feedback_attribution.demo_offline_attribution `
 - candidate events 成功带上 `condition_features`
 - 因为该 session 没有玩家反馈，所以 Hu 样本为 0，符合预期
 
-## 6. 下一步
+## 6. 当前进度与下一步
 
-优先级从高到低：
+已用 `20260722_211635` 的 12 条真实语言反馈完成一次 schema-v2 回放：
 
-1. 用当前 H0 地图采集几条带自然语言反馈的 session。
-2. 跑 `demo_offline_attribution --use-llm`，检查 LLM 是否能正确选择 candidate event 和 subgoal preference。
-3. 人工查看 `hu_attribution_provenance.jsonl`，确认证据链是否合理。
-4. 汇总 `schema_updates.jsonl`，决定是否新增 event detector。
-5. 在 `hu_subgoal_preferences.jsonl` 质量稳定后，再实现 Hu v0 模型。
+- 修正 soup 嵌套结构读取，`recipe_needs_*` 不再长期误报。
+- 修正 `human_trying_to_pass` 的实时误报。
+- 增加相对距离、最后原料、staged counter 物体和劳动分工条件。
+- 新增 `AI_missed_useful_counter_object`。
+- 新增 `AI_missed_labor_division_opportunity`。
+- 归因候选严格截止到反馈 timestep，不使用未来轨迹。
+- 规则 baseline 生成 12 条 attribution、7 条保守 Hu pairwise 样本，其余模糊反馈进入 Review。
+
+接下来优先级：
+
+1. 在 Review 窗口审核这 12 条反馈，特别是 `yes`、`good move`、`good pick` 和路径建议。
+2. 使用同一 schema 重新运行 DeepSeek 归因，并与人工决定比较。
+3. 让 `review_decisions.jsonl` 成为 Hu 训练集的优先数据源。
+4. 在 probe states 上训练并检查 Hu-v0 的 subgoal 排序变化。
+5. 经 Review 证据支持后，再决定是否新增“跟随更快路径”和“主动让路”事件。

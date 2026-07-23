@@ -704,6 +704,226 @@ def detect_ai_missed_plate_pickup_opportunity(window: list[dict]) -> list[dict]:
     return events
 
 
+def detect_ai_missed_useful_counter_object(window: list[dict]) -> list[dict]:
+    """Detect when AI ignores a closer useful loose object on a counter.
+
+    The event is restricted to cases where the AI already selected the matching
+    pickup subgoal. This avoids treating every visible staged object as an
+    obligation to pick it up.
+    """
+
+    events = []
+    pickup_event_steps: set[int] = set()
+    streak: list[dict] = []
+    signature = None
+
+    def flush() -> None:
+        nonlocal streak, signature
+        event = missed_useful_counter_event(streak)
+        if event is not None and not any(
+            abs(step - int(event["end_timestep"])) <= 2
+            for step in pickup_event_steps
+        ):
+            events.append(event)
+        streak = []
+        signature = None
+
+    for step in window:
+        before = step_state_before(step)
+        after = step_state_after(step)
+        before_held = held_name(before.get("ai_held_object"))
+        after_held = held_name(after.get("ai_held_object"))
+        players = before.get("players") or []
+        ai_player = players[0] if players and isinstance(players[0], dict) else {}
+        ai_before = pos_tuple(before.get("ai_pos"))
+        orientation = pos_tuple(ai_player.get("orientation"))
+        pickup_target = (
+            add_pos(ai_before, orientation)
+            if ai_before is not None and orientation is not None
+            else None
+        )
+        terrain = (before.get("layout_features") or {}).get("terrain") or []
+        expected_symbol = {
+            "tomato": "T",
+            "onion": "O",
+            "dish": "D",
+        }.get(after_held)
+        before_step = {
+            **step,
+            "state_facts": before,
+            "ai_condition_features": {},
+            "extra": {"state_before": before},
+        }
+        before_conditions = extract_condition_features(before_step)
+        picked_from_dispenser = (
+            step.get("ai_action_name") == "interact"
+            and before_held is None
+            and after_held in {"tomato", "onion", "dish"}
+            and pickup_target is not None
+            and terrain_at(terrain, pickup_target) == expected_symbol
+        )
+        counter_source_advantage = (
+            before_conditions.get("useful_counter_object_closer_than_dispenser")
+            is True
+            or before_conditions.get(
+                "useful_counter_object_lower_task_cost_than_dispenser"
+            )
+            is True
+        )
+        counter_staging_advantage = (
+            before_conditions.get(
+                "useful_counter_object_closer_to_pot_than_dispenser"
+            )
+            is True
+        )
+        ignored_closer_counter_object = (
+            picked_from_dispenser
+            and before_conditions.get("useful_counter_object_type") == after_held
+            and (counter_source_advantage or counter_staging_advantage)
+        )
+        if ignored_closer_counter_object:
+            event_step = int(step["total_step"])
+            pickup_event_steps.add(event_step)
+            alternative_subgoal = (
+                "GET_DISH"
+                if after_held == "dish"
+                else "GET_USEFUL_INGREDIENT"
+            )
+            events.append(
+                candidate_event(
+                    event_type="AI_missed_useful_counter_object",
+                    start_timestep=event_step,
+                    end_timestep=event_step,
+                    evidence={
+                        "reason": (
+                            "AI picked from a dispenser even though a same-type "
+                            "staged counter object was available and closer to "
+                            "the AI, cheaper for the full task, or closer to the pot."
+                        ),
+                        "detection_mode": (
+                            "dispenser_pickup_despite_source_cost_advantage"
+                            if counter_source_advantage
+                            else "dispenser_pickup_despite_object_staged_near_pot"
+                        ),
+                        "object_type": after_held,
+                        "object_position": before_conditions.get(
+                            "useful_counter_object_position"
+                        ),
+                        "counter_distance": before_conditions.get(
+                            "useful_counter_object_distance"
+                        ),
+                        "matching_dispenser_distance": before_conditions.get(
+                            "matching_dispenser_distance"
+                        ),
+                        "counter_total_task_distance": before_conditions.get(
+                            "useful_counter_total_task_distance"
+                        ),
+                        "dispenser_total_task_distance": before_conditions.get(
+                            "matching_dispenser_total_task_distance"
+                        ),
+                        "pickup_target": list(pickup_target),
+                        "ai_pos": list(ai_before),
+                        "ai_action": step.get("ai_action_name"),
+                        "ai_subgoal": step_ai_subgoal(step),
+                    },
+                    severity=0.65,
+                    confidence=0.9 if counter_source_advantage else 0.65,
+                    actor=ACTOR_AI,
+                    event_valence=VALENCE_MISSED_OPPORTUNITY,
+                    related_subgoal=step_ai_subgoal(step),
+                    alternative_subgoals=[alternative_subgoal],
+                    condition_features=before_conditions,
+                )
+            )
+
+        conditions = extract_condition_features(step)
+        object_type = conditions.get("useful_counter_object_type")
+        object_position = conditions.get("useful_counter_object_position")
+        expected_subgoal = {
+            "tomato": "GET_TOMATO",
+            "onion": "GET_ONION",
+            "dish": "GET_DISH",
+        }.get(object_type)
+        step_signature = (
+            object_type,
+            tuple(object_position) if isinstance(object_position, list) else None,
+        )
+        qualifies = (
+            conditions.get("ai_empty_handed") is True
+            and conditions.get("useful_counter_object_available") is True
+            and (
+                conditions.get("useful_counter_object_closer_than_dispenser")
+                is True
+                or conditions.get(
+                    "useful_counter_object_lower_task_cost_than_dispenser"
+                )
+                is True
+                or conditions.get(
+                    "useful_counter_object_closer_to_pot_than_dispenser"
+                )
+                is True
+            )
+            and expected_subgoal is not None
+            and step_ai_subgoal(step) == expected_subgoal
+        )
+        if not qualifies:
+            flush()
+            continue
+        if signature is not None and step_signature != signature:
+            flush()
+        signature = step_signature
+        streak.append(step)
+
+    flush()
+    return events
+
+
+def detect_ai_missed_labor_division_opportunity(window: list[dict]) -> list[dict]:
+    """Detect two conservative forms of duplicated or uncovered team work."""
+
+    events = []
+    streak: list[dict] = []
+    opportunity_kind = None
+
+    def classify(step: dict) -> tuple[str, str] | None:
+        conditions = extract_condition_features(step)
+        subgoal = step_ai_subgoal(step)
+        if (
+            conditions.get("human_holding_last_needed_ingredient") is True
+            and conditions.get("ai_empty_handed") is True
+            and subgoal not in {"GET_DISH", "PICKUP_SOUP", "SERVE_SOUP"}
+        ):
+            return "human_covers_last_ingredient", "GET_DISH"
+        if (
+            conditions.get("human_has_dish") is True
+            and conditions.get("ai_empty_handed") is True
+            and subgoal == "GET_DISH"
+        ):
+            return "duplicate_dish_task", "GET_USEFUL_INGREDIENT"
+        return None
+
+    def flush() -> None:
+        nonlocal streak, opportunity_kind
+        if len(streak) >= 2 and opportunity_kind is not None:
+            events.append(labor_division_event(streak, opportunity_kind))
+        streak = []
+        opportunity_kind = None
+
+    for step in window:
+        result = classify(step)
+        if result is None:
+            flush()
+            continue
+        kind, _preferred = result
+        if opportunity_kind is not None and kind != opportunity_kind:
+            flush()
+        opportunity_kind = kind
+        streak.append(step)
+
+    flush()
+    return events
+
+
 def held_unneeded_event(streak: list[dict]) -> dict:
     first = streak[0]
     last = streak[-1]
@@ -750,6 +970,136 @@ def missed_plate_event(streak: list[dict]) -> dict:
         event_valence=VALENCE_MISSED_OPPORTUNITY,
         related_subgoal=step_ai_subgoal(last),
         condition_features=extract_condition_features(last),
+    )
+
+
+def missed_useful_counter_event(streak: list[dict]) -> dict | None:
+    if len(streak) < 3:
+        return None
+    first = streak[0]
+    last = streak[-1]
+    first_conditions = extract_condition_features(first)
+    last_conditions = extract_condition_features(last)
+    first_counter_distance = first_conditions.get("useful_counter_object_distance")
+    last_counter_distance = last_conditions.get("useful_counter_object_distance")
+    first_dispenser_distance = first_conditions.get("matching_dispenser_distance")
+    last_dispenser_distance = last_conditions.get("matching_dispenser_distance")
+    counter_progress = (
+        first_counter_distance - last_counter_distance
+        if isinstance(first_counter_distance, int)
+        and isinstance(last_counter_distance, int)
+        else None
+    )
+    dispenser_progress = (
+        first_dispenser_distance - last_dispenser_distance
+        if isinstance(first_dispenser_distance, int)
+        and isinstance(last_dispenser_distance, int)
+        else None
+    )
+    if counter_progress is not None and counter_progress > 0:
+        return None
+
+    return candidate_event(
+        event_type="AI_missed_useful_counter_object",
+        start_timestep=int(first["total_step"]),
+        end_timestep=int(last["total_step"]),
+        evidence={
+            "reason": (
+                "A useful loose object was closer than its dispenser, but the "
+                "AI selected the matching pickup subgoal without approaching it."
+            ),
+            "duration_steps": len(streak),
+            "object_type": last_conditions.get("useful_counter_object_type"),
+            "object_position": last_conditions.get("useful_counter_object_position"),
+            "counter_distances": [
+                extract_condition_features(step).get(
+                    "useful_counter_object_distance"
+                )
+                for step in streak
+            ],
+            "matching_dispenser_distances": [
+                extract_condition_features(step).get("matching_dispenser_distance")
+                for step in streak
+            ],
+            "counter_total_task_distances": [
+                extract_condition_features(step).get(
+                    "useful_counter_total_task_distance"
+                )
+                for step in streak
+            ],
+            "dispenser_total_task_distances": [
+                extract_condition_features(step).get(
+                    "matching_dispenser_total_task_distance"
+                )
+                for step in streak
+            ],
+            "counter_progress": counter_progress,
+            "dispenser_progress": dispenser_progress,
+            "ai_actions": [step.get("ai_action_name") for step in streak],
+            "ai_subgoals": [step_ai_subgoal(step) for step in streak],
+            "ai_positions": [
+                step_state_after(step).get("ai_pos") for step in streak
+            ],
+        },
+        severity=min(1.0, 0.3 + len(streak) * 0.05),
+        confidence=0.7 if dispenser_progress and dispenser_progress > 0 else 0.6,
+        actor=ACTOR_AI,
+        event_valence=VALENCE_MISSED_OPPORTUNITY,
+        related_subgoal=step_ai_subgoal(last),
+        alternative_subgoals=[
+            (
+                "GET_DISH"
+                if last_conditions.get("useful_counter_object_type") == "dish"
+                else "GET_USEFUL_INGREDIENT"
+            )
+        ],
+        condition_features=last_conditions,
+    )
+
+
+def labor_division_event(streak: list[dict], opportunity_kind: str) -> dict:
+    first = streak[0]
+    last = streak[-1]
+    conditions = extract_condition_features(last)
+    if opportunity_kind == "human_covers_last_ingredient":
+        preferred_subgoal = "GET_DISH"
+        reason = (
+            "Human held the last needed ingredient while AI had free hands, "
+            "but AI did not prepare a dish."
+        )
+    else:
+        preferred_subgoal = "GET_USEFUL_INGREDIENT"
+        reason = (
+            "Human already covered the dish role while AI also selected the "
+            "dish task instead of complementary work."
+        )
+    return candidate_event(
+        event_type="AI_missed_labor_division_opportunity",
+        start_timestep=int(first["total_step"]),
+        end_timestep=int(last["total_step"]),
+        evidence={
+            "reason": reason,
+            "opportunity_kind": opportunity_kind,
+            "duration_steps": len(streak),
+            "preferred_subgoal": preferred_subgoal,
+            "human_inferred_subgoal": conditions.get("human_inferred_subgoal"),
+            "needed_ingredient": conditions.get("needed_ingredient"),
+            "ai_actions": [step.get("ai_action_name") for step in streak],
+            "ai_subgoals": [step_ai_subgoal(step) for step in streak],
+            "ai_positions": [
+                step_state_after(step).get("ai_pos") for step in streak
+            ],
+            "human_positions": [
+                step_state_after(step).get("human_pos") for step in streak
+            ],
+        },
+        severity=min(1.0, 0.35 + len(streak) * 0.05),
+        confidence=0.75,
+        actor=ACTOR_AI,
+        event_valence=VALENCE_MISSED_OPPORTUNITY,
+        related_subgoal=step_ai_subgoal(last),
+        alternative_subgoals=[preferred_subgoal],
+        condition_features=conditions,
     )
 
 
@@ -829,6 +1179,8 @@ def detect_candidate_events(window: list[dict]) -> list[dict]:
     events.extend(detect_ai_ignored_ready_or_nearly_ready_pot(window))
     events.extend(detect_ai_failed_to_prepare_ingredient_while_waiting(window))
     events.extend(detect_ai_missed_plate_pickup_opportunity(window))
+    events.extend(detect_ai_missed_useful_counter_object(window))
+    events.extend(detect_ai_missed_labor_division_opportunity(window))
     events.extend(detect_ai_pick_drop_loop(window))
     events.extend(detect_ai_held_unneeded_object_too_long(window))
     events.extend(detect_ai_put_object_on_unhelpful_counter(window))

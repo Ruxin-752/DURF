@@ -5,7 +5,7 @@ from __future__ import annotations
 from .event_detectors import DEFAULT_LOOKBACK_STEPS, detect_candidate_events, recent_window
 from .feedback_type_router import polarity_from_feedback, route_feedback_type
 from .schemas import attribution_result
-from .subgoal_preferences import infer_subgoal_preferences
+from .subgoal_preferences import infer_subgoal_preferences, normalize_subgoals
 
 
 EVENT_KEYWORDS = {
@@ -38,6 +38,13 @@ EVENT_KEYWORDS = {
         "place",
         "beside",
         "next to",
+        "get ingredient",
+        "closer than",
+        "closer to the dish",
+        "closer to the plate",
+        "dish",
+        "plate",
+        "walking on my way",
     ),
     "AI_pick_drop_loop": (
         "pick",
@@ -79,6 +86,30 @@ EVENT_KEYWORDS = {
         "turn",
         "ask me",
         "serve",
+    ),
+    "AI_missed_useful_counter_object": (
+        "counter",
+        "table",
+        "prepared",
+        "closer",
+        "near",
+        "beside",
+        "farther",
+        "farer",
+        "already put",
+    ),
+    "AI_missed_labor_division_opportunity": (
+        "instead",
+        "already",
+        "last ingredient",
+        "when i'm",
+        "when i am",
+        "closer than",
+        "get plate",
+        "get dish",
+        "get ingredient",
+        "faster",
+        "follow me",
     ),
     "AI_successfully_delivered_soup": (
         "good delivery",
@@ -129,6 +160,8 @@ EVENT_PREFERENCES = {
     "AI_held_unneeded_object_too_long": "put_down_unneeded_object",
     "AI_put_object_on_unhelpful_counter": "stage_objects_near_pot",
     "AI_missed_plate_pickup_opportunity": "pick_up_plate_when_useful",
+    "AI_missed_useful_counter_object": "use_staged_counter_object",
+    "AI_missed_labor_division_opportunity": "divide_labor_by_current_roles",
     "AI_successfully_delivered_soup": "deliver_soup_when_ready",
     "AI_successfully_picked_up_soup": "pick_up_soup_when_ready",
     "AI_successfully_put_ingredient_into_pot": "put_needed_ingredient_into_pot",
@@ -170,6 +203,47 @@ def candidate_near_feedback(
     return (
         int(end) >= int(feedback_total_step) - lookback_steps
         and int(start) <= int(feedback_total_step)
+        and int(end) <= int(feedback_total_step)
+    )
+
+
+def candidate_identity(event: dict) -> tuple[str, int | None, int | None]:
+    return (
+        str(event.get("event_type") or ""),
+        event.get("start_timestep"),
+        event.get("end_timestep"),
+    )
+
+
+def candidates_visible_at_feedback(
+    *,
+    trajectory_window: list[dict],
+    candidate_events: list[dict] | None,
+    feedback_total_step: int | None,
+    lookback_steps: int,
+) -> list[dict]:
+    """Return candidate evidence available no later than the feedback step."""
+
+    detected_from_visible_trajectory = detect_candidate_events(trajectory_window)
+    completed_saved_events = [
+        event
+        for event in candidate_events or []
+        if candidate_near_feedback(
+            event,
+            feedback_total_step=feedback_total_step,
+            lookback_steps=lookback_steps,
+        )
+    ]
+    merged = {}
+    for event in [*completed_saved_events, *detected_from_visible_trajectory]:
+        merged[candidate_identity(event)] = event
+    return sorted(
+        merged.values(),
+        key=lambda event: (
+            int(event.get("start_timestep") or -1),
+            int(event.get("end_timestep") or -1),
+            str(event.get("event_type") or ""),
+        ),
     )
 
 
@@ -248,6 +322,11 @@ def select_candidate_event(
         event_type = event.get("event_type", "")
         keyword_score = event_keyword_score(event_type, feedback_text)
         if feedback_polarity == "negative" and event_valence(event) == POSITIVE_VALENCE:
+            keyword_score = 0
+        if (
+            feedback_polarity == "positive"
+            and event_valence(event) in NEGATIVE_VALENCES
+        ):
             keyword_score = 0
         overlap_bonus = 2 if candidate_overlaps_feedback(event, feedback_total_step) else 0
         confidence = float(event.get("confidence") or 0.0)
@@ -337,6 +416,25 @@ def key_conditions_from_event(event: dict | None) -> dict:
             "ai_subgoals": evidence.get("ai_subgoals"),
             "ai_positions": evidence.get("ai_positions"),
         }
+    if event_type == "AI_missed_useful_counter_object":
+        return {
+            "duration_steps": evidence.get("duration_steps"),
+            "object_type": evidence.get("object_type"),
+            "object_position": evidence.get("object_position"),
+            "counter_distances": evidence.get("counter_distances"),
+            "matching_dispenser_distances": evidence.get(
+                "matching_dispenser_distances"
+            ),
+        }
+    if event_type == "AI_missed_labor_division_opportunity":
+        return {
+            "duration_steps": evidence.get("duration_steps"),
+            "opportunity_kind": evidence.get("opportunity_kind"),
+            "preferred_subgoal": evidence.get("preferred_subgoal"),
+            "human_inferred_subgoal": evidence.get("human_inferred_subgoal"),
+            "needed_ingredient": evidence.get("needed_ingredient"),
+            "ai_subgoals": evidence.get("ai_subgoals"),
+        }
     return evidence
 
 
@@ -355,9 +453,12 @@ def build_preview_attribution(
         feedback_total_step=feedback_total_step,
         lookback_steps=lookback_steps,
     )
-    candidates = candidate_events
-    if candidates is None:
-        candidates = detect_candidate_events(window)
+    candidates = candidates_visible_at_feedback(
+        trajectory_window=window,
+        candidate_events=candidate_events,
+        feedback_total_step=feedback_total_step,
+        lookback_steps=lookback_steps,
+    )
 
     feedback_type = route_feedback_type(feedback_text, feedback_value)
     polarity = polarity_from_feedback(feedback_text, feedback_value)
@@ -374,6 +475,17 @@ def build_preview_attribution(
     preferred_subgoals, rejected_subgoals = infer_subgoal_preferences(
         target_event=target_event,
     )
+    if target and not preferred_subgoals:
+        preferred_subgoals = normalize_subgoals(
+            target.get("alternative_subgoals")
+        )
+    if target and not rejected_subgoals:
+        related = normalize_subgoals([target.get("related_subgoal")])
+        rejected_subgoals = [
+            subgoal
+            for subgoal in related
+            if subgoal not in preferred_subgoals
+        ]
     preference = None
     if target_event and polarity in {"negative", "unknown", "positive"}:
         preference = EVENT_PREFERENCES.get(target_event)

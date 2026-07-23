@@ -61,7 +61,7 @@ def run_demo(
             llm_attribution, audit = run_llm_attribution(
                 feedback=feedback,
                 trajectory=trajectory,
-                candidate_events=candidate_events,
+                candidate_events=baseline.get("candidate_events") or [],
                 baseline_attribution=baseline,
                 lookback_steps=lookback_steps,
             )

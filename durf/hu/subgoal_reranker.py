@@ -33,7 +33,7 @@ FALSE_CONDITION_VALUE = -1.0
 class PairwiseSample:
     user_id: str
     layout: str | None
-    condition_features: dict[str, bool | None]
+    condition_features: dict[str, Any]
     preferred_subgoal: str
     rejected_subgoal: str
     source_feedback_id: str | None = None
@@ -48,10 +48,13 @@ def condition_value(value: Any) -> float:
     return UNKNOWN_CONDITION_VALUE
 
 
-def normalize_conditions(condition_features: dict[str, Any] | None) -> np.ndarray:
+def normalize_conditions(
+    condition_features: dict[str, Any] | None,
+    condition_keys: tuple[str, ...] = CONDITION_KEYS,
+) -> np.ndarray:
     condition_features = condition_features or {}
     return np.asarray(
-        [condition_value(condition_features.get(key)) for key in CONDITION_KEYS],
+        [condition_value(condition_features.get(key)) for key in condition_keys],
         dtype=np.float32,
     )
 
@@ -138,7 +141,7 @@ class LinearSubgoalReranker:
         if subgoal not in self.subgoal_to_index:
             raise KeyError(f"Unknown subgoal: {subgoal}")
         subgoal_index = self.subgoal_to_index[subgoal]
-        conditions = normalize_conditions(condition_features)
+        conditions = normalize_conditions(condition_features, self.condition_keys)
         value = float(self.global_subgoal_bias[subgoal_index])
         value += float(np.dot(conditions, self.condition_weights[:, subgoal_index]))
         user_index = self.user_to_index.get(user_id)
@@ -197,7 +200,10 @@ class LinearSubgoalReranker:
                 sample = samples[int(index)]
                 preferred_index = self.subgoal_to_index[sample.preferred_subgoal]
                 rejected_index = self.subgoal_to_index[sample.rejected_subgoal]
-                conditions = normalize_conditions(sample.condition_features)
+                conditions = normalize_conditions(
+                    sample.condition_features,
+                    self.condition_keys,
+                )
                 margin = self.pair_margin(sample)
                 correct += int(margin > 0.0)
                 # softplus(-margin)
@@ -299,4 +305,3 @@ class LinearSubgoalReranker:
     @classmethod
     def load(cls, path: Path):
         return cls.from_dict(json.loads(path.read_text(encoding="utf-8")))
-

@@ -79,7 +79,7 @@ def condition_for_attribution(
     attribution: dict[str, Any],
     trajectory: list[dict[str, Any]],
     feedback: dict[str, Any] | None,
-) -> dict[str, bool | None]:
+) -> dict[str, Any]:
     condition = attribution.get("condition_features")
     if isinstance(condition, dict) and condition:
         merged = null_condition_features()

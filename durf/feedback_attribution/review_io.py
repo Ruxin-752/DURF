@@ -12,7 +12,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from .condition_features import latest_step_at_or_before
+from .condition_features import extract_condition_features, latest_step_at_or_before
 from .io_utils import read_jsonl, write_jsonl
 from .sample_builder import candidate_near_feedback, feedback_event_id
 
@@ -68,7 +68,7 @@ def compact_step(step: dict[str, Any]) -> dict[str, Any]:
         "ai_held_object": facts.get("ai_held_object"),
         "human_held_object": facts.get("human_held_object"),
         "pot_states": facts.get("pot_states"),
-        "condition_features": step.get("ai_condition_features") or {},
+        "condition_features": extract_condition_features(step),
         "candidate_subgoals": step.get("ai_subgoal_candidates") or [],
     }
 
@@ -201,6 +201,14 @@ def build_review_items(
         feedback_id = item_id_for_feedback(feedback)
         total_step = feedback.get("total_step")
         condition_step = latest_step_at_or_before(trajectory, total_step)
+        attribution = attributions.get(feedback_id, {})
+        scoped_candidate_events = attribution.get("candidate_events") or (
+            nearby_candidate_events(
+                feedback,
+                candidate_events,
+                lookback_steps=lookback_steps,
+            )
+        )
         item = {
             "record_type": "review_item",
             "feedback_event_id": feedback_id,
@@ -210,14 +218,10 @@ def build_review_items(
             "feedback_total_step": total_step,
             "episode": feedback.get("episode"),
             "episode_step": feedback.get("episode_step"),
-            "attribution": attributions.get(feedback_id, {}),
+            "attribution": attribution,
             "provenance": provenance.get(feedback_id, {}),
             "schema_reviews": schema_reviews_for_feedback(schema_updates, feedback_id),
-            "nearby_candidate_events": nearby_candidate_events(
-                feedback,
-                candidate_events,
-                lookback_steps=lookback_steps,
-            ),
+            "nearby_candidate_events": scoped_candidate_events,
             "nearby_probe_hits": nearby_probe_hits(
                 feedback,
                 probe_hits,
@@ -229,7 +233,7 @@ def build_review_items(
                 lookback_steps=min(lookback_steps, 20),
             ),
             "condition_at_feedback": (
-                condition_step.get("ai_condition_features") if condition_step else {}
+                extract_condition_features(condition_step) if condition_step else {}
             ),
         }
         item["default_decision"] = default_decision_for_item(item)

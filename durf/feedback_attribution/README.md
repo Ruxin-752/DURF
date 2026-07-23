@@ -84,21 +84,31 @@ llm_attribution_audit.jsonl  # only when --use-llm is enabled
   - 它是“事件识别规则库”。
   - 回答的问题是：只看游戏轨迹，不看人类说了什么，程序能不能先找出一些可能值得评价的协作事件？
   - 它不调用 LLM，也不判断“用户到底想表达什么”。它只做事实层面的候选事件检测。
-  - 现在有两个检测器：
-    - `AI_blocked_human_path`
-      - 检测 AI 是否挡住人。
-      - 当前规则很保守：只有当“人类尝试移动到 AI 所在格子，但移动失败”时，才认为可能是 AI 堵路。
-      - 这样可以避免把“人自己撞墙、AI 只是站在旁边”误判成堵路。
-    - `AI_ignored_ready_or_nearly_ready_pot`
-      - 检测 AI 是否忽略 ready pot。
-      - 当前规则是：锅已经 ready，AI 有可能去处理锅，但连续几步没有 `interact`。
-      - 例如 AI 拿着盘子、离 ready pot 很近，却一直往别处走。
+  - 当前检测器覆盖四组事实：
+    - 通行与协作问题，例如 `AI_blocked_human_path`。
+    - 错失任务机会，例如忽略锅、未准备盘子/原料、错过 counter 物体和劳动分工。
+    - 明显异常模式，例如反复拿放、长期拿着不需要的物体。
+    - 正向任务进展，例如成功放原料、取汤和送餐。
+  - 完整分类、触发条件和已知误报边界见 `docs/candidate_event_taxonomy.md`。
   - 输出的是 `candidate_event`，里面会包含：
     - 事件类型
     - 起止 timestep
     - 证据字段，比如位置、动作、锅状态
     - confidence
     - severity
+    - actor
+    - event_valence
+
+- `condition_features.py`
+  - 它是“条件事实提取器”。
+  - 它从每一步状态中计算固定 Hu 布尔条件，并保存 Review 所需的原始上下文。
+  - 当前包括：
+    - 谁拿着什么、锅是否缺某种原料。
+    - 人类是否拿着最后所需原料。
+    - 双方谁更靠近盘子、锅或所需原料。
+    - counter 是否已有可用物体。
+    - `AI -> source -> pot` 的总路径成本，以及物体是否已被 staging 在锅边。
+  - Hu-v0 只编码固定布尔条件；物体类型和原始距离只用于溯源与 Review。
 
 - `generate_candidate_events.py`
   - 它是“候选事件生成命令”。
@@ -137,6 +147,7 @@ llm_attribution_audit.jsonl  # only when --use-llm is enabled
       - 例如“别堵我”优先对齐到 `AI_blocked_human_path`。
       - 例如“为什么不拿汤”优先对齐到 `AI_ignored_ready_or_nearly_ready_pot`。
     - 生成一条 `attribution_result`。
+    - 针对反馈时刻重新检测近期窗口，保证不会读取反馈之后的未来轨迹。
   - 当前结果不是最终训练 `H_u` 的数据。它的作用是帮我们检查流程有没有打通、字段够不够、哪里需要澄清。
   - 它是 LLM 语义归因之前的确定性 baseline。
 
@@ -198,6 +209,8 @@ python -m durf.feedback_attribution.generate_candidate_events `
 - `AI_blocked_human_path`：人类尝试移动到 AI 占据的格子，但移动失败。
 - `AI_ignored_ready_or_nearly_ready_pot`：锅已经 ready，AI 有可能处理锅，但没有及时处理。
 - `AI_failed_to_prepare_ingredient_while_waiting`：锅正在 cooking、人类拿着盘子等待时，AI 空手但没有去准备下一份原料。
+- `AI_missed_useful_counter_object`：存在同类 staged counter 物体，但 AI 仍从 dispenser 取物。
+- `AI_missed_labor_division_opportunity`：队友已覆盖最后原料或盘子角色时，AI 没有选择互补任务。
 
 ## 当前限制
 

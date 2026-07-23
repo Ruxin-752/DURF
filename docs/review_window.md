@@ -47,6 +47,7 @@ Review 窗口会读取同一个 session 文件夹下的这些文件：
     - `actor`: `ai` / `human` / `team` / `unknown`
     - `event_valence`: `positive_progress` / `negative_problem` / `missed_opportunity` / `neutral_context`
   - 负面反馈一般优先审核 `negative_problem` 和 `missed_opportunity`；正面反馈才优先看 `positive_progress`。
+  - 完整文件记录全局事件，但归因输入会按反馈 timestep 截断，不能查看反馈之后的轨迹。
 
 - `attribution_preview.jsonl`
   - 规则 baseline 或 LLM 给出的初步归因结果。
@@ -129,8 +130,8 @@ Review 模块会写出两个文件：
   "approved_time_window": [108, 120],
   "approved_event": "AI_missed_plate_pickup_opportunity",
   "approved_condition_overrides": {
-    "human_has_last_ingredient": true,
-    "soup_cooking_or_ready": true,
+    "human_holding_last_needed_ingredient": true,
+    "pot_cooking_or_ready": true,
     "ai_empty_handed": true
   },
   "approved_preference": {
@@ -152,3 +153,5 @@ Review 窗口保留了两层数据：
 - 训练版：只保留 Hu 真正需要学习的结构化结论，也就是 condition 下 preferred/rejected subgoal 的偏好关系。
 
 这样做的好处是：我们既不让 LLM 黑箱输出直接污染训练数据，也不把人工 review 伪装成模型能力。正式实验时，review 可以用于 pilot 数据清洗和 gold-label 评估；在线系统仍然需要单独报告自动归因的准确率。
+
+Pilot 阶段可以用 Review 修正 schema 和训练标签；正式实验前必须冻结 detector 与 condition schema。正式测试数据不能边看边改规则，否则不同参与者的处理标准不一致。
