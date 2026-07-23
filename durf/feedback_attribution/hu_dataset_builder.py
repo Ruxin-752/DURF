@@ -124,6 +124,8 @@ def build_provenance_record(
         "feedback_role": feedback.get("role") if feedback else None,
         "layout": (feedback.get("extra") or {}).get("layout") if feedback else None,
         "target_event": attribution.get("target_event"),
+        "event_actor": event.get("actor") if event else None,
+        "event_valence": event.get("event_valence") if event else None,
         "target_time_window": attribution.get("target_time_window"),
         "event_evidence": event.get("evidence") if event else {},
         "condition_features": condition_features,
@@ -145,6 +147,8 @@ def build_training_samples(
         if provenance.get("needs_clarification"):
             continue
         if not provenance.get("target_event"):
+            continue
+        if provenance.get("event_actor") not in {None, "ai"}:
             continue
         preferred = provenance.get("preferred_subgoals") or []
         rejected = provenance.get("rejected_subgoals") or []

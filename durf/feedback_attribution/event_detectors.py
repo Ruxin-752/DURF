@@ -21,6 +21,17 @@ ACTION_DELTAS = {
 DEFAULT_LOOKBACK_STEPS = 25
 
 
+VALENCE_POSITIVE_PROGRESS = "positive_progress"
+VALENCE_NEGATIVE_PROBLEM = "negative_problem"
+VALENCE_MISSED_OPPORTUNITY = "missed_opportunity"
+VALENCE_NEUTRAL_CONTEXT = "neutral_context"
+
+ACTOR_AI = "ai"
+ACTOR_HUMAN = "human"
+ACTOR_TEAM = "team"
+ACTOR_UNKNOWN = "unknown"
+
+
 def recent_window(
     trajectory: list[dict],
     *,
@@ -217,6 +228,8 @@ def detect_ai_blocked_human_path(window: list[dict]) -> list[dict]:
                     },
                     severity=0.8,
                     confidence=0.8,
+                    actor=ACTOR_AI,
+                    event_valence=VALENCE_NEGATIVE_PROBLEM,
                     **event_context(step),
                 )
             )
@@ -243,6 +256,8 @@ def detect_ai_blocked_human_path(window: list[dict]) -> list[dict]:
                     },
                     severity=None,
                     confidence=0.05,
+                    actor=ACTOR_AI,
+                    event_valence=VALENCE_NEUTRAL_CONTEXT,
                     **event_context(window[-1]),
                     missing_required_facts=missing,
                 )
@@ -307,6 +322,8 @@ def detect_ai_ignored_ready_or_nearly_ready_pot(window: list[dict]) -> list[dict
                     },
                     severity=None,
                     confidence=0.05,
+                    actor=ACTOR_AI,
+                    event_valence=VALENCE_NEUTRAL_CONTEXT,
                     **event_context(window[-1]),
                     missing_required_facts=missing,
                 )
@@ -368,8 +385,12 @@ def detect_ai_failed_to_prepare_ingredient_while_waiting(window: list[dict]) -> 
     return events
 
 
-def detect_ai_successfully_delivered_soup(window: list[dict]) -> list[dict]:
-    """Detect positive delivery moments from environment reward."""
+def detect_successfully_delivered_soup(window: list[dict]) -> list[dict]:
+    """Detect positive delivery moments and attribute the acting player.
+
+    Environment reward alone only tells us the team delivered soup.  We infer
+    the actor from who held soup before the step and performed interact.
+    """
 
     events = []
     for step in window:
@@ -379,23 +400,54 @@ def detect_ai_successfully_delivered_soup(window: list[dict]) -> list[dict]:
             reward = 0.0
         if reward <= 0.0:
             continue
+        before = step_state_before(step)
         after = step_state_after(step)
+        ai_delivered = (
+            held_name(before.get("ai_held_object")) == "soup"
+            and step.get("ai_action_name") == "interact"
+        )
+        human_delivered = (
+            held_name(before.get("human_held_object")) == "soup"
+            and step.get("human_action_name") == "interact"
+        )
+        if ai_delivered:
+            event_type = "AI_successfully_delivered_soup"
+            actor = ACTOR_AI
+            related_subgoal = step_ai_subgoal(step) or "SERVE_SOUP"
+            confidence = 0.9
+        elif human_delivered:
+            event_type = "Human_successfully_delivered_soup"
+            actor = ACTOR_HUMAN
+            related_subgoal = None
+            confidence = 0.85
+        else:
+            event_type = "Team_successfully_delivered_soup"
+            actor = ACTOR_TEAM
+            related_subgoal = step_ai_subgoal(step)
+            confidence = 0.65
         events.append(
             candidate_event(
-                event_type="AI_successfully_delivered_soup",
+                event_type=event_type,
                 start_timestep=int(step["total_step"]),
                 end_timestep=int(step["total_step"]),
                 evidence={
-                    "reason": "Environment reward increased, indicating a successful soup delivery.",
+                    "reason": (
+                        "Environment reward increased. Actor is inferred from "
+                        "who held soup before the step and used interact."
+                    ),
                     "environment_reward": reward,
                     "ai_action": step.get("ai_action_name"),
                     "human_action": step.get("human_action_name"),
+                    "ai_held_before": before.get("ai_held_object"),
+                    "human_held_before": before.get("human_held_object"),
                     "ai_pos": after.get("ai_pos"),
                     "human_pos": after.get("human_pos"),
                 },
                 severity=0.2,
-                confidence=0.9,
-                related_subgoal=step_ai_subgoal(step) or "SERVE_SOUP",
+                confidence=confidence,
+                actor=actor,
+                event_valence=VALENCE_POSITIVE_PROGRESS,
+                related_subgoal=related_subgoal,
                 condition_features=extract_condition_features(step),
             )
         )
@@ -425,6 +477,8 @@ def detect_ai_successfully_picked_up_soup(window: list[dict]) -> list[dict]:
                     },
                     severity=0.2,
                     confidence=0.85,
+                    actor=ACTOR_AI,
+                    event_valence=VALENCE_POSITIVE_PROGRESS,
                     related_subgoal=step_ai_subgoal(step) or "PICKUP_SOUP",
                     condition_features=extract_condition_features(step),
                 )
@@ -464,6 +518,8 @@ def detect_ai_successfully_put_ingredient_into_pot(window: list[dict]) -> list[d
                 },
                 severity=0.2,
                 confidence=0.85,
+                actor=ACTOR_AI,
+                event_valence=VALENCE_POSITIVE_PROGRESS,
                 related_subgoal=step_ai_subgoal(step) or subgoal,
                 condition_features=extract_condition_features(step),
             )
@@ -502,9 +558,9 @@ def detect_ai_pick_drop_loop(window: list[dict]) -> list[dict]:
             streak.append(later)
         if len(streak) < 3:
             continue
-        end_total = int(streak[-1]["total_step"])
-        if end_total <= previous_event_end:
+        if first_total <= previous_event_end:
             continue
+        end_total = int(streak[-1]["total_step"])
         rewards = [float(step.get("environment_reward") or 0.0) for step in streak]
         held_sequence = [
             [
@@ -535,6 +591,8 @@ def detect_ai_pick_drop_loop(window: list[dict]) -> list[dict]:
                 },
                 severity=0.75,
                 confidence=0.65,
+                actor=ACTOR_AI,
+                event_valence=VALENCE_NEGATIVE_PROBLEM,
                 related_subgoal=step_ai_subgoal(streak[-1]),
                 condition_features=extract_condition_features(streak[-1]),
             )
@@ -571,6 +629,7 @@ def detect_ai_put_object_on_unhelpful_counter(window: list[dict]) -> list[dict]:
     """Detect ingredient drops far from any pot."""
 
     events = []
+    recent_drops: dict[tuple[str, tuple[int, int]], int] = {}
     for step in window:
         before = step_state_before(step)
         after = step_state_after(step)
@@ -592,11 +651,17 @@ def detect_ai_put_object_on_unhelpful_counter(window: list[dict]) -> list[dict]:
         )
         if nearest <= 3:
             continue
+        event_step = int(step["total_step"])
+        duplicate_key = (before_held, dropped_positions[0])
+        previous_step = recent_drops.get(duplicate_key)
+        if previous_step is not None and event_step - previous_step <= 8:
+            continue
+        recent_drops[duplicate_key] = event_step
         events.append(
             candidate_event(
                 event_type="AI_put_object_on_unhelpful_counter",
-                start_timestep=int(step["total_step"]),
-                end_timestep=int(step["total_step"]),
+                start_timestep=event_step,
+                end_timestep=event_step,
                 evidence={
                     "reason": "AI put down an object far from the pot area.",
                     "object": before_held,
@@ -607,6 +672,8 @@ def detect_ai_put_object_on_unhelpful_counter(window: list[dict]) -> list[dict]:
                 },
                 severity=0.65,
                 confidence=0.6,
+                actor=ACTOR_AI,
+                event_valence=VALENCE_NEGATIVE_PROBLEM,
                 related_subgoal=step_ai_subgoal(step),
                 condition_features=extract_condition_features(step),
             )
@@ -654,6 +721,8 @@ def held_unneeded_event(streak: list[dict]) -> dict:
         },
         severity=min(1.0, 0.3 + len(streak) * 0.05),
         confidence=0.6,
+        actor=ACTOR_AI,
+        event_valence=VALENCE_NEGATIVE_PROBLEM,
         related_subgoal=step_ai_subgoal(last),
         condition_features=extract_condition_features(last),
     )
@@ -677,6 +746,8 @@ def missed_plate_event(streak: list[dict]) -> dict:
         },
         severity=min(1.0, 0.3 + len(streak) * 0.05),
         confidence=0.6,
+        actor=ACTOR_AI,
+        event_valence=VALENCE_MISSED_OPPORTUNITY,
         related_subgoal=step_ai_subgoal(last),
         condition_features=extract_condition_features(last),
     )
@@ -711,6 +782,8 @@ def prep_wait_event(streak: list[dict]) -> dict:
         },
         severity=min(1.0, 0.3 + len(streak) * 0.05),
         confidence=0.65,
+        actor=ACTOR_AI,
+        event_valence=VALENCE_MISSED_OPPORTUNITY,
         related_subgoal=step_ai_subgoal(last),
         condition_features=extract_condition_features(last),
     )
@@ -740,6 +813,8 @@ def ready_pot_event(streak: list[dict]) -> dict:
         },
         severity=min(1.0, 0.25 + len(streak) * 0.1),
         confidence=0.55 if nearest_ready_pot_dist is None else 0.7,
+        actor=ACTOR_AI,
+        event_valence=VALENCE_MISSED_OPPORTUNITY,
         related_subgoal=step_ai_subgoal(last),
         condition_features=extract_condition_features(last),
     )
@@ -747,7 +822,7 @@ def ready_pot_event(streak: list[dict]) -> dict:
 
 def detect_candidate_events(window: list[dict]) -> list[dict]:
     events: list[dict] = []
-    events.extend(detect_ai_successfully_delivered_soup(window))
+    events.extend(detect_successfully_delivered_soup(window))
     events.extend(detect_ai_successfully_picked_up_soup(window))
     events.extend(detect_ai_successfully_put_ingredient_into_pot(window))
     events.extend(detect_ai_blocked_human_path(window))

@@ -43,6 +43,10 @@ Review 窗口会读取同一个 session 文件夹下的这些文件：
 - `candidate_events.jsonl`
   - 程序从轨迹里检测出的候选事件。
   - 它回答“附近有哪些客观发生过、可能被评价的 AI 行为”。
+  - 现在每条事件还包含 `actor` 和 `event_valence`：
+    - `actor`: `ai` / `human` / `team` / `unknown`
+    - `event_valence`: `positive_progress` / `negative_problem` / `missed_opportunity` / `neutral_context`
+  - 负面反馈一般优先审核 `negative_problem` 和 `missed_opportunity`；正面反馈才优先看 `positive_progress`。
 
 - `attribution_preview.jsonl`
   - 规则 baseline 或 LLM 给出的初步归因结果。

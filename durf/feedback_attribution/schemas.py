@@ -108,6 +108,8 @@ def candidate_event(
     evidence: dict[str, Any],
     severity: float | None,
     confidence: float,
+    actor: str = "ai",
+    event_valence: str = "neutral_context",
     related_subgoal: str | None = None,
     alternative_subgoals: list[str] | None = None,
     condition_features: dict[str, Any] | None = None,
@@ -116,6 +118,8 @@ def candidate_event(
     return {
         "record_type": "candidate_event",
         "event_type": event_type,
+        "actor": actor,
+        "event_valence": event_valence,
         "start_timestep": start_timestep,
         "end_timestep": end_timestep,
         "evidence": evidence,

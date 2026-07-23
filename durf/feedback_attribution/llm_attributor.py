@@ -35,6 +35,13 @@ You will receive:
 
 Rules:
 - Choose target_event only from candidate_events[].event_type, or null.
+- Use candidate_events[].event_valence to distinguish positive progress,
+  negative problems, missed opportunities, and neutral context.
+- For negative feedback, prefer negative_problem or missed_opportunity events
+  unless the text explicitly praises a positive_progress event.
+- Use candidate_events[].actor. Human/team-only progress events are context
+  and should not become Hu labels for changing AI behavior unless the feedback
+  clearly describes the AI's role.
 - Do not invent positions, actions, pot states, or events.
 - You may infer preferred_subgoals and rejected_subgoals, but they must be
   high-level subgoal names rather than low-level motion actions.
@@ -133,6 +140,8 @@ def recent_trajectory_summary(
 def compact_candidate_event(event: dict) -> dict:
     return {
         "event_type": event.get("event_type"),
+        "actor": event.get("actor"),
+        "event_valence": event.get("event_valence"),
         "start_timestep": event.get("start_timestep"),
         "end_timestep": event.get("end_timestep"),
         "confidence": event.get("confidence"),

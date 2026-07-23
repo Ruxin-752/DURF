@@ -89,6 +89,22 @@ EVENT_KEYWORDS = {
         "good job",
         "nice",
     ),
+    "Human_successfully_delivered_soup": (
+        "delivery",
+        "deliver",
+        "served",
+        "serve",
+        "good job",
+        "nice",
+    ),
+    "Team_successfully_delivered_soup": (
+        "delivery",
+        "deliver",
+        "served",
+        "serve",
+        "good job",
+        "nice",
+    ),
     "AI_successfully_picked_up_soup": (
         "pick up soup",
         "got soup",
@@ -117,6 +133,9 @@ EVENT_PREFERENCES = {
     "AI_successfully_picked_up_soup": "pick_up_soup_when_ready",
     "AI_successfully_put_ingredient_into_pot": "put_needed_ingredient_into_pot",
 }
+
+POSITIVE_VALENCE = "positive_progress"
+NEGATIVE_VALENCES = {"negative_problem", "missed_opportunity"}
 
 
 def feedback_event_id(feedback: dict) -> str:
@@ -170,6 +189,32 @@ def event_keyword_score(event_type: str, feedback_text: str | None) -> int:
     return sum(1 for keyword in EVENT_KEYWORDS.get(event_type, ()) if keyword in lowered)
 
 
+def event_valence(event: dict) -> str:
+    return str(event.get("event_valence") or "neutral_context")
+
+
+def event_actor(event: dict) -> str:
+    return str(event.get("actor") or "unknown")
+
+
+def polarity_valence_bonus(feedback_polarity: str, event: dict) -> float:
+    valence = event_valence(event)
+    actor = event_actor(event)
+    if feedback_polarity == "negative":
+        if valence == POSITIVE_VALENCE:
+            return -4.0
+        if valence in NEGATIVE_VALENCES:
+            return 1.0
+    if feedback_polarity == "positive":
+        if valence == POSITIVE_VALENCE:
+            return 1.5
+        if valence in NEGATIVE_VALENCES:
+            return -1.0
+    if actor != "ai" and valence != POSITIVE_VALENCE:
+        return -0.5
+    return 0.0
+
+
 def select_candidate_event(
     *,
     feedback: dict,
@@ -202,12 +247,18 @@ def select_candidate_event(
     for event in nearby:
         event_type = event.get("event_type", "")
         keyword_score = event_keyword_score(event_type, feedback_text)
-        if feedback_polarity == "negative" and str(event_type).startswith("AI_successfully"):
+        if feedback_polarity == "negative" and event_valence(event) == POSITIVE_VALENCE:
             keyword_score = 0
         overlap_bonus = 2 if candidate_overlaps_feedback(event, feedback_total_step) else 0
         confidence = float(event.get("confidence") or 0.0)
         distance_penalty = candidate_recency_distance(event, feedback_total_step) * 0.01
-        score = keyword_score * 3 + overlap_bonus + confidence - distance_penalty
+        score = (
+            keyword_score * 3
+            + overlap_bonus
+            + confidence
+            + polarity_valence_bonus(feedback_polarity, event)
+            - distance_penalty
+        )
         scored.append((score, keyword_score, event))
 
     scored.sort(key=lambda item: item[0], reverse=True)
