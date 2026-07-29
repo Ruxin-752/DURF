@@ -24,7 +24,9 @@ dropped, and why, plus valence balance / type coverage / diversity.
 from __future__ import annotations
 
 import argparse
+from collections import defaultdict
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -33,9 +35,11 @@ sys.path.insert(0, str(ROOT))
 
 from src.feature_schema import read_json, validate_feedback_examples, write_json  # noqa: E402
 from src.feedback_form_classifier import classify_feedback  # noqa: E402
-from src.feedback_templates import SUBGOAL_PHRASES  # noqa: E402
+from src.phrase_reference_classifier import predict_reference_type  # noqa: E402
+from src.feedback_templates import SUBGOAL_PHRASES, is_single_sentence  # noqa: E402
 from src.probe_evaluator import DEFAULT_PROBE_STATES_PATH, load_probe_states  # noqa: E402
 from src.sentiment_extractor import vader_compound  # noqa: E402
+from src.subgoal_teacher import load_gold_weights  # noqa: E402
 
 DEFAULT_INPUT = ROOT / "data" / "synthetic_feedback.json"
 DEFAULT_OUTPUT = ROOT / "data" / "synthetic_feedback.validated.json"
@@ -79,12 +83,69 @@ def _intended_polarity(example: dict) -> float:
 # ``attributed_sentiment_score`` carries the true direction for training.
 _POS_CONTRADICTION = 0.5   # positive-labeled text that reads this negative -> reject
 _NEG_CONTRADICTION = 0.5   # negative-labeled text that reads this positive -> reject
+_POSITIVE_WORDS = {"good", "great", "nice", "perfect", "right", "help", "helps", "thanks"}
+_NEGATIVE_WORDS = {"bad", "wrong", "stop", "block", "blocks", "hurts", "waste", "wastes"}
 
 
-def evaluate_example(example: dict) -> dict:
+def _normalized_text(text: str) -> str:
+    return " ".join(re.findall(r"[a-z0-9]+", text.lower()))
+
+
+def _surface_sentiment(text: str) -> float:
+    """Use VADER when installed, with a conservative dependency-free fallback."""
+
+    try:
+        return vader_compound(text)
+    except (ImportError, LookupError):
+        words = set(_normalized_text(text).split())
+        score = len(words & _POSITIVE_WORDS) - len(words & _NEGATIVE_WORDS)
+        return max(-1.0, min(1.0, score / 2.0))
+
+
+def _structure_errors(example: dict) -> list[str]:
+    text = example.get("text", "")
+    errors = []
+    if not is_single_sentence(text):
+        errors.append("not_single_sentence")
+    annotations = example.get("phrase_annotations")
+    if not isinstance(annotations, list) or len(annotations) != 1:
+        errors.append("reference_clause_count")
+        return errors
+    annotation = annotations[0]
+    if not isinstance(annotation, dict):
+        return [*errors, "invalid_phrase_annotation"]
+    start, end = annotation.get("start"), annotation.get("end")
+    if (
+        not isinstance(start, int)
+        or not isinstance(end, int)
+        or start < 0
+        or end > len(text)
+        or start >= end
+        or text[start:end] != annotation.get("text")
+    ):
+        errors.append("invalid_phrase_span")
+    if annotation.get("reference_type") != example.get("reference_type"):
+        errors.append("reference_annotation_mismatch")
+    return errors
+
+
+def _feature_errors(example: dict, weights: dict[str, float]) -> list[str]:
+    target = example.get("target_features")
+    if not isinstance(target, dict) or not target:
+        return ["missing_target_features"]
+    referenced = example.get("referenced_features")
+    if referenced is not None and set(referenced) != set(target):
+        return ["referenced_feature_mismatch"]
+    intended = _intended_polarity(example)
+    if any(weights.get(feature, 0.0) * intended <= 0 for feature in target):
+        return ["rule_feature_sign_mismatch"]
+    return []
+
+
+def evaluate_example(example: dict, *, weights: dict[str, float] | None = None) -> dict:
     text = example.get("text", "")
     intended = _intended_polarity(example)
-    recovered_score = vader_compound(text)
+    recovered_score = _surface_sentiment(text)
     if intended > 0:
         contradicts = recovered_score <= -_POS_CONTRADICTION
     elif intended < 0:
@@ -101,8 +162,17 @@ def evaluate_example(example: dict) -> dict:
 
     recovered_type = classify_feedback(text)
     type_ok = recovered_type == example.get("expected_feedback_type")
+    reference_prediction = predict_reference_type(text)
+    expected_reference = example.get("reference_type")
+    reference_ok = (
+        reference_prediction["reference_type"] == expected_reference
+        if expected_reference
+        else None
+    )
 
-    reasons = []
+    structural_errors = _structure_errors(example)
+    feature_errors = _feature_errors(example, weights or load_gold_weights())
+    reasons = [*structural_errors, *feature_errors]
     if not sentiment_ok:
         reasons.append("sentiment_contradiction")
     if not grounding_ok:
@@ -113,12 +183,132 @@ def evaluate_example(example: dict) -> dict:
         "type_ok": type_ok,
         "recovered_type": recovered_type,
         "recovered_score": recovered_score,
-        "passed": sentiment_ok and grounding_ok,
+        "reference_ok": reference_ok,
+        "recovered_reference_type": reference_prediction["reference_type"],
+        "reference_confidence": reference_prediction["confidence"],
+        "structure_ok": not structural_errors,
+        "feature_consistency_ok": not feature_errors,
+        "passed": (
+            sentiment_ok
+            and grounding_ok
+            and not structural_errors
+            and not feature_errors
+        ),
         "reasons": reasons,
     }
 
 
-def validate_corpus(examples: list[dict]) -> tuple[list[dict], dict]:
+def _duplicate_report(rows: list[dict], threshold: float = 0.9) -> dict:
+    exact: dict[str, list[int]] = defaultdict(list)
+    grams_by_index: list[set[str]] = []
+    inverted: dict[str, list[int]] = defaultdict(list)
+    near_pairs: list[dict] = []
+    for index, row in enumerate(rows):
+        normalized = _normalized_text(row.get("text", ""))
+        exact[normalized].append(index)
+        tokens = normalized.split()
+        grams = {" ".join(tokens[i : i + 3]) for i in range(max(1, len(tokens) - 2))}
+        if len(tokens) < 3:
+            grams = {normalized}
+        candidates: set[int] = set()
+        for gram in grams:
+            candidates.update(inverted[gram])
+        for other in candidates:
+            previous = grams_by_index[other]
+            union = grams | previous
+            similarity = len(grams & previous) / len(union) if union else 1.0
+            if similarity >= threshold and normalized != _normalized_text(rows[other].get("text", "")):
+                near_pairs.append(
+                    {
+                        "left": rows[other].get("feedback_id"),
+                        "right": row.get("feedback_id"),
+                        "similarity": round(similarity, 4),
+                        "cross_split": rows[other].get("split") != row.get("split"),
+                    }
+                )
+        grams_by_index.append(grams)
+        for gram in grams:
+            inverted[gram].append(index)
+    duplicate_groups = [indices for indices in exact.values() if len(indices) > 1]
+    cross_split_exact = sum(
+        1
+        for indices in duplicate_groups
+        if len({rows[index].get("split") for index in indices}) > 1
+    )
+    return {
+        "exact_duplicate_groups": len(duplicate_groups),
+        "cross_split_exact_groups": cross_split_exact,
+        "near_duplicate_pairs": len(near_pairs),
+        "cross_split_near_pairs": sum(pair["cross_split"] for pair in near_pairs),
+        "near_duplicate_samples": near_pairs[:40],
+    }
+
+
+def _drop_near_duplicates(
+    rows: list[dict], *, threshold: float
+) -> tuple[list[dict], list[dict]]:
+    """Keep one paraphrase per near-identical supervised language pattern."""
+
+    split_rank = {"train": 0, "dev": 1, "test": 2}
+    ordered = sorted(
+        enumerate(rows),
+        key=lambda item: (
+            split_rank.get(item[1].get("split", "train"), 9),
+            item[0],
+        ),
+    )
+    kept: list[dict] = []
+    kept_grams: list[set[str]] = []
+    postings: dict[tuple[tuple[str, str, int], str], list[int]] = defaultdict(list)
+    removed: list[dict] = []
+    for _original_index, row in ordered:
+        normalized = _normalized_text(row.get("text", ""))
+        tokens = normalized.split()
+        grams = {
+            " ".join(tokens[index : index + 3])
+            for index in range(max(1, len(tokens) - 2))
+        }
+        if len(tokens) < 3:
+            grams = {normalized}
+        polarity = 1 if _intended_polarity(row) > 0 else -1
+        supervision = (
+            str(row.get("reference_type")),
+            str(row.get("expected_feedback_type")),
+            polarity,
+        )
+        candidates: set[int] = set()
+        for gram in grams:
+            candidates.update(postings.get((supervision, gram), []))
+        duplicate_of = None
+        for candidate in candidates:
+            previous = kept_grams[candidate]
+            union = grams | previous
+            similarity = len(grams & previous) / len(union) if union else 1.0
+            if similarity >= threshold:
+                duplicate_of = kept[candidate]
+                break
+        if duplicate_of is not None:
+            removed.append(
+                {
+                    "example": row,
+                    "duplicate_of": duplicate_of.get("feedback_id"),
+                }
+            )
+            continue
+        kept_index = len(kept)
+        kept.append(row)
+        kept_grams.append(grams)
+        for gram in grams:
+            postings[(supervision, gram)].append(kept_index)
+    return kept, removed
+
+
+def validate_corpus(
+    examples: list[dict],
+    *,
+    near_duplicate_threshold: float = 0.9,
+    quality_thresholds: dict[str, float] | None = None,
+) -> tuple[list[dict], dict]:
     kept: list[dict] = []
     dropped: list[dict] = []
     by_source_kept: dict[str, int] = {}
@@ -126,15 +316,22 @@ def validate_corpus(examples: list[dict]) -> tuple[list[dict], dict]:
     drop_reasons: dict[str, int] = {}
     type_agree = 0
     sentiment_agree = 0
+    reference_total = 0
+    reference_agree = 0
+    weights = load_gold_weights()
+    source_totals: dict[str, int] = {}
 
     for example in examples:
-        verdict = evaluate_example(example)
+        verdict = evaluate_example(example, weights=weights)
         source = example.get("source", "unknown")
+        source_totals[source] = source_totals.get(source, 0) + 1
         type_agree += int(verdict["type_ok"])
         sentiment_agree += int(verdict["sentiment_ok"])
+        if verdict["reference_ok"] is not None:
+            reference_total += 1
+            reference_agree += int(verdict["reference_ok"])
 
-        # Templates are the trusted floor; LLM must earn its place.
-        keep = source == "template" or verdict["passed"]
+        keep = verdict["passed"]
         if keep:
             kept.append(example)
             by_source_kept[source] = by_source_kept.get(source, 0) + 1
@@ -158,6 +355,56 @@ def validate_corpus(examples: list[dict]) -> tuple[list[dict], dict]:
             out[key] = out.get(key, 0) + 1
         return out
 
+    # Exact text may not occur in multiple evaluation splits. Keep the
+    # deterministic train > dev > test owner and reject leaked copies.
+    split_rank = {"train": 0, "dev": 1, "test": 2}
+    owners: dict[str, str] = {}
+    for example in kept:
+        norm = _normalized_text(example.get("text", ""))
+        split = example.get("split", "train")
+        if norm not in owners or split_rank.get(split, 9) < split_rank.get(owners[norm], 9):
+            owners[norm] = split
+    leakage_dropped = []
+    leakage_safe = []
+    for example in kept:
+        norm = _normalized_text(example.get("text", ""))
+        if example.get("split", "train") != owners.get(norm):
+            leakage_dropped.append(example)
+        else:
+            leakage_safe.append(example)
+    kept = leakage_safe
+    for example in leakage_dropped:
+        source = example.get("source", "unknown")
+        by_source_kept[source] = max(0, by_source_kept.get(source, 0) - 1)
+        by_source_dropped[source] = by_source_dropped.get(source, 0) + 1
+        drop_reasons["cross_split_exact_leakage"] = (
+            drop_reasons.get("cross_split_exact_leakage", 0) + 1
+        )
+        dropped.append(
+            {
+                "feedback_id": example.get("feedback_id"),
+                "passed": False,
+                "reasons": ["cross_split_exact_leakage"],
+            }
+        )
+    kept, near_dropped = _drop_near_duplicates(
+        kept, threshold=near_duplicate_threshold
+    )
+    for item in near_dropped:
+        example = item["example"]
+        source = example.get("source", "unknown")
+        by_source_kept[source] = max(0, by_source_kept.get(source, 0) - 1)
+        by_source_dropped[source] = by_source_dropped.get(source, 0) + 1
+        drop_reasons["near_duplicate"] = drop_reasons.get("near_duplicate", 0) + 1
+        dropped.append(
+            {
+                "feedback_id": example.get("feedback_id"),
+                "passed": False,
+                "reasons": ["near_duplicate"],
+                "duplicate_of": item["duplicate_of"],
+            }
+        )
+    duplicate_report = _duplicate_report(kept, near_duplicate_threshold)
     kept_texts = [e.get("text", "") for e in kept]
     total = len(examples)
     report = {
@@ -169,8 +416,15 @@ def validate_corpus(examples: list[dict]) -> tuple[list[dict], dict]:
         "drop_reasons": dict(sorted(drop_reasons.items())),
         "sentiment_roundtrip_agreement": sentiment_agree / total if total else 0.0,
         "type_roundtrip_agreement": type_agree / total if total else 0.0,
+        "reference_type_roundtrip_agreement": (
+            reference_agree / reference_total if reference_total else None
+        ),
         "kept_valence_balance": _valence_counts(kept),
         "kept_type_coverage": _type_counts(kept),
+        "kept_reference_type_coverage": {
+            label: sum(1 for row in kept if row.get("reference_type") == label)
+            for label in ("trajectory", "feature", "action_spatial", "action_behavioral", "other")
+        },
         "kept_unique_texts": len(set(t.lower() for t in kept_texts)),
         "kept_diversity_ratio": (
             len(set(t.lower() for t in kept_texts)) / len(kept_texts)
@@ -178,8 +432,39 @@ def validate_corpus(examples: list[dict]) -> tuple[list[dict], dict]:
             else 0.0
         ),
         "kept_scenarios": len({e.get("group_id") for e in kept}),
+        "duplicates": duplicate_report,
+        "source_reports": {
+            source: {
+                "total": count,
+                "kept": by_source_kept.get(source, 0),
+                "dropped": by_source_dropped.get(source, 0),
+                "keep_rate": by_source_kept.get(source, 0) / count if count else 0.0,
+            }
+            for source, count in sorted(source_totals.items())
+        },
         "dropped_samples": dropped[:40],
     }
+    thresholds = {
+        "min_keep_rate": 0.0,
+        "min_llm_keep_rate": 0.0,
+        "min_diversity_ratio": 0.0,
+        "max_cross_split_near_pairs": 1_000_000_000,
+        **(quality_thresholds or {}),
+    }
+    llm_report = report["source_reports"].get("llm", {"keep_rate": 1.0})
+    checks = {
+        "min_keep_rate": (len(kept) / total if total else 0.0)
+        >= thresholds["min_keep_rate"],
+        "min_llm_keep_rate": llm_report["keep_rate"]
+        >= thresholds["min_llm_keep_rate"],
+        "min_diversity_ratio": report["kept_diversity_ratio"]
+        >= thresholds["min_diversity_ratio"],
+        "max_cross_split_near_pairs": duplicate_report["cross_split_near_pairs"]
+        <= thresholds["max_cross_split_near_pairs"],
+    }
+    report["quality_thresholds"] = thresholds
+    report["quality_checks"] = checks
+    report["quality_passed"] = all(checks.values())
     return kept, report
 
 
@@ -189,6 +474,18 @@ def main() -> int:
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--report", type=Path, default=DEFAULT_REPORT)
     parser.add_argument("--probe-states", type=Path, default=DEFAULT_PROBE_STATES_PATH)
+    parser.add_argument("--min-count", type=int, default=1)
+    parser.add_argument("--max-count", type=int, default=None)
+    parser.add_argument("--near-duplicate-threshold", type=float, default=0.9)
+    parser.add_argument("--min-keep-rate", type=float, default=0.8)
+    parser.add_argument("--min-llm-keep-rate", type=float, default=0.7)
+    parser.add_argument("--min-diversity-ratio", type=float, default=0.35)
+    parser.add_argument("--max-cross-split-near-pairs", type=int, default=0)
+    parser.add_argument(
+        "--enforce-quality",
+        action="store_true",
+        help="Return non-zero when configured corpus quality thresholds fail.",
+    )
     parser.add_argument(
         "--in-place",
         action="store_true",
@@ -197,7 +494,22 @@ def main() -> int:
     args = parser.parse_args()
 
     examples = read_json(args.input)
-    kept, report = validate_corpus(examples)
+    if not isinstance(examples, list):
+        raise ValueError("Input JSON must contain a top-level array")
+    if len(examples) < args.min_count:
+        raise ValueError(f"Expected at least {args.min_count} examples, got {len(examples)}")
+    if args.max_count is not None and len(examples) > args.max_count:
+        raise ValueError(f"Expected at most {args.max_count} examples, got {len(examples)}")
+    kept, report = validate_corpus(
+        examples,
+        near_duplicate_threshold=args.near_duplicate_threshold,
+        quality_thresholds={
+            "min_keep_rate": args.min_keep_rate,
+            "min_llm_keep_rate": args.min_llm_keep_rate,
+            "min_diversity_ratio": args.min_diversity_ratio,
+            "max_cross_split_near_pairs": args.max_cross_split_near_pairs,
+        },
+    )
 
     probes = load_probe_states(args.probe_states)
     validate_feedback_examples(kept, probe_states=probes)
@@ -211,6 +523,7 @@ def main() -> int:
     print(f"  kept {report['kept']} | dropped {report['dropped']}")
     print(f"  kept by source: {report['kept_by_source']}")
     print(f"  dropped by source: {report['dropped_by_source']}")
+    print(f"  source reports: {report['source_reports']}")
     print(f"  drop reasons: {report['drop_reasons']}")
     print(
         f"  sentiment round-trip agreement: "
@@ -225,6 +538,10 @@ def main() -> int:
     )
     print(f"Cleaned corpus: {out_path}")
     print(f"Report: {args.report}")
+    if args.enforce_quality and not report["quality_passed"]:
+        failed = [name for name, passed in report["quality_checks"].items() if not passed]
+        print(f"Quality gate failed: {failed}")
+        return 2
     return 0
 
 

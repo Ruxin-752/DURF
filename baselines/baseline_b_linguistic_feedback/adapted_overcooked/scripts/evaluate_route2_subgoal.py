@@ -26,12 +26,23 @@ import sys
 from collections import Counter
 from pathlib import Path
 
+import torch
+
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from scripts.run_baseline_b_pipeline import learn_from_feedback  # noqa: E402
+from src.evaluation_splits import (  # noqa: E402
+    canonical_sha256,
+    deduplicate_corpus,
+    load_split_manifest,
+    make_split_manifest,
+)
 from src.feature_schema import empty_weights, load_features, read_json, write_json  # noqa: E402
-from src.neural_inference import load_checkpoint, make_folds, predict_reward_vector  # noqa: E402
+from src.neural_inference import (  # noqa: E402
+    load_checkpoint,
+    predict_reward_vector,
+)
 from src.probe_evaluator import DEFAULT_PROBE_STATES_PATH, load_probe_states  # noqa: E402
 from src.subgoal_reranker import choose_subgoal  # noqa: E402
 from src.subgoal_teacher import load_gold_weights  # noqa: E402
@@ -76,45 +87,89 @@ def main() -> int:
     parser.add_argument("--feedback", type=Path, default=DEFAULT_FEEDBACK_PATH)
     parser.add_argument("--probe-states", type=Path, default=DEFAULT_PROBE_STATES_PATH)
     parser.add_argument("--model", type=Path, default=DEFAULT_MODEL_PATH)
-    parser.add_argument("--n-folds", type=int, default=5)
-    parser.add_argument("--val-fold", type=int, default=0)
     parser.add_argument("--seed", type=int, default=0)
+    parser.add_argument("--dev-fraction", type=float, default=0.2)
+    parser.add_argument("--test-fraction", type=float, default=0.2)
     parser.add_argument("--lambda-pref", type=float, default=1.0)
     parser.add_argument("--weights-out", type=Path, default=DEFAULT_WEIGHTS_OUT)
+    parser.add_argument(
+        "--split-manifest",
+        type=Path,
+        help="Fixed split manifest (defaults to split_manifest.json beside model).",
+    )
+    parser.add_argument("--near-duplicate-threshold", type=float, default=0.92)
+    parser.add_argument(
+        "--report-out",
+        type=Path,
+        help="Evaluation metadata/metrics JSON (default: beside --weights-out).",
+    )
     args = parser.parse_args()
 
-    feedback_examples = read_json(args.feedback)
+    feedback_examples, corpus_audit = deduplicate_corpus(
+        read_json(args.feedback),
+        near_duplicate_threshold=args.near_duplicate_threshold,
+    )
     features = load_features()
     probes = load_probe_states(args.probe_states)
 
     groups = [f.get("group_id") or f.get("probe_id") for f in feedback_examples]
-    folds = make_folds(groups, n_folds=args.n_folds, seed=args.seed)
-    fold = folds[args.val_fold % len(folds)]
-    test_groups = set(fold["test_groups"])
+    manifest_path = args.split_manifest
+    default_manifest = args.model.parent / "split_manifest.json"
+    if manifest_path is None and default_manifest.exists():
+        manifest_path = default_manifest
+    if manifest_path is not None:
+        split = load_split_manifest(manifest_path, feedback_examples)
+    else:
+        # Backward compatibility for old runs that predate persisted manifests.
+        split = make_split_manifest(
+            feedback_examples,
+            seed=args.seed,
+            dev_fraction=args.dev_fraction,
+            test_fraction=args.test_fraction,
+            near_duplicate_threshold=args.near_duplicate_threshold,
+        )
+        print("Warning: no split manifest found; using a deterministic legacy split.")
+    test_groups = set(split["test_groups"])
 
     train_feedback = [f for i, f in enumerate(feedback_examples) if groups[i] not in test_groups]
-    val_feedback = [f for i, f in enumerate(feedback_examples) if groups[i] in test_groups]
-    val_scenarios = _unique_scenarios(val_feedback)
+    test_feedback = [f for i, f in enumerate(feedback_examples) if groups[i] in test_groups]
+    test_scenarios = _unique_scenarios(test_feedback)
 
-    print(f"Held-out fold {args.val_fold}: {len(test_groups)} scenarios, {len(val_feedback)} utterances")
+    print(
+        f"Untouched test split: {len(test_groups)} scenarios, "
+        f"{len(test_feedback)} utterances"
+    )
 
     # --- gold / zero baselines (scenario level) ---
     gold = load_gold_weights()
     zero = empty_weights(features)
-    gold_acc = _scenario_accuracy(gold, val_scenarios, lambda_pref=args.lambda_pref)
-    zero_acc = _scenario_accuracy(zero, val_scenarios, lambda_pref=args.lambda_pref)
+    gold_acc = _scenario_accuracy(gold, test_scenarios, lambda_pref=args.lambda_pref)
+    zero_acc = _scenario_accuracy(zero, test_scenarios, lambda_pref=args.lambda_pref)
 
     # --- Route 1: one global Bayesian belief from training feedback ---
     model1, _ = learn_from_feedback(
         feedback_examples=train_feedback, probe_states=probes, features=features
     )
-    route1_acc = _scenario_accuracy(model1.as_dict(), val_scenarios, lambda_pref=args.lambda_pref)
+    route1_acc = _scenario_accuracy(model1.as_dict(), test_scenarios, lambda_pref=args.lambda_pref)
 
     # --- Route 2: trained network, per utterance (text-only) ---
     model2, vocab, model_features, use_fc = load_checkpoint(args.model)
+    if use_fc:
+        raise ValueError(
+            "Route 2 checkpoint uses feature counts; text-only evaluation requires False"
+        )
+    checkpoint = torch.load(args.model, map_location="cpu", weights_only=False)
+    checkpoint_extra = checkpoint.get("extra") or {}
+    for field in ("corpus_sha256", "split_sha256"):
+        expected = split[field]
+        actual = checkpoint_extra.get(field)
+        if actual is not None and actual != expected:
+            raise ValueError(
+                f"Checkpoint {field} mismatch: expected {expected}, got {actual}"
+            )
     per_example_correct = 0
     scenario_votes: dict[str, Counter] = {}
-    for example in val_feedback:
+    for example in test_feedback:
         w_hat = predict_reward_vector(model2, vocab, model_features, example["text"])
         choice = choose_subgoal(
             w_hat, example["context"], example["feasible_subgoals"], lambda_pref=args.lambda_pref
@@ -124,23 +179,23 @@ def main() -> int:
         per_example_correct += int(correct)
         scenario_votes.setdefault(example["group_id"], Counter())[choice["chosen_subgoal"]] += 1
 
-    route2_example_acc = per_example_correct / len(val_feedback) if val_feedback else 0.0
+    route2_example_acc = per_example_correct / len(test_feedback) if test_feedback else 0.0
     scenario_correct = 0
-    for scenario in val_scenarios:
+    for scenario in test_scenarios:
         votes = scenario_votes.get(scenario["group_id"])
         if not votes:
             continue
         chosen = votes.most_common(1)[0][0]
         acceptable = scenario.get("acceptable_subgoals") or [scenario.get("expected_subgoal")]
         scenario_correct += int(chosen in acceptable)
-    route2_scenario_acc = scenario_correct / len(val_scenarios) if val_scenarios else 0.0
+    route2_scenario_acc = scenario_correct / len(test_scenarios) if test_scenarios else 0.0
 
     print("\nHeld-out subgoal accuracy (scenario level):")
     print(f"  gold w*      : {gold_acc['correct']}/{gold_acc['total']} = {gold_acc['accuracy']*100:.1f}%")
     print(f"  zero weights : {zero_acc['correct']}/{zero_acc['total']} = {zero_acc['accuracy']*100:.1f}%")
     print(f"  route1 global: {route1_acc['correct']}/{route1_acc['total']} = {route1_acc['accuracy']*100:.1f}%")
     print(
-        f"  route2 net   : {scenario_correct}/{len(val_scenarios)} = {route2_scenario_acc*100:.1f}% "
+        f"  route2 net   : {scenario_correct}/{len(test_scenarios)} = {route2_scenario_acc*100:.1f}% "
         f"(majority vote); per-utterance {route2_example_acc*100:.1f}%"
     )
 
@@ -149,12 +204,17 @@ def main() -> int:
     # keep the one that best recovers the hand-authored subgoal probes (never
     # used in training). Scenario-balanced mean avoids over-weighting verbose
     # scenarios; median damps outlier paraphrases.
+    export_feedback = [
+        example
+        for example in feedback_examples
+        if example.get("group_id") not in test_groups
+    ]
     per_text_w = [
         predict_reward_vector(model2, vocab, model_features, example["text"])
-        for example in feedback_examples
+        for example in export_feedback
     ]
     by_group: dict[str, list[dict[str, float]]] = {}
-    for example, w_hat in zip(feedback_examples, per_text_w):
+    for example, w_hat in zip(export_feedback, per_text_w):
         by_group.setdefault(example["group_id"], []).append(w_hat)
 
     def _mean_weights(vectors: list[dict[str, float]]) -> dict[str, float]:
@@ -203,10 +263,7 @@ def main() -> int:
         "scenario_balanced_mean": scenario_balanced,
         "utterance_median": utterance_median,
     }
-    best_name = "scenario_balanced_mean"
-    best_score = (-1.0, -1.0)
-    best_weights = scenario_balanced
-    print("\nExport candidates (pick by hand-authored probe accuracy):")
+    print("\nExport candidates (reported only; selection is fixed in advance):")
     for name, weights in candidates.items():
         probe = _scenario_accuracy(weights, probe_scenarios, lambda_pref=args.lambda_pref)
         synth = _scenario_accuracy(weights, full_scenarios, lambda_pref=args.lambda_pref)
@@ -215,13 +272,10 @@ def main() -> int:
             f"{probe['accuracy']*100:.1f}% | synth {synth['correct']}/{synth['total']}="
             f"{synth['accuracy']*100:.1f}%"
         )
-        score = (probe["accuracy"], synth["accuracy"])
-        if score > best_score:
-            best_score = score
-            best_name = name
-            best_weights = weights
-
-    learned_weights = best_weights
+    # Fixed before looking at probes/test: scenario balancing prevents verbose
+    # scenarios from dominating and removes probe-based model selection.
+    best_name = "scenario_balanced_mean"
+    learned_weights = scenario_balanced
     write_json(args.weights_out, learned_weights)
     export_acc = _scenario_accuracy(learned_weights, full_scenarios, lambda_pref=args.lambda_pref)
     probe_acc = _scenario_accuracy(learned_weights, probe_scenarios, lambda_pref=args.lambda_pref)
@@ -231,6 +285,42 @@ def main() -> int:
     print(f"  hand-authored subgoal probes (held-out, only-tested): "
           f"{probe_acc['correct']}/{probe_acc['total']} = {probe_acc['accuracy']*100:.1f}%")
     print(f"  weights JSON: {args.weights_out}")
+    evaluation_config = {
+        "seed": args.seed,
+        "lambda_pref": args.lambda_pref,
+        "use_feature_counts": False,
+        "near_duplicate_threshold": args.near_duplicate_threshold,
+    }
+    evaluation_config["config_sha256"] = canonical_sha256(evaluation_config)
+    report = {
+        "corpus_sha256": split["corpus_sha256"],
+        "split_sha256": split["split_sha256"],
+        "split_manifest": str(manifest_path) if manifest_path else None,
+        "checkpoint": str(args.model),
+        "checkpoint_training_config": checkpoint_extra.get("training_config"),
+        "evaluation_config": evaluation_config,
+        "corpus_audit": corpus_audit,
+        "test_split": {
+            "groups": sorted(test_groups),
+            "utterances": len(test_feedback),
+            "scenarios": len(test_scenarios),
+        },
+        "metrics": {
+            "gold": gold_acc,
+            "zero": zero_acc,
+            "route1": route1_acc,
+            "route2_scenario_accuracy": route2_scenario_acc,
+            "route2_example_accuracy": route2_example_acc,
+            "export_all_scenarios": export_acc,
+            "export_probes": probe_acc,
+        },
+        "export_aggregation": best_name,
+    }
+    report_out = args.report_out or args.weights_out.with_name(
+        args.weights_out.stem + ".evaluation.json"
+    )
+    write_json(report_out, report)
+    print(f"  evaluation report: {report_out}")
     return 0
 
 

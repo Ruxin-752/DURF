@@ -19,3 +19,5 @@ numpy>=1.21
 scipy>=1.7          # 95% CI t-multiplier in evaluate_learning_curve.py (optional; falls back to 1.96)
 nltk>=3.6           # VADER sentiment + tokenization/lemmatization (English only)
 torch>=1.13         # Route 2 inference network (training + runtime inference)
+scikit-learn>=1.2   # Paper-style TF-IDF + LogisticRegression reference classifier
+joblib>=1.2         # Versioned classifier artifact persistence

@@ -1,0 +1,1244 @@
+[
+  {
+    "feedback_id": "other_greeting_d8014375ca",
+    "group_id": "other_topic_greeting",
+    "paraphrase_family": "other_topic_greeting",
+    "reference_type": "other",
+    "role": "other",
+    "source": "template",
+    "text": "Hello teammate."
+  },
+  {
+    "feedback_id": "other_greeting_79563d554f",
+    "group_id": "other_topic_greeting",
+    "paraphrase_family": "other_topic_greeting",
+    "reference_type": "other",
+    "role": "other",
+    "source": "template",
+    "text": "Can you hear me?"
+  },
+  {
+    "feedback_id": "other_greeting_f1e90b8af5",
+    "group_id": "other_topic_greeting",
+    "paraphrase_family": "other_topic_greeting",
+    "reference_type": "other",
+    "role": "other",
+    "source": "template",
+    "text": "Are you ready?"
+  },
+  {
+    "feedback_id": "other_greeting_d69f7af1f4",
+    "group_id": "other_topic_greeting",
+    "paraphrase_family": "other_topic_greeting",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "Hey, can you hear me?"
+  },
+  {
+    "feedback_id": "other_greeting_f2059538b7",
+    "group_id": "other_topic_greeting",
+    "paraphrase_family": "other_topic_greeting",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "Hello? Is this thing on?"
+  },
+  {
+    "feedback_id": "other_greeting_79373e9aaf",
+    "group_id": "other_topic_greeting",
+    "paraphrase_family": "other_topic_greeting",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "Yo, you there?"
+  },
+  {
+    "feedback_id": "other_greeting_c1f3b0efc3",
+    "group_id": "other_topic_greeting",
+    "paraphrase_family": "other_topic_greeting",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "Testing, testing, one two three."
+  },
+  {
+    "feedback_id": "other_greeting_8ca8c5fa2a",
+    "group_id": "other_topic_greeting",
+    "paraphrase_family": "other_topic_greeting",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "Can you read me?"
+  },
+  {
+    "feedback_id": "other_greeting_b50ff4f206",
+    "group_id": "other_topic_greeting",
+    "paraphrase_family": "other_topic_greeting",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "Hey, just checking if you can hear me."
+  },
+  {
+    "feedback_id": "other_greeting_f854080148",
+    "group_id": "other_topic_greeting",
+    "paraphrase_family": "other_topic_greeting",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "Hello, hello, anyone there?"
+  },
+  {
+    "feedback_id": "other_greeting_8d60fa006f",
+    "group_id": "other_topic_greeting",
+    "paraphrase_family": "other_topic_greeting",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "Are you getting this?"
+  },
+  {
+    "feedback_id": "other_greeting_7af5b57ef2",
+    "group_id": "other_topic_greeting",
+    "paraphrase_family": "other_topic_greeting",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "Hi, can you hear my voice?"
+  },
+  {
+    "feedback_id": "other_greeting_05bc3c5961",
+    "group_id": "other_topic_greeting",
+    "paraphrase_family": "other_topic_greeting",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "Hey, just a quick check—can you hear me?"
+  },
+  {
+    "feedback_id": "other_greeting_8d8dc49b89",
+    "group_id": "other_topic_greeting",
+    "paraphrase_family": "other_topic_greeting",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "Hello? Testing audio."
+  },
+  {
+    "feedback_id": "other_greeting_98feee4bc5",
+    "group_id": "other_topic_greeting",
+    "paraphrase_family": "other_topic_greeting",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "Yo, you listening?"
+  },
+  {
+    "feedback_id": "other_greeting_8cab96265d",
+    "group_id": "other_topic_greeting",
+    "paraphrase_family": "other_topic_greeting",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "Can you hear me okay?"
+  },
+  {
+    "feedback_id": "other_greeting_6128b83e1d",
+    "group_id": "other_topic_greeting",
+    "paraphrase_family": "other_topic_greeting",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "Hey, just making sure you can hear me."
+  },
+  {
+    "feedback_id": "other_greeting_e0977324bd",
+    "group_id": "other_topic_greeting",
+    "paraphrase_family": "other_topic_greeting",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "Hello, can you hear me now?"
+  },
+  {
+    "feedback_id": "other_greeting_497aef8442",
+    "group_id": "other_topic_greeting",
+    "paraphrase_family": "other_topic_greeting",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "Are you there? Can you hear me?"
+  },
+  {
+    "feedback_id": "other_greeting_ffd22b1b82",
+    "group_id": "other_topic_greeting",
+    "paraphrase_family": "other_topic_greeting",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "Hi, just checking the mic."
+  },
+  {
+    "feedback_id": "other_greeting_e7bfad9b86",
+    "group_id": "other_topic_greeting",
+    "paraphrase_family": "other_topic_greeting",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "Hey, can you hear me clearly?"
+  },
+  {
+    "feedback_id": "other_greeting_328385e554",
+    "group_id": "other_topic_greeting",
+    "paraphrase_family": "other_topic_greeting",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "Hello? Is my voice coming through?"
+  },
+  {
+    "feedback_id": "other_greeting_92821f4c61",
+    "group_id": "other_topic_greeting",
+    "paraphrase_family": "other_topic_greeting",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "Yo, can you hear me alright?"
+  },
+  {
+    "feedback_id": "other_controls_49fbd796eb",
+    "group_id": "other_topic_controls",
+    "paraphrase_family": "other_topic_controls",
+    "reference_type": "other",
+    "role": "other",
+    "source": "template",
+    "text": "Which key interacts?"
+  },
+  {
+    "feedback_id": "other_controls_71b7f854f9",
+    "group_id": "other_topic_controls",
+    "paraphrase_family": "other_topic_controls",
+    "reference_type": "other",
+    "role": "other",
+    "source": "template",
+    "text": "I am learning the controls."
+  },
+  {
+    "feedback_id": "other_controls_a3ea848b23",
+    "group_id": "other_topic_controls",
+    "paraphrase_family": "other_topic_controls",
+    "reference_type": "other",
+    "role": "other",
+    "source": "template",
+    "text": "How do I move?"
+  },
+  {
+    "feedback_id": "other_controls_44e9ea0f42",
+    "group_id": "other_topic_controls",
+    "paraphrase_family": "other_topic_controls",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "How do I pick things up in this game?"
+  },
+  {
+    "feedback_id": "other_controls_c7fe60ec62",
+    "group_id": "other_topic_controls",
+    "paraphrase_family": "other_topic_controls",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "Wait, which button was it to drop an item?"
+  },
+  {
+    "feedback_id": "other_controls_ca25f58be0",
+    "group_id": "other_topic_controls",
+    "paraphrase_family": "other_topic_controls",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "I keep pressing the wrong key for chopping."
+  },
+  {
+    "feedback_id": "other_controls_0661b1449b",
+    "group_id": "other_topic_controls",
+    "paraphrase_family": "other_topic_controls",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "Can you remind me what the interact key is?"
+  },
+  {
+    "feedback_id": "other_controls_0900bba93b",
+    "group_id": "other_topic_controls",
+    "paraphrase_family": "other_topic_controls",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "I'm still getting used to the control scheme."
+  },
+  {
+    "feedback_id": "other_controls_5609c88579",
+    "group_id": "other_topic_controls",
+    "paraphrase_family": "other_topic_controls",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "Is there a way to see the key bindings in the menu?"
+  },
+  {
+    "feedback_id": "other_controls_5198f53e6c",
+    "group_id": "other_topic_controls",
+    "paraphrase_family": "other_topic_controls",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "I think I need to remap the dash button."
+  },
+  {
+    "feedback_id": "other_controls_bbdfd618d1",
+    "group_id": "other_topic_controls",
+    "paraphrase_family": "other_topic_controls",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "What does the spacebar do again?"
+  },
+  {
+    "feedback_id": "other_controls_51d7d1ccf7",
+    "group_id": "other_topic_controls",
+    "paraphrase_family": "other_topic_controls",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "I accidentally pressed something and now I'm stuck."
+  },
+  {
+    "feedback_id": "other_controls_038c5fb21a",
+    "group_id": "other_topic_controls",
+    "paraphrase_family": "other_topic_controls",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "How do you switch which direction you're facing?"
+  },
+  {
+    "feedback_id": "other_controls_6d34e0bf21",
+    "group_id": "other_topic_controls",
+    "paraphrase_family": "other_topic_controls",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "I can't figure out how to put things down on the counter."
+  },
+  {
+    "feedback_id": "other_controls_8fffce8e31",
+    "group_id": "other_topic_controls",
+    "paraphrase_family": "other_topic_controls",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "Is there a tutorial for the controls?"
+  },
+  {
+    "feedback_id": "other_controls_d872a1341f",
+    "group_id": "other_topic_controls",
+    "paraphrase_family": "other_topic_controls",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "I keep mixing up the grab and drop keys."
+  },
+  {
+    "feedback_id": "other_controls_102acb8b6f",
+    "group_id": "other_topic_controls",
+    "paraphrase_family": "other_topic_controls",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "Which button cancels an action?"
+  },
+  {
+    "feedback_id": "other_controls_33bdb38110",
+    "group_id": "other_topic_controls",
+    "paraphrase_family": "other_topic_controls",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "I need to check the control settings real quick."
+  },
+  {
+    "feedback_id": "other_controls_1341148e9e",
+    "group_id": "other_topic_controls",
+    "paraphrase_family": "other_topic_controls",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "How do you interact with the stove?"
+  },
+  {
+    "feedback_id": "other_controls_b822a94adb",
+    "group_id": "other_topic_controls",
+    "paraphrase_family": "other_topic_controls",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "I'm trying to learn the layout of the keyboard shortcuts."
+  },
+  {
+    "feedback_id": "other_controls_2fc25e8291",
+    "group_id": "other_topic_controls",
+    "paraphrase_family": "other_topic_controls",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "What's the default key for moving faster?"
+  },
+  {
+    "feedback_id": "other_controls_8dea2c6459",
+    "group_id": "other_topic_controls",
+    "paraphrase_family": "other_topic_controls",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "I can't remember if it's E or Q to use things."
+  },
+  {
+    "feedback_id": "other_controls_d454261c2d",
+    "group_id": "other_topic_controls",
+    "paraphrase_family": "other_topic_controls",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "Is there a way to rebind the controls mid-game?"
+  },
+  {
+    "feedback_id": "other_technical_2d96fd6978",
+    "group_id": "other_topic_technical",
+    "paraphrase_family": "other_topic_technical",
+    "reference_type": "other",
+    "role": "other",
+    "source": "template",
+    "text": "The game is lagging."
+  },
+  {
+    "feedback_id": "other_technical_066ae09bf6",
+    "group_id": "other_topic_technical",
+    "paraphrase_family": "other_topic_technical",
+    "reference_type": "other",
+    "role": "other",
+    "source": "template",
+    "text": "My audio is broken."
+  },
+  {
+    "feedback_id": "other_technical_00e80aa452",
+    "group_id": "other_topic_technical",
+    "paraphrase_family": "other_topic_technical",
+    "reference_type": "other",
+    "role": "other",
+    "source": "template",
+    "text": "The screen froze."
+  },
+  {
+    "feedback_id": "other_technical_48c2bb09e2",
+    "group_id": "other_topic_technical",
+    "paraphrase_family": "other_topic_technical",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "The screen just froze for a second.\""
+  },
+  {
+    "feedback_id": "other_technical_a85e370f94",
+    "group_id": "other_topic_technical",
+    "paraphrase_family": "other_topic_technical",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "My character is stuttering across the floor.\""
+  },
+  {
+    "feedback_id": "other_technical_1859a609e2",
+    "group_id": "other_topic_technical",
+    "paraphrase_family": "other_topic_technical",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "The audio keeps cutting in and out.\""
+  },
+  {
+    "feedback_id": "other_technical_899bf7764b",
+    "group_id": "other_topic_technical",
+    "paraphrase_family": "other_topic_technical",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "I see a weird flicker on the edge of the screen.\""
+  },
+  {
+    "feedback_id": "other_technical_25e9a3e2c0",
+    "group_id": "other_topic_technical",
+    "paraphrase_family": "other_topic_technical",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "The frame rate dropped when I moved to the left.\""
+  },
+  {
+    "feedback_id": "other_technical_26152eb429",
+    "group_id": "other_topic_technical",
+    "paraphrase_family": "other_topic_technical",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "There's a delay between my button press and the action.\""
+  },
+  {
+    "feedback_id": "other_technical_1b1029a6fe",
+    "group_id": "other_topic_technical",
+    "paraphrase_family": "other_topic_technical",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "The sound effects are repeating in a loop.\""
+  },
+  {
+    "feedback_id": "other_technical_240f81caa6",
+    "group_id": "other_topic_technical",
+    "paraphrase_family": "other_topic_technical",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "The display is tearing when I turn quickly.\""
+  },
+  {
+    "feedback_id": "other_technical_0fca0426f8",
+    "group_id": "other_topic_technical",
+    "paraphrase_family": "other_topic_technical",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "My connection icon is showing red.\""
+  },
+  {
+    "feedback_id": "other_technical_2a693a7f2b",
+    "group_id": "other_topic_technical",
+    "paraphrase_family": "other_topic_technical",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "The game just skipped a few frames.\""
+  },
+  {
+    "feedback_id": "other_technical_a2c3e5f4f1",
+    "group_id": "other_topic_technical",
+    "paraphrase_family": "other_topic_technical",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "I hear a buzzing noise from the speakers.\""
+  },
+  {
+    "feedback_id": "other_technical_349ab8771a",
+    "group_id": "other_topic_technical",
+    "paraphrase_family": "other_topic_technical",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "The screen went black for a moment.\""
+  },
+  {
+    "feedback_id": "other_technical_ef2e90b194",
+    "group_id": "other_topic_technical",
+    "paraphrase_family": "other_topic_technical",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "The colors look washed out all of a sudden.\""
+  },
+  {
+    "feedback_id": "other_technical_8782859e63",
+    "group_id": "other_topic_technical",
+    "paraphrase_family": "other_topic_technical",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "The audio is out of sync with the visuals.\""
+  },
+  {
+    "feedback_id": "other_technical_66fe07347c",
+    "group_id": "other_topic_technical",
+    "paraphrase_family": "other_topic_technical",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "My character teleported a few steps ahead.\""
+  },
+  {
+    "feedback_id": "other_technical_3368de754d",
+    "group_id": "other_topic_technical",
+    "paraphrase_family": "other_topic_technical",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "There's a persistent lag spike every few seconds.\""
+  },
+  {
+    "feedback_id": "other_technical_81e3788f94",
+    "group_id": "other_topic_technical",
+    "paraphrase_family": "other_topic_technical",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "The resolution seems lower than before.\""
+  },
+  {
+    "feedback_id": "other_technical_d465134e5a",
+    "group_id": "other_topic_technical",
+    "paraphrase_family": "other_topic_technical",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "The game is running at a very low frame rate.\""
+  },
+  {
+    "feedback_id": "other_technical_8ef0cb0d87",
+    "group_id": "other_topic_technical",
+    "paraphrase_family": "other_topic_technical",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "I can hear an echo in the sound.\""
+  },
+  {
+    "feedback_id": "other_technical_0264373be0",
+    "group_id": "other_topic_technical",
+    "paraphrase_family": "other_topic_technical",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "The display is blurry on my screen."
+  },
+  {
+    "feedback_id": "other_break_c43ef26dcd",
+    "group_id": "other_topic_break",
+    "paraphrase_family": "other_topic_break",
+    "reference_type": "other",
+    "role": "other",
+    "source": "template",
+    "text": "I need a short break."
+  },
+  {
+    "feedback_id": "other_break_6abf4521f2",
+    "group_id": "other_topic_break",
+    "paraphrase_family": "other_topic_break",
+    "reference_type": "other",
+    "role": "other",
+    "source": "template",
+    "text": "Can we restart?"
+  },
+  {
+    "feedback_id": "other_break_bfb9780d28",
+    "group_id": "other_topic_break",
+    "paraphrase_family": "other_topic_break",
+    "reference_type": "other",
+    "role": "other",
+    "source": "template",
+    "text": "One moment please."
+  },
+  {
+    "feedback_id": "other_break_24e03f4875",
+    "group_id": "other_topic_break",
+    "paraphrase_family": "other_topic_break",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "Can we pause for a second?"
+  },
+  {
+    "feedback_id": "other_break_3de03e4426",
+    "group_id": "other_topic_break",
+    "paraphrase_family": "other_topic_break",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "I need a quick break."
+  },
+  {
+    "feedback_id": "other_break_3acb1a661c",
+    "group_id": "other_topic_break",
+    "paraphrase_family": "other_topic_break",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "Let's restart this level."
+  },
+  {
+    "feedback_id": "other_break_58db16f38f",
+    "group_id": "other_topic_break",
+    "paraphrase_family": "other_topic_break",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "One more round, please?"
+  },
+  {
+    "feedback_id": "other_break_8639944989",
+    "group_id": "other_topic_break",
+    "paraphrase_family": "other_topic_break",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "Hold on, I need to step away."
+  },
+  {
+    "feedback_id": "other_break_24ba5c75be",
+    "group_id": "other_topic_break",
+    "paraphrase_family": "other_topic_break",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "Can we take a timeout?"
+  },
+  {
+    "feedback_id": "other_break_c9f0e68bf6",
+    "group_id": "other_topic_break",
+    "paraphrase_family": "other_topic_break",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "Let's start over from the beginning."
+  },
+  {
+    "feedback_id": "other_break_355badd3f3",
+    "group_id": "other_topic_break",
+    "paraphrase_family": "other_topic_break",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "I'm asking for a pause here."
+  },
+  {
+    "feedback_id": "other_break_10cfb482be",
+    "group_id": "other_topic_break",
+    "paraphrase_family": "other_topic_break",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "Could we do another round?"
+  },
+  {
+    "feedback_id": "other_break_6ef2910b35",
+    "group_id": "other_topic_break",
+    "paraphrase_family": "other_topic_break",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "I need a moment to breathe."
+  },
+  {
+    "feedback_id": "other_break_af1d146ace",
+    "group_id": "other_topic_break",
+    "paraphrase_family": "other_topic_break",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "Let's reset and try again."
+  },
+  {
+    "feedback_id": "other_break_e321875a73",
+    "group_id": "other_topic_break",
+    "paraphrase_family": "other_topic_break",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "Pause the game for a bit."
+  },
+  {
+    "feedback_id": "other_break_9c78cb4df9",
+    "group_id": "other_topic_break",
+    "paraphrase_family": "other_topic_break",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "Can we replay this one?"
+  },
+  {
+    "feedback_id": "other_break_d91139ab05",
+    "group_id": "other_topic_break",
+    "paraphrase_family": "other_topic_break",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "I need a short rest."
+  },
+  {
+    "feedback_id": "other_break_f12e9a608d",
+    "group_id": "other_topic_break",
+    "paraphrase_family": "other_topic_break",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "Let's call a timeout."
+  },
+  {
+    "feedback_id": "other_break_0f350c82b0",
+    "group_id": "other_topic_break",
+    "paraphrase_family": "other_topic_break",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "One more attempt, please."
+  },
+  {
+    "feedback_id": "other_break_78198a0557",
+    "group_id": "other_topic_break",
+    "paraphrase_family": "other_topic_break",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "I'm requesting a break now."
+  },
+  {
+    "feedback_id": "other_break_cb91c0e9fb",
+    "group_id": "other_topic_break",
+    "paraphrase_family": "other_topic_break",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "Can we start fresh?"
+  },
+  {
+    "feedback_id": "other_break_24b3e85a9f",
+    "group_id": "other_topic_break",
+    "paraphrase_family": "other_topic_break",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "Let's do another go."
+  },
+  {
+    "feedback_id": "other_break_01c6015b63",
+    "group_id": "other_topic_break",
+    "paraphrase_family": "other_topic_break",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "I need to pause briefly."
+  },
+  {
+    "feedback_id": "other_score_ef0ec436be",
+    "group_id": "other_topic_score",
+    "paraphrase_family": "other_topic_score",
+    "reference_type": "other",
+    "role": "other",
+    "source": "template",
+    "text": "What is the score?"
+  },
+  {
+    "feedback_id": "other_score_72256c14aa",
+    "group_id": "other_topic_score",
+    "paraphrase_family": "other_topic_score",
+    "reference_type": "other",
+    "role": "other",
+    "source": "template",
+    "text": "How much time is left?"
+  },
+  {
+    "feedback_id": "other_score_d5edc72023",
+    "group_id": "other_topic_score",
+    "paraphrase_family": "other_topic_score",
+    "reference_type": "other",
+    "role": "other",
+    "source": "template",
+    "text": "Which map is this?"
+  },
+  {
+    "feedback_id": "other_score_cc989e24c0",
+    "group_id": "other_topic_score",
+    "paraphrase_family": "other_topic_score",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "What's the current score?"
+  },
+  {
+    "feedback_id": "other_score_db5ee23862",
+    "group_id": "other_topic_score",
+    "paraphrase_family": "other_topic_score",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "How much time is left on the clock?"
+  },
+  {
+    "feedback_id": "other_score_b6b425b6e0",
+    "group_id": "other_topic_score",
+    "paraphrase_family": "other_topic_score",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "Which map are we playing on?"
+  },
+  {
+    "feedback_id": "other_score_8e31d8998c",
+    "group_id": "other_topic_score",
+    "paraphrase_family": "other_topic_score",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "What recipe are we supposed to make first?"
+  },
+  {
+    "feedback_id": "other_score_e4bc195c22",
+    "group_id": "other_topic_score",
+    "paraphrase_family": "other_topic_score",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "Can you remind me the rules for this level?"
+  },
+  {
+    "feedback_id": "other_score_da69492f0a",
+    "group_id": "other_topic_score",
+    "paraphrase_family": "other_topic_score",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "Is the timer counting down or up?"
+  },
+  {
+    "feedback_id": "other_score_8fee04d3ba",
+    "group_id": "other_topic_score",
+    "paraphrase_family": "other_topic_score",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "What's the target score to beat?"
+  },
+  {
+    "feedback_id": "other_score_28f8511d46",
+    "group_id": "other_topic_score",
+    "paraphrase_family": "other_topic_score",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "Does this map have any special hazards?"
+  },
+  {
+    "feedback_id": "other_score_c5518d2ddc",
+    "group_id": "other_topic_score",
+    "paraphrase_family": "other_topic_score",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "How many points do we need for three stars?"
+  },
+  {
+    "feedback_id": "other_score_933dd459fc",
+    "group_id": "other_topic_score",
+    "paraphrase_family": "other_topic_score",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "What's the recipe order for this round?"
+  },
+  {
+    "feedback_id": "other_score_337e234fb2",
+    "group_id": "other_topic_score",
+    "paraphrase_family": "other_topic_score",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "Is there a time penalty for burning food?"
+  },
+  {
+    "feedback_id": "other_score_b1b2068df1",
+    "group_id": "other_topic_score",
+    "paraphrase_family": "other_topic_score",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "How does the scoring system work here?"
+  },
+  {
+    "feedback_id": "other_score_ab367ddb1f",
+    "group_id": "other_topic_score",
+    "paraphrase_family": "other_topic_score",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "What's the layout of this kitchen?"
+  },
+  {
+    "feedback_id": "other_score_9a0ea005bd",
+    "group_id": "other_topic_score",
+    "paraphrase_family": "other_topic_score",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "Are there any shortcuts on this map?"
+  },
+  {
+    "feedback_id": "other_score_68667e3a4a",
+    "group_id": "other_topic_score",
+    "paraphrase_family": "other_topic_score",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "What's the maximum score possible?"
+  },
+  {
+    "feedback_id": "other_score_b9266f33c9",
+    "group_id": "other_topic_score",
+    "paraphrase_family": "other_topic_score",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "Does the timer pause during orders?"
+  },
+  {
+    "feedback_id": "other_score_3c1de90f0f",
+    "group_id": "other_topic_score",
+    "paraphrase_family": "other_topic_score",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "How many recipes are in this level?"
+  },
+  {
+    "feedback_id": "other_score_c13b53a998",
+    "group_id": "other_topic_score",
+    "paraphrase_family": "other_topic_score",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "What's the rule about dropping food?"
+  },
+  {
+    "feedback_id": "other_score_eb91c285ce",
+    "group_id": "other_topic_score",
+    "paraphrase_family": "other_topic_score",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "Is this map the same as the last one?"
+  },
+  {
+    "feedback_id": "other_score_417a1487b6",
+    "group_id": "other_topic_score",
+    "paraphrase_family": "other_topic_score",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "How long does a typical round last?"
+  },
+  {
+    "feedback_id": "other_social_6b8d9f2d13",
+    "group_id": "other_topic_social",
+    "paraphrase_family": "other_topic_social",
+    "reference_type": "other",
+    "role": "other",
+    "source": "template",
+    "text": "This is fun."
+  },
+  {
+    "feedback_id": "other_social_20ccb1ccfb",
+    "group_id": "other_topic_social",
+    "paraphrase_family": "other_topic_social",
+    "reference_type": "other",
+    "role": "other",
+    "source": "template",
+    "text": "That kitchen looks different."
+  },
+  {
+    "feedback_id": "other_social_5cf8d02617",
+    "group_id": "other_topic_social",
+    "paraphrase_family": "other_topic_social",
+    "reference_type": "other",
+    "role": "other",
+    "source": "template",
+    "text": "Ready for another round?"
+  },
+  {
+    "feedback_id": "other_social_c4435f8ac2",
+    "group_id": "other_topic_social",
+    "paraphrase_family": "other_topic_social",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "I love the music in this level."
+  },
+  {
+    "feedback_id": "other_social_8f6dc50777",
+    "group_id": "other_topic_social",
+    "paraphrase_family": "other_topic_social",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "This kitchen has a nice color scheme."
+  },
+  {
+    "feedback_id": "other_social_3aa5059a18",
+    "group_id": "other_topic_social",
+    "paraphrase_family": "other_topic_social",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "I wonder what we should have for dinner tonight."
+  },
+  {
+    "feedback_id": "other_social_19263a8cdf",
+    "group_id": "other_topic_social",
+    "paraphrase_family": "other_topic_social",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "My cat is sitting on my lap right now."
+  },
+  {
+    "feedback_id": "other_social_48d02e1dd4",
+    "group_id": "other_topic_social",
+    "paraphrase_family": "other_topic_social",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "I really like this chef's hat design."
+  },
+  {
+    "feedback_id": "other_social_43c4c258a0",
+    "group_id": "other_topic_social",
+    "paraphrase_family": "other_topic_social",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "The weather outside is perfect today."
+  },
+  {
+    "feedback_id": "other_social_a6b543e173",
+    "group_id": "other_topic_social",
+    "paraphrase_family": "other_topic_social",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "I just finished watching a great movie."
+  },
+  {
+    "feedback_id": "other_social_68caa8e964",
+    "group_id": "other_topic_social",
+    "paraphrase_family": "other_topic_social",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "This game reminds me of a cooking show I saw."
+  },
+  {
+    "feedback_id": "other_social_d0b86dedb6",
+    "group_id": "other_topic_social",
+    "paraphrase_family": "other_topic_social",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "I need to water my plants after this round."
+  },
+  {
+    "feedback_id": "other_social_2f16bf638e",
+    "group_id": "other_topic_social",
+    "paraphrase_family": "other_topic_social",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "I'm glad we're playing this together."
+  },
+  {
+    "feedback_id": "other_social_9550f7c4e8",
+    "group_id": "other_topic_social",
+    "paraphrase_family": "other_topic_social",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "I've been craving pizza all day."
+  },
+  {
+    "feedback_id": "other_social_ba74ce717e",
+    "group_id": "other_topic_social",
+    "paraphrase_family": "other_topic_social",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "This level has a cozy atmosphere."
+  },
+  {
+    "feedback_id": "other_social_a56715b9bd",
+    "group_id": "other_topic_social",
+    "paraphrase_family": "other_topic_social",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "I just got a new phone case."
+  },
+  {
+    "feedback_id": "other_social_f87366d825",
+    "group_id": "other_topic_social",
+    "paraphrase_family": "other_topic_social",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "I love how the ingredients look in this game."
+  },
+  {
+    "feedback_id": "other_social_ba0ea73287",
+    "group_id": "other_topic_social",
+    "paraphrase_family": "other_topic_social",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "I'm thinking about learning to cook in real life."
+  },
+  {
+    "feedback_id": "other_social_97162dccd6",
+    "group_id": "other_topic_social",
+    "paraphrase_family": "other_topic_social",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "This game's soundtrack is really catchy."
+  },
+  {
+    "feedback_id": "other_social_1a71584cb2",
+    "group_id": "other_topic_social",
+    "paraphrase_family": "other_topic_social",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "I had a funny dream last night."
+  },
+  {
+    "feedback_id": "other_social_c27aabaa04",
+    "group_id": "other_topic_social",
+    "paraphrase_family": "other_topic_social",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "I like the way the chefs run in this game."
+  },
+  {
+    "feedback_id": "other_social_77ef1aceda",
+    "group_id": "other_topic_social",
+    "paraphrase_family": "other_topic_social",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "I'm enjoying the break from work today."
+  },
+  {
+    "feedback_id": "other_social_fa85a70746",
+    "group_id": "other_topic_social",
+    "paraphrase_family": "other_topic_social",
+    "reference_type": "other",
+    "role": "other",
+    "source": "llm",
+    "text": "This is one of my favorite game modes."
+  }
+]

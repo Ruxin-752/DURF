@@ -1,0 +1,1227 @@
+{
+  "annotation_sources": {
+    "phrase_annotations": 8717
+  },
+  "class_thresholds": {
+    "action_behavioral": 0.6222422745631676,
+    "action_spatial": 0.9216716736390803,
+    "feature": 0.8199270496373795,
+    "other": 0.35,
+    "trajectory": 0.7137254797854972
+  },
+  "dev": {
+    "accuracy": 0.6926829268292682,
+    "balanced_accuracy": 0.6929393221811475,
+    "calibration": {
+      "abstention_rate": 0.5626016260162602,
+      "ece_10_bin": 0.041692186491729934,
+      "mean_binary_brier": 0.08446174547475473,
+      "mean_top2_margin": 0.5325548084415125,
+      "multiclass_brier": 0.4223087273737737,
+      "selective_accuracy": 0.9256505576208178,
+      "temperature": 0.582999499354841
+    },
+    "classification_report": {
+      "accuracy": 0.6926829268292682,
+      "action_behavioral": {
+        "f1-score": 0.7741935483870968,
+        "precision": 0.8067226890756303,
+        "recall": 0.7441860465116279,
+        "support": 129.0
+      },
+      "action_spatial": {
+        "f1-score": 0.5772357723577236,
+        "precision": 0.5461538461538461,
+        "recall": 0.6120689655172413,
+        "support": 116.0
+      },
+      "feature": {
+        "f1-score": 0.6666666666666666,
+        "precision": 0.6277777777777778,
+        "recall": 0.710691823899371,
+        "support": 159.0
+      },
+      "macro avg": {
+        "f1-score": 0.7003812571579949,
+        "precision": 0.7123808626014508,
+        "recall": 0.6929393221811475,
+        "support": 615.0
+      },
+      "other": {
+        "f1-score": 0.9109947643979057,
+        "precision": 0.9666666666666667,
+        "recall": 0.8613861386138614,
+        "support": 101.0
+      },
+      "trajectory": {
+        "f1-score": 0.5728155339805825,
+        "precision": 0.6145833333333334,
+        "recall": 0.5363636363636364,
+        "support": 110.0
+      },
+      "weighted avg": {
+        "f1-score": 0.6956918654918438,
+        "precision": 0.7032117718882425,
+        "recall": 0.6926829268292682,
+        "support": 615.0
+      }
+    },
+    "confusion_matrix": [
+      [
+        59,
+        28,
+        19,
+        4,
+        0
+      ],
+      [
+        12,
+        113,
+        23,
+        10,
+        1
+      ],
+      [
+        9,
+        28,
+        71,
+        7,
+        1
+      ],
+      [
+        7,
+        11,
+        14,
+        96,
+        1
+      ],
+      [
+        9,
+        0,
+        3,
+        2,
+        87
+      ]
+    ],
+    "labels": [
+      "trajectory",
+      "feature",
+      "action_spatial",
+      "action_behavioral",
+      "other"
+    ],
+    "macro_f1": 0.7003812571579952,
+    "weighted_f1": 0.6956918654918439
+  },
+  "dev_candidates": [
+    {
+      "config": {
+        "C": 0.5,
+        "class_weight": null
+      },
+      "metrics": {
+        "accuracy": 0.6617886178861788,
+        "balanced_accuracy": 0.6607467502132943,
+        "calibration": {
+          "abstention_rate": 0.13821138211382114,
+          "ece_10_bin": 0.1854287484468874,
+          "mean_binary_brier": 0.10172560288030934,
+          "mean_top2_margin": 0.26201868637551023,
+          "multiclass_brier": 0.5086280144015467,
+          "selective_accuracy": 0.7,
+          "temperature": 1.0
+        },
+        "classification_report": {
+          "accuracy": 0.6617886178861788,
+          "action_behavioral": {
+            "f1-score": 0.7567567567567568,
+            "precision": 0.7538461538461538,
+            "recall": 0.7596899224806202,
+            "support": 129.0
+          },
+          "action_spatial": {
+            "f1-score": 0.5454545454545454,
+            "precision": 0.5036496350364964,
+            "recall": 0.5948275862068966,
+            "support": 116.0
+          },
+          "feature": {
+            "f1-score": 0.6402439024390244,
+            "precision": 0.621301775147929,
+            "recall": 0.660377358490566,
+            "support": 159.0
+          },
+          "macro avg": {
+            "f1-score": 0.6701717843969297,
+            "precision": 0.6874629908462275,
+            "recall": 0.6607467502132943,
+            "support": 615.0
+          },
+          "other": {
+            "f1-score": 0.8491620111731844,
+            "precision": 0.9743589743589743,
+            "recall": 0.7524752475247525,
+            "support": 101.0
+          },
+          "trajectory": {
+            "f1-score": 0.5592417061611374,
+            "precision": 0.5841584158415841,
+            "recall": 0.5363636363636364,
+            "support": 110.0
+          },
+          "weighted avg": {
+            "f1-score": 0.6666261466477569,
+            "precision": 0.6782506925394126,
+            "recall": 0.6617886178861788,
+            "support": 615.0
+          }
+        },
+        "confusion_matrix": [
+          [
+            59,
+            26,
+            21,
+            4,
+            0
+          ],
+          [
+            12,
+            105,
+            26,
+            16,
+            0
+          ],
+          [
+            10,
+            28,
+            69,
+            8,
+            1
+          ],
+          [
+            7,
+            10,
+            13,
+            98,
+            1
+          ],
+          [
+            13,
+            0,
+            8,
+            4,
+            76
+          ]
+        ],
+        "labels": [
+          "trajectory",
+          "feature",
+          "action_spatial",
+          "action_behavioral",
+          "other"
+        ],
+        "macro_f1": 0.6701717843969297,
+        "weighted_f1": 0.6666261466477569
+      }
+    },
+    {
+      "config": {
+        "C": 0.5,
+        "class_weight": "balanced"
+      },
+      "metrics": {
+        "accuracy": 0.6796747967479675,
+        "balanced_accuracy": 0.6821752048561288,
+        "calibration": {
+          "abstention_rate": 0.13333333333333333,
+          "ece_10_bin": 0.1953974733897358,
+          "mean_binary_brier": 0.09760707394988442,
+          "mean_top2_margin": 0.27701251156102197,
+          "multiclass_brier": 0.48803536974942213,
+          "selective_accuracy": 0.7223264540337712,
+          "temperature": 1.0
+        },
+        "classification_report": {
+          "accuracy": 0.6796747967479675,
+          "action_behavioral": {
+            "f1-score": 0.7642276422764228,
+            "precision": 0.8034188034188035,
+            "recall": 0.7286821705426356,
+            "support": 129.0
+          },
+          "action_spatial": {
+            "f1-score": 0.5619834710743802,
+            "precision": 0.5396825396825397,
+            "recall": 0.5862068965517241,
+            "support": 116.0
+          },
+          "feature": {
+            "f1-score": 0.6409495548961425,
+            "precision": 0.6067415730337079,
+            "recall": 0.6792452830188679,
+            "support": 159.0
+          },
+          "macro avg": {
+            "f1-score": 0.6874969520796897,
+            "precision": 0.6957508961521802,
+            "recall": 0.6821752048561288,
+            "support": 615.0
+          },
+          "other": {
+            "f1-score": 0.8934010152284264,
+            "precision": 0.9166666666666666,
+            "recall": 0.8712871287128713,
+            "support": 101.0
+          },
+          "trajectory": {
+            "f1-score": 0.5769230769230769,
+            "precision": 0.6122448979591837,
+            "recall": 0.5454545454545454,
+            "support": 110.0
+          },
+          "weighted avg": {
+            "f1-score": 0.6819210873599721,
+            "precision": 0.6872298901876477,
+            "recall": 0.6796747967479675,
+            "support": 615.0
+          }
+        },
+        "confusion_matrix": [
+          [
+            60,
+            29,
+            17,
+            3,
+            1
+          ],
+          [
+            11,
+            108,
+            26,
+            11,
+            3
+          ],
+          [
+            10,
+            28,
+            68,
+            8,
+            2
+          ],
+          [
+            8,
+            13,
+            12,
+            94,
+            2
+          ],
+          [
+            9,
+            0,
+            3,
+            1,
+            88
+          ]
+        ],
+        "labels": [
+          "trajectory",
+          "feature",
+          "action_spatial",
+          "action_behavioral",
+          "other"
+        ],
+        "macro_f1": 0.6874969520796897,
+        "weighted_f1": 0.6819210873599721
+      }
+    },
+    {
+      "config": {
+        "C": 1.0,
+        "class_weight": null
+      },
+      "metrics": {
+        "accuracy": 0.6747967479674797,
+        "balanced_accuracy": 0.674668007297923,
+        "calibration": {
+          "abstention_rate": 0.0959349593495935,
+          "ece_10_bin": 0.13547912500469989,
+          "mean_binary_brier": 0.09413764698426576,
+          "mean_top2_margin": 0.3336974758909071,
+          "multiclass_brier": 0.4706882349213289,
+          "selective_accuracy": 0.7122302158273381,
+          "temperature": 1.0
+        },
+        "classification_report": {
+          "accuracy": 0.6747967479674797,
+          "action_behavioral": {
+            "f1-score": 0.7674418604651163,
+            "precision": 0.7674418604651163,
+            "recall": 0.7674418604651163,
+            "support": 129.0
+          },
+          "action_spatial": {
+            "f1-score": 0.5625,
+            "precision": 0.5142857142857142,
+            "recall": 0.6206896551724138,
+            "support": 116.0
+          },
+          "feature": {
+            "f1-score": 0.6503067484662577,
+            "precision": 0.6347305389221557,
+            "recall": 0.6666666666666666,
+            "support": 159.0
+          },
+          "macro avg": {
+            "f1-score": 0.6831376338741869,
+            "precision": 0.698761514394965,
+            "recall": 0.6746680072979231,
+            "support": 615.0
+          },
+          "other": {
+            "f1-score": 0.8681318681318682,
+            "precision": 0.9753086419753086,
+            "recall": 0.7821782178217822,
+            "support": 101.0
+          },
+          "trajectory": {
+            "f1-score": 0.5673076923076923,
+            "precision": 0.6020408163265306,
+            "recall": 0.5363636363636364,
+            "support": 110.0
+          },
+          "weighted avg": {
+            "f1-score": 0.6792421753517071,
+            "precision": 0.6899348962295775,
+            "recall": 0.6747967479674797,
+            "support": 615.0
+          }
+        },
+        "confusion_matrix": [
+          [
+            59,
+            26,
+            21,
+            4,
+            0
+          ],
+          [
+            12,
+            106,
+            26,
+            15,
+            0
+          ],
+          [
+            9,
+            27,
+            72,
+            7,
+            1
+          ],
+          [
+            8,
+            8,
+            13,
+            99,
+            1
+          ],
+          [
+            10,
+            0,
+            8,
+            4,
+            79
+          ]
+        ],
+        "labels": [
+          "trajectory",
+          "feature",
+          "action_spatial",
+          "action_behavioral",
+          "other"
+        ],
+        "macro_f1": 0.6831376338741869,
+        "weighted_f1": 0.679242175351707
+      }
+    },
+    {
+      "config": {
+        "C": 1.0,
+        "class_weight": "balanced"
+      },
+      "metrics": {
+        "accuracy": 0.6926829268292682,
+        "balanced_accuracy": 0.6929393221811475,
+        "calibration": {
+          "abstention_rate": 0.11382113821138211,
+          "ece_10_bin": 0.14677540047766305,
+          "mean_binary_brier": 0.09065331991319114,
+          "mean_top2_margin": 0.34610470094339385,
+          "multiclass_brier": 0.4532665995659558,
+          "selective_accuracy": 0.7302752293577982,
+          "temperature": 1.0
+        },
+        "classification_report": {
+          "accuracy": 0.6926829268292682,
+          "action_behavioral": {
+            "f1-score": 0.7741935483870968,
+            "precision": 0.8067226890756303,
+            "recall": 0.7441860465116279,
+            "support": 129.0
+          },
+          "action_spatial": {
+            "f1-score": 0.5772357723577236,
+            "precision": 0.5461538461538461,
+            "recall": 0.6120689655172413,
+            "support": 116.0
+          },
+          "feature": {
+            "f1-score": 0.6666666666666666,
+            "precision": 0.6277777777777778,
+            "recall": 0.710691823899371,
+            "support": 159.0
+          },
+          "macro avg": {
+            "f1-score": 0.7003812571579949,
+            "precision": 0.7123808626014508,
+            "recall": 0.6929393221811475,
+            "support": 615.0
+          },
+          "other": {
+            "f1-score": 0.9109947643979057,
+            "precision": 0.9666666666666667,
+            "recall": 0.8613861386138614,
+            "support": 101.0
+          },
+          "trajectory": {
+            "f1-score": 0.5728155339805825,
+            "precision": 0.6145833333333334,
+            "recall": 0.5363636363636364,
+            "support": 110.0
+          },
+          "weighted avg": {
+            "f1-score": 0.6956918654918438,
+            "precision": 0.7032117718882425,
+            "recall": 0.6926829268292682,
+            "support": 615.0
+          }
+        },
+        "confusion_matrix": [
+          [
+            59,
+            28,
+            19,
+            4,
+            0
+          ],
+          [
+            12,
+            113,
+            23,
+            10,
+            1
+          ],
+          [
+            9,
+            28,
+            71,
+            7,
+            1
+          ],
+          [
+            7,
+            11,
+            14,
+            96,
+            1
+          ],
+          [
+            9,
+            0,
+            3,
+            2,
+            87
+          ]
+        ],
+        "labels": [
+          "trajectory",
+          "feature",
+          "action_spatial",
+          "action_behavioral",
+          "other"
+        ],
+        "macro_f1": 0.7003812571579952,
+        "weighted_f1": 0.6956918654918439
+      }
+    },
+    {
+      "config": {
+        "C": 2.0,
+        "class_weight": null
+      },
+      "metrics": {
+        "accuracy": 0.6796747967479675,
+        "balanced_accuracy": 0.6794213285092108,
+        "calibration": {
+          "abstention_rate": 0.0975609756097561,
+          "ece_10_bin": 0.0827093540884411,
+          "mean_binary_brier": 0.0899953395592998,
+          "mean_top2_margin": 0.4008836341018234,
+          "multiclass_brier": 0.4499766977964989,
+          "selective_accuracy": 0.7099099099099099,
+          "temperature": 1.0
+        },
+        "classification_report": {
+          "accuracy": 0.6796747967479675,
+          "action_behavioral": {
+            "f1-score": 0.7578125,
+            "precision": 0.7637795275590551,
+            "recall": 0.751937984496124,
+            "support": 129.0
+          },
+          "action_spatial": {
+            "f1-score": 0.5542168674698795,
+            "precision": 0.518796992481203,
+            "recall": 0.5948275862068966,
+            "support": 116.0
+          },
+          "feature": {
+            "f1-score": 0.6606060606060606,
+            "precision": 0.6374269005847953,
+            "recall": 0.6855345911949685,
+            "support": 159.0
+          },
+          "macro avg": {
+            "f1-score": 0.687871408714302,
+            "precision": 0.7015242437098849,
+            "recall": 0.6794213285092108,
+            "support": 615.0
+          },
+          "other": {
+            "f1-score": 0.8695652173913043,
+            "precision": 0.963855421686747,
+            "recall": 0.7920792079207921,
+            "support": 101.0
+          },
+          "trajectory": {
+            "f1-score": 0.5971563981042654,
+            "precision": 0.6237623762376238,
+            "recall": 0.5727272727272728,
+            "support": 110.0
+          },
+          "weighted avg": {
+            "f1-score": 0.6838969487981473,
+            "precision": 0.6927189371584068,
+            "recall": 0.6796747967479675,
+            "support": 615.0
+          }
+        },
+        "confusion_matrix": [
+          [
+            63,
+            25,
+            17,
+            5,
+            0
+          ],
+          [
+            14,
+            109,
+            26,
+            9,
+            1
+          ],
+          [
+            12,
+            25,
+            69,
+            9,
+            1
+          ],
+          [
+            6,
+            12,
+            13,
+            97,
+            1
+          ],
+          [
+            6,
+            0,
+            8,
+            7,
+            80
+          ]
+        ],
+        "labels": [
+          "trajectory",
+          "feature",
+          "action_spatial",
+          "action_behavioral",
+          "other"
+        ],
+        "macro_f1": 0.6878714087143021,
+        "weighted_f1": 0.6838969487981473
+      }
+    },
+    {
+      "config": {
+        "C": 2.0,
+        "class_weight": "balanced"
+      },
+      "metrics": {
+        "accuracy": 0.6861788617886179,
+        "balanced_accuracy": 0.6870013946213128,
+        "calibration": {
+          "abstention_rate": 0.0959349593495935,
+          "ece_10_bin": 0.0940893081928696,
+          "mean_binary_brier": 0.08702431518765552,
+          "mean_top2_margin": 0.4113774893073139,
+          "multiclass_brier": 0.43512157593827766,
+          "selective_accuracy": 0.7194244604316546,
+          "temperature": 1.0
+        },
+        "classification_report": {
+          "accuracy": 0.6861788617886179,
+          "action_behavioral": {
+            "f1-score": 0.768,
+            "precision": 0.7933884297520661,
+            "recall": 0.7441860465116279,
+            "support": 129.0
+          },
+          "action_spatial": {
+            "f1-score": 0.5606694560669456,
+            "precision": 0.5447154471544715,
+            "recall": 0.5775862068965517,
+            "support": 116.0
+          },
+          "feature": {
+            "f1-score": 0.6548672566371682,
+            "precision": 0.6166666666666667,
+            "recall": 0.6981132075471698,
+            "support": 159.0
+          },
+          "macro avg": {
+            "f1-score": 0.6947411061952419,
+            "precision": 0.7057811631319135,
+            "recall": 0.6870013946213128,
+            "support": 615.0
+          },
+          "other": {
+            "f1-score": 0.9052631578947369,
+            "precision": 0.9662921348314607,
+            "recall": 0.8514851485148515,
+            "support": 101.0
+          },
+          "trajectory": {
+            "f1-score": 0.5849056603773585,
+            "precision": 0.6078431372549019,
+            "recall": 0.5636363636363636,
+            "support": 110.0
+          },
+          "weighted avg": {
+            "f1-score": 0.6894386216226882,
+            "precision": 0.6960038211771578,
+            "recall": 0.6861788617886179,
+            "support": 615.0
+          }
+        },
+        "confusion_matrix": [
+          [
+            62,
+            28,
+            15,
+            5,
+            0
+          ],
+          [
+            14,
+            111,
+            24,
+            9,
+            1
+          ],
+          [
+            12,
+            28,
+            67,
+            8,
+            1
+          ],
+          [
+            5,
+            13,
+            14,
+            96,
+            1
+          ],
+          [
+            9,
+            0,
+            3,
+            3,
+            86
+          ]
+        ],
+        "labels": [
+          "trajectory",
+          "feature",
+          "action_spatial",
+          "action_behavioral",
+          "other"
+        ],
+        "macro_f1": 0.6947411061952419,
+        "weighted_f1": 0.6894386216226882
+      }
+    },
+    {
+      "config": {
+        "C": 4.0,
+        "class_weight": null
+      },
+      "metrics": {
+        "accuracy": 0.6715447154471544,
+        "balanced_accuracy": 0.6721382701281733,
+        "calibration": {
+          "abstention_rate": 0.07804878048780488,
+          "ece_10_bin": 0.061285625983296795,
+          "mean_binary_brier": 0.08898233337735591,
+          "mean_top2_margin": 0.463205874211552,
+          "multiclass_brier": 0.44491166688677947,
+          "selective_accuracy": 0.7001763668430335,
+          "temperature": 1.0
+        },
+        "classification_report": {
+          "accuracy": 0.6715447154471544,
+          "action_behavioral": {
+            "f1-score": 0.7372549019607844,
+            "precision": 0.746031746031746,
+            "recall": 0.7286821705426356,
+            "support": 129.0
+          },
+          "action_spatial": {
+            "f1-score": 0.5301204819277109,
+            "precision": 0.49624060150375937,
+            "recall": 0.5689655172413793,
+            "support": 116.0
+          },
+          "feature": {
+            "f1-score": 0.6565349544072948,
+            "precision": 0.6352941176470588,
+            "recall": 0.6792452830188679,
+            "support": 159.0
+          },
+          "macro avg": {
+            "f1-score": 0.6810568176081272,
+            "precision": 0.6949658605882733,
+            "recall": 0.6721382701281733,
+            "support": 615.0
+          },
+          "other": {
+            "f1-score": 0.8804347826086957,
+            "precision": 0.9759036144578314,
+            "recall": 0.801980198019802,
+            "support": 101.0
+          },
+          "trajectory": {
+            "f1-score": 0.6009389671361502,
+            "precision": 0.6213592233009708,
+            "recall": 0.5818181818181818,
+            "support": 110.0
+          },
+          "weighted avg": {
+            "f1-score": 0.6764489681882444,
+            "precision": 0.6857391046207503,
+            "recall": 0.6715447154471544,
+            "support": 615.0
+          }
+        },
+        "confusion_matrix": [
+          [
+            64,
+            25,
+            16,
+            5,
+            0
+          ],
+          [
+            12,
+            108,
+            28,
+            11,
+            0
+          ],
+          [
+            14,
+            25,
+            66,
+            10,
+            1
+          ],
+          [
+            6,
+            12,
+            16,
+            94,
+            1
+          ],
+          [
+            7,
+            0,
+            7,
+            6,
+            81
+          ]
+        ],
+        "labels": [
+          "trajectory",
+          "feature",
+          "action_spatial",
+          "action_behavioral",
+          "other"
+        ],
+        "macro_f1": 0.6810568176081272,
+        "weighted_f1": 0.6764489681882444
+      }
+    },
+    {
+      "config": {
+        "C": 4.0,
+        "class_weight": "balanced"
+      },
+      "metrics": {
+        "accuracy": 0.6764227642276422,
+        "balanced_accuracy": 0.6775761220188533,
+        "calibration": {
+          "abstention_rate": 0.07967479674796749,
+          "ece_10_bin": 0.049283223790490646,
+          "mean_binary_brier": 0.0863720151916687,
+          "mean_top2_margin": 0.46915164824961597,
+          "multiclass_brier": 0.43186007595834364,
+          "selective_accuracy": 0.7014134275618374,
+          "temperature": 1.0
+        },
+        "classification_report": {
+          "accuracy": 0.6764227642276422,
+          "action_behavioral": {
+            "f1-score": 0.7380952380952381,
+            "precision": 0.7560975609756098,
+            "recall": 0.7209302325581395,
+            "support": 129.0
+          },
+          "action_spatial": {
+            "f1-score": 0.5355648535564853,
+            "precision": 0.5203252032520326,
+            "recall": 0.5517241379310345,
+            "support": 116.0
+          },
+          "feature": {
+            "f1-score": 0.6528189910979229,
+            "precision": 0.6179775280898876,
+            "recall": 0.6918238993710691,
+            "support": 159.0
+          },
+          "macro avg": {
+            "f1-score": 0.6853777898713392,
+            "precision": 0.6963337213055183,
+            "recall": 0.6775761220188533,
+            "support": 615.0
+          },
+          "other": {
+            "f1-score": 0.8994708994708994,
+            "precision": 0.9659090909090909,
+            "recall": 0.8415841584158416,
+            "support": 101.0
+          },
+          "trajectory": {
+            "f1-score": 0.6009389671361502,
+            "precision": 0.6213592233009708,
+            "recall": 0.5818181818181818,
+            "support": 110.0
+          },
+          "weighted avg": {
+            "f1-score": 0.6798176838096669,
+            "precision": 0.6862749083809864,
+            "recall": 0.6764227642276422,
+            "support": 615.0
+          }
+        },
+        "confusion_matrix": [
+          [
+            64,
+            28,
+            13,
+            5,
+            0
+          ],
+          [
+            12,
+            110,
+            26,
+            10,
+            1
+          ],
+          [
+            14,
+            27,
+            64,
+            10,
+            1
+          ],
+          [
+            6,
+            13,
+            16,
+            93,
+            1
+          ],
+          [
+            7,
+            0,
+            4,
+            5,
+            85
+          ]
+        ],
+        "labels": [
+          "trajectory",
+          "feature",
+          "action_spatial",
+          "action_behavioral",
+          "other"
+        ],
+        "macro_f1": 0.6853777898713392,
+        "weighted_f1": 0.6798176838096669
+      }
+    }
+  ],
+  "selected_hyperparameters": {
+    "C": 1.0,
+    "class_weight": "balanced"
+  },
+  "split_groups": {
+    "dev": [
+      "ctx_0040_pot[tomato]_partial_hold[onion]_human[pickup_soup]",
+      "ctx_0069_pot[tomato-tomato-onion]_cooking_hold[soup]_human[pick_dish_then_serve]",
+      "ctx_0070_pot[tomato-tomato-onion]_cooking_hold[soup]_human[pickup_soup]",
+      "ctx_0079_pot[tomato-tomato-onion]_ready_hold[dish]_human[get_tomato]",
+      "ctx_0087_pot[tomato-tomato-onion]_ready_hold[soup]_human[pick_dish_then_serve]",
+      "ctx_0088_pot[tomato-tomato-onion]_ready_hold[soup]_human[pickup_soup]",
+      "other_topic_social"
+    ],
+    "test": [
+      "ctx_0006_pot[empty]_empty_hold[tomato]_human[idle]",
+      "ctx_0017_pot[empty]_empty_hold[onion]_human[serve_soup]",
+      "ctx_0027_pot[tomato]_partial_hold[empty]_human[pick_dish_then_serve]",
+      "ctx_0031_pot[tomato]_partial_hold[tomato]_human[get_tomato]",
+      "ctx_0032_pot[tomato]_partial_hold[tomato]_human[get_onion]",
+      "ctx_0034_pot[tomato]_partial_hold[tomato]_human[pickup_soup]",
+      "ctx_0038_pot[tomato]_partial_hold[onion]_human[get_onion]",
+      "ctx_0054_pot[tomato-tomato]_partial_hold[onion]_human[idle]",
+      "ctx_0055_pot[tomato-tomato]_partial_hold[onion]_human[get_tomato]",
+      "ctx_0073_pot[tomato-tomato-onion]_ready_hold[empty]_human[get_tomato]",
+      "ctx_0074_pot[tomato-tomato-onion]_ready_hold[empty]_human[get_onion]",
+      "ctx_0089_pot[tomato-tomato-onion]_ready_hold[soup]_human[serve_soup]",
+      "other_topic_state_statement"
+    ],
+    "train": [
+      "ctx_0000_pot[empty]_empty_hold[empty]_human[idle]",
+      "ctx_0001_pot[empty]_empty_hold[empty]_human[get_tomato]",
+      "ctx_0002_pot[empty]_empty_hold[empty]_human[get_onion]",
+      "ctx_0003_pot[empty]_empty_hold[empty]_human[pick_dish_then_serve]",
+      "ctx_0004_pot[empty]_empty_hold[empty]_human[pickup_soup]",
+      "ctx_0005_pot[empty]_empty_hold[empty]_human[serve_soup]",
+      "ctx_0007_pot[empty]_empty_hold[tomato]_human[get_tomato]",
+      "ctx_0008_pot[empty]_empty_hold[tomato]_human[get_onion]",
+      "ctx_0009_pot[empty]_empty_hold[tomato]_human[pick_dish_then_serve]",
+      "ctx_0010_pot[empty]_empty_hold[tomato]_human[pickup_soup]",
+      "ctx_0011_pot[empty]_empty_hold[tomato]_human[serve_soup]",
+      "ctx_0012_pot[empty]_empty_hold[onion]_human[idle]",
+      "ctx_0013_pot[empty]_empty_hold[onion]_human[get_tomato]",
+      "ctx_0014_pot[empty]_empty_hold[onion]_human[get_onion]",
+      "ctx_0015_pot[empty]_empty_hold[onion]_human[pick_dish_then_serve]",
+      "ctx_0016_pot[empty]_empty_hold[onion]_human[pickup_soup]",
+      "ctx_0018_pot[empty]_empty_hold[soup]_human[idle]",
+      "ctx_0019_pot[empty]_empty_hold[soup]_human[get_tomato]",
+      "ctx_0020_pot[empty]_empty_hold[soup]_human[get_onion]",
+      "ctx_0021_pot[empty]_empty_hold[soup]_human[pick_dish_then_serve]",
+      "ctx_0022_pot[empty]_empty_hold[soup]_human[pickup_soup]",
+      "ctx_0023_pot[empty]_empty_hold[soup]_human[serve_soup]",
+      "ctx_0024_pot[tomato]_partial_hold[empty]_human[idle]",
+      "ctx_0025_pot[tomato]_partial_hold[empty]_human[get_tomato]",
+      "ctx_0026_pot[tomato]_partial_hold[empty]_human[get_onion]",
+      "ctx_0028_pot[tomato]_partial_hold[empty]_human[pickup_soup]",
+      "ctx_0029_pot[tomato]_partial_hold[empty]_human[serve_soup]",
+      "ctx_0030_pot[tomato]_partial_hold[tomato]_human[idle]",
+      "ctx_0033_pot[tomato]_partial_hold[tomato]_human[pick_dish_then_serve]",
+      "ctx_0035_pot[tomato]_partial_hold[tomato]_human[serve_soup]",
+      "ctx_0036_pot[tomato]_partial_hold[onion]_human[idle]",
+      "ctx_0037_pot[tomato]_partial_hold[onion]_human[get_tomato]",
+      "ctx_0039_pot[tomato]_partial_hold[onion]_human[pick_dish_then_serve]",
+      "ctx_0041_pot[tomato]_partial_hold[onion]_human[serve_soup]",
+      "ctx_0042_pot[tomato]_partial_hold[soup]_human[idle]",
+      "ctx_0043_pot[tomato]_partial_hold[soup]_human[get_tomato]",
+      "ctx_0044_pot[tomato]_partial_hold[soup]_human[get_onion]",
+      "ctx_0045_pot[tomato]_partial_hold[soup]_human[pick_dish_then_serve]",
+      "ctx_0046_pot[tomato]_partial_hold[soup]_human[pickup_soup]",
+      "ctx_0047_pot[tomato]_partial_hold[soup]_human[serve_soup]",
+      "ctx_0048_pot[tomato-tomato]_partial_hold[empty]_human[idle]",
+      "ctx_0049_pot[tomato-tomato]_partial_hold[empty]_human[get_tomato]",
+      "ctx_0050_pot[tomato-tomato]_partial_hold[empty]_human[get_onion]",
+      "ctx_0051_pot[tomato-tomato]_partial_hold[empty]_human[pick_dish_then_serve]",
+      "ctx_0052_pot[tomato-tomato]_partial_hold[empty]_human[pickup_soup]",
+      "ctx_0053_pot[tomato-tomato]_partial_hold[empty]_human[serve_soup]",
+      "ctx_0056_pot[tomato-tomato]_partial_hold[onion]_human[get_onion]",
+      "ctx_0057_pot[tomato-tomato]_partial_hold[onion]_human[pick_dish_then_serve]",
+      "ctx_0058_pot[tomato-tomato]_partial_hold[onion]_human[pickup_soup]",
+      "ctx_0059_pot[tomato-tomato]_partial_hold[onion]_human[serve_soup]",
+      "ctx_0060_pot[tomato-tomato]_partial_hold[soup]_human[idle]",
+      "ctx_0061_pot[tomato-tomato]_partial_hold[soup]_human[get_tomato]",
+      "ctx_0062_pot[tomato-tomato]_partial_hold[soup]_human[get_onion]",
+      "ctx_0063_pot[tomato-tomato]_partial_hold[soup]_human[pick_dish_then_serve]",
+      "ctx_0064_pot[tomato-tomato]_partial_hold[soup]_human[pickup_soup]",
+      "ctx_0065_pot[tomato-tomato]_partial_hold[soup]_human[serve_soup]",
+      "ctx_0066_pot[tomato-tomato-onion]_cooking_hold[soup]_human[idle]",
+      "ctx_0067_pot[tomato-tomato-onion]_cooking_hold[soup]_human[get_tomato]",
+      "ctx_0068_pot[tomato-tomato-onion]_cooking_hold[soup]_human[get_onion]",
+      "ctx_0071_pot[tomato-tomato-onion]_cooking_hold[soup]_human[serve_soup]",
+      "ctx_0072_pot[tomato-tomato-onion]_ready_hold[empty]_human[idle]",
+      "ctx_0075_pot[tomato-tomato-onion]_ready_hold[empty]_human[pick_dish_then_serve]",
+      "ctx_0076_pot[tomato-tomato-onion]_ready_hold[empty]_human[pickup_soup]",
+      "ctx_0077_pot[tomato-tomato-onion]_ready_hold[empty]_human[serve_soup]",
+      "ctx_0078_pot[tomato-tomato-onion]_ready_hold[dish]_human[idle]",
+      "ctx_0080_pot[tomato-tomato-onion]_ready_hold[dish]_human[get_onion]",
+      "ctx_0081_pot[tomato-tomato-onion]_ready_hold[dish]_human[pick_dish_then_serve]",
+      "ctx_0082_pot[tomato-tomato-onion]_ready_hold[dish]_human[pickup_soup]",
+      "ctx_0083_pot[tomato-tomato-onion]_ready_hold[dish]_human[serve_soup]",
+      "ctx_0084_pot[tomato-tomato-onion]_ready_hold[soup]_human[idle]",
+      "ctx_0085_pot[tomato-tomato-onion]_ready_hold[soup]_human[get_tomato]",
+      "ctx_0086_pot[tomato-tomato-onion]_ready_hold[soup]_human[get_onion]",
+      "other_topic_break",
+      "other_topic_controls",
+      "other_topic_greeting",
+      "other_topic_kitchen_question",
+      "other_topic_score",
+      "other_topic_self_intent",
+      "other_topic_technical"
+    ]
+  },
+  "split_policy": "generator_declared_split",
+  "split_sizes": {
+    "dev": 615,
+    "test": 1063,
+    "train": 7039
+  },
+  "target_selective_precision": 0.9,
+  "train_classes": [
+    "action_behavioral",
+    "action_spatial",
+    "feature",
+    "other",
+    "trajectory"
+  ],
+  "untouched_test": {
+    "accuracy": 0.5898400752587017,
+    "balanced_accuracy": 0.6350637941808615,
+    "calibration": {
+      "abstention_rate": 0.6547507055503292,
+      "ece_10_bin": 0.0853690727063189,
+      "mean_binary_brier": 0.10747649966894794,
+      "mean_top2_margin": 0.4942488468329114,
+      "multiclass_brier": 0.5373824983447397,
+      "selective_accuracy": 0.8583106267029973,
+      "temperature": 0.582999499354841
+    },
+    "classification_report": {
+      "accuracy": 0.5898400752587017,
+      "action_behavioral": {
+        "f1-score": 0.6269430051813472,
+        "precision": 0.6436170212765957,
+        "recall": 0.6111111111111112,
+        "support": 198.0
+      },
+      "action_spatial": {
+        "f1-score": 0.5410122164048866,
+        "precision": 0.4952076677316294,
+        "recall": 0.5961538461538461,
+        "support": 260.0
+      },
+      "feature": {
+        "f1-score": 0.5822222222222222,
+        "precision": 0.5900900900900901,
+        "recall": 0.5745614035087719,
+        "support": 228.0
+      },
+      "macro avg": {
+        "f1-score": 0.6352416792836559,
+        "precision": 0.6385042781611021,
+        "recall": 0.6350637941808615,
+        "support": 1063.0
+      },
+      "other": {
+        "f1-score": 0.9405940594059405,
+        "precision": 0.9405940594059405,
+        "recall": 0.9405940594059405,
+        "support": 101.0
+      },
+      "trajectory": {
+        "f1-score": 0.4854368932038835,
+        "precision": 0.5230125523012552,
+        "recall": 0.4528985507246377,
+        "support": 276.0
+      },
+      "weighted avg": {
+        "f1-score": 0.58939335887311,
+        "precision": 0.5927395755396769,
+        "recall": 0.5898400752587017,
+        "support": 1063.0
+      }
+    },
+    "confusion_matrix": [
+      [
+        125,
+        37,
+        85,
+        26,
+        3
+      ],
+      [
+        41,
+        131,
+        30,
+        24,
+        2
+      ],
+      [
+        56,
+        33,
+        155,
+        16,
+        0
+      ],
+      [
+        17,
+        21,
+        38,
+        121,
+        1
+      ],
+      [
+        0,
+        0,
+        5,
+        1,
+        95
+      ]
+    ],
+    "labels": [
+      "trajectory",
+      "feature",
+      "action_spatial",
+      "action_behavioral",
+      "other"
+    ],
+    "macro_f1": 0.635241679283656,
+    "weighted_f1": 0.58939335887311
+  }
+}

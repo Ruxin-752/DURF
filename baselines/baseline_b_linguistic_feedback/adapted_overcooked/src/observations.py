@@ -60,6 +60,7 @@ def build_observations(
     precision_scale: float = 2.0,
     pragmatic_valence: float | None = None,
     pragmatic_precision: float | None = None,
+    precision_multiplier: float = 1.0,
 ) -> list[Observation]:
     """Build literal (+ optional pragmatic) observations for one feedback.
 
@@ -69,6 +70,8 @@ def build_observations(
     ``-30``).
     """
 
+    if precision_multiplier <= 0:
+        raise ValueError("precision_multiplier must be positive")
     ref = reference_vector(target_features, features)
     observations: list[Observation] = []
 
@@ -76,7 +79,12 @@ def build_observations(
         return observations
 
     observations.append(
-        Observation(ref, float(valence) * float(valence_scale), float(precision_scale), "literal")
+        Observation(
+            ref,
+            float(valence) * float(valence_scale),
+            float(precision_scale) * float(precision_multiplier),
+            "literal",
+        )
     )
 
     if pragmatic_valence is not None:
@@ -88,7 +96,12 @@ def build_observations(
                 precision_scale if pragmatic_precision is None else pragmatic_precision
             )
             observations.append(
-                Observation(inverse, float(pragmatic_valence), float(prag_precision), "pragmatic")
+                Observation(
+                    inverse,
+                    float(pragmatic_valence),
+                    float(prag_precision) * float(precision_multiplier),
+                    "pragmatic",
+                )
             )
 
     return observations

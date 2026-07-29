@@ -105,7 +105,11 @@ def plan_subgoal(
     """
 
     context = SubgoalContext.coerce(context)
-    feasible = feasible_subgoals or enumerate_feasible_subgoals(context)
+    feasible = (
+        enumerate_feasible_subgoals(context)
+        if feasible_subgoals is None
+        else list(feasible_subgoals)
+    )
     invalid = [name for name in feasible if not is_valid_subgoal(name)]
     if invalid:
         raise ValueError(f"unknown subgoal(s) in feasible set: {invalid}")
@@ -131,5 +135,11 @@ def rank_subgoals(
     """Convenience: full best-first ranking over the enumerated candidate set."""
 
     context = SubgoalContext.coerce(context)
-    feasible = feasible_subgoals or enumerate_feasible_subgoals(context)
+    feasible = (
+        enumerate_feasible_subgoals(context)
+        if feasible_subgoals is None
+        else list(feasible_subgoals)
+    )
+    if not feasible:
+        raise ValueError("rank_subgoals requires at least one feasible subgoal")
     return score_subgoals(weights, context, feasible, lambda_pref=lambda_pref)

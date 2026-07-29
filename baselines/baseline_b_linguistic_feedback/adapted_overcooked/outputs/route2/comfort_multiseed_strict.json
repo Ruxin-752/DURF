@@ -1,0 +1,1358 @@
+{
+  "layout": "ring_tomato_onion_10x6_h0_full_task",
+  "horizon": 400,
+  "selection_rule": "maximize dev comfort subject to >=95% soup retention",
+  "dev_seeds": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ],
+  "test_seeds": [
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19
+  ],
+  "dev_candidates": [
+    {
+      "lambda_pref": 0.25,
+      "summary": {
+        "n": 10,
+        "mean_soup_reward": 76.0,
+        "mean_comfort_per_step": 1.30575,
+        "mean_discomfort_rate": 0.13175,
+        "worst_soup_reward": 60.0,
+        "worst_discomfort_rate": 0.17,
+        "longest_wait_streak": 121,
+        "soup_retention": 0.9047619047619048
+      },
+      "runs": [
+        {
+          "kind": "comfort_subgoal",
+          "steps": 400,
+          "soup_reward": 80.0,
+          "comfort_sum": 1133.5,
+          "comfort_per_step": 2.83375,
+          "discomfort_steps": 48,
+          "discomfort_rate": 0.12,
+          "subgoal_counts": {
+            "GET_ONION": 56,
+            "PUT_ONION_IN_POT": 88,
+            "GET_TOMATO": 48,
+            "PUT_TOMATO_IN_POT": 48,
+            "WAIT": 101,
+            "GET_DISH": 20,
+            "PICKUP_SOUP": 15,
+            "SERVE_SOUP": 24
+          },
+          "longest_wait_streak": 30,
+          "wait_guard_steps": 4
+        },
+        {
+          "kind": "comfort_subgoal",
+          "steps": 400,
+          "soup_reward": 80.0,
+          "comfort_sum": 566.5,
+          "comfort_per_step": 1.41625,
+          "discomfort_steps": 60,
+          "discomfort_rate": 0.15,
+          "subgoal_counts": {
+            "GET_ONION": 36,
+            "PUT_ONION_IN_POT": 63,
+            "GET_TOMATO": 63,
+            "PUT_TOMATO_IN_POT": 62,
+            "WAIT": 97,
+            "GET_DISH": 32,
+            "PICKUP_SOUP": 15,
+            "SERVE_SOUP": 32
+          },
+          "longest_wait_streak": 40,
+          "wait_guard_steps": 4
+        },
+        {
+          "kind": "comfort_subgoal",
+          "steps": 400,
+          "soup_reward": 80.0,
+          "comfort_sum": 141.5,
+          "comfort_per_step": 0.35375,
+          "discomfort_steps": 52,
+          "discomfort_rate": 0.13,
+          "subgoal_counts": {
+            "GET_ONION": 44,
+            "PUT_ONION_IN_POT": 60,
+            "GET_TOMATO": 36,
+            "PUT_TOMATO_IN_POT": 20,
+            "WAIT": 187,
+            "GET_DISH": 16,
+            "PICKUP_SOUP": 29,
+            "SERVE_SOUP": 8
+          },
+          "longest_wait_streak": 87,
+          "wait_guard_steps": 5
+        },
+        {
+          "kind": "comfort_subgoal",
+          "steps": 400,
+          "soup_reward": 60.0,
+          "comfort_sum": 109.0,
+          "comfort_per_step": 0.2725,
+          "discomfort_steps": 42,
+          "discomfort_rate": 0.105,
+          "subgoal_counts": {
+            "GET_ONION": 17,
+            "PUT_ONION_IN_POT": 35,
+            "GET_TOMATO": 47,
+            "PUT_TOMATO_IN_POT": 8,
+            "WAIT": 234,
+            "GET_DISH": 12,
+            "PICKUP_SOUP": 37,
+            "SERVE_SOUP": 10
+          },
+          "longest_wait_streak": 91,
+          "wait_guard_steps": 4
+        },
+        {
+          "kind": "comfort_subgoal",
+          "steps": 400,
+          "soup_reward": 80.0,
+          "comfort_sum": 664.0,
+          "comfort_per_step": 1.66,
+          "discomfort_steps": 55,
+          "discomfort_rate": 0.1375,
+          "subgoal_counts": {
+            "GET_ONION": 44,
+            "PUT_ONION_IN_POT": 56,
+            "GET_TOMATO": 42,
+            "PUT_TOMATO_IN_POT": 51,
+            "WAIT": 152,
+            "GET_DISH": 15,
+            "PICKUP_SOUP": 24,
+            "SERVE_SOUP": 16
+          },
+          "longest_wait_streak": 67,
+          "wait_guard_steps": 4
+        },
+        {
+          "kind": "comfort_subgoal",
+          "steps": 400,
+          "soup_reward": 80.0,
+          "comfort_sum": 173.5,
+          "comfort_per_step": 0.43375,
+          "discomfort_steps": 68,
+          "discomfort_rate": 0.17,
+          "subgoal_counts": {
+            "GET_ONION": 47,
+            "PUT_ONION_IN_POT": 63,
+            "GET_TOMATO": 98,
+            "PUT_TOMATO_IN_POT": 38,
+            "WAIT": 98,
+            "GET_DISH": 17,
+            "PICKUP_SOUP": 10,
+            "SERVE_SOUP": 29
+          },
+          "longest_wait_streak": 30,
+          "wait_guard_steps": 4
+        },
+        {
+          "kind": "comfort_subgoal",
+          "steps": 400,
+          "soup_reward": 100.0,
+          "comfort_sum": 52.0,
+          "comfort_per_step": 0.13,
+          "discomfort_steps": 68,
+          "discomfort_rate": 0.17,
+          "subgoal_counts": {
+            "GET_ONION": 46,
+            "PUT_ONION_IN_POT": 114,
+            "GET_TOMATO": 52,
+            "PUT_TOMATO_IN_POT": 32,
+            "WAIT": 104,
+            "GET_DISH": 23,
+            "PICKUP_SOUP": 10,
+            "SERVE_SOUP": 19
+          },
+          "longest_wait_streak": 28,
+          "wait_guard_steps": 5
+        },
+        {
+          "kind": "comfort_subgoal",
+          "steps": 400,
+          "soup_reward": 60.0,
+          "comfort_sum": 736.0,
+          "comfort_per_step": 1.84,
+          "discomfort_steps": 42,
+          "discomfort_rate": 0.105,
+          "subgoal_counts": {
+            "GET_ONION": 17,
+            "PUT_ONION_IN_POT": 49,
+            "GET_TOMATO": 47,
+            "PUT_TOMATO_IN_POT": 16,
+            "WAIT": 227,
+            "GET_DISH": 4,
+            "PICKUP_SOUP": 32,
+            "SERVE_SOUP": 8
+          },
+          "longest_wait_streak": 121,
+          "wait_guard_steps": 3
+        },
+        {
+          "kind": "comfort_subgoal",
+          "steps": 400,
+          "soup_reward": 80.0,
+          "comfort_sum": 1180.0,
+          "comfort_per_step": 2.95,
+          "discomfort_steps": 66,
+          "discomfort_rate": 0.165,
+          "subgoal_counts": {
+            "GET_ONION": 41,
+            "PUT_ONION_IN_POT": 58,
+            "GET_TOMATO": 70,
+            "PUT_TOMATO_IN_POT": 73,
+            "WAIT": 89,
+            "GET_DISH": 21,
+            "PICKUP_SOUP": 16,
+            "SERVE_SOUP": 32
+          },
+          "longest_wait_streak": 19,
+          "wait_guard_steps": 4
+        },
+        {
+          "kind": "comfort_subgoal",
+          "steps": 400,
+          "soup_reward": 60.0,
+          "comfort_sum": 467.0,
+          "comfort_per_step": 1.1675,
+          "discomfort_steps": 26,
+          "discomfort_rate": 0.065,
+          "subgoal_counts": {
+            "GET_ONION": 10,
+            "PUT_ONION_IN_POT": 45,
+            "GET_TOMATO": 12,
+            "WAIT": 301,
+            "GET_DISH": 11,
+            "PICKUP_SOUP": 21
+          },
+          "longest_wait_streak": 103,
+          "wait_guard_steps": 3
+        }
+      ]
+    },
+    {
+      "lambda_pref": 0.5,
+      "summary": {
+        "n": 10,
+        "mean_soup_reward": 76.0,
+        "mean_comfort_per_step": 1.30575,
+        "mean_discomfort_rate": 0.13175,
+        "worst_soup_reward": 60.0,
+        "worst_discomfort_rate": 0.17,
+        "longest_wait_streak": 121,
+        "soup_retention": 0.9047619047619048
+      },
+      "runs": [
+        {
+          "kind": "comfort_subgoal",
+          "steps": 400,
+          "soup_reward": 80.0,
+          "comfort_sum": 1133.5,
+          "comfort_per_step": 2.83375,
+          "discomfort_steps": 48,
+          "discomfort_rate": 0.12,
+          "subgoal_counts": {
+            "GET_ONION": 56,
+            "PUT_ONION_IN_POT": 88,
+            "GET_TOMATO": 48,
+            "PUT_TOMATO_IN_POT": 48,
+            "WAIT": 101,
+            "GET_DISH": 20,
+            "PICKUP_SOUP": 15,
+            "SERVE_SOUP": 24
+          },
+          "longest_wait_streak": 30,
+          "wait_guard_steps": 4
+        },
+        {
+          "kind": "comfort_subgoal",
+          "steps": 400,
+          "soup_reward": 80.0,
+          "comfort_sum": 566.5,
+          "comfort_per_step": 1.41625,
+          "discomfort_steps": 60,
+          "discomfort_rate": 0.15,
+          "subgoal_counts": {
+            "GET_ONION": 36,
+            "PUT_ONION_IN_POT": 63,
+            "GET_TOMATO": 63,
+            "PUT_TOMATO_IN_POT": 62,
+            "WAIT": 97,
+            "GET_DISH": 32,
+            "PICKUP_SOUP": 15,
+            "SERVE_SOUP": 32
+          },
+          "longest_wait_streak": 40,
+          "wait_guard_steps": 4
+        },
+        {
+          "kind": "comfort_subgoal",
+          "steps": 400,
+          "soup_reward": 80.0,
+          "comfort_sum": 141.5,
+          "comfort_per_step": 0.35375,
+          "discomfort_steps": 52,
+          "discomfort_rate": 0.13,
+          "subgoal_counts": {
+            "GET_ONION": 44,
+            "PUT_ONION_IN_POT": 60,
+            "GET_TOMATO": 36,
+            "PUT_TOMATO_IN_POT": 20,
+            "WAIT": 187,
+            "GET_DISH": 16,
+            "PICKUP_SOUP": 29,
+            "SERVE_SOUP": 8
+          },
+          "longest_wait_streak": 87,
+          "wait_guard_steps": 5
+        },
+        {
+          "kind": "comfort_subgoal",
+          "steps": 400,
+          "soup_reward": 60.0,
+          "comfort_sum": 109.0,
+          "comfort_per_step": 0.2725,
+          "discomfort_steps": 42,
+          "discomfort_rate": 0.105,
+          "subgoal_counts": {
+            "GET_ONION": 17,
+            "PUT_ONION_IN_POT": 35,
+            "GET_TOMATO": 47,
+            "PUT_TOMATO_IN_POT": 8,
+            "WAIT": 234,
+            "GET_DISH": 12,
+            "PICKUP_SOUP": 37,
+            "SERVE_SOUP": 10
+          },
+          "longest_wait_streak": 91,
+          "wait_guard_steps": 4
+        },
+        {
+          "kind": "comfort_subgoal",
+          "steps": 400,
+          "soup_reward": 80.0,
+          "comfort_sum": 664.0,
+          "comfort_per_step": 1.66,
+          "discomfort_steps": 55,
+          "discomfort_rate": 0.1375,
+          "subgoal_counts": {
+            "GET_ONION": 44,
+            "PUT_ONION_IN_POT": 56,
+            "GET_TOMATO": 42,
+            "PUT_TOMATO_IN_POT": 51,
+            "WAIT": 152,
+            "GET_DISH": 15,
+            "PICKUP_SOUP": 24,
+            "SERVE_SOUP": 16
+          },
+          "longest_wait_streak": 67,
+          "wait_guard_steps": 4
+        },
+        {
+          "kind": "comfort_subgoal",
+          "steps": 400,
+          "soup_reward": 80.0,
+          "comfort_sum": 173.5,
+          "comfort_per_step": 0.43375,
+          "discomfort_steps": 68,
+          "discomfort_rate": 0.17,
+          "subgoal_counts": {
+            "GET_ONION": 47,
+            "PUT_ONION_IN_POT": 63,
+            "GET_TOMATO": 98,
+            "PUT_TOMATO_IN_POT": 38,
+            "WAIT": 98,
+            "GET_DISH": 17,
+            "PICKUP_SOUP": 10,
+            "SERVE_SOUP": 29
+          },
+          "longest_wait_streak": 30,
+          "wait_guard_steps": 4
+        },
+        {
+          "kind": "comfort_subgoal",
+          "steps": 400,
+          "soup_reward": 100.0,
+          "comfort_sum": 52.0,
+          "comfort_per_step": 0.13,
+          "discomfort_steps": 68,
+          "discomfort_rate": 0.17,
+          "subgoal_counts": {
+            "GET_ONION": 46,
+            "PUT_ONION_IN_POT": 114,
+            "GET_TOMATO": 52,
+            "PUT_TOMATO_IN_POT": 32,
+            "WAIT": 104,
+            "GET_DISH": 23,
+            "PICKUP_SOUP": 10,
+            "SERVE_SOUP": 19
+          },
+          "longest_wait_streak": 28,
+          "wait_guard_steps": 5
+        },
+        {
+          "kind": "comfort_subgoal",
+          "steps": 400,
+          "soup_reward": 60.0,
+          "comfort_sum": 736.0,
+          "comfort_per_step": 1.84,
+          "discomfort_steps": 42,
+          "discomfort_rate": 0.105,
+          "subgoal_counts": {
+            "GET_ONION": 17,
+            "PUT_ONION_IN_POT": 49,
+            "GET_TOMATO": 47,
+            "PUT_TOMATO_IN_POT": 16,
+            "WAIT": 227,
+            "GET_DISH": 4,
+            "PICKUP_SOUP": 32,
+            "SERVE_SOUP": 8
+          },
+          "longest_wait_streak": 121,
+          "wait_guard_steps": 3
+        },
+        {
+          "kind": "comfort_subgoal",
+          "steps": 400,
+          "soup_reward": 80.0,
+          "comfort_sum": 1180.0,
+          "comfort_per_step": 2.95,
+          "discomfort_steps": 66,
+          "discomfort_rate": 0.165,
+          "subgoal_counts": {
+            "GET_ONION": 41,
+            "PUT_ONION_IN_POT": 58,
+            "GET_TOMATO": 70,
+            "PUT_TOMATO_IN_POT": 73,
+            "WAIT": 89,
+            "GET_DISH": 21,
+            "PICKUP_SOUP": 16,
+            "SERVE_SOUP": 32
+          },
+          "longest_wait_streak": 19,
+          "wait_guard_steps": 4
+        },
+        {
+          "kind": "comfort_subgoal",
+          "steps": 400,
+          "soup_reward": 60.0,
+          "comfort_sum": 467.0,
+          "comfort_per_step": 1.1675,
+          "discomfort_steps": 26,
+          "discomfort_rate": 0.065,
+          "subgoal_counts": {
+            "GET_ONION": 10,
+            "PUT_ONION_IN_POT": 45,
+            "GET_TOMATO": 12,
+            "WAIT": 301,
+            "GET_DISH": 11,
+            "PICKUP_SOUP": 21
+          },
+          "longest_wait_streak": 103,
+          "wait_guard_steps": 3
+        }
+      ]
+    },
+    {
+      "lambda_pref": 0.75,
+      "summary": {
+        "n": 10,
+        "mean_soup_reward": 82.0,
+        "mean_comfort_per_step": 0.958875,
+        "mean_discomfort_rate": 0.139,
+        "worst_soup_reward": 60.0,
+        "worst_discomfort_rate": 0.19,
+        "longest_wait_streak": 121,
+        "soup_retention": 0.9761904761904762
+      },
+      "runs": [
+        {
+          "kind": "comfort_subgoal",
+          "steps": 400,
+          "soup_reward": 80.0,
+          "comfort_sum": 963.5,
+          "comfort_per_step": 2.40875,
+          "discomfort_steps": 36,
+          "discomfort_rate": 0.09,
+          "subgoal_counts": {
+            "GET_ONION": 39,
+            "PUT_ONION_IN_POT": 77,
+            "GET_TOMATO": 28,
+            "PUT_TOMATO_IN_POT": 32,
+            "WAIT": 177,
+            "GET_DISH": 21,
+            "PICKUP_SOUP": 10,
+            "SERVE_SOUP": 16
+          },
+          "longest_wait_streak": 72,
+          "wait_guard_steps": 10
+        },
+        {
+          "kind": "comfort_subgoal",
+          "steps": 400,
+          "soup_reward": 80.0,
+          "comfort_sum": 268.0,
+          "comfort_per_step": 0.67,
+          "discomfort_steps": 65,
+          "discomfort_rate": 0.1625,
+          "subgoal_counts": {
+            "GET_ONION": 36,
+            "PUT_ONION_IN_POT": 61,
+            "GET_TOMATO": 56,
+            "PUT_TOMATO_IN_POT": 57,
+            "WAIT": 124,
+            "GET_DISH": 32,
+            "PICKUP_SOUP": 10,
+            "SERVE_SOUP": 24
+          },
+          "longest_wait_streak": 40,
+          "wait_guard_steps": 10
+        },
+        {
+          "kind": "comfort_subgoal",
+          "steps": 400,
+          "soup_reward": 80.0,
+          "comfort_sum": 273.5,
+          "comfort_per_step": 0.68375,
+          "discomfort_steps": 46,
+          "discomfort_rate": 0.115,
+          "subgoal_counts": {
+            "GET_ONION": 41,
+            "PUT_ONION_IN_POT": 60,
+            "GET_TOMATO": 36,
+            "PUT_TOMATO_IN_POT": 20,
+            "WAIT": 193,
+            "GET_DISH": 14,
+            "PICKUP_SOUP": 28,
+            "SERVE_SOUP": 8
+          },
+          "longest_wait_streak": 87,
+          "wait_guard_steps": 6
+        },
+        {
+          "kind": "comfort_subgoal",
+          "steps": 400,
+          "soup_reward": 60.0,
+          "comfort_sum": 109.0,
+          "comfort_per_step": 0.2725,
+          "discomfort_steps": 42,
+          "discomfort_rate": 0.105,
+          "subgoal_counts": {
+            "GET_ONION": 17,
+            "PUT_ONION_IN_POT": 35,
+            "GET_TOMATO": 47,
+            "PUT_TOMATO_IN_POT": 8,
+            "WAIT": 234,
+            "GET_DISH": 12,
+            "PICKUP_SOUP": 37,
+            "SERVE_SOUP": 10
+          },
+          "longest_wait_streak": 91,
+          "wait_guard_steps": 4
+        },
+        {
+          "kind": "comfort_subgoal",
+          "steps": 400,
+          "soup_reward": 80.0,
+          "comfort_sum": 344.5,
+          "comfort_per_step": 0.86125,
+          "discomfort_steps": 50,
+          "discomfort_rate": 0.125,
+          "subgoal_counts": {
+            "GET_ONION": 35,
+            "PUT_ONION_IN_POT": 56,
+            "GET_TOMATO": 41,
+            "PUT_TOMATO_IN_POT": 43,
+            "WAIT": 179,
+            "GET_DISH": 20,
+            "PICKUP_SOUP": 18,
+            "SERVE_SOUP": 8
+          },
+          "longest_wait_streak": 78,
+          "wait_guard_steps": 9
+        },
+        {
+          "kind": "comfort_subgoal",
+          "steps": 400,
+          "soup_reward": 100.0,
+          "comfort_sum": 97.5,
+          "comfort_per_step": 0.24375,
+          "discomfort_steps": 67,
+          "discomfort_rate": 0.1675,
+          "subgoal_counts": {
+            "GET_ONION": 46,
+            "PUT_ONION_IN_POT": 82,
+            "GET_TOMATO": 66,
+            "PUT_TOMATO_IN_POT": 28,
+            "WAIT": 119,
+            "GET_DISH": 30,
+            "PICKUP_SOUP": 10,
+            "SERVE_SOUP": 19
+          },
+          "longest_wait_streak": 19,
+          "wait_guard_steps": 12
+        },
+        {
+          "kind": "comfort_subgoal",
+          "steps": 400,
+          "soup_reward": 100.0,
+          "comfort_sum": 249.5,
+          "comfort_per_step": 0.62375,
+          "discomfort_steps": 61,
+          "discomfort_rate": 0.1525,
+          "subgoal_counts": {
+            "GET_ONION": 43,
+            "PUT_ONION_IN_POT": 114,
+            "GET_TOMATO": 54,
+            "PUT_TOMATO_IN_POT": 33,
+            "WAIT": 112,
+            "GET_DISH": 15,
+            "PICKUP_SOUP": 10,
+            "SERVE_SOUP": 19
+          },
+          "longest_wait_streak": 28,
+          "wait_guard_steps": 7
+        },
+        {
+          "kind": "comfort_subgoal",
+          "steps": 400,
+          "soup_reward": 60.0,
+          "comfort_sum": 736.0,
+          "comfort_per_step": 1.84,
+          "discomfort_steps": 42,
+          "discomfort_rate": 0.105,
+          "subgoal_counts": {
+            "GET_ONION": 17,
+            "PUT_ONION_IN_POT": 49,
+            "GET_TOMATO": 47,
+            "PUT_TOMATO_IN_POT": 16,
+            "WAIT": 227,
+            "GET_DISH": 4,
+            "PICKUP_SOUP": 32,
+            "SERVE_SOUP": 8
+          },
+          "longest_wait_streak": 121,
+          "wait_guard_steps": 3
+        },
+        {
+          "kind": "comfort_subgoal",
+          "steps": 400,
+          "soup_reward": 80.0,
+          "comfort_sum": 802.0,
+          "comfort_per_step": 2.005,
+          "discomfort_steps": 71,
+          "discomfort_rate": 0.1775,
+          "subgoal_counts": {
+            "GET_ONION": 36,
+            "PUT_ONION_IN_POT": 58,
+            "GET_TOMATO": 71,
+            "PUT_TOMATO_IN_POT": 65,
+            "WAIT": 106,
+            "GET_DISH": 22,
+            "PICKUP_SOUP": 18,
+            "SERVE_SOUP": 24
+          },
+          "longest_wait_streak": 21,
+          "wait_guard_steps": 7
+        },
+        {
+          "kind": "comfort_subgoal",
+          "steps": 400,
+          "soup_reward": 100.0,
+          "comfort_sum": -8.0,
+          "comfort_per_step": -0.02,
+          "discomfort_steps": 76,
+          "discomfort_rate": 0.19,
+          "subgoal_counts": {
+            "GET_ONION": 41,
+            "PUT_ONION_IN_POT": 108,
+            "GET_TOMATO": 62,
+            "WAIT": 107,
+            "GET_DISH": 21,
+            "PUT_TOMATO_IN_POT": 31,
+            "PICKUP_SOUP": 10,
+            "SERVE_SOUP": 20
+          },
+          "longest_wait_streak": 19,
+          "wait_guard_steps": 8
+        }
+      ]
+    },
+    {
+      "lambda_pref": 1.0,
+      "summary": {
+        "n": 10,
+        "mean_soup_reward": 52.0,
+        "mean_comfort_per_step": 1.857,
+        "mean_discomfort_rate": 0.0985,
+        "worst_soup_reward": 0.0,
+        "worst_discomfort_rate": 0.22,
+        "longest_wait_streak": 123,
+        "soup_retention": 0.6190476190476191
+      },
+      "runs": [
+        {
+          "kind": "comfort_subgoal",
+          "steps": 400,
+          "soup_reward": 80.0,
+          "comfort_sum": 1081.5,
+          "comfort_per_step": 2.70375,
+          "discomfort_steps": 24,
+          "discomfort_rate": 0.06,
+          "subgoal_counts": {
+            "GET_ONION": 54,
+            "PUT_ONION_IN_POT": 82,
+            "WAIT": 161,
+            "GET_TOMATO": 45,
+            "GET_DISH": 10,
+            "PUT_TOMATO_IN_POT": 35,
+            "PICKUP_SOUP": 5,
+            "SERVE_SOUP": 8
+          },
+          "longest_wait_streak": 28,
+          "wait_guard_steps": 24
+        },
+        {
+          "kind": "comfort_subgoal",
+          "steps": 400,
+          "soup_reward": 0.0,
+          "comfort_sum": 1024.0,
+          "comfort_per_step": 2.56,
+          "discomfort_steps": 88,
+          "discomfort_rate": 0.22,
+          "subgoal_counts": {
+            "GET_ONION": 10,
+            "PUT_ONION_IN_POT": 17,
+            "GET_TOMATO": 14,
+            "PUT_TOMATO_IN_POT": 93,
+            "WAIT": 266
+          },
+          "longest_wait_streak": 3,
+          "wait_guard_steps": 88
+        },
+        {
+          "kind": "comfort_subgoal",
+          "steps": 400,
+          "soup_reward": 80.0,
+          "comfort_sum": 769.5,
+          "comfort_per_step": 1.92375,
+          "discomfort_steps": 17,
+          "discomfort_rate": 0.0425,
+          "subgoal_counts": {
+            "GET_ONION": 42,
+            "PUT_ONION_IN_POT": 85,
+            "WAIT": 162,
+            "GET_TOMATO": 32,
+            "GET_DISH": 28,
+            "PUT_TOMATO_IN_POT": 38,
+            "PICKUP_SOUP": 5,
+            "SERVE_SOUP": 8
+          },
+          "longest_wait_streak": 28,
+          "wait_guard_steps": 22
+        },
+        {
+          "kind": "comfort_subgoal",
+          "steps": 400,
+          "soup_reward": 80.0,
+          "comfort_sum": 710.0,
+          "comfort_per_step": 1.775,
+          "discomfort_steps": 16,
+          "discomfort_rate": 0.04,
+          "subgoal_counts": {
+            "GET_ONION": 37,
+            "PUT_ONION_IN_POT": 58,
+            "GET_TOMATO": 76,
+            "WAIT": 154,
+            "PUT_TOMATO_IN_POT": 32,
+            "GET_DISH": 14,
+            "PICKUP_SOUP": 10,
+            "SERVE_SOUP": 19
+          },
+          "longest_wait_streak": 32,
+          "wait_guard_steps": 18
+        },
+        {
+          "kind": "comfort_subgoal",
+          "steps": 400,
+          "soup_reward": 60.0,
+          "comfort_sum": 898.0,
+          "comfort_per_step": 2.245,
+          "discomfort_steps": 6,
+          "discomfort_rate": 0.015,
+          "subgoal_counts": {
+            "GET_ONION": 10,
+            "PUT_ONION_IN_POT": 32,
+            "WAIT": 325,
+            "GET_TOMATO": 11,
+            "GET_DISH": 6,
+            "PICKUP_SOUP": 16
+          },
+          "longest_wait_streak": 123,
+          "wait_guard_steps": 9
+        },
+        {
+          "kind": "comfort_subgoal",
+          "steps": 400,
+          "soup_reward": 80.0,
+          "comfort_sum": 833.5,
+          "comfort_per_step": 2.08375,
+          "discomfort_steps": 20,
+          "discomfort_rate": 0.05,
+          "subgoal_counts": {
+            "GET_ONION": 65,
+            "PUT_ONION_IN_POT": 70,
+            "GET_TOMATO": 56,
+            "WAIT": 151,
+            "PUT_TOMATO_IN_POT": 28,
+            "GET_DISH": 17,
+            "PICKUP_SOUP": 5,
+            "SERVE_SOUP": 8
+          },
+          "longest_wait_streak": 30,
+          "wait_guard_steps": 25
+        },
+        {
+          "kind": "comfort_subgoal",
+          "steps": 400,
+          "soup_reward": 40.0,
+          "comfort_sum": 283.5,
+          "comfort_per_step": 0.70875,
+          "discomfort_steps": 49,
+          "discomfort_rate": 0.1225,
+          "subgoal_counts": {
+            "GET_ONION": 23,
+            "PUT_ONION_IN_POT": 62,
+            "WAIT": 208,
+            "GET_TOMATO": 24,
+            "GET_DISH": 17,
+            "PUT_TOMATO_IN_POT": 8,
+            "PICKUP_SOUP": 50,
+            "SERVE_SOUP": 8
+          },
+          "longest_wait_streak": 19,
+          "wait_guard_steps": 52
+        },
+        {
+          "kind": "comfort_subgoal",
+          "steps": 400,
+          "soup_reward": 80.0,
+          "comfort_sum": 634.5,
+          "comfort_per_step": 1.58625,
+          "discomfort_steps": 22,
+          "discomfort_rate": 0.055,
+          "subgoal_counts": {
+            "GET_ONION": 46,
+            "PUT_ONION_IN_POT": 46,
+            "GET_TOMATO": 59,
+            "WAIT": 167,
+            "PUT_TOMATO_IN_POT": 47,
+            "GET_DISH": 16,
+            "PICKUP_SOUP": 6,
+            "SERVE_SOUP": 13
+          },
+          "longest_wait_streak": 30,
+          "wait_guard_steps": 27
+        },
+        {
+          "kind": "comfort_subgoal",
+          "steps": 400,
+          "soup_reward": 0.0,
+          "comfort_sum": 1018.0,
+          "comfort_per_step": 2.545,
+          "discomfort_steps": 88,
+          "discomfort_rate": 0.22,
+          "subgoal_counts": {
+            "GET_ONION": 10,
+            "PUT_ONION_IN_POT": 21,
+            "GET_TOMATO": 11,
+            "PUT_TOMATO_IN_POT": 93,
+            "WAIT": 265
+          },
+          "longest_wait_streak": 3,
+          "wait_guard_steps": 88
+        },
+        {
+          "kind": "comfort_subgoal",
+          "steps": 400,
+          "soup_reward": 20.0,
+          "comfort_sum": 175.5,
+          "comfort_per_step": 0.43875,
+          "discomfort_steps": 64,
+          "discomfort_rate": 0.16,
+          "subgoal_counts": {
+            "GET_ONION": 15,
+            "PUT_ONION_IN_POT": 56,
+            "GET_TOMATO": 13,
+            "WAIT": 233,
+            "GET_DISH": 11,
+            "PUT_TOMATO_IN_POT": 11,
+            "PICKUP_SOUP": 61
+          },
+          "longest_wait_streak": 19,
+          "wait_guard_steps": 66
+        }
+      ]
+    }
+  ],
+  "selected_lambda": 0.75,
+  "untouched_test": {
+    "baseline": {
+      "n": 10,
+      "mean_soup_reward": 76.0,
+      "mean_comfort_per_step": 1.635125,
+      "mean_discomfort_rate": 0.1655,
+      "worst_soup_reward": 60.0,
+      "worst_discomfort_rate": 0.2025,
+      "longest_wait_streak": 101
+    },
+    "comfort": {
+      "n": 10,
+      "mean_soup_reward": 88.0,
+      "mean_comfort_per_step": 0.94125,
+      "mean_discomfort_rate": 0.14675,
+      "worst_soup_reward": 80.0,
+      "worst_discomfort_rate": 0.19,
+      "longest_wait_streak": 107,
+      "soup_retention": 1.1578947368421053
+    },
+    "baseline_runs": [
+      {
+        "kind": "h0_rule",
+        "steps": 400,
+        "soup_reward": 80.0,
+        "comfort_sum": 207.0,
+        "comfort_per_step": 0.5175,
+        "discomfort_steps": 78,
+        "discomfort_rate": 0.195,
+        "subgoal_counts": {
+          "GET_TOMATO": 66,
+          "PUT_TOMATO_IN_POT": 78,
+          "WAIT": 168,
+          "GET_ONION": 24,
+          "PUT_ONION_IN_POT": 22,
+          "GET_DISH": 8,
+          "PICKUP_SOUP": 10,
+          "SERVE_SOUP": 24
+        },
+        "longest_wait_streak": 78,
+        "wait_guard_steps": 0
+      },
+      {
+        "kind": "h0_rule",
+        "steps": 400,
+        "soup_reward": 80.0,
+        "comfort_sum": 187.5,
+        "comfort_per_step": 0.46875,
+        "discomfort_steps": 81,
+        "discomfort_rate": 0.2025,
+        "subgoal_counts": {
+          "GET_TOMATO": 70,
+          "PUT_TOMATO_IN_POT": 72,
+          "WAIT": 207,
+          "GET_ONION": 24,
+          "PUT_ONION_IN_POT": 16,
+          "GET_DISH": 11
+        },
+        "longest_wait_streak": 81,
+        "wait_guard_steps": 0
+      },
+      {
+        "kind": "h0_rule",
+        "steps": 400,
+        "soup_reward": 80.0,
+        "comfort_sum": 903.5,
+        "comfort_per_step": 2.25875,
+        "discomfort_steps": 64,
+        "discomfort_rate": 0.16,
+        "subgoal_counts": {
+          "GET_TOMATO": 59,
+          "PUT_TOMATO_IN_POT": 74,
+          "WAIT": 159,
+          "GET_ONION": 45,
+          "PUT_ONION_IN_POT": 24,
+          "GET_DISH": 12,
+          "PICKUP_SOUP": 10,
+          "SERVE_SOUP": 17
+        },
+        "longest_wait_streak": 65,
+        "wait_guard_steps": 0
+      },
+      {
+        "kind": "h0_rule",
+        "steps": 400,
+        "soup_reward": 80.0,
+        "comfort_sum": 533.0,
+        "comfort_per_step": 1.3325,
+        "discomfort_steps": 68,
+        "discomfort_rate": 0.17,
+        "subgoal_counts": {
+          "GET_TOMATO": 71,
+          "PUT_TOMATO_IN_POT": 70,
+          "WAIT": 182,
+          "GET_ONION": 28,
+          "PUT_ONION_IN_POT": 28,
+          "GET_DISH": 8,
+          "PICKUP_SOUP": 5,
+          "SERVE_SOUP": 8
+        },
+        "longest_wait_streak": 63,
+        "wait_guard_steps": 0
+      },
+      {
+        "kind": "h0_rule",
+        "steps": 400,
+        "soup_reward": 80.0,
+        "comfort_sum": 1240.5,
+        "comfort_per_step": 3.10125,
+        "discomfort_steps": 74,
+        "discomfort_rate": 0.185,
+        "subgoal_counts": {
+          "GET_TOMATO": 93,
+          "PUT_TOMATO_IN_POT": 92,
+          "GET_ONION": 39,
+          "PUT_ONION_IN_POT": 39,
+          "WAIT": 76,
+          "GET_DISH": 22,
+          "PICKUP_SOUP": 15,
+          "SERVE_SOUP": 24
+        },
+        "longest_wait_streak": 19,
+        "wait_guard_steps": 0
+      },
+      {
+        "kind": "h0_rule",
+        "steps": 400,
+        "soup_reward": 60.0,
+        "comfort_sum": 416.0,
+        "comfort_per_step": 1.04,
+        "discomfort_steps": 48,
+        "discomfort_rate": 0.12,
+        "subgoal_counts": {
+          "GET_TOMATO": 25,
+          "PUT_TOMATO_IN_POT": 40,
+          "WAIT": 284,
+          "GET_ONION": 15,
+          "GET_DISH": 6,
+          "PICKUP_SOUP": 30
+        },
+        "longest_wait_streak": 90,
+        "wait_guard_steps": 0
+      },
+      {
+        "kind": "h0_rule",
+        "steps": 400,
+        "soup_reward": 80.0,
+        "comfort_sum": 739.0,
+        "comfort_per_step": 1.8475,
+        "discomfort_steps": 67,
+        "discomfort_rate": 0.1675,
+        "subgoal_counts": {
+          "GET_TOMATO": 57,
+          "PUT_TOMATO_IN_POT": 60,
+          "GET_ONION": 40,
+          "PUT_ONION_IN_POT": 77,
+          "WAIT": 112,
+          "GET_DISH": 20,
+          "PICKUP_SOUP": 10,
+          "SERVE_SOUP": 24
+        },
+        "longest_wait_streak": 54,
+        "wait_guard_steps": 0
+      },
+      {
+        "kind": "h0_rule",
+        "steps": 400,
+        "soup_reward": 60.0,
+        "comfort_sum": 1252.5,
+        "comfort_per_step": 3.13125,
+        "discomfort_steps": 53,
+        "discomfort_rate": 0.1325,
+        "subgoal_counts": {
+          "GET_TOMATO": 72,
+          "PUT_TOMATO_IN_POT": 63,
+          "GET_ONION": 28,
+          "PUT_ONION_IN_POT": 35,
+          "WAIT": 119,
+          "GET_DISH": 15,
+          "PICKUP_SOUP": 44,
+          "SERVE_SOUP": 24
+        },
+        "longest_wait_streak": 62,
+        "wait_guard_steps": 0
+      },
+      {
+        "kind": "h0_rule",
+        "steps": 400,
+        "soup_reward": 80.0,
+        "comfort_sum": 880.0,
+        "comfort_per_step": 2.2,
+        "discomfort_steps": 68,
+        "discomfort_rate": 0.17,
+        "subgoal_counts": {
+          "GET_TOMATO": 81,
+          "PUT_TOMATO_IN_POT": 73,
+          "GET_ONION": 21,
+          "PUT_ONION_IN_POT": 44,
+          "WAIT": 88,
+          "GET_DISH": 33,
+          "PICKUP_SOUP": 20,
+          "SERVE_SOUP": 40
+        },
+        "longest_wait_streak": 19,
+        "wait_guard_steps": 0
+      },
+      {
+        "kind": "h0_rule",
+        "steps": 400,
+        "soup_reward": 80.0,
+        "comfort_sum": 181.5,
+        "comfort_per_step": 0.45375,
+        "discomfort_steps": 61,
+        "discomfort_rate": 0.1525,
+        "subgoal_counts": {
+          "GET_TOMATO": 51,
+          "PUT_TOMATO_IN_POT": 51,
+          "GET_ONION": 28,
+          "PUT_ONION_IN_POT": 13,
+          "WAIT": 210,
+          "GET_DISH": 20,
+          "PICKUP_SOUP": 11,
+          "SERVE_SOUP": 16
+        },
+        "longest_wait_streak": 101,
+        "wait_guard_steps": 0
+      }
+    ],
+    "comfort_runs": [
+      {
+        "kind": "comfort_subgoal",
+        "steps": 400,
+        "soup_reward": 80.0,
+        "comfort_sum": 774.5,
+        "comfort_per_step": 1.93625,
+        "discomfort_steps": 38,
+        "discomfort_rate": 0.095,
+        "subgoal_counts": {
+          "GET_ONION": 51,
+          "PUT_ONION_IN_POT": 67,
+          "GET_TOMATO": 49,
+          "PUT_TOMATO_IN_POT": 44,
+          "WAIT": 119,
+          "GET_DISH": 36,
+          "PICKUP_SOUP": 10,
+          "SERVE_SOUP": 24
+        },
+        "longest_wait_streak": 32,
+        "wait_guard_steps": 5
+      },
+      {
+        "kind": "comfort_subgoal",
+        "steps": 400,
+        "soup_reward": 80.0,
+        "comfort_sum": -60.0,
+        "comfort_per_step": -0.15,
+        "discomfort_steps": 66,
+        "discomfort_rate": 0.165,
+        "subgoal_counts": {
+          "GET_ONION": 16,
+          "PUT_ONION_IN_POT": 24,
+          "GET_TOMATO": 52,
+          "PUT_TOMATO_IN_POT": 24,
+          "WAIT": 246,
+          "GET_DISH": 5,
+          "PICKUP_SOUP": 33
+        },
+        "longest_wait_streak": 89,
+        "wait_guard_steps": 5
+      },
+      {
+        "kind": "comfort_subgoal",
+        "steps": 400,
+        "soup_reward": 100.0,
+        "comfort_sum": 449.5,
+        "comfort_per_step": 1.12375,
+        "discomfort_steps": 52,
+        "discomfort_rate": 0.13,
+        "subgoal_counts": {
+          "GET_ONION": 55,
+          "PUT_ONION_IN_POT": 76,
+          "GET_TOMATO": 50,
+          "PUT_TOMATO_IN_POT": 53,
+          "WAIT": 123,
+          "GET_DISH": 17,
+          "PICKUP_SOUP": 10,
+          "SERVE_SOUP": 16
+        },
+        "longest_wait_streak": 27,
+        "wait_guard_steps": 11
+      },
+      {
+        "kind": "comfort_subgoal",
+        "steps": 400,
+        "soup_reward": 100.0,
+        "comfort_sum": 47.0,
+        "comfort_per_step": 0.1175,
+        "discomfort_steps": 75,
+        "discomfort_rate": 0.1875,
+        "subgoal_counts": {
+          "GET_ONION": 43,
+          "PUT_ONION_IN_POT": 103,
+          "GET_TOMATO": 56,
+          "PUT_TOMATO_IN_POT": 38,
+          "WAIT": 107,
+          "GET_DISH": 21,
+          "PICKUP_SOUP": 11,
+          "SERVE_SOUP": 21
+        },
+        "longest_wait_streak": 19,
+        "wait_guard_steps": 8
+      },
+      {
+        "kind": "comfort_subgoal",
+        "steps": 400,
+        "soup_reward": 80.0,
+        "comfort_sum": 802.0,
+        "comfort_per_step": 2.005,
+        "discomfort_steps": 57,
+        "discomfort_rate": 0.1425,
+        "subgoal_counts": {
+          "GET_ONION": 59,
+          "PUT_ONION_IN_POT": 66,
+          "GET_TOMATO": 43,
+          "PUT_TOMATO_IN_POT": 55,
+          "WAIT": 105,
+          "GET_DISH": 25,
+          "PICKUP_SOUP": 15,
+          "SERVE_SOUP": 32
+        },
+        "longest_wait_streak": 42,
+        "wait_guard_steps": 4
+      },
+      {
+        "kind": "comfort_subgoal",
+        "steps": 400,
+        "soup_reward": 100.0,
+        "comfort_sum": 666.5,
+        "comfort_per_step": 1.66625,
+        "discomfort_steps": 53,
+        "discomfort_rate": 0.1325,
+        "subgoal_counts": {
+          "GET_ONION": 50,
+          "PUT_ONION_IN_POT": 72,
+          "GET_TOMATO": 56,
+          "PUT_TOMATO_IN_POT": 52,
+          "WAIT": 115,
+          "GET_DISH": 21,
+          "PICKUP_SOUP": 10,
+          "SERVE_SOUP": 24
+        },
+        "longest_wait_streak": 28,
+        "wait_guard_steps": 6
+      },
+      {
+        "kind": "comfort_subgoal",
+        "steps": 400,
+        "soup_reward": 100.0,
+        "comfort_sum": 267.0,
+        "comfort_per_step": 0.6675,
+        "discomfort_steps": 69,
+        "discomfort_rate": 0.1725,
+        "subgoal_counts": {
+          "GET_ONION": 41,
+          "PUT_ONION_IN_POT": 63,
+          "GET_TOMATO": 57,
+          "PUT_TOMATO_IN_POT": 55,
+          "WAIT": 129,
+          "GET_DISH": 23,
+          "PICKUP_SOUP": 11,
+          "SERVE_SOUP": 21
+        },
+        "longest_wait_streak": 28,
+        "wait_guard_steps": 13
+      },
+      {
+        "kind": "comfort_subgoal",
+        "steps": 400,
+        "soup_reward": 80.0,
+        "comfort_sum": -38.0,
+        "comfort_per_step": -0.095,
+        "discomfort_steps": 54,
+        "discomfort_rate": 0.135,
+        "subgoal_counts": {
+          "GET_ONION": 13,
+          "PUT_ONION_IN_POT": 32,
+          "GET_TOMATO": 43,
+          "PUT_TOMATO_IN_POT": 16,
+          "WAIT": 256,
+          "GET_DISH": 8,
+          "PICKUP_SOUP": 32
+        },
+        "longest_wait_streak": 107,
+        "wait_guard_steps": 5
+      },
+      {
+        "kind": "comfort_subgoal",
+        "steps": 400,
+        "soup_reward": 80.0,
+        "comfort_sum": 195.5,
+        "comfort_per_step": 0.48875,
+        "discomfort_steps": 76,
+        "discomfort_rate": 0.19,
+        "subgoal_counts": {
+          "GET_ONION": 59,
+          "PUT_ONION_IN_POT": 78,
+          "GET_TOMATO": 54,
+          "PUT_TOMATO_IN_POT": 34,
+          "WAIT": 115,
+          "GET_DISH": 20,
+          "PICKUP_SOUP": 12,
+          "SERVE_SOUP": 28
+        },
+        "longest_wait_streak": 42,
+        "wait_guard_steps": 5
+      },
+      {
+        "kind": "comfort_subgoal",
+        "steps": 400,
+        "soup_reward": 80.0,
+        "comfort_sum": 661.0,
+        "comfort_per_step": 1.6525,
+        "discomfort_steps": 47,
+        "discomfort_rate": 0.1175,
+        "subgoal_counts": {
+          "GET_ONION": 43,
+          "PUT_ONION_IN_POT": 106,
+          "GET_TOMATO": 69,
+          "PUT_TOMATO_IN_POT": 39,
+          "WAIT": 89,
+          "GET_DISH": 28,
+          "PICKUP_SOUP": 10,
+          "SERVE_SOUP": 16
+        },
+        "longest_wait_streak": 28,
+        "wait_guard_steps": 5
+      }
+    ]
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "input": "baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\data\\synthetic_feedback.deepseek_10k.validated.json",
+  "augment": [],
+  "min_df": 2,
+  "seed": 1,
+  "split_policy": "generator_declared_split",
+  "split_sizes": {
+    "train": 6328,
+    "dev": 514,
+    "test": 962
+  },
+  "dev": {
+    "rows": 696,
+    "micro_precision": 0.8341423948220065,
+    "micro_recall": 0.9113140836770772,
+    "micro_f1": 0.8710222472542946,
+    "macro_precision": 0.5696494212148795,
+    "macro_recall": 0.612387444774305,
+    "macro_f1": 0.588348617293289
+  },
+  "untouched_test": {
+    "rows": 1340,
+    "micro_precision": 0.6633209062231145,
+    "micro_recall": 0.7842007119850822,
+    "micro_f1": 0.7187135865765556,
+    "macro_precision": 0.5484262007393446,
+    "macro_recall": 0.6115650261380904,
+    "macro_f1": 0.5375280597996838
+  },
+  "annotation_sources": {
+    "utterance_target_features": 8649
+  }
+}

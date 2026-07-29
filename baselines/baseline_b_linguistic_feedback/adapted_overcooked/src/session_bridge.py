@@ -112,7 +112,8 @@ def build_session_feedback_examples(
             continue
 
         digest = hashlib.sha1(event_id.encode("utf-8")).hexdigest()[:12]
-        layout = (feedback.get("extra") or {}).get("layout")
+        feedback_extra = feedback.get("extra") or {}
+        layout = feedback_extra.get("layout")
         if not layout and steps:
             layout = steps[-1].get("layout")
         example = {
@@ -125,13 +126,20 @@ def build_session_feedback_examples(
             "episode": feedback.get("episode"),
             "total_step": feedback.get("total_step"),
             "layout": layout,
-            "source": feedback.get("source"),
+            "source": feedback_extra.get("source") or feedback.get("source"),
             "provenance": {
                 "feedback_event_id": event_id,
                 "target_time_window": window,
                 "target_event": target_event,
                 "attribution_confidence": attribution.get("confidence"),
                 "needs_clarification": attribution.get("needs_clarification"),
+                "online_update_id": feedback_extra.get("update_id"),
+                "online_feedback_mode": feedback_extra.get("feedback_mode"),
+                "effective_precision": feedback_extra.get("effective_precision"),
+                "checkpoint_sha256": feedback_extra.get("checkpoint_sha256"),
+                "before_subgoal": feedback_extra.get("before_subgoal"),
+                "after_subgoal": feedback_extra.get("after_subgoal"),
+                "reference_type": feedback_extra.get("reference_type"),
             },
         }
         polarity = attribution.get("polarity")

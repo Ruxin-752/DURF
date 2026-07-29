@@ -29,10 +29,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from scripts.run_baseline_b_pipeline import (  # noqa: E402
-    DEFAULT_FEEDBACK_PATH,
-    build_feedback_observations,
-)
+from scripts.run_baseline_b_pipeline import DEFAULT_FEEDBACK_PATH  # noqa: E402
+from src.feedback_observations import build_feedback_observations  # noqa: E402
 from src.feature_schema import (  # noqa: E402
     collect_action_feature_library,
     load_features,
@@ -40,7 +38,18 @@ from src.feature_schema import (  # noqa: E402
     write_json,
 )
 from src.feedback_form_classifier import classify_feedback  # noqa: E402
-from src.neural_inference import build_vocab, make_folds  # noqa: E402
+from src.evaluation_splits import (  # noqa: E402
+    canonical_sha256,
+    deduplicate_corpus,
+    load_split_manifest,
+    make_split_manifest,
+    validate_split_manifest,
+    write_split_manifest,
+)
+from src.neural_inference import (  # noqa: E402
+    build_vocab,
+    make_folds,
+)
 from src.observations import reference_vector  # noqa: E402
 from src.probe_evaluator import DEFAULT_PROBE_STATES_PATH, load_probe_states  # noqa: E402
 from src.text_analysis import nn_tokenize  # noqa: E402
@@ -106,12 +115,36 @@ def build_dataset(
     min_freq: int = 1,
     n_folds: int = 5,
     seed: int = 0,
+    dev_fraction: float = 0.2,
+    test_fraction: float = 0.2,
+    split_manifest: dict | str | Path | None = None,
+    near_duplicate_threshold: float = 0.92,
 ) -> dict:
     ordered_features = sorted(features)
+    feedback_examples, corpus_audit = deduplicate_corpus(
+        feedback_examples,
+        near_duplicate_threshold=near_duplicate_threshold,
+    )
     examples = build_examples(feedback_examples, probes, features)
-    vocab = build_vocab([example["tokens"] for example in examples], min_freq=min_freq)
+    group_ids = [example["group_id"] for example in examples]
+    if split_manifest is None:
+        split = make_split_manifest(
+            feedback_examples,
+            seed=seed,
+            dev_fraction=dev_fraction,
+            test_fraction=test_fraction,
+            near_duplicate_threshold=near_duplicate_threshold,
+        )
+    elif isinstance(split_manifest, (str, Path)):
+        split = load_split_manifest(split_manifest, feedback_examples)
+    else:
+        split = validate_split_manifest(split_manifest, feedback_examples)
+    # The vocabulary is fitted on train only. Looking at held-out text before
+    # evaluation is a small but real source of leakage.
+    train_tokens = [examples[index]["tokens"] for index in split["train_indices"]]
+    vocab = build_vocab(train_tokens, min_freq=min_freq)
     folds = make_folds(
-        [example["group_id"] for example in examples], n_folds=n_folds, seed=seed
+        group_ids, n_folds=n_folds, seed=seed
     )
     return {
         "features": ordered_features,
@@ -120,6 +153,31 @@ def build_dataset(
         "vocab_size": len(vocab),
         "examples": examples,
         "folds": folds,
+        "split": split,
+        "split_manifest": split,
+        "corpus_sha256": split["corpus_sha256"],
+        "split_sha256": split["split_sha256"],
+        "corpus_audit": corpus_audit,
+        "split_policy": {
+            "seed": split["seed"],
+            "dev_fraction": split["dev_fraction"],
+            "test_fraction": split["test_fraction"],
+            "vocab_fit": "train_only",
+            "grouping": split["grouping"]["policy"],
+            "manifest_version": split["version"],
+            "near_duplicate_threshold": near_duplicate_threshold,
+        },
+        "dataset_config_sha256": canonical_sha256(
+            {
+                "min_freq": min_freq,
+                "n_folds": n_folds,
+                "seed": seed,
+                "dev_fraction": dev_fraction,
+                "test_fraction": test_fraction,
+                "near_duplicate_threshold": near_duplicate_threshold,
+                "features": ordered_features,
+            }
+        ),
     }
 
 
@@ -130,6 +188,19 @@ def main() -> int:
     parser.add_argument("--min-freq", type=int, default=1)
     parser.add_argument("--n-folds", type=int, default=5)
     parser.add_argument("--seed", type=int, default=0)
+    parser.add_argument("--dev-fraction", type=float, default=0.2)
+    parser.add_argument("--test-fraction", type=float, default=0.2)
+    parser.add_argument(
+        "--split-manifest",
+        type=Path,
+        help="Read and validate this fixed manifest instead of rebuilding a split.",
+    )
+    parser.add_argument(
+        "--split-manifest-out",
+        type=Path,
+        help="Manifest output (default: split_manifest.json beside --output).",
+    )
+    parser.add_argument("--near-duplicate-threshold", type=float, default=0.92)
     parser.add_argument(
         "--output", type=Path, default=ROOT / "outputs" / "route2" / "dataset.json"
     )
@@ -146,14 +217,34 @@ def main() -> int:
         min_freq=args.min_freq,
         n_folds=args.n_folds,
         seed=args.seed,
+        dev_fraction=args.dev_fraction,
+        test_fraction=args.test_fraction,
+        split_manifest=args.split_manifest,
+        near_duplicate_threshold=args.near_duplicate_threshold,
     )
     write_json(args.output, dataset)
+    manifest_out = args.split_manifest_out or args.output.with_name("split_manifest.json")
+    write_split_manifest(manifest_out, dataset["split_manifest"])
 
     print("Route 2 dataset assembled (no training performed):")
     print(f"  examples:   {len(dataset['examples'])}")
     print(f"  features:   {dataset['n_features']}")
     print(f"  vocab size: {dataset['vocab_size']}")
+    print(f"  corpus SHA256: {dataset['corpus_sha256']}")
+    print(f"  split SHA256:  {dataset['split_sha256']}")
+    print(
+        "  corpus audit: "
+        f"removed={dataset['corpus_audit']['exact_duplicates_removed']} "
+        f"supervision_conflicts={dataset['corpus_audit']['supervision_conflict_count']} "
+        f"near_pairs={dataset['corpus_audit']['near_duplicates']['count']}"
+    )
     print(f"  folds:      {len(dataset['folds'])}")
+    print(
+        "  fixed split: "
+        f"train={len(dataset['split']['train_indices'])} "
+        f"dev={len(dataset['split']['dev_indices'])} "
+        f"test={len(dataset['split']['test_indices'])}"
+    )
     for fold in dataset["folds"]:
         print(
             f"    fold {fold['fold']}: "
@@ -161,6 +252,7 @@ def main() -> int:
             f"held-out groups={fold['test_groups']}"
         )
     print(f"  dataset JSON: {args.output}")
+    print(f"  split manifest: {manifest_out}")
     return 0
 
 

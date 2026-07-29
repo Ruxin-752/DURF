@@ -28,6 +28,13 @@ from .subgoal_reranker import score_subgoals
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_GOLD_WEIGHTS_PATH = ROOT / "data" / "gold_comfort_weights.json"
+SPEECH_ACTS = ("evaluative", "imperative", "descriptive")
+GROUNDED_REFERENCE_TYPES = (
+    "trajectory",
+    "feature",
+    "action_spatial",
+    "action_behavioral",
+)
 
 
 def load_gold_weights(path: str | Path = DEFAULT_GOLD_WEIGHTS_PATH) -> dict[str, float]:
@@ -78,6 +85,8 @@ class FeedbackIntent:
     target_features: dict[str, float]  # sign-consistent reference vector
     referenced_features: list[str] = field(default_factory=list)
     role: str = ""  # "praise_best" | "command_best" | "criticize_alt" | "describe_alt"
+    reference_type: str = "feature"
+    label_source: str = "rule_teacher"
 
 
 def _features_by_sign(
@@ -105,11 +114,11 @@ def feedback_intents(
 ) -> list[FeedbackIntent]:
     """Enumerate the feedback intents a teacher would give for one context.
 
-    - The best subgoal earns *positive* feedback grounded to its positive-sign
-      features (praise + a command to do it).
-    - Every strictly-worse feasible subgoal that has negative-sign features
-      earns *negative* feedback grounded to those features (criticism +
-      description of the bad behaviour).
+    The language dimensions are deliberately crossed: every rule-labelled
+    positive/negative behavior is expressed with each of the four grounded
+    reference classes and each speech act. ``other`` is generated separately
+    because it has no reward grounding. This keeps reference class, speech act,
+    and polarity as independent as the state-derived labels permit.
 
     Grounding to sign-partitioned features guarantees each ``(target, valence)``
     pushes the belief toward ``w*``.
@@ -124,26 +133,19 @@ def feedback_intents(
     positive_target = _features_by_sign(best_features, weights, positive=True)
     if positive_target:
         referenced = sorted(positive_target)
-        intents.append(
-            FeedbackIntent(
-                feedback_type="evaluative",
-                polarity=1.0,
-                subgoal=best["subgoal"],
-                target_features=positive_target,
-                referenced_features=referenced,
-                role="praise_best",
-            )
-        )
-        intents.append(
-            FeedbackIntent(
-                feedback_type="imperative",
-                polarity=1.0,
-                subgoal=best["subgoal"],
-                target_features=positive_target,
-                referenced_features=referenced,
-                role="command_best",
-            )
-        )
+        for reference_type in GROUNDED_REFERENCE_TYPES:
+            for feedback_type in SPEECH_ACTS:
+                intents.append(
+                    FeedbackIntent(
+                        feedback_type=feedback_type,
+                        polarity=1.0,
+                        subgoal=best["subgoal"],
+                        target_features=positive_target,
+                        referenced_features=referenced,
+                        role=f"positive_{reference_type}_{feedback_type}",
+                        reference_type=reference_type,
+                    )
+                )
 
     for item in ranking[1:]:
         if item["total_score"] >= best["total_score"] - score_margin:
@@ -153,25 +155,18 @@ def feedback_intents(
         if not negative_target:
             continue
         referenced = sorted(negative_target)
-        intents.append(
-            FeedbackIntent(
-                feedback_type="evaluative",
-                polarity=-1.0,
-                subgoal=item["subgoal"],
-                target_features=negative_target,
-                referenced_features=referenced,
-                role="criticize_alt",
-            )
-        )
-        intents.append(
-            FeedbackIntent(
-                feedback_type="descriptive",
-                polarity=-1.0,
-                subgoal=item["subgoal"],
-                target_features=negative_target,
-                referenced_features=referenced,
-                role="describe_alt",
-            )
-        )
+        for reference_type in GROUNDED_REFERENCE_TYPES:
+            for feedback_type in SPEECH_ACTS:
+                intents.append(
+                    FeedbackIntent(
+                        feedback_type=feedback_type,
+                        polarity=-1.0,
+                        subgoal=item["subgoal"],
+                        target_features=negative_target,
+                        referenced_features=referenced,
+                        role=f"negative_{reference_type}_{feedback_type}",
+                        reference_type=reference_type,
+                    )
+                )
 
     return intents

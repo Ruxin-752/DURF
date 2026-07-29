@@ -8,8 +8,8 @@ network on the synthetic corpus:
     (tokens[, feature counts]) -> reward vector over the 53-dim schema
 
 Design choices for the DURF setting:
-- **Pure language -> reward by default**: the trajectory-feature input is
-  zeroed unless ``--use-feature-counts`` is passed. At real runtime we only
+- **Pure language -> reward only**: the trajectory-feature input is always
+  zeroed. At real runtime we only
   have the human's text, not the grounded reference vector, so conditioning on
   the grounding would leak the answer. Zeroing keeps the metric honest.
 - **Grouped validation**: one CV fold's held-out scenarios are the validation
@@ -32,6 +32,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from scripts.prepare_route2_dataset import build_dataset  # noqa: E402
+from src.evaluation_splits import canonical_sha256, write_split_manifest  # noqa: E402
 from src.feature_schema import load_features, read_json  # noqa: E402
 from src.neural_inference import (  # noqa: E402
     TrajectoryFeedbackRewardPredictor,
@@ -85,14 +86,27 @@ def train(
     patience: int = 20,
     use_feature_counts: bool = False,
     seed: int = 0,
+    evaluate_test: bool = True,
 ) -> dict:
+    if use_feature_counts:
+        raise ValueError(
+            "Route 2 is fixed to use_feature_counts=False to prevent grounding leakage"
+        )
     torch.manual_seed(seed)
     rng = torch.Generator()
     rng.manual_seed(seed)
 
-    fold = dataset["folds"][val_fold % len(dataset["folds"])]
-    train_examples = [dataset["examples"][i] for i in fold["train_indices"]]
-    val_examples = [dataset["examples"][i] for i in fold["test_indices"]]
+    split = dataset.get("split")
+    if split:
+        train_examples = [dataset["examples"][i] for i in split["train_indices"]]
+        val_examples = [dataset["examples"][i] for i in split["dev_indices"]]
+        test_examples = [dataset["examples"][i] for i in split["test_indices"]]
+    else:
+        # Backward compatibility for previously serialized datasets.
+        fold = dataset["folds"][val_fold % len(dataset["folds"])]
+        train_examples = [dataset["examples"][i] for i in fold["train_indices"]]
+        val_examples = [dataset["examples"][i] for i in fold["test_indices"]]
+        test_examples = []
 
     model = TrajectoryFeedbackRewardPredictor(
         vocab_size=dataset["vocab_size"], n_features=dataset["n_features"]
@@ -138,6 +152,18 @@ def train(
                 break
 
     model.load_state_dict(best_state)
+    model.eval()
+    untouched_test_loss = (
+        _epoch_loss(
+            model,
+            test_examples,
+            dataset["vocab"],
+            loss_fn,
+            use_feature_counts=use_feature_counts,
+        )
+        if test_examples and evaluate_test
+        else None
+    )
     return {
         "model": model,
         "best_val_loss": best_val,
@@ -146,6 +172,12 @@ def train(
         "history": history,
         "val_fold": val_fold,
         "use_feature_counts": use_feature_counts,
+        "untouched_test_loss": untouched_test_loss,
+        "split_sizes": {
+            "train": len(train_examples),
+            "dev": len(val_examples),
+            "test": len(test_examples),
+        },
     }
 
 
@@ -163,13 +195,20 @@ def main() -> int:
     parser.add_argument("--patience", type=int, default=20)
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument(
+        "--split-manifest",
+        type=Path,
+        help="Read and validate a fixed split manifest.",
+    )
+    parser.add_argument("--near-duplicate-threshold", type=float, default=0.92)
+    parser.add_argument(
         "--use-feature-counts",
         action="store_true",
-        help="Also condition on the grounded reference vector (leaks grounding; "
-        "off by default so the network learns pure language -> reward).",
+        help=argparse.SUPPRESS,
     )
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     args = parser.parse_args()
+    if args.use_feature_counts:
+        parser.error("Route 2 requires use_feature_counts=False")
 
     feedback_examples = read_json(args.feedback)
     probes = load_probe_states(args.probe_states)
@@ -181,13 +220,31 @@ def main() -> int:
         min_freq=args.min_freq,
         n_folds=args.n_folds,
         seed=args.seed,
+        split_manifest=args.split_manifest,
+        near_duplicate_threshold=args.near_duplicate_threshold,
     )
+    training_config = {
+        "seed": args.seed,
+        "min_freq": args.min_freq,
+        "n_folds": args.n_folds,
+        "val_fold": args.val_fold,
+        "epochs": args.epochs,
+        "lr": args.lr,
+        "weight_decay": args.weight_decay,
+        "batch_size": args.batch_size,
+        "patience": args.patience,
+        "use_feature_counts": False,
+        "near_duplicate_threshold": args.near_duplicate_threshold,
+    }
+    training_config["config_sha256"] = canonical_sha256(training_config)
 
     print("Route 2 training (language -> comfort reward):")
     print(f"  examples:   {len(dataset['examples'])}")
     print(f"  features:   {dataset['n_features']}")
     print(f"  vocab size: {dataset['vocab_size']}")
-    print(f"  use_feature_counts: {args.use_feature_counts}")
+    print("  use_feature_counts: False (fixed)")
+    print(f"  corpus SHA256: {dataset['corpus_sha256']}")
+    print(f"  split SHA256:  {dataset['split_sha256']}")
 
     result = train(
         dataset,
@@ -197,7 +254,7 @@ def main() -> int:
         weight_decay=args.weight_decay,
         batch_size=args.batch_size,
         patience=args.patience,
-        use_feature_counts=args.use_feature_counts,
+        use_feature_counts=False,
         seed=args.seed,
     )
 
@@ -205,21 +262,34 @@ def main() -> int:
         f"  trained {result['epochs_run']} epochs; "
         f"best val MSE={result['best_val_loss']:.6f} at epoch {result['best_epoch']}"
     )
+    if result["untouched_test_loss"] is not None:
+        print(f"  untouched test MSE={result['untouched_test_loss']:.6f}")
 
     save_checkpoint(
         args.output,
         result["model"],
         dataset["vocab"],
         dataset["features"],
-        use_feature_counts=args.use_feature_counts,
+        use_feature_counts=False,
         extra={
             "best_val_loss": result["best_val_loss"],
             "best_epoch": result["best_epoch"],
             "val_fold": result["val_fold"],
+            "untouched_test_loss": result["untouched_test_loss"],
+            "split_sizes": result["split_sizes"],
+            "split_policy": dataset.get("split_policy"),
+            "corpus_sha256": dataset["corpus_sha256"],
+            "split_sha256": dataset["split_sha256"],
+            "dataset_config_sha256": dataset["dataset_config_sha256"],
+            "seed": args.seed,
+            "training_config": training_config,
         },
     )
+    manifest_out = args.output.parent / "split_manifest.json"
+    write_split_manifest(manifest_out, dataset["split_manifest"])
     print(f"  saved checkpoint: {args.output}")
     print(f"  saved vocab:      {args.output.parent / 'vocab.json'}")
+    print(f"  saved split:      {manifest_out}")
     return 0
 
 

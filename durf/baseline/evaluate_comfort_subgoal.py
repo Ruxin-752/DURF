@@ -73,6 +73,9 @@ def rollout(kind: str, layout: str, seed: int, horizon: int, lambda_pref: float)
     comfort_sum = 0.0
     discomfort_steps = 0
     subgoal_counts: dict[str, int] = {}
+    wait_streak = 0
+    longest_wait_streak = 0
+    wait_guard_steps = 0
     steps = 0
 
     for _ in range(horizon):
@@ -85,6 +88,7 @@ def rollout(kind: str, layout: str, seed: int, horizon: int, lambda_pref: float)
             )
         else:
             ai_action, ai_subgoal = agent.act(state)
+            wait_guard_steps += int(bool(agent.last_decision.get("wait_guard_applied")))
 
         # Judge realized comfort of the AI's executed subgoal with gold w*.
         context = context_from_state(state, mdp, ai_index=0)
@@ -94,6 +98,8 @@ def rollout(kind: str, layout: str, seed: int, horizon: int, lambda_pref: float)
         if any(phi.get(f, 0.0) > 0 for f in DISCOMFORT_FEATURES):
             discomfort_steps += 1
         subgoal_counts[ai_subgoal] = subgoal_counts.get(ai_subgoal, 0) + 1
+        wait_streak = wait_streak + 1 if ai_subgoal == "WAIT" else 0
+        longest_wait_streak = max(longest_wait_streak, wait_streak)
 
         ai_action, _ = breaker.resolve(state, 0, ai_action, other_index=1)
         human_action, _ = breaker.resolve(state, 1, human_action, other_index=0)
@@ -112,6 +118,8 @@ def rollout(kind: str, layout: str, seed: int, horizon: int, lambda_pref: float)
         "discomfort_steps": discomfort_steps,
         "discomfort_rate": discomfort_steps / steps if steps else 0.0,
         "subgoal_counts": subgoal_counts,
+        "longest_wait_streak": longest_wait_streak,
+        "wait_guard_steps": wait_guard_steps,
     }
 
 

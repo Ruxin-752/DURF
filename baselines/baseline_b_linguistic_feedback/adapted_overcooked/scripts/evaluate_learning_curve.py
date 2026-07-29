@@ -40,8 +40,8 @@ from scripts.run_baseline_b_pipeline import (  # noqa: E402
     DEFAULT_PRAGMATIC_VALENCE,
     DEFAULT_PRECISION_SCALE,
     DEFAULT_VALENCE_SCALE,
-    build_feedback_observations,
 )
+from src.feedback_observations import build_feedback_observations  # noqa: E402
 from src.feature_schema import (  # noqa: E402
     collect_action_feature_library,
     load_features,

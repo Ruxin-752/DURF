@@ -25,13 +25,13 @@
 | 训练步骤 | 原文位置 | 本实现处理 |
 | --- | --- | --- |
 | 神经奖励推断网络（Route 2） | `notebooks/aaai_inference_network_training.ipynb` 第 648 行 `loss.backward()` | **已训练**：`scripts/train_route2.py` 在 DeepSeek 合成语料上真正训练（text-only，分组 CV 早停）。严格对齐版 `scripts/train_route2_inference_network.py` 仍保留"训练前停止"边界仅作参考（见 §7） |
-| 短语引用类型分类器（LogisticRegression + TF-IDF） | `notebooks/aaai_phrase_classifier_training.ipynb` | 不训练；用确定性关键词规则 `feedback_form_classifier.py` 替代（见 §3） |
+| 短语引用类型分类器（LogisticRegression + TF-IDF） | `notebooks/aaai_phrase_classifier_training.ipynb` | 已按原文预处理与超参训练 Overcooked 五类模型；合成数据为主（见 §3） |
 | nested-logit 轨迹归因（SciPy Powell） | `science/observations/behavioral_analysis.py` | 不调用（原文主评估默认也走 feature counts，不走它） |
 | R 统计（`lm/lmer`） | `notebooks/aaai_statistics.Rmd` | 不做；属结果分析，非 reward learner |
 
 > 结论：Literal / PseudoPragmatic learner 本身是**贝叶斯推断，不含训练**，
-> 已完整复现；Route 2 神经网络现已训练（合成语料）；仍被跳过的是短语分类器
-> （规则替代）、nested-logit、R 统计。
+> 已完整复现；Route 2 神经网络和短语指涉分类器均已训练。仍被跳过的是
+> nested-logit 与 R 统计；分类器缺少真人 Overcooked 金标准。
 
 ---
 
@@ -66,15 +66,22 @@
 
 ---
 
-## 3. 反馈类型分类（有意近似：规则替代训练）
+## 3. 短语指涉分类（结构对齐，数据仍近似）
 
 - 原文：TF-IDF + LogisticRegression 学习式短语引用类型分类器（5 类，
   accuracy ≈ 0.87），发布运行时用 augmented pickle。
-- 本实现：`feedback_form_classifier.py` 确定性关键词规则（evaluative /
-  imperative / descriptive）。pipeline 主要使用数据里标注的
-  `expected_feedback_type`，分类器仅作旁路一致性统计。
-- 状态：**有意近似**（分类器训练是被跳过的训练步骤之一）。当前规则分类器与
-  标注的一致率偏低（约 55%），但不影响学习，因为 grounding/类型以标注为准。
+- 本实现：`phrase_reference_classifier.py` / `train_phrase_reference_classifier.py`
+  复刻标点切句、lemmatization、TF-IDF 1–2 gram（`min_df=5`）与
+  LogisticRegression，输出 `trajectory / feature / action_spatial /
+  action_behavioral / other` 及概率。`feedback_form_classifier.py` 的三类
+  evaluative/imperative/descriptive 只保留为 speech-act 分析，不再控制 grounding。
+- 训练使用 validated DeepSeek/模板语料，并对 `feature`、`action_behavioral` 与
+  `other` 单独增强；完整场景 group-disjoint untouched test 为 accuracy **74.2%**、
+  macro-F1 **68.3%**、balanced accuracy **72.6%**。旧 83.0% 来自较宽松的
+  intent-family 拆分，现不再作为最终数字。当前 `action_behavioral` recall
+  **51.7%**，`other` recall **62.5%**（但 precision 仍低）。
+- 状态：**模型与推理结构对齐，训练域有意近似**。论文约 87% 来自真人原任务，
+  当前数字来自合成 Overcooked，不能直接宣称等价。
 
 ---
 
@@ -83,14 +90,14 @@
 - 原文：逐短语分类引用类型（trajectory / feature / action_spatial /
   action_behavioral），再分别用轨迹频率 / 字符串匹配 / 空间簇得到参考向量。
 - 本实现：
-  - 文本关键词 grounding 时，按 `limited_punc_tokenization` 逐短语产观测、
-    逐短语取 VADER valence（机制与原文一致）；
+  - 按 `limited_punc_tokenization` 逐短语分类 reference type、逐短语产观测并取
+    VADER valence；分类概率与 grounding confidence 一起缩放 observation precision；
   - 但**显式 `target_features` / `trajectory_features` / `target_action`**
     （手工标注的参考向量）优先，此时整句作为**单一参考**（单观测），
     valence 取整句 VADER。
 - 原因：本数据集大量使用手工标注的参考向量（更可靠），而非从真实轨迹自动
   归因；因此多子句的评价/描述句按整句参考处理，属有意近似。
-- 状态：**有意近似**（机制已实现并测试，但当前数据以整句参考为主）。
+- 状态：**路径结构已对齐，referent 解析仍为 Overcooked 规则近似**。
 
 ---
 
@@ -206,15 +213,51 @@
 - **Route 1（贝叶斯 learner，核心方法原样保留）**：pseudopragmatic learned probe
   accuracy **14/14 = 100%**（采样期望准确率 100%，tie=0）；在线学习曲线 final
   **100%**（literal & pseudopragmatic），随机基线 33.3%。
-- **Route 2（神经推断网络，DeepSeek 合成语料训练，text-only）**：held-out
-  **subgoal accuracy 18/18 = 100%**（多数投票；逐条 95.8%），对照 gold 18/18、
-  route1-global 18/18、zero 0/18。导出权重全部合成场景 86/90=95.6%、手写真实
-  subgoal probe（从不训练）4/5=80%。
-- **Agent 行为提升（subgoal 重排，6 seed 均值，gold `w*` 裁判、非学到权重，故不
-  循环）**：comfort/step **+0.971 → +2.763**（约 2.8×），discomfort_rate
-  **0.200 → 0.003**（降 ~98%），soup **80.0 → 76.7**（6 个 seed 里 5 个满 80，
-  仅 1 个少一份）。结果见 `outputs/route2/comfort_subgoal_multiseed.json`。
-- **未做**：PPO（DURF 集成扩展，用户明确 subgoal-only）；短语分类器补训。
+- **Route 2（神经推断网络，DeepSeek 合成语料训练，text-only）**：专类增强语料
+  的严格 untouched test 为 **subgoal accuracy 17/18 = 94.4%**（多数投票；
+  逐条 89.8%），对照 gold 18/18、route1-global 17/18、zero 0/18。严格模型另存
+  为 `model_deepseek_strict.pt`；其导出均值权重在手写 probes 上仅 3/5，因此未
+  替换默认冻结权重。
+- **Agent 行为（20 seed 严格协议）**：在 dev seeds 0–9 选择 `lambda=0.75`，
+  untouched test seeds 10–19 上平均 soup **76 → 88**、discomfort rate
+  **16.6% → 14.7%**；comfort/step 因 seed 方差从 1.635 降到 0.941，不能宣称
+  comfort 分数稳定提升。结果见 `outputs/route2/comfort_multiseed_strict.json`。
+- **未做**：PPO（DURF 集成扩展，当前范围为 subgoal-only）；真人
+  Overcooked 五类 reference 金标准采集与最终测试。
+
+### Live Route 1（原论文机制显式进入 subgoal loop）
+
+`ComfortSubgoalAgent` 不再把所有聊天默认等同于 Route 2 blend，而是提供四个
+明确且可对照的模式：
+
+- `frozen`：冻结权重控制组；
+- `route1-literal`：类型分类 → 类型化 grounding → Literal 高斯后验更新；
+- `route1-pseudopragmatic`：同上，并加入未提及特征的 inverse-reference 更新；
+- `route2`：神经网络逐句预测后按 α 混合。
+
+Route 1 默认从论文先验 `N(0,25I)` 开始，也可用 `--route1-prior frozen` 把
+Route 2 导出权重作为先验均值。每次反馈都记录 type、grounding、valence、
+posterior mean/variance delta，以及更新前后的 subgoal 到
+`feedback_updates.jsonl`。这使 Route 1 不再只是离线 probe 对照，而是能直接
+改变下一步 H0 subgoal 排序。评价型反馈使用最近 25 个实际执行 step 的
+trajectory features；若窗口中没有可检测事件，再回退到同期 selected-subgoal
+features，避免只凭暂停瞬间的静态状态做错误归因。
+
+真人 live 评论使用来源感知 precision（默认是普通合成观测的 4 倍），但会再乘
+reference 分类概率与 grounding confidence；含糊评论会降权或拒绝，避免错误解释
+被高权重放大。完整 mean/covariance 以版本化 JSON 原子保存，可显式跨进程恢复。
+DeepSeek 回复与本地学习解耦，API 延迟或失败不会阻塞下一条真人评论。
+
+行为层增加连续 WAIT guard。seed 42、400 step 的当前回归结果为：H0 与 comfort
+agent 都完成 80 soup；comfort/step `+0.829 → +2.030`，discomfort rate
+`0.1425 → 0.0725`，结果见 `comfort_subgoal_eval_wait_guard.json`。
+
+5 折 held-out subgoal 消融（`outputs/route1_subgoal_ablation_reference_classifier.json`）：
+Route 1 Literal 的 oracle / inferred 分别为 **97.8% / 91.1%**，冻结 Route 2
+为 **95.6%**。专类 DeepSeek 增强后 inferred grounding coverage 为 **80.4%**
+（旧规则路径为 72.6%）；descriptive-only coverage 为 56.6%，说明剩余瓶颈
+主要在 referent/关键词解析。三类 speech-act 的 57.3%
+仅作为独立分析指标，不再用于选择 grounding 路径。
 
 ---
 

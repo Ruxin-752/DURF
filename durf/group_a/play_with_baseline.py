@@ -49,13 +49,28 @@ PAUSE_BUTTON = pygame.Rect(790, 620, 130, 42)
 CHAT_BUTTON = pygame.Rect(650, 620, 120, 42)
 PAUSE_DEBOUNCE_MS = 300
 LAYOUT_SWITCH_DEBOUNCE_MS = 300
-BUILD_ID = "pause-v6-h0"
+BUILD_ID = "route1-live-v1"
+COMFORT_FEEDBACK_MODES = (
+    "frozen",
+    "route1-literal",
+    "route1-pseudopragmatic",
+    "route2",
+)
 DEFAULT_H0_EXECUTOR = (
     REPO_ROOT
     / "models"
     / "subgoal_executors"
     / "h0_rule_executor_v5"
     / "executor.keras"
+)
+DEFAULT_LEARNER_STATE = (
+    REPO_ROOT
+    / "baselines"
+    / "baseline_b_linguistic_feedback"
+    / "adapted_overcooked"
+    / "outputs"
+    / "live"
+    / "route1_state.json"
 )
 LAYOUT_NUMBER_KEYS = (pygame.K_1, pygame.K_2, pygame.K_3, pygame.K_4)
 WINDOWS_LAYOUT_NUMBER_KEYS = (0x31, 0x32, 0x33, 0x34)
@@ -195,6 +210,63 @@ def parse_args() -> argparse.Namespace:
         type=float,
         default=1.0,
         help="lambda_pref weight on comfort vs task score for comfort_subgoal.",
+    )
+    parser.add_argument(
+        "--comfort-feedback-mode",
+        choices=COMFORT_FEEDBACK_MODES,
+        default="route1-literal",
+        help=(
+            "How chat feedback changes comfort weights. Route 1 modes run the "
+            "paper-style classify -> ground -> Bayesian update loop; route2 "
+            "uses neural blending; frozen records but ignores feedback."
+        ),
+    )
+    parser.add_argument(
+        "--route1-prior",
+        choices=("zero", "frozen"),
+        default="zero",
+        help=(
+            "Route 1 Gaussian prior mean: paper-faithful zero, or the exported "
+            "frozen weights as a warm start."
+        ),
+    )
+    parser.add_argument(
+        "--route1-lookback",
+        type=int,
+        default=25,
+        help=(
+            "Recent selected-subgoal decisions used to ground evaluative Route "
+            "1 feedback as a trajectory reference."
+        ),
+    )
+    parser.add_argument(
+        "--route2-blend",
+        type=float,
+        default=0.35,
+        help="Online Route 2 blend alpha for comfort_subgoal chat feedback.",
+    )
+    parser.add_argument(
+        "--human-feedback-precision",
+        type=float,
+        default=4.0,
+        help="Route 1 precision multiplier for live human comments.",
+    )
+    parser.add_argument(
+        "--learner-state",
+        type=Path,
+        default=DEFAULT_LEARNER_STATE,
+        help="Versioned posterior checkpoint written after each accepted comment.",
+    )
+    parser.add_argument(
+        "--resume-learner-state",
+        action="store_true",
+        help="Resume the exact Route 1 posterior from --learner-state.",
+    )
+    parser.add_argument(
+        "--max-consecutive-wait",
+        type=int,
+        default=3,
+        help="Force a productive feasible subgoal after this many WAIT choices (0 disables).",
     )
     parser.add_argument(
         "--agent",
@@ -720,7 +792,11 @@ def render_chat_panel(
         if history_y <= history_top:
             break
 
-    status = "Thinking..." if chat_pending else chat_status
+    status = (
+        f"{chat_status} | DeepSeek thinking..." if chat_pending and chat_status
+        else "DeepSeek thinking..." if chat_pending
+        else chat_status
+    )
     if status:
         status_lines = wrap_text(status, small_font, 730)
         for idx, line in enumerate(status_lines[:2]):
@@ -789,6 +865,14 @@ def main() -> int:
             weights_path=args.comfort_weights,
             lambda_pref=args.comfort_lambda,
             ai_index=0,
+            feedback_mode=args.comfort_feedback_mode,
+            route1_prior=args.route1_prior,
+            route1_lookback=args.route1_lookback,
+            online_blend=args.route2_blend,
+            human_feedback_precision=args.human_feedback_precision,
+            learner_state_path=args.learner_state,
+            resume_learner_state=args.resume_learner_state,
+            max_consecutive_wait=args.max_consecutive_wait,
         )
     else:
         requested_layouts = list(dict.fromkeys([args.layout, *args.layouts]))
@@ -807,8 +891,10 @@ def main() -> int:
 
     trajectory_path = session_dir / "trajectory.csv"
     chat_path = session_dir / "chat_messages.csv"
+    feedback_updates_path = session_dir / "feedback_updates.jsonl"
     trajectory_handle = trajectory_path.open("w", newline="", encoding="utf-8")
     chat_handle = chat_path.open("w", newline="", encoding="utf-8")
+    feedback_updates_handle = feedback_updates_path.open("w", encoding="utf-8")
     trajectory_fields = [
         "timestamp_utc",
         "episode",
@@ -816,6 +902,7 @@ def main() -> int:
         "total_step",
         "layout",
         "ai_mode",
+        "comfort_feedback_mode",
         "ai_subgoal",
         "ai_event",
         "ai_action",
@@ -929,6 +1016,10 @@ def main() -> int:
         ai_obs, _ = env.multi_reset()
         if ai_agent is not None:
             ai_agent.reset()
+        if comfort_agent is not None:
+            # Keep the learned posterior across episodes, but never attribute
+            # new feedback to a trajectory from the previous episode.
+            comfort_agent.reset_context()
         episode += 1
         episode_step = 0
         episode_reward = 0.0
@@ -975,12 +1066,64 @@ def main() -> int:
 
         chat_messages.append({"role": "user", "content": prompt})
         log_chat_message("user", prompt)
-        # Path A: treat the human chat as linguistic feedback and blend a
-        # Route 2 per-utterance reward prediction into the live comfort weights.
+        # Path A: make the selected Route 1/Route 2 update explicit and auditable.
         if args.ai_mode == "comfort_subgoal" and comfort_agent is not None:
             try:
-                comfort_agent.update_from_feedback(prompt)
-                chat_status = "Comfort weights updated from your feedback."
+                trace = comfort_agent.update_from_feedback(
+                    prompt,
+                    source="human_live",
+                    confidence=1.0,
+                )
+                feedback_updates_handle.write(
+                    json.dumps(
+                        {
+                            "timestamp_utc": utc_timestamp(),
+                            "episode": episode,
+                            "episode_step": episode_step,
+                            "total_step": total_step,
+                            **trace,
+                        },
+                        ensure_ascii=False,
+                    )
+                    + "\n"
+                )
+                feedback_updates_handle.flush()
+                if trace["status"] == "updated" and trace["mode"].startswith("route1"):
+                    change = (trace.get("top_changes") or [{}])[0].get("feature", "no feature")
+                    switch_note = (
+                        "policy held (score margin)"
+                        if trace.get("accepted_but_no_policy_switch")
+                        else f"{trace.get('before_subgoal')} -> {trace.get('after_subgoal')}"
+                    )
+                    chat_status = (
+                        f"{trace['mode']} | {trace['feedback_type']} | {change} | "
+                        f"p={trace.get('source_precision_multiplier', 1):g} | "
+                        f"{switch_note}"
+                    )
+                elif trace["status"] == "updated":
+                    chat_status = (
+                        f"{trace['mode']} updated | "
+                        f"{trace.get('before_subgoal')} -> {trace.get('after_subgoal')}"
+                    )
+                elif trace["status"] == "rejected_low_confidence":
+                    stages = ", ".join(
+                        sorted(
+                            {
+                                str(reason.get("stage"))
+                                for reason in trace.get("rejection_reasons", [])
+                                if reason.get("stage")
+                            }
+                        )
+                    )
+                    chat_status = (
+                        "Feedback not applied: low confidence"
+                        + (f" ({stages})" if stages else "")
+                        + ". Please be more specific."
+                    )
+                elif trace["status"] == "rejected_duplicate":
+                    chat_status = "Duplicate feedback ignored; weights unchanged."
+                else:
+                    chat_status = f"{trace['mode']}: {trace['status']} feedback."
             except Exception as exc:
                 chat_status = f"Comfort update skipped: {exc}"
         chat_pending = True
@@ -1009,6 +1152,12 @@ def main() -> int:
         threading.Thread(target=worker, daemon=True).start()
 
     print(f"AI mode: {args.ai_mode}")
+    if args.ai_mode == "comfort_subgoal":
+        print(
+            f"Feedback learner: {args.comfort_feedback_mode} "
+            f"(Route1 prior={args.route1_prior}, lookback={args.route1_lookback}, "
+            f"Route2 blend={args.route2_blend:g})"
+        )
     print(f"Agent: {agent_dir}")
     print(f"Interface build: {BUILD_ID}")
     print(f"Script: {Path(__file__).resolve()}")
@@ -1033,7 +1182,8 @@ def main() -> int:
                 if role == "assistant":
                     chat_messages.append({"role": "assistant", "content": content})
                     log_chat_message("assistant", content)
-                    chat_status = ""
+                    # Keep the local learning result visible; model chat is a
+                    # separate, optional channel and must not erase it.
                 else:
                     chat_status = content
                     chat_messages.append(
@@ -1054,7 +1204,7 @@ def main() -> int:
                             pygame.key.stop_text_input()
                         elif event.key == pygame.K_RETURN:
                             prompt = chat_input.strip()
-                            if prompt and not chat_pending:
+                            if prompt:
                                 chat_input = ""
                                 start_chat_request(prompt)
                         elif event.key == pygame.K_BACKSPACE:
@@ -1136,7 +1286,7 @@ def main() -> int:
                     chat_input = chat_input[:-1]
                 if 0x0D in windows_pressed_now:  # Enter
                     prompt = chat_input.strip()
-                    if prompt and not chat_pending:
+                    if prompt:
                         chat_input = ""
                         start_chat_request(prompt)
             if windows_new_actions and not paused and not chat_open:
@@ -1243,6 +1393,14 @@ def main() -> int:
                     human_action,
                 )
                 state_after = state_facts(env)
+                if args.ai_mode == "comfort_subgoal" and comfort_agent is not None:
+                    comfort_agent.record_transition(
+                        state_before=state_before,
+                        state_after=state_after,
+                        ai_action_name=ACTION_NAMES[ai_action],
+                        human_action_name=ACTION_NAMES[human_action],
+                        environment_reward=float(reward),
+                    )
                 last_environment_step_ms = (
                     time.perf_counter() - step_started
                 ) * 1000
@@ -1260,6 +1418,11 @@ def main() -> int:
                         "total_step": total_step,
                         "layout": current_layout,
                         "ai_mode": args.ai_mode,
+                        "comfort_feedback_mode": (
+                            args.comfort_feedback_mode
+                            if args.ai_mode == "comfort_subgoal"
+                            else ""
+                        ),
                         "ai_subgoal": last_ai_subgoal,
                         "ai_event": last_ai_event,
                         "ai_action": ai_action,
@@ -1342,7 +1505,9 @@ def main() -> int:
             else:
                 run_status = "RUNNING"
             status = (
-                f"Blue: {args.ai_mode} | Green: YOU | Episode {episode} | "
+                f"Blue: {args.ai_mode}"
+                f"{f'/{args.comfort_feedback_mode}' if args.ai_mode == 'comfort_subgoal' else ''}"
+                f" | Green: YOU | Episode {episode} | "
                 f"Step {episode_step} | "
                 f"Reward {episode_reward:.1f} | {run_status}"
             )
@@ -1385,9 +1550,11 @@ def main() -> int:
         trajectory_handle.flush()
         chat_handle.flush()
         pause_handle.flush()
+        feedback_updates_handle.flush()
         trajectory_handle.close()
         chat_handle.close()
         pause_handle.close()
+        feedback_updates_handle.close()
         for cached_env in set(envs_by_layout.values()):
             cached_env.close()
         pygame.key.stop_text_input()
@@ -1395,6 +1562,7 @@ def main() -> int:
 
     print(f"Trajectory: {trajectory_path}")
     print(f"Chat messages: {chat_path}")
+    print(f"Feedback updates: {feedback_updates_path}")
     print(f"Pause events: {pause_path}")
     print(f"Exit reason: {quit_reason}")
     return 0

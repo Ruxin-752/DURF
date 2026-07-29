@@ -112,6 +112,35 @@ python $B/scripts/train_route2.py --epochs 120
 python $B/scripts/evaluate_route2_subgoal.py
 ```
 
+Large synthetic-only runs use a frozen generator split, versioned cache, and
+quality gates. Keep the API key in the process environment only:
+
+```powershell
+$env:DEEPSEEK_API_KEY="<set outside the repository>"
+python $B/scripts/generate_synthetic_feedback.py `
+  --llm-per-intent 10 --llm-max-intents 800 --target-size 10000 `
+  --temperature 0.8 --top-p 0.95 --seed 17 `
+  --llm-cache $B/outputs/synth/llm_cache_10k_v6.jsonl `
+  --output $B/outputs/synth/synthetic_feedback.deepseek_10k.raw.json
+python $B/scripts/generate_other_reference_feedback.py --per-topic 100 `
+  --output $B/outputs/synth/deepseek_other_reference_v2.json
+python $B/scripts/validate_feedback_corpus.py `
+  --input $B/outputs/synth/synthetic_feedback.deepseek_10k.raw.json `
+  --output $B/data/synthetic_feedback.deepseek_10k.validated.json `
+  --report $B/outputs/synth/deepseek_10k.validation.json --enforce-quality
+python $B/scripts/train_phrase_reference_classifier.py `
+  --input $B/data/synthetic_feedback.deepseek_10k.validated.json `
+  --augment $B/outputs/synth/deepseek_other_reference_v2.json
+python $B/scripts/train_phrase_grounding.py `
+  --input $B/data/synthetic_feedback.deepseek_10k.validated.json
+python $B/scripts/train_route2_multiseed.py `
+  --feedback $B/data/synthetic_feedback.deepseek_10k.validated.json
+```
+
+Generation labels always come from the rule teacher. DeepSeek supplies language
+only; failed structure, sentiment, grounding, duplicate, and cross-split checks
+are rejected before training.
+
 Step 4 writes `outputs/route2/learned_comfort_weights.json`, the frozen comfort
 weight vector handed to PPO. The PPO training env (`ray[rllib]` + tensorflow,
 e.g. `durf310`):
@@ -143,16 +172,69 @@ decides *which* subgoal is pursued; execution is unchanged (`execute_subgoal`
 reproduces the frozen `rule_teacher_decision` motion exactly, enforced by
 `durf/baseline/test_comfort_subgoal.py`).
 
-Play as the human beside it (reward-learning env, e.g. `pantheonrl_env`):
+Play as the human beside it (reward-learning env with NLTK; add torch only for
+Route 2 live updates):
 
 ```powershell
 $env:PYTHONPATH="$PWD;$PWD\src"
-python -m durf.group_a.play_with_baseline --ai-mode comfort_subgoal
-# optional: --comfort-weights <path.json>  --comfort-lambda 1.0
+# Paper Route 1: classify -> type-specific grounding -> Bayesian update -> subgoal
+python -m durf.group_a.play_with_baseline --ai-mode comfort_subgoal `
+  --comfort-feedback-mode route1-literal --route1-prior zero `
+  --route1-lookback 25 --human-feedback-precision 4 `
+  --max-consecutive-wait 3
+
+# Paper PseudoPragmatic variant
+python -m durf.group_a.play_with_baseline --ai-mode comfort_subgoal `
+  --comfort-feedback-mode route1-pseudopragmatic --route1-prior zero
+
+# Route 2 neural online blend, or a non-adaptive frozen-weight control
+python -m durf.group_a.play_with_baseline --ai-mode comfort_subgoal `
+  --comfort-feedback-mode route2
+python -m durf.group_a.play_with_baseline --ai-mode comfort_subgoal `
+  --comfort-feedback-mode frozen
 ```
 
 Weights default to `outputs/route2/learned_comfort_weights.json`, falling back
-to the gold teacher weights if Route 2 has not been exported yet.
+to the gold teacher weights if Route 2 has not been exported yet. Route 1 uses
+the paper's `N(0,25I)` prior by default; `--route1-prior frozen` warm-starts its
+posterior mean from the exported weights. Every live update is written to
+`feedback_updates.jsonl` with the speech act, five-class phrase reference type,
+classification probability, effective precision, grounding source,
+valence, posterior mean/variance changes, and the subgoal before/after update.
+Trajectory references are grounded to features extracted from the latest
+executed step window (default 25); if that window has no detectable event
+features, the agent falls back to the selected-subgoal feature history.
+Action references use the feasible subgoal/action library, while feature
+references use text keywords. The learned posterior persists across episode resets, but the
+trajectory window is cleared so a new episode cannot be credited to behavior
+from the previous one.
+
+To make the paper mechanism measurable rather than only visible in the UI, run
+the grouped held-out type ablation:
+
+```powershell
+python $B/scripts/evaluate_route1_subgoal.py
+```
+
+It compares Route 1 Literal/PseudoPragmatic in `oracle` and fully `inferred`
+modes, both with all feedback and with evaluative/imperative/descriptive
+feedback separately. Gold annotations are retained only for scoring in inferred
+mode; the learner cannot read them. The current 5-fold report
+(`outputs/route1_subgoal_ablation_deepseek_strict.json`) makes the remaining
+language bottleneck explicit: Literal reaches 97.8% with oracle interpretation
+and 91.1% inferred (80.4% grounding coverage),
+versus 95.6% for frozen Route 2. The former 57.3% number measured a separate
+three-class speech act heuristic and was not comparable to the paper. The
+paper-style five-class TF-IDF+LR reference classifier reaches 74.2% accuracy,
+68.3% macro-F1, and 72.6% balanced accuracy on a fully scenario-disjoint
+synthetic untouched test. This stricter number replaces the older 83.0%
+intent-family split result; real human Overcooked reference labels remain the
+required final benchmark.
+
+The exact Route 1 posterior is atomically saved after accepted live feedback.
+Use `--resume-learner-state` to restore it explicitly on a later run. Human
+comments default to 4x source precision, then classification/grounding
+confidence lowers that value when the reference is ambiguous.
 
 Round-level comparison vs plain H0 rules (headless, judged by the gold `w*`
 comfort partition, not the learned weights, so it is not circular):

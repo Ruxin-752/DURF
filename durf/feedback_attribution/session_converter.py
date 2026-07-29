@@ -5,7 +5,15 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from .io_utils import as_bool, as_float, as_int, as_json, read_csv, write_jsonl
+from .io_utils import (
+    as_bool,
+    as_float,
+    as_int,
+    as_json,
+    read_csv,
+    read_jsonl,
+    write_jsonl,
+)
 from .schemas import feedback_event, trajectory_step
 
 
@@ -33,6 +41,10 @@ def convert_trajectory(session_dir: Path) -> list[dict]:
                     "predict_ms": as_float(row.get("predict_ms")),
                     "environment_step_ms": as_float(row.get("environment_step_ms")),
                     "state_before": as_json(row.get("state_before_json")),
+                    "ai_subgoal": row.get("ai_subgoal"),
+                    "ai_event": row.get("ai_event"),
+                    "ai_mode": row.get("ai_mode"),
+                    "comfort_feedback_mode": row.get("comfort_feedback_mode"),
                 },
             )
         )
@@ -41,6 +53,20 @@ def convert_trajectory(session_dir: Path) -> list[dict]:
 
 def convert_feedback(session_dir: Path) -> list[dict]:
     records = []
+    online_updates = read_jsonl(session_dir / "feedback_updates.jsonl")
+
+    def matching_update(row: dict) -> dict | None:
+        step = as_int(row.get("total_step"))
+        text = (row.get("content") or "").strip()
+        return next(
+            (
+                update
+                for update in online_updates
+                if int(update.get("total_step", -1)) == int(step or 0)
+                and str(update.get("text") or "").strip() == text
+            ),
+            None,
+        )
     for row in read_csv(session_dir / "feedback.csv"):
         records.append(
             feedback_event(
@@ -62,6 +88,8 @@ def convert_feedback(session_dir: Path) -> list[dict]:
     for row in read_csv(session_dir / "chat_messages.csv"):
         if row.get("role") != "user":
             continue
+        update = matching_update(row)
+        online = update or {}
         records.append(
             feedback_event(
                 source="chat_messages.csv",
@@ -72,7 +100,23 @@ def convert_feedback(session_dir: Path) -> list[dict]:
                 feedback_text=row.get("content"),
                 feedback_value=None,
                 role="human_language",
-                extra={"layout": row.get("layout")},
+                extra={
+                    "layout": row.get("layout"),
+                    "source": online.get("source", "human_live"),
+                    "update_id": online.get("update_id"),
+                    "feedback_mode": online.get("mode"),
+                    "effective_precision": max(
+                        (
+                            float(item.get("effective_precision", 0.0))
+                            for item in online.get("observations", [])
+                        ),
+                        default=None,
+                    ),
+                    "checkpoint_sha256": online.get("checkpoint_sha256"),
+                    "before_subgoal": online.get("before_subgoal"),
+                    "after_subgoal": online.get("after_subgoal"),
+                    "reference_type": online.get("reference_type"),
+                },
             )
         )
 

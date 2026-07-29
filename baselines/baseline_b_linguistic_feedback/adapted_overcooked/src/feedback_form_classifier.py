@@ -17,6 +17,11 @@ IMPERATIVE_MARKERS = (
     "serve",
     "move",
     "clear",
+    "grab ",
+    "stop ",
+    "don't ",
+    "do not ",
+    "avoid ",
 )
 
 EVALUATIVE_MARKERS = (

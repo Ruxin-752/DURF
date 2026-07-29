@@ -21,9 +21,8 @@ from src.feature_schema import (  # noqa: E402
     write_json,
 )
 from src.feedback_form_classifier import classify_feedback  # noqa: E402
-from src.overcooked_grounding import features_from_keywords, ground_feedback  # noqa: E402
+from src.feedback_observations import build_feedback_observations  # noqa: E402
 from src.feature_schema import load_features  # noqa: E402
-from src.text_analysis import limited_punc_tokenization  # noqa: E402
 from src.probe_evaluator import (  # noqa: E402
     DEFAULT_PROBE_STATES_PATH,
     evaluate_probes,
@@ -31,11 +30,6 @@ from src.probe_evaluator import (  # noqa: E402
     load_probe_states,
 )
 from src.reward_weight_model import BayesianRewardLearner  # noqa: E402
-from src.sentiment_extractor import (  # noqa: E402
-    desired_action_sentiment,
-    extract_sentiment,
-    modified_vader_observation,
-)
 
 
 DEFAULT_FEEDBACK_PATH = ROOT / "data" / "feedback_examples.json"
@@ -45,84 +39,6 @@ DEFAULT_VALENCE_SCALE = 30.0
 DEFAULT_PRECISION_SCALE = 2.0
 DEFAULT_PRAGMATIC_VALENCE = -30.0
 DEFAULT_PRAGMATIC_PRECISION = 2.0
-
-
-def effective_sentiment_score(
-    *,
-    feedback_type: str,
-    sentiment: dict,
-    target_features: dict[str, float],
-    feedback: dict,
-) -> float:
-    if feedback.get("attributed_sentiment_score") is not None:
-        return float(feedback["attributed_sentiment_score"])
-    if feedback_type == "imperative" and feedback.get("target_action"):
-        return desired_action_sentiment(feedback_type, target_features)
-    return float(sentiment["sentiment_score"])
-
-
-def build_feedback_observations(
-    feedback: dict,
-    *,
-    feedback_type: str,
-    action_feature_library: dict[str, dict[str, float]],
-) -> list[dict]:
-    """Decompose one feedback utterance into per-phrase Gaussian sub-observations.
-
-    Mirrors the paper's ``observations_from_utterance``: an utterance is split
-    on punctuation (``limited_punc_tokenization``) and each phrase becomes its
-    own observation with its own VADER valence. Feedback that carries an
-    explicit grounding (``target_features`` / ``trajectory_features`` /
-    ``target_action``) is treated as a single whole-utterance reference, since
-    that authored vector -- not the text -- is the effective reference here.
-    """
-
-    text = feedback.get("text") or feedback.get("feedback_text") or ""
-    grounding = ground_feedback(
-        feedback,
-        feedback_type=feedback_type,
-        action_feature_library=action_feature_library,
-    )
-
-    if grounding["grounding_source"] != "keyword_features":
-        sentiment = extract_sentiment(text)
-        valence = effective_sentiment_score(
-            feedback_type=feedback_type,
-            sentiment=sentiment,
-            target_features=grounding["target_features"],
-            feedback=feedback,
-        )
-        return [
-            {
-                "target_features": grounding["target_features"],
-                "valence": valence,
-                "phrase": text,
-                "grounding_source": grounding["grounding_source"],
-            }
-        ]
-
-    sub_observations: list[dict] = []
-    for phrase in limited_punc_tokenization(text):
-        phrase_features = features_from_keywords(phrase)
-        if phrase_features:
-            sub_observations.append(
-                {
-                    "target_features": phrase_features,
-                    "valence": modified_vader_observation(phrase),
-                    "phrase": phrase,
-                    "grounding_source": "keyword_features",
-                }
-            )
-    if not sub_observations:
-        sub_observations.append(
-            {
-                "target_features": features_from_keywords(text),
-                "valence": modified_vader_observation(text),
-                "phrase": text,
-                "grounding_source": "keyword_features",
-            }
-        )
-    return sub_observations
 
 
 def learn_from_feedback(

@@ -137,6 +137,56 @@ def make_folds(
     return folds
 
 
+def make_train_dev_test_split(
+    group_ids: list[str | None],
+    *,
+    seed: int = 0,
+    dev_fraction: float = 0.2,
+    test_fraction: float = 0.2,
+) -> dict[str, list[int] | list[str]]:
+    """Create a deterministic, group-disjoint train/dev/test partition.
+
+    Hyperparameters and early stopping may use ``dev`` only. ``test`` is an
+    untouched final estimate. Ungrouped examples stay in train because they
+    cannot be audited for cross-split leakage.
+    """
+
+    if not 0 <= dev_fraction < 1 or not 0 <= test_fraction < 1:
+        raise ValueError("dev_fraction and test_fraction must be in [0, 1)")
+    if dev_fraction + test_fraction >= 1:
+        raise ValueError("dev_fraction + test_fraction must be < 1")
+
+    grouped: dict[str, list[int]] = {}
+    ungrouped: list[int] = []
+    for index, group in enumerate(group_ids):
+        if group is None:
+            ungrouped.append(index)
+        else:
+            grouped.setdefault(str(group), []).append(index)
+
+    groups = sorted(grouped)
+    random.Random(seed).shuffle(groups)
+    n_groups = len(groups)
+    n_test = min(n_groups, max(1, round(n_groups * test_fraction))) if test_fraction else 0
+    remaining = n_groups - n_test
+    n_dev = min(remaining, max(1, round(n_groups * dev_fraction))) if dev_fraction else 0
+    test_groups = groups[:n_test]
+    dev_groups = groups[n_test : n_test + n_dev]
+    train_groups = groups[n_test + n_dev :]
+
+    def indices_for(selected: list[str]) -> list[int]:
+        return [index for group in selected for index in grouped[group]]
+
+    return {
+        "train_groups": train_groups,
+        "dev_groups": dev_groups,
+        "test_groups": test_groups,
+        "train_indices": sorted([*ungrouped, *indices_for(train_groups)]),
+        "dev_indices": sorted(indices_for(dev_groups)),
+        "test_indices": sorted(indices_for(test_groups)),
+    }
+
+
 def collate_batch(
     examples: list[dict],
     vocab: dict[str, int],

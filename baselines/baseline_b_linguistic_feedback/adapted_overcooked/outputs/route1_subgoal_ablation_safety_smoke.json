@@ -1,0 +1,392 @@
+{
+  "n_folds": 2,
+  "seed": 0,
+  "lambda_pref": 1.0,
+  "summary": {
+    "baselines": {
+      "zero": 0.0,
+      "gold": 1.0,
+      "route2_frozen": 0.9555555555555555
+    },
+    "route1": {
+      "route1-literal/oracle/all": {
+        "accuracy": 0.8888888888888888,
+        "grounding_rate": 0.9320350424757282,
+        "type_accuracy": null,
+        "reference_type_accuracy": null
+      },
+      "route1-literal/oracle/evaluative": {
+        "accuracy": 0.8888888888888888,
+        "grounding_rate": 0.9698451196941038,
+        "type_accuracy": null,
+        "reference_type_accuracy": null
+      },
+      "route1-literal/oracle/imperative": {
+        "accuracy": 0.9111111111111112,
+        "grounding_rate": 0.771505376344086,
+        "type_accuracy": null,
+        "reference_type_accuracy": null
+      },
+      "route1-literal/oracle/descriptive": {
+        "accuracy": 0.7,
+        "grounding_rate": 0.8349701621554068,
+        "type_accuracy": null,
+        "reference_type_accuracy": null
+      },
+      "route1-literal/inferred/all": {
+        "accuracy": 0.8888888888888888,
+        "grounding_rate": 0.40976008215085885,
+        "type_accuracy": 0.5300014002987303,
+        "reference_type_accuracy": 0.8815662357520155
+      },
+      "route1-literal/inferred/evaluative": {
+        "accuracy": 0.7555555555555555,
+        "grounding_rate": 0.4007299103056928,
+        "type_accuracy": 0.35200439319055465,
+        "reference_type_accuracy": 0.9150676039390773
+      },
+      "route1-literal/inferred/imperative": {
+        "accuracy": 0.6,
+        "grounding_rate": 0.5403225806451613,
+        "type_accuracy": 0.5577956989247311,
+        "reference_type_accuracy": 0.905982905982906
+      },
+      "route1-literal/inferred/descriptive": {
+        "accuracy": 0.2222222222222222,
+        "grounding_rate": 0.1932430039887939,
+        "type_accuracy": 0.7991751632489403,
+        "reference_type_accuracy": 0.6202797202797203
+      },
+      "route1-pseudopragmatic/oracle/all": {
+        "accuracy": 0.7222222222222222,
+        "grounding_rate": 0.9320350424757282,
+        "type_accuracy": null,
+        "reference_type_accuracy": null
+      },
+      "route1-pseudopragmatic/oracle/evaluative": {
+        "accuracy": 0.7333333333333333,
+        "grounding_rate": 0.9698451196941038,
+        "type_accuracy": null,
+        "reference_type_accuracy": null
+      },
+      "route1-pseudopragmatic/oracle/imperative": {
+        "accuracy": 1.0,
+        "grounding_rate": 0.771505376344086,
+        "type_accuracy": null,
+        "reference_type_accuracy": null
+      },
+      "route1-pseudopragmatic/oracle/descriptive": {
+        "accuracy": 0.7888888888888889,
+        "grounding_rate": 0.8349701621554068,
+        "type_accuracy": null,
+        "reference_type_accuracy": null
+      },
+      "route1-pseudopragmatic/inferred/all": {
+        "accuracy": 0.8888888888888888,
+        "grounding_rate": 0.40976008215085885,
+        "type_accuracy": 0.5300014002987303,
+        "reference_type_accuracy": 0.8815662357520155
+      },
+      "route1-pseudopragmatic/inferred/evaluative": {
+        "accuracy": 0.7555555555555555,
+        "grounding_rate": 0.4007299103056928,
+        "type_accuracy": 0.35200439319055465,
+        "reference_type_accuracy": 0.9150676039390773
+      },
+      "route1-pseudopragmatic/inferred/imperative": {
+        "accuracy": 0.8666666666666667,
+        "grounding_rate": 0.5403225806451613,
+        "type_accuracy": 0.5577956989247311,
+        "reference_type_accuracy": 0.905982905982906
+      },
+      "route1-pseudopragmatic/inferred/descriptive": {
+        "accuracy": 0.16666666666666669,
+        "grounding_rate": 0.1932430039887939,
+        "type_accuracy": 0.7991751632489403,
+        "reference_type_accuracy": 0.6202797202797203
+      }
+    }
+  },
+  "folds": [
+    {
+      "fold": 0,
+      "test_groups": 45,
+      "test_scenarios": 45,
+      "baselines": {
+        "zero": 0.0,
+        "gold": 1.0,
+        "route2_frozen": 0.9111111111111111
+      },
+      "route1": {
+        "route1-literal/oracle/all": {
+          "accuracy": 0.7777777777777778,
+          "examples": 1280,
+          "updated": 1193,
+          "grounding_rate": 0.93203125,
+          "type_accuracy": null,
+          "reference_type_accuracy": null
+        },
+        "route1-literal/oracle/evaluative": {
+          "accuracy": 0.7777777777777778,
+          "examples": 607,
+          "updated": 591,
+          "grounding_rate": 0.9736408566721582,
+          "type_accuracy": null,
+          "reference_type_accuracy": null
+        },
+        "route1-literal/oracle/imperative": {
+          "accuracy": 0.8666666666666667,
+          "examples": 372,
+          "updated": 287,
+          "grounding_rate": 0.771505376344086,
+          "type_accuracy": null,
+          "reference_type_accuracy": null
+        },
+        "route1-literal/oracle/descriptive": {
+          "accuracy": 0.6222222222222222,
+          "examples": 301,
+          "updated": 246,
+          "grounding_rate": 0.8172757475083057,
+          "type_accuracy": null,
+          "reference_type_accuracy": null
+        },
+        "route1-literal/inferred/all": {
+          "accuracy": 0.8,
+          "examples": 1280,
+          "updated": 528,
+          "grounding_rate": 0.4125,
+          "type_accuracy": 0.53125,
+          "reference_type_accuracy": 0.8768939393939394
+        },
+        "route1-literal/inferred/evaluative": {
+          "accuracy": 0.7777777777777778,
+          "examples": 607,
+          "updated": 242,
+          "grounding_rate": 0.3986820428336079,
+          "type_accuracy": 0.37067545304777594,
+          "reference_type_accuracy": 0.9297520661157025
+        },
+        "route1-literal/inferred/imperative": {
+          "accuracy": 0.5333333333333333,
+          "examples": 372,
+          "updated": 207,
+          "grounding_rate": 0.5564516129032258,
+          "type_accuracy": 0.553763440860215,
+          "reference_type_accuracy": 0.8888888888888888
+        },
+        "route1-literal/inferred/descriptive": {
+          "accuracy": 0.26666666666666666,
+          "examples": 301,
+          "updated": 55,
+          "grounding_rate": 0.18272425249169436,
+          "type_accuracy": 0.770764119601329,
+          "reference_type_accuracy": 0.5636363636363636
+        },
+        "route1-pseudopragmatic/oracle/all": {
+          "accuracy": 0.7777777777777778,
+          "examples": 1280,
+          "updated": 1193,
+          "grounding_rate": 0.93203125,
+          "type_accuracy": null,
+          "reference_type_accuracy": null
+        },
+        "route1-pseudopragmatic/oracle/evaluative": {
+          "accuracy": 0.7333333333333333,
+          "examples": 607,
+          "updated": 591,
+          "grounding_rate": 0.9736408566721582,
+          "type_accuracy": null,
+          "reference_type_accuracy": null
+        },
+        "route1-pseudopragmatic/oracle/imperative": {
+          "accuracy": 1.0,
+          "examples": 372,
+          "updated": 287,
+          "grounding_rate": 0.771505376344086,
+          "type_accuracy": null,
+          "reference_type_accuracy": null
+        },
+        "route1-pseudopragmatic/oracle/descriptive": {
+          "accuracy": 0.7333333333333333,
+          "examples": 301,
+          "updated": 246,
+          "grounding_rate": 0.8172757475083057,
+          "type_accuracy": null,
+          "reference_type_accuracy": null
+        },
+        "route1-pseudopragmatic/inferred/all": {
+          "accuracy": 0.8,
+          "examples": 1280,
+          "updated": 528,
+          "grounding_rate": 0.4125,
+          "type_accuracy": 0.53125,
+          "reference_type_accuracy": 0.8768939393939394
+        },
+        "route1-pseudopragmatic/inferred/evaluative": {
+          "accuracy": 0.7777777777777778,
+          "examples": 607,
+          "updated": 242,
+          "grounding_rate": 0.3986820428336079,
+          "type_accuracy": 0.37067545304777594,
+          "reference_type_accuracy": 0.9297520661157025
+        },
+        "route1-pseudopragmatic/inferred/imperative": {
+          "accuracy": 0.8666666666666667,
+          "examples": 372,
+          "updated": 207,
+          "grounding_rate": 0.5564516129032258,
+          "type_accuracy": 0.553763440860215,
+          "reference_type_accuracy": 0.8888888888888888
+        },
+        "route1-pseudopragmatic/inferred/descriptive": {
+          "accuracy": 0.2,
+          "examples": 301,
+          "updated": 55,
+          "grounding_rate": 0.18272425249169436,
+          "type_accuracy": 0.770764119601329,
+          "reference_type_accuracy": 0.5636363636363636
+        }
+      }
+    },
+    {
+      "fold": 1,
+      "test_groups": 45,
+      "test_scenarios": 45,
+      "baselines": {
+        "zero": 0.0,
+        "gold": 1.0,
+        "route2_frozen": 1.0
+      },
+      "route1": {
+        "route1-literal/oracle/all": {
+          "accuracy": 1.0,
+          "examples": 1339,
+          "updated": 1248,
+          "grounding_rate": 0.9320388349514563,
+          "type_accuracy": null,
+          "reference_type_accuracy": null
+        },
+        "route1-literal/oracle/evaluative": {
+          "accuracy": 1.0,
+          "examples": 648,
+          "updated": 626,
+          "grounding_rate": 0.9660493827160493,
+          "type_accuracy": null,
+          "reference_type_accuracy": null
+        },
+        "route1-literal/oracle/imperative": {
+          "accuracy": 0.9555555555555556,
+          "examples": 372,
+          "updated": 287,
+          "grounding_rate": 0.771505376344086,
+          "type_accuracy": null,
+          "reference_type_accuracy": null
+        },
+        "route1-literal/oracle/descriptive": {
+          "accuracy": 0.7777777777777778,
+          "examples": 319,
+          "updated": 272,
+          "grounding_rate": 0.8526645768025078,
+          "type_accuracy": null,
+          "reference_type_accuracy": null
+        },
+        "route1-literal/inferred/all": {
+          "accuracy": 0.9777777777777777,
+          "examples": 1339,
+          "updated": 545,
+          "grounding_rate": 0.4070201643017177,
+          "type_accuracy": 0.5287528005974608,
+          "reference_type_accuracy": 0.8862385321100917
+        },
+        "route1-literal/inferred/evaluative": {
+          "accuracy": 0.7333333333333333,
+          "examples": 648,
+          "updated": 261,
+          "grounding_rate": 0.4027777777777778,
+          "type_accuracy": 0.3333333333333333,
+          "reference_type_accuracy": 0.9003831417624522
+        },
+        "route1-literal/inferred/imperative": {
+          "accuracy": 0.6666666666666666,
+          "examples": 372,
+          "updated": 195,
+          "grounding_rate": 0.5241935483870968,
+          "type_accuracy": 0.5618279569892473,
+          "reference_type_accuracy": 0.9230769230769231
+        },
+        "route1-literal/inferred/descriptive": {
+          "accuracy": 0.17777777777777778,
+          "examples": 319,
+          "updated": 65,
+          "grounding_rate": 0.20376175548589343,
+          "type_accuracy": 0.8275862068965517,
+          "reference_type_accuracy": 0.676923076923077
+        },
+        "route1-pseudopragmatic/oracle/all": {
+          "accuracy": 0.6666666666666666,
+          "examples": 1339,
+          "updated": 1248,
+          "grounding_rate": 0.9320388349514563,
+          "type_accuracy": null,
+          "reference_type_accuracy": null
+        },
+        "route1-pseudopragmatic/oracle/evaluative": {
+          "accuracy": 0.7333333333333333,
+          "examples": 648,
+          "updated": 626,
+          "grounding_rate": 0.9660493827160493,
+          "type_accuracy": null,
+          "reference_type_accuracy": null
+        },
+        "route1-pseudopragmatic/oracle/imperative": {
+          "accuracy": 1.0,
+          "examples": 372,
+          "updated": 287,
+          "grounding_rate": 0.771505376344086,
+          "type_accuracy": null,
+          "reference_type_accuracy": null
+        },
+        "route1-pseudopragmatic/oracle/descriptive": {
+          "accuracy": 0.8444444444444444,
+          "examples": 319,
+          "updated": 272,
+          "grounding_rate": 0.8526645768025078,
+          "type_accuracy": null,
+          "reference_type_accuracy": null
+        },
+        "route1-pseudopragmatic/inferred/all": {
+          "accuracy": 0.9777777777777777,
+          "examples": 1339,
+          "updated": 545,
+          "grounding_rate": 0.4070201643017177,
+          "type_accuracy": 0.5287528005974608,
+          "reference_type_accuracy": 0.8862385321100917
+        },
+        "route1-pseudopragmatic/inferred/evaluative": {
+          "accuracy": 0.7333333333333333,
+          "examples": 648,
+          "updated": 261,
+          "grounding_rate": 0.4027777777777778,
+          "type_accuracy": 0.3333333333333333,
+          "reference_type_accuracy": 0.9003831417624522
+        },
+        "route1-pseudopragmatic/inferred/imperative": {
+          "accuracy": 0.8666666666666667,
+          "examples": 372,
+          "updated": 195,
+          "grounding_rate": 0.5241935483870968,
+          "type_accuracy": 0.5618279569892473,
+          "reference_type_accuracy": 0.9230769230769231
+        },
+        "route1-pseudopragmatic/inferred/descriptive": {
+          "accuracy": 0.13333333333333333,
+          "examples": 319,
+          "updated": 65,
+          "grounding_rate": 0.20376175548589343,
+          "type_accuracy": 0.8275862068965517,
+          "reference_type_accuracy": 0.676923076923077
+        }
+      }
+    }
+  ]
+}

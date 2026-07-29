@@ -14,6 +14,7 @@ that both the Route 2 tokenizer and the Route 1 keyword baseline have signal.
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
+import re
 
 if TYPE_CHECKING:  # pragma: no cover - type hints only
     from .subgoal_featurizer import SubgoalContext
@@ -137,50 +138,75 @@ def theme_for_intent(intent: "FeedbackIntent") -> str:
 
 
 def render_templates(intent: "FeedbackIntent", context: "SubgoalContext") -> list[str]:
-    """Return deterministic template sentences for one feedback intent."""
+    """Return a small, single-clause deterministic floor for one intent."""
 
-    verb, gerund, _noun = SUBGOAL_PHRASES.get(
+    verb, gerund, noun = SUBGOAL_PHRASES.get(
         intent.subgoal, ("do that", "doing that", "that")
     )
-    role = intent.role
+    positive = intent.polarity > 0
+    theme = (
+        POSITIVE_THEME_PHRASES[_theme(intent.referenced_features, positive=True)]
+        if positive
+        else NEGATIVE_THEME_PHRASES[_theme(intent.referenced_features, positive=False)]
+    )
+    reference = intent.reference_type
+    if reference == "trajectory":
+        subject = f"that whole {gerund} move"
+    elif reference == "feature":
+        subject = noun
+    elif reference == "action_behavioral":
+        subject = f"your habit of {gerund}"
+    else:  # action_spatial
+        subject = f"{gerund} right there"
 
-    if role == "command_best":
-        return [
-            f"Please {verb}.",
-            f"Go {verb}.",
-            f"{verb.capitalize()}.",
-            f"You should {verb} now.",
-            f"Let's have you {verb}.",
-        ]
+    if intent.feedback_type == "imperative":
+        if reference == "action_behavioral":
+            action = f"{'keep up' if positive else 'stop'} your habit of {gerund}"
+        elif reference == "trajectory":
+            action = f"{'repeat' if positive else 'do not repeat'} that whole move"
+        elif reference == "action_spatial":
+            action = (
+                f"{verb} right there now"
+                if positive
+                else f"do not {verb} right there now"
+            )
+        else:
+            action = (
+                f"prioritize {noun}"
+                if positive
+                else f"avoid prioritizing {noun}"
+            )
+        return [f"Please {action} because {theme}."]
+    if intent.feedback_type == "descriptive":
+        effect = "helps our teamwork" if positive else "hurts our teamwork"
+        return [f"{subject.capitalize()} {effect} because {theme}."]
+    judgment = "is a good choice" if positive else "is a bad choice"
+    return [f"{subject.capitalize()} {judgment} because {theme}."]
 
-    if role == "praise_best":
-        theme = POSITIVE_THEME_PHRASES[_theme(intent.referenced_features, positive=True)]
-        return [
-            f"Nice, {gerund} is exactly right.",
-            f"Good call {gerund}, {theme}.",
-            f"Yes, {gerund} works well, {theme}.",
-            f"Perfect, {theme}.",
-        ]
 
-    if role == "criticize_alt":
-        theme = NEGATIVE_THEME_PHRASES[_theme(intent.referenced_features, positive=False)]
-        return [
-            f"No, don't {verb}, {theme}.",
-            f"Stop {gerund}, {theme}.",
-            f"Please avoid {gerund}, {theme}.",
-            f"Not {gerund} please, {theme}.",
-        ]
+def phrase_annotations(text: str, reference_type: str) -> list[dict]:
+    """Annotate the sole reference clause with stable character offsets."""
 
-    if role == "describe_alt":
-        theme = NEGATIVE_THEME_PHRASES[_theme(intent.referenced_features, positive=False)]
-        return [
-            f"You're {gerund}, {theme}.",
-            f"When you keep {gerund}, {theme}.",
-            f"Right now {gerund} means {theme}.",
-        ]
+    clause = text.strip()
+    start = len(text) - len(text.lstrip())
+    end = start + len(clause)
+    return [
+        {
+            "text": clause,
+            "start": start,
+            "end": end,
+            "reference_type": reference_type,
+        }
+    ]
 
-    # Fallback for any unexpected role.
-    return [f"About {gerund}: {'good' if intent.polarity > 0 else 'not good'}."]
+
+def is_single_sentence(text: str) -> bool:
+    """Conservative one-spoken-sentence check shared by generation/validation."""
+
+    stripped = text.strip()
+    if not stripped or "\n" in stripped:
+        return False
+    return len(re.findall(r"[.!?]+(?:[\"']?$|\s+)", stripped)) <= 1
 
 
 def context_description(context: "SubgoalContext") -> str:

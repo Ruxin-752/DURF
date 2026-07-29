@@ -69,15 +69,24 @@ class GaussianBelief:
         """
 
         reference_vector = np.asarray(reference_vector, dtype=float)
-        prior_precision = self.precision
 
-        obs_precision_matrix = np.outer(reference_vector, reference_vector) * obs_precision
-        new_precision = prior_precision + obs_precision_matrix
-        new_covariance = np.linalg.inv(new_precision)
-
-        obs_mean = reference_vector * valence
-        information = prior_precision @ self.mean + obs_precision_matrix @ obs_mean
-        new_mean = new_covariance @ information
+        # Sherman-Morrison rank-one form of the exact Gaussian-factor product.
+        # This avoids two dense 53x53 inversions per utterance while preserving
+        # the paper's active information term:
+        #   p rr^T (r v) = p (r.r) v r.
+        covariance_r = self.covariance @ reference_vector
+        denominator = 1.0 + float(obs_precision) * float(
+            reference_vector @ covariance_r
+        )
+        gain = float(obs_precision) * covariance_r / denominator
+        active_target = float(reference_vector @ reference_vector) * float(valence)
+        innovation = active_target - float(reference_vector @ self.mean)
+        new_mean = self.mean + gain * innovation
+        new_covariance = self.covariance - float(obs_precision) * np.outer(
+            covariance_r, covariance_r
+        ) / denominator
+        # Suppress tiny asymmetric round-off before downstream sampling.
+        new_covariance = 0.5 * (new_covariance + new_covariance.T)
 
         return GaussianBelief(list(self.features), new_mean, new_covariance)
 

@@ -1,0 +1,191 @@
+{
+  "drop_reasons": {
+    "sentiment_contradiction": 6,
+    "ungrounded": 4
+  },
+  "dropped": 10,
+  "dropped_by_source": {
+    "llm": 10
+  },
+  "dropped_samples": [
+    {
+      "feedback_id": "ctx_0003_pot[empty]_empty_hold[empty]_human[pick_dish_then_serve]#4_describe_behavior_alt_llm8",
+      "grounding_ok": true,
+      "passed": false,
+      "reasons": [
+        "sentiment_contradiction"
+      ],
+      "recovered_reference_type": "feature",
+      "recovered_score": 0.6597,
+      "recovered_type": "descriptive",
+      "reference_confidence": 0.6931690751014501,
+      "reference_ok": false,
+      "sentiment_ok": false,
+      "type_ok": true
+    },
+    {
+      "feedback_id": "ctx_0008_pot[empty]_empty_hold[tomato]_human[get_onion]#4_describe_behavior_alt_llm8",
+      "grounding_ok": false,
+      "passed": false,
+      "reasons": [
+        "ungrounded"
+      ],
+      "recovered_reference_type": "feature",
+      "recovered_score": -0.1406,
+      "recovered_type": "descriptive",
+      "reference_confidence": 0.8406509881367794,
+      "reference_ok": false,
+      "sentiment_ok": true,
+      "type_ok": true
+    },
+    {
+      "feedback_id": "ctx_0010_pot[empty]_empty_hold[tomato]_human[pickup_soup]#4_describe_behavior_alt_llm8",
+      "grounding_ok": false,
+      "passed": false,
+      "reasons": [
+        "ungrounded"
+      ],
+      "recovered_reference_type": "feature",
+      "recovered_score": -0.1406,
+      "recovered_type": "descriptive",
+      "reference_confidence": 0.8406509881367794,
+      "reference_ok": false,
+      "sentiment_ok": true,
+      "type_ok": true
+    },
+    {
+      "feedback_id": "ctx_0012_pot[empty]_empty_hold[onion]_human[idle]#4_describe_behavior_alt_llm7",
+      "grounding_ok": true,
+      "passed": false,
+      "reasons": [
+        "sentiment_contradiction"
+      ],
+      "recovered_reference_type": "action_behavioral",
+      "recovered_score": 0.5423,
+      "recovered_type": "imperative",
+      "reference_confidence": 0.5414124364183053,
+      "reference_ok": true,
+      "sentiment_ok": false,
+      "type_ok": false
+    },
+    {
+      "feedback_id": "ctx_0019_pot[empty]_empty_hold[soup]_human[get_tomato]#4_describe_behavior_alt_llm4",
+      "grounding_ok": true,
+      "passed": false,
+      "reasons": [
+        "sentiment_contradiction"
+      ],
+      "recovered_reference_type": "other",
+      "recovered_score": 0.5423,
+      "recovered_type": "descriptive",
+      "reference_confidence": 0.4793910450168511,
+      "reference_ok": false,
+      "sentiment_ok": false,
+      "type_ok": true
+    },
+    {
+      "feedback_id": "ctx_0034_pot[tomato]_partial_hold[tomato]_human[pickup_soup]#4_describe_behavior_alt_llm4",
+      "grounding_ok": true,
+      "passed": false,
+      "reasons": [
+        "sentiment_contradiction"
+      ],
+      "recovered_reference_type": "other",
+      "recovered_score": 0.5719,
+      "recovered_type": "descriptive",
+      "reference_confidence": 0.42647983991866556,
+      "reference_ok": false,
+      "sentiment_ok": false,
+      "type_ok": true
+    },
+    {
+      "feedback_id": "ctx_0036_pot[tomato]_partial_hold[onion]_human[idle]#4_describe_behavior_alt_llm8",
+      "grounding_ok": false,
+      "passed": false,
+      "reasons": [
+        "ungrounded"
+      ],
+      "recovered_reference_type": "other",
+      "recovered_score": -0.4404,
+      "recovered_type": "descriptive",
+      "reference_confidence": 0.7183540556351109,
+      "reference_ok": false,
+      "sentiment_ok": true,
+      "type_ok": true
+    },
+    {
+      "feedback_id": "ctx_0038_pot[tomato]_partial_hold[onion]_human[get_onion]#4_describe_behavior_alt_llm8",
+      "grounding_ok": false,
+      "passed": false,
+      "reasons": [
+        "ungrounded"
+      ],
+      "recovered_reference_type": "action_behavioral",
+      "recovered_score": 0.0,
+      "recovered_type": "descriptive",
+      "reference_confidence": 0.47285351041257995,
+      "reference_ok": true,
+      "sentiment_ok": true,
+      "type_ok": true
+    },
+    {
+      "feedback_id": "ctx_0041_pot[tomato]_partial_hold[onion]_human[serve_soup]#4_describe_behavior_alt_llm4",
+      "grounding_ok": true,
+      "passed": false,
+      "reasons": [
+        "sentiment_contradiction"
+      ],
+      "recovered_reference_type": "other",
+      "recovered_score": 0.5719,
+      "recovered_type": "descriptive",
+      "reference_confidence": 0.42647983991866556,
+      "reference_ok": false,
+      "sentiment_ok": false,
+      "type_ok": true
+    },
+    {
+      "feedback_id": "ctx_0049_pot[tomato-tomato]_partial_hold[empty]_human[get_tomato]#4_describe_behavior_alt_llm8",
+      "grounding_ok": true,
+      "passed": false,
+      "reasons": [
+        "sentiment_contradiction"
+      ],
+      "recovered_reference_type": "action_behavioral",
+      "recovered_score": 0.7351,
+      "recovered_type": "imperative",
+      "reference_confidence": 0.26152149030328287,
+      "reference_ok": true,
+      "sentiment_ok": false,
+      "type_ok": false
+    }
+  ],
+  "kept": 2100,
+  "kept_by_source": {
+    "llm": 350,
+    "template": 1750
+  },
+  "kept_diversity_ratio": 0.22380952380952382,
+  "kept_reference_type_coverage": {
+    "action_behavioral": 632,
+    "action_spatial": 826,
+    "feature": 282,
+    "other": 0,
+    "trajectory": 360
+  },
+  "kept_scenarios": 90,
+  "kept_type_coverage": {
+    "descriptive": 914,
+    "evaluative": 736,
+    "imperative": 450
+  },
+  "kept_unique_texts": 470,
+  "kept_valence_balance": {
+    "negative": 1290,
+    "neutral": 0,
+    "positive": 810
+  },
+  "reference_type_roundtrip_agreement": 0.7976303317535545,
+  "sentiment_roundtrip_agreement": 0.9971563981042654,
+  "total_examples": 2110,
+  "type_roundtrip_agreement": 0.6947867298578199
+}
