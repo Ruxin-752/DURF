@@ -20,6 +20,7 @@ import numpy as np
 
 from durf.baseline.evaluate_baseline import count_event_value
 from durf.baseline.runtime import make_direct_multi_env, resolve_agent_dir
+from durf.baseline.task_logic import next_unstaged_ingredient
 from human_aware_rl.rllib.rllib import load_trainer
 from overcooked_ai_py.mdp.actions import Action
 from overcooked_ai_py.planning.planners import MotionPlanner
@@ -185,6 +186,22 @@ def object_positions(state, name: str) -> list[tuple[int, int]]:
         for position, obj in state.objects.items()
         if getattr(obj, "name", None) == name
     ]
+
+
+def staged_ingredients_for_next_cycle(state) -> list[str]:
+    """Count loose and teammate-held ingredients already prepared for later."""
+    staged = [
+        getattr(obj, "name", None)
+        for obj in state.objects.values()
+        if getattr(obj, "name", None) in {"tomato", "onion"}
+    ]
+    staged.extend(
+        getattr(getattr(player, "held_object", None), "name", None)
+        for player in state.players
+        if getattr(getattr(player, "held_object", None), "name", None)
+        in {"tomato", "onion"}
+    )
+    return [ingredient for ingredient in staged if ingredient is not None]
 
 
 def ingredient_pickup_locations(state, mdp, ingredient: str) -> list[tuple[int, int]]:
@@ -426,13 +443,18 @@ def feature_candidate(
     )
     if action is None:
         return None
+    candidate_metadata = dict(metadata or {})
+    candidate_metadata.setdefault(
+        "target_positions",
+        [list(position) for position in feature_positions],
+    )
     return CandidateSubgoal(
         subgoal=subgoal,
         task_score=task_score,
         action=int(action),
         reason=reason,
         feasible=True,
-        metadata=metadata or {},
+        metadata=candidate_metadata,
     )
 
 
@@ -530,16 +552,25 @@ def generate_candidate_subgoals(
                 candidates.append(candidate)
 
         recipe = target_recipe(mdp)
-        prep_ingredient = recipe[0] if recipe else None
+        prep_ingredient = next_unstaged_ingredient(
+            recipe,
+            staged_ingredients_for_next_cycle(state),
+        )
         if prep_ingredient in ("tomato", "onion"):
             subgoal = "GET_TOMATO" if prep_ingredient == "tomato" else "GET_ONION"
             candidate = feature_candidate(
                 subgoal=subgoal,
                 task_score=50.0,
-                reason="soup_cooking_prepare_next_cycle",
+                reason="soup_cooking_prepare_unstaged_next_cycle_ingredient",
                 motion_planner=motion_planner,
                 player=player,
-                feature_positions=ingredient_pickup_locations(state, mdp, prep_ingredient),
+                # Loose ingredients are already counted as staged. Fetch a new
+                # unit from the dispenser instead of re-picking the object that
+                # the guard just placed on a counter.
+                feature_positions=ingredient_dispenser_locations(
+                    mdp,
+                    prep_ingredient,
+                ),
                 blocked_positions=blocked_positions,
                 metadata={"ingredient": prep_ingredient},
             )

@@ -94,3 +94,7 @@ The next active development target is an LLM-assisted feedback attribution
 package under `durf/feedback_attribution/`. The pygame baseline should provide
 trajectory logs and candidate events; the LLM should only handle human-semantic
 interpretation that deterministic code cannot resolve reliably.
+
+The current Task/Coordination Hu runtime, decision logs, review override rules,
+and end-to-end commands are documented in
+[`docs/hierarchical_hu_runtime.md`](docs/hierarchical_hu_runtime.md).

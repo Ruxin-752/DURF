@@ -5,7 +5,7 @@ from __future__ import annotations
 from .event_detectors import DEFAULT_LOOKBACK_STEPS, detect_candidate_events, recent_window
 from .feedback_type_router import polarity_from_feedback, route_feedback_type
 from .schemas import attribution_result
-from .subgoal_preferences import infer_subgoal_preferences, normalize_subgoals
+from .subgoal_preferences import infer_subgoal_preferences
 
 
 EVENT_KEYWORDS = {
@@ -474,18 +474,10 @@ def build_preview_attribution(
     condition_features = target.get("condition_features") if target else {}
     preferred_subgoals, rejected_subgoals = infer_subgoal_preferences(
         target_event=target_event,
+        observed_subgoal=target.get("related_subgoal") if target else None,
+        alternative_subgoals=target.get("alternative_subgoals") if target else None,
+        event_valence=target.get("event_valence") if target else None,
     )
-    if target and not preferred_subgoals:
-        preferred_subgoals = normalize_subgoals(
-            target.get("alternative_subgoals")
-        )
-    if target and not rejected_subgoals:
-        related = normalize_subgoals([target.get("related_subgoal")])
-        rejected_subgoals = [
-            subgoal
-            for subgoal in related
-            if subgoal not in preferred_subgoals
-        ]
     preference = None
     if target_event and polarity in {"negative", "unknown", "positive"}:
         preference = EVENT_PREFERENCES.get(target_event)

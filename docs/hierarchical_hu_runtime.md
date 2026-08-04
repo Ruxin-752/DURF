@@ -1,0 +1,329 @@
+# Task / Coordination 分层 Hu 工程说明
+
+本文描述当前已经落到代码中的决策结构、数据流、日志字段和运行方式。
+
+## 1. 为什么拆成两层
+
+当前系统不再把 `GET_TOMATO` 和 `YIELD` 放进同一个候选集合比较。
+
+- Task 决策回答“AI 现在要做什么”。
+- Coordination 决策回答“遇到人类协作冲突时，当前任务要怎么继续执行”。
+- Safety 只阻止非法动作。
+- Recovery 只处理已经进入的无效任务状态，例如手里拿着当前不需要的原料。
+
+运行顺序是：
+
+```text
+游戏状态
+-> Task candidates + task_score
+-> Hu_task preference_score
+-> 选择 task subgoal
+-> Recovery 检查
+-> 检测即时路径冲突
+-> Coordination candidates + coordination prior
+-> Hu_coord preference_score
+-> 选择 coordination option
+-> Safety 检查
+-> 执行低层动作
+```
+
+Task 和 Coordination 是上下游关系，但 Hu 内部是两个互不混合的评分头：
+
+```text
+Hu_task(condition, task_subgoal, user)
+Hu_coord(condition, coordination_option, user)
+```
+
+因此“去拿番茄”和“暂时让路”不会形成没有意义的 pairwise 标签。
+
+## 2. 当前候选空间
+
+Task 候选由任务 planner 根据可行性生成，主要包括：
+
+```text
+GET_TOMATO
+PUT_TOMATO_IN_POT
+GET_ONION
+PUT_ONION_IN_POT
+GET_DISH
+PICKUP_SOUP
+SERVE_SOUP
+GET_USEFUL_INGREDIENT
+PUT_DOWN_OBJECT
+WAIT_NEAR_POT
+WAIT
+```
+
+当前运行时已经启用的 Coordination 候选是：
+
+```text
+CONTINUE_CURRENT_SUBGOAL
+YIELD
+```
+
+`HOLD_POSITION` 和 `REROUTE` 已保留在 Hu 合法词表中，但尚未作为运行时候选启用。原因是它们需要能保持原 task 目标的路径级实现，不能用随意移动代替。
+
+## 3. 基础分数与 Hu 分数
+
+Task 层：
+
+```text
+task_final_score
+= task_score
++ hu_task_lambda * Hu_task(user, condition, task_subgoal)
+```
+
+Coordination 层：
+
+```text
+coord_final_score
+= coordination_prior
++ hu_coordination_lambda * Hu_coord(user, condition, option)
+```
+
+当 `--hu-apply` 未开启时，Hu 只进行 shadow scoring：记录分数，但不改变选择。
+
+当 Hu 没有 coordination head，或者 `--hu-coordination-lambda 0` 时，系统使用初始协调 prior。当前 prior 在检测到直接路径冲突时优先 `YIELD`，以保持旧版本行为。
+
+## 4. Coordination option 的生命周期
+
+`YIELD` 不是永久覆盖 task。
+
+```text
+检测到冲突
+-> 创建 coordination decision_id
+-> 短时间保持所选 option，避免每一步左右摇摆
+-> option 到期
+-> 如果冲突消失，恢复原 task
+-> 如果冲突持续，YIELD 进入短 cooldown
+-> 重新比较候选，避免无限后退
+```
+
+当前默认参数：
+
+```text
+min_commit_steps = 1
+max_option_steps = 3
+yield_cooldown_steps = 2
+```
+
+## 5. trajectory 中新增的决策证据
+
+`trajectory.csv` 每一步新增：
+
+```text
+task_decision_json
+coordination_decision_json
+```
+
+Task 记录示例：
+
+```json
+{
+  "record_type": "runtime_decision",
+  "decision_id": "task:e1:t42",
+  "decision_level": "task",
+  "condition_at_decision": {
+    "pot_partially_filled": true,
+    "recipe_needs_onion": true
+  },
+  "candidate_set": ["GET_ONION", "GET_TOMATO", "WAIT"],
+  "candidates": [
+    {
+      "subgoal": "GET_ONION",
+      "task_score": 70.0,
+      "hu_score": 0.8,
+      "final_score": 70.8
+    }
+  ],
+  "selected": "GET_ONION"
+}
+```
+
+Coordination 记录示例：
+
+```json
+{
+  "record_type": "runtime_decision",
+  "decision_id": "coord:e1:t42:n1",
+  "decision_level": "coordination",
+  "conflict_type": "human_entering_ai_tile",
+  "task_subgoal": "GET_ONION",
+  "condition_at_decision": {
+    "human_trying_to_pass": true,
+    "narrow_corridor": true,
+    "ai_adjacent_to_current_subgoal_target": false
+  },
+  "candidate_set": ["CONTINUE_CURRENT_SUBGOAL", "YIELD"],
+  "selected": "YIELD",
+  "expires_at": 44
+}
+```
+
+这两条记录共同回答：
+
+- AI 原来想做什么；
+- 当时有哪些候选；
+- 基础模型和 Hu 各给了多少分；
+- 是否发生协作冲突；
+- 最终哪一层改变了动作。
+
+## 6. 反馈到训练标签
+
+主数据流：
+
+```text
+trajectory.csv + feedback.csv
+-> trajectory.jsonl + feedback_events.jsonl
+-> candidate_events.jsonl
+-> attribution_preview.jsonl
+-> hu_attribution_provenance.jsonl
+-> hu_subgoal_preferences.jsonl
+-> hierarchical_hu.json
+```
+
+其中：
+
+- `candidate_events.jsonl` 保存程序检测到的行为证据。
+- `attribution_preview.jsonl` 保存规则或 LLM 对语言、时间段和事件的自动归因。
+- `hu_attribution_provenance.jsonl` 保存完整溯源链。
+- `hu_subgoal_preferences.jsonl` 只保存 Hu 需要的 pairwise 标签。
+
+训练标签必须属于同一个决策域：
+
+```json
+{
+  "decision_level": "coordination",
+  "condition_features": {
+    "human_trying_to_pass": true,
+    "narrow_corridor": true
+  },
+  "preferred_subgoal": "YIELD",
+  "rejected_subgoal": "CONTINUE_CURRENT_SUBGOAL",
+  "source_event": "AI_blocked_human_path",
+  "source_decision_id": "coord:e1:t42:n1",
+  "label_source": "human_review"
+}
+```
+
+跨域标签会被拒绝，例如：
+
+```text
+YIELD > GET_TOMATO
+```
+
+## 7. 人工 review 如何进入训练
+
+review 窗口写入：
+
+```text
+review_decisions.jsonl
+```
+
+原始自动归因文件不会被修改。重新运行 dataset builder 时：
+
+```text
+存在 review decision
+-> approved time/event/condition/preference 覆盖自动猜测
+-> use_for_hu_training=true 才生成 reviewed 训练样本
+-> use_for_hu_training=false 则排除该条
+```
+
+`label_source=human_review` 用于区分人工确认标签和未审核的自动标签。
+
+事件库操作还有额外校验：
+
+- `accept_new_event` / `revise_new_event` 必须填写新事件定义 JSON。
+- `map_to_existing` 必须填写已有 event。
+- `add_condition_only` 必须填写至少一个 condition。
+
+## 8. 主要代码文件
+
+- `durf/group_a/play_with_baseline.py`
+  游戏入口；串联 Task、Recovery、Coordination、Safety，并写运行日志。
+- `durf/baseline/collect_rule_teacher_dataset.py`
+  生成 Task candidates 和 `task_score`。
+- `durf/baseline/coordination.py`
+  检测冲突后的协调候选、短期 option 状态和 cooldown。
+- `durf/feedback_attribution/condition_features.py`
+  提取固定 condition schema，并区分 task/coordination 使用的字段。
+- `durf/feedback_attribution/event_detectors.py`
+  从轨迹和显式 runtime decision 生成 candidate events。
+- `durf/feedback_attribution/hu_dataset_builder.py`
+  生成溯源记录和双域 pairwise 标签，并消费人工 review。
+- `durf/hu/subgoal_reranker.py`
+  `HierarchicalHu` 及两个独立线性 pairwise heads。
+- `durf/hu/train_subgoal_reranker.py`
+  分域切分数据、训练并输出模型。
+- `durf/hu/score_subgoals.py`
+  离线查看 task 或 coordination head 的候选排序。
+
+## 9. 运行命令
+
+离线归因并重建标签：
+
+```powershell
+python -m durf.feedback_attribution.demo_offline_attribution `
+  --session outputs\human_ai_sessions\<session_id> `
+  --user-id PILOT01 `
+  --lookback-steps 30 `
+  --use-llm
+```
+
+训练双头 Hu：
+
+```powershell
+python -m durf.hu.train_subgoal_reranker `
+  --dataset outputs\human_ai_sessions\<session_id> `
+  --output-dir outputs\hu_models\pilot01 `
+  --epochs 200 `
+  --learning-rate 0.05
+```
+
+输出：
+
+```text
+outputs/hu_models/pilot01/hierarchical_hu.json
+outputs/hu_models/pilot01/metadata.json
+```
+
+先做 shadow 验证：
+
+```powershell
+python -m durf.group_a.play_with_baseline `
+  --ai-mode subgoal_executor `
+  --layout ring_tomato_onion_10x6_h0_full_task `
+  --hu-model outputs\hu_models\pilot01\hierarchical_hu.json `
+  --hu-user-id PILOT01
+```
+
+确认分数合理后再实际应用：
+
+```powershell
+python -m durf.group_a.play_with_baseline `
+  --ai-mode subgoal_executor `
+  --layout ring_tomato_onion_10x6_h0_full_task `
+  --hu-model outputs\hu_models\pilot01\hierarchical_hu.json `
+  --hu-user-id PILOT01 `
+  --hu-lambda 1.0 `
+  --hu-coordination-lambda 1.0 `
+  --hu-apply
+```
+
+## 10. 当前边界
+
+已经完成：
+
+- Task 与 Coordination 分域；
+- 显式 `CONTINUE_CURRENT_SUBGOAL` / `YIELD` 运行时候选；
+- 双头 Hu 训练和旧单头模型兼容；
+- decision-level 日志与 event 溯源；
+- review 标签覆盖自动归因；
+- bounded yield，避免一直退让。
+
+仍待真实数据验证：
+
+- 两个 head 是否都有足够 pairwise 样本；
+- Hu 是否在同一 probe condition 下稳定改变候选排序；
+- Hu 改变偏好后是否保持任务完成率；
+- 是否需要正式实现 `HOLD_POSITION` 和保持 task 目标的 `REROUTE`。

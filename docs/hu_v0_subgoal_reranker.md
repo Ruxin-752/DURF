@@ -1,5 +1,9 @@
 # Hu-v0: 条件化 Subgoal 偏好重排序器
 
+> 状态说明：本文保留单层 Hu-v0 的设计背景。当前实现已经升级为
+> Task / Coordination 双头结构，最新工程口径与命令见
+> [`hierarchical_hu_runtime.md`](hierarchical_hu_runtime.md)。
+
 本文档说明当前 Hu-v0 的真实定位、训练标签、模型形式和运行方法。这里特意不再使用“PPO + Hu”的说法，因为当前实际可用 backbone 已经转向：
 
 ```text
@@ -206,7 +210,8 @@ final_score(subgoal)
 + lambda * Hu(user, condition_features, subgoal)
 ```
 
-注意：当前代码还没有把 Hu-v0 接入在线游戏决策。现在完成的是“标签可学习”和“离线打分可解释”这一步。
+当前代码已经把 Hu 接入在线游戏决策，并支持默认 shadow scoring 与
+`--hu-apply` 实际重排。Task 和 Coordination 使用独立分数头。
 
 ## 6. 运行方式
 
@@ -243,7 +248,7 @@ python -m durf.hu.train_subgoal_reranker `
 输出：
 
 ```text
-outputs/hu_models/hu_v0_pilot01/hu_subgoal_reranker.json
+outputs/hu_models/hu_v0_pilot01/hierarchical_hu.json
 outputs/hu_models/hu_v0_pilot01/metadata.json
 ```
 
@@ -273,7 +278,8 @@ outputs/hu_models/hu_v0_pilot01/metadata.json
 
 ```powershell
 python -m durf.hu.score_subgoals `
-  --model outputs\hu_models\hu_v0_pilot01\hu_subgoal_reranker.json `
+  --model outputs\hu_models\hu_v0_pilot01\hierarchical_hu.json `
+  --decision-level task `
   --user-id PILOT01 `
   --condition-file outputs\hu_models\hu_v0_pilot01\example_condition.json `
   --candidate-subgoals GET_USEFUL_INGREDIENT WAIT GET_DISH YIELD

@@ -19,9 +19,9 @@ from .condition_features import (
     null_condition_features,
 )
 from .io_utils import read_jsonl, write_jsonl
+from .review_io import read_review_decisions
 from .sample_builder import feedback_event_id
-from .subgoal_preferences import infer_subgoal_preferences
-
+from .subgoal_preferences import COORDINATION_SUBGOALS, infer_subgoal_preferences
 
 CONDITION_TOKENS = {
     "when",
@@ -75,6 +75,43 @@ def matching_candidate_event(attribution: dict[str, Any]) -> dict[str, Any] | No
     return None
 
 
+def apply_review_decision(
+    attribution: dict[str, Any],
+    review_decision: dict[str, Any] | None,
+) -> dict[str, Any]:
+    """Return the effective attribution used to build Hu provenance.
+
+    Review files remain separate audit artifacts. When a decision exists, its
+    approved values override the automatic guess for dataset construction only.
+    """
+    effective = dict(attribution)
+    if not review_decision:
+        return effective
+
+    approved_preference = review_decision.get("approved_preference") or {}
+    if review_decision.get("approved_event"):
+        effective["target_event"] = review_decision["approved_event"]
+    if review_decision.get("approved_time_window"):
+        effective["target_time_window"] = review_decision["approved_time_window"]
+    if isinstance(review_decision.get("approved_condition_overrides"), dict):
+        effective["condition_features"] = review_decision[
+            "approved_condition_overrides"
+        ]
+    if "preferred_subgoals" in approved_preference:
+        effective["preferred_subgoals"] = approved_preference[
+            "preferred_subgoals"
+        ]
+    if "rejected_subgoals" in approved_preference:
+        effective["rejected_subgoals"] = approved_preference[
+            "rejected_subgoals"
+        ]
+    # A human-approved training record no longer inherits an automatic
+    # clarification flag.
+    if review_decision.get("use_for_hu_training"):
+        effective["needs_clarification"] = False
+    return effective
+
+
 def condition_for_attribution(
     attribution: dict[str, Any],
     trajectory: list[dict[str, Any]],
@@ -108,14 +145,37 @@ def build_provenance_record(
     feedback: dict[str, Any] | None,
     trajectory: list[dict[str, Any]],
     user_id: str,
+    review_decision: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
+    attribution = apply_review_decision(attribution, review_decision)
     event = matching_candidate_event(attribution)
     condition_features = condition_for_attribution(attribution, trajectory, feedback)
     preferred_subgoals, rejected_subgoals = infer_subgoal_preferences(
         target_event=attribution.get("target_event"),
         preferred_subgoals=attribution.get("preferred_subgoals"),
         rejected_subgoals=attribution.get("rejected_subgoals"),
+        observed_subgoal=event.get("related_subgoal") if event else None,
+        alternative_subgoals=event.get("alternative_subgoals") if event else None,
+        event_valence=event.get("event_valence") if event else None,
     )
+    event_evidence = event.get("evidence") if event else {}
+    explicit_level = (
+        event_evidence.get("decision_level")
+        if isinstance(event_evidence, dict)
+        else None
+    )
+    all_labeled_subgoals = {
+        *preferred_subgoals,
+        *rejected_subgoals,
+    }
+    if explicit_level in {"task", "coordination"}:
+        decision_level = explicit_level
+    elif all_labeled_subgoals and all_labeled_subgoals.issubset(
+        set(COORDINATION_SUBGOALS)
+    ):
+        decision_level = "coordination"
+    else:
+        decision_level = "task"
     return {
         "record_type": "hu_attribution_provenance",
         "user_id": user_id,
@@ -127,7 +187,13 @@ def build_provenance_record(
         "event_actor": event.get("actor") if event else None,
         "event_valence": event.get("event_valence") if event else None,
         "target_time_window": attribution.get("target_time_window"),
-        "event_evidence": event.get("evidence") if event else {},
+        "event_evidence": event_evidence,
+        "decision_level": decision_level,
+        "source_decision_id": (
+            event_evidence.get("decision_id")
+            if isinstance(event_evidence, dict)
+            else None
+        ),
         "condition_features": condition_features,
         "preferred_subgoals": preferred_subgoals,
         "rejected_subgoals": rejected_subgoals,
@@ -136,6 +202,15 @@ def build_provenance_record(
         "clarification_question": attribution.get("clarification_question"),
         "proposed_schema_update": attribution.get("proposed_schema_update") or [],
         "notes": attribution.get("notes"),
+        "reviewed": bool(review_decision),
+        "review_decision": (
+            review_decision.get("decision") if review_decision else None
+        ),
+        "use_for_hu_training": (
+            bool(review_decision.get("use_for_hu_training"))
+            if review_decision
+            else None
+        ),
     }
 
 
@@ -144,6 +219,11 @@ def build_training_samples(
 ) -> list[dict[str, Any]]:
     samples: list[dict[str, Any]] = []
     for provenance in provenance_records:
+        if (
+            provenance.get("reviewed")
+            and not provenance.get("use_for_hu_training")
+        ):
+            continue
         if provenance.get("needs_clarification"):
             continue
         if not provenance.get("target_event"):
@@ -158,21 +238,53 @@ def build_training_samples(
             for rejected_subgoal in rejected:
                 if preferred_subgoal == rejected_subgoal:
                     continue
+                pair_is_coordination = {
+                    preferred_subgoal,
+                    rejected_subgoal,
+                }.issubset(set(COORDINATION_SUBGOALS))
+                decision_level = provenance.get("decision_level")
+                if decision_level not in {"task", "coordination"}:
+                    decision_level = (
+                        "coordination" if pair_is_coordination else "task"
+                    )
+                if (
+                    decision_level == "coordination"
+                    and not pair_is_coordination
+                ):
+                    continue
+                if (
+                    decision_level == "task"
+                    and (
+                        preferred_subgoal in COORDINATION_SUBGOALS
+                        or rejected_subgoal in COORDINATION_SUBGOALS
+                    )
+                ):
+                    continue
                 samples.append(
                     {
                         "record_type": "hu_pairwise_subgoal_preference",
                         "sample_id": (
                             f"{provenance.get('user_id')}:"
                             f"{provenance.get('feedback_event_id')}:"
+                            f"{decision_level}:"
                             f"{preferred_subgoal}>{rejected_subgoal}"
                         ),
                         "user_id": provenance.get("user_id"),
                         "layout": provenance.get("layout"),
                         "condition_features": provenance.get("condition_features"),
+                        "decision_level": decision_level,
                         "preferred_subgoal": preferred_subgoal,
                         "rejected_subgoal": rejected_subgoal,
                         "source_event": provenance.get("target_event"),
                         "source_feedback_id": provenance.get("feedback_event_id"),
+                        "source_decision_id": provenance.get(
+                            "source_decision_id"
+                        ),
+                        "label_source": (
+                            "human_review"
+                            if provenance.get("reviewed")
+                            else "automatic_attribution"
+                        ),
                     }
                 )
     return samples
@@ -284,6 +396,7 @@ def build_hu_dataset(session_dir: Path, *, user_id: str) -> dict[str, int]:
     feedback_events = read_jsonl(session_dir / "feedback_events.jsonl")
     attributions = read_jsonl(session_dir / "attribution_preview.jsonl")
     feedback_by_id = feedback_map(feedback_events)
+    review_by_id = read_review_decisions(session_dir)
 
     provenance_records = [
         build_provenance_record(
@@ -291,6 +404,9 @@ def build_hu_dataset(session_dir: Path, *, user_id: str) -> dict[str, int]:
             feedback=feedback_by_id.get(attribution.get("feedback_event_id")),
             trajectory=trajectory,
             user_id=user_id,
+            review_decision=review_by_id.get(
+                str(attribution.get("feedback_event_id"))
+            ),
         )
         for attribution in attributions
     ]
@@ -314,6 +430,16 @@ def build_hu_dataset(session_dir: Path, *, user_id: str) -> dict[str, int]:
         "provenance_records": provenance_count,
         "hu_training_samples": sample_count,
         "schema_updates": schema_update_count,
+        "review_decisions_consumed": sum(
+            bool(record.get("reviewed")) for record in provenance_records
+        ),
+        "reviewed_training_records": sum(
+            bool(
+                record.get("reviewed")
+                and record.get("use_for_hu_training")
+            )
+            for record in provenance_records
+        ),
     }
     (session_dir / "hu_dataset_summary.json").write_text(
         json.dumps(summary, indent=2, ensure_ascii=False),

@@ -16,7 +16,11 @@ from pathlib import Path
 
 import numpy as np
 
-from durf.hu.subgoal_reranker import LinearSubgoalReranker, load_pairwise_samples
+from durf.hu.subgoal_reranker import (
+    DECISION_LEVELS,
+    HierarchicalHu,
+    load_pairwise_samples,
+)
 
 
 def parse_args() -> argparse.Namespace:
@@ -38,18 +42,42 @@ def parse_args() -> argparse.Namespace:
 
 
 def split_samples(samples, validation_fraction: float, seed: int):
+    """Split each decision domain independently.
+
+    Coordination feedback is usually much rarer than task feedback. A global
+    random split can therefore leave the coordination head with no training
+    examples even when coordination labels exist.
+    """
     if not 0.0 <= validation_fraction < 1.0:
         raise ValueError("--validation-fraction must be in [0, 1)")
     if not samples:
         return [], []
     rng = np.random.default_rng(seed)
-    order = rng.permutation(len(samples))
-    val_size = int(round(len(samples) * validation_fraction))
-    if val_size == 0:
-        return [samples[int(index)] for index in order], []
-    val_indices = set(int(index) for index in order[:val_size])
-    train = [sample for index, sample in enumerate(samples) if index not in val_indices]
-    val = [sample for index, sample in enumerate(samples) if index in val_indices]
+    train = []
+    val = []
+    for decision_level in DECISION_LEVELS:
+        domain_samples = [
+            sample
+            for sample in samples
+            if sample.decision_level == decision_level
+        ]
+        order = rng.permutation(len(domain_samples))
+        # Keep at least one training sample in every represented domain.
+        val_size = min(
+            int(round(len(domain_samples) * validation_fraction)),
+            max(0, len(domain_samples) - 1),
+        )
+        val_indices = set(int(index) for index in order[:val_size])
+        train.extend(
+            sample
+            for index, sample in enumerate(domain_samples)
+            if index not in val_indices
+        )
+        val.extend(
+            sample
+            for index, sample in enumerate(domain_samples)
+            if index in val_indices
+        )
     return train, val
 
 
@@ -70,7 +98,7 @@ def main() -> int:
     if not train_samples:
         raise ValueError("Validation split left no training samples")
 
-    model = LinearSubgoalReranker.from_samples(samples, seed=args.seed)
+    model = HierarchicalHu.from_samples(samples, seed=args.seed)
     history = model.train(
         train_samples,
         epochs=args.epochs,
@@ -80,7 +108,7 @@ def main() -> int:
     )
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
-    model_path = args.output_dir / "hu_subgoal_reranker.json"
+    model_path = args.output_dir / "hierarchical_hu.json"
     model.save(model_path)
     summary = {
         "model": str(model_path),
@@ -93,10 +121,10 @@ def main() -> int:
         "l2": args.l2,
         "validation_fraction": args.validation_fraction,
         "seed": args.seed,
-        "train_metrics": model.evaluate(train_samples),
-        "validation_metrics": model.evaluate(val_samples),
+        "train_metrics_by_level": model.evaluate(train_samples),
+        "validation_metrics_by_level": model.evaluate(val_samples),
         "history": history,
-        "top_condition_weights": model.top_condition_weights(limit=30),
+        "top_condition_weights_by_level": model.top_condition_weights(limit=30),
     }
     (args.output_dir / "metadata.json").write_text(
         json.dumps(summary, indent=2, ensure_ascii=False),
@@ -108,4 +136,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
-

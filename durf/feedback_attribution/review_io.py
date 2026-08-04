@@ -15,6 +15,7 @@ from typing import Any
 from .condition_features import extract_condition_features, latest_step_at_or_before
 from .io_utils import read_jsonl, write_jsonl
 from .sample_builder import candidate_near_feedback, feedback_event_id
+from .subgoal_preferences import infer_subgoal_preferences
 
 
 REVIEW_ITEMS_FILE = "review_items.jsonl"
@@ -59,6 +60,7 @@ def compact_step(step: dict[str, Any]) -> dict[str, Any]:
     return {
         "total_step": step.get("total_step"),
         "episode_step": step.get("episode_step"),
+        "layout": step.get("layout"),
         "ai_action": step.get("ai_action_name"),
         "ai_subgoal": step.get("ai_subgoal"),
         "human_action": step.get("human_action_name"),
@@ -70,6 +72,11 @@ def compact_step(step: dict[str, Any]) -> dict[str, Any]:
         "pot_states": facts.get("pot_states"),
         "condition_features": extract_condition_features(step),
         "candidate_subgoals": step.get("ai_subgoal_candidates") or [],
+        "task_decision": step.get("task_decision") or {},
+        "coordination_decision": step.get("coordination_decision") or {},
+        # The review replay uses the logged post-action state directly. Keeping
+        # it here avoids reconstructing game state from the compact table.
+        "state_facts": facts,
     }
 
 
@@ -148,6 +155,59 @@ def schema_reviews_for_feedback(
     ]
 
 
+def attributed_candidate(attribution: dict[str, Any]) -> dict[str, Any] | None:
+    target_event = attribution.get("target_event")
+    target_window = attribution.get("target_time_window")
+    matches = [
+        event
+        for event in attribution.get("candidate_events") or []
+        if event.get("event_type") == target_event
+    ]
+    if not matches:
+        return None
+    if isinstance(target_window, list) and len(target_window) == 2:
+        for event in matches:
+            if [
+                event.get("start_timestep"),
+                event.get("end_timestep"),
+            ] == target_window:
+                return event
+    return matches[0]
+
+
+def review_subgoal_preferences(
+    attribution: dict[str, Any],
+    provenance: dict[str, Any],
+) -> tuple[list[str], list[str]]:
+    """Return conservative defaults while preserving explicit LLM output."""
+    notes = str(attribution.get("notes") or "")
+    event = attributed_candidate(attribution)
+    is_rule_preview = notes.startswith("Preview attribution only.")
+
+    if is_rule_preview:
+        return infer_subgoal_preferences(
+            target_event=attribution.get("target_event"),
+            observed_subgoal=event.get("related_subgoal") if event else None,
+            alternative_subgoals=event.get("alternative_subgoals") if event else None,
+            event_valence=event.get("event_valence") if event else None,
+        )
+
+    return infer_subgoal_preferences(
+        target_event=attribution.get("target_event"),
+        preferred_subgoals=(
+            provenance.get("preferred_subgoals")
+            or attribution.get("preferred_subgoals")
+        ),
+        rejected_subgoals=(
+            provenance.get("rejected_subgoals")
+            or attribution.get("rejected_subgoals")
+        ),
+        observed_subgoal=event.get("related_subgoal") if event else None,
+        alternative_subgoals=event.get("alternative_subgoals") if event else None,
+        event_valence=event.get("event_valence") if event else None,
+    )
+
+
 def default_decision_for_item(item: dict[str, Any]) -> dict[str, Any]:
     attribution = item.get("attribution") or {}
     provenance = item.get("provenance") or {}
@@ -157,11 +217,17 @@ def default_decision_for_item(item: dict[str, Any]) -> dict[str, Any]:
         or item.get("condition_at_feedback")
         or {}
     )
-    preferred = provenance.get("preferred_subgoals") or attribution.get("preferred_subgoals") or []
-    rejected = provenance.get("rejected_subgoals") or attribution.get("rejected_subgoals") or []
+    preferred, rejected = review_subgoal_preferences(attribution, provenance)
     target_event = attribution.get("target_event")
     needs_clarification = bool(attribution.get("needs_clarification"))
-    usable = bool(target_event and preferred and rejected and not needs_clarification)
+    confidence = float(attribution.get("confidence") or 0.0)
+    usable = bool(
+        target_event
+        and preferred
+        and rejected
+        and not needs_clarification
+        and confidence >= 0.7
+    )
     return {
         "record_type": "review_decision",
         "feedback_event_id": item.get("feedback_event_id"),
@@ -230,7 +296,7 @@ def build_review_items(
             "recent_steps": recent_steps(
                 trajectory,
                 total_step=total_step,
-                lookback_steps=min(lookback_steps, 20),
+                lookback_steps=lookback_steps,
             ),
             "condition_at_feedback": (
                 extract_condition_features(condition_step) if condition_step else {}
@@ -256,7 +322,3 @@ def parse_json_field(text: str, fallback: Any) -> Any:
     if not stripped:
         return fallback
     return json.loads(stripped)
-
-
-def parse_csv_field(text: str) -> list[str]:
-    return [part.strip() for part in text.split(",") if part.strip()]

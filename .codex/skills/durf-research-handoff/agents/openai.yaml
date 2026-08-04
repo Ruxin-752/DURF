@@ -1,0 +1,4 @@
+interface:
+  display_name: "DURF Research Handoff"
+  short_description: "Continue the DURF feedback-attribution research safely"
+  default_prompt: "Use $durf-research-handoff to inspect the current DURF project state and continue the highest-priority unfinished work."

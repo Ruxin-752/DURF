@@ -1,5 +1,9 @@
 # Hu 反馈归因数据流说明
 
+> 状态说明：本文保留最初的数据流设计。当前代码已实现双头 Hu、在线
+> shadow/apply、显式 Coordination 决策日志以及人工 review 覆盖。最新口径见
+> [`hierarchical_hu_runtime.md`](hierarchical_hu_runtime.md)。
+
 本文档记录当前版本的研究数据流。目标不是立刻实现 Hu 模型本体，而是先把“玩家自然语言反馈如何被保存、归因、转换为 Hu 可学习标签”这条链路打通。
 
 ## 1. 当前统一方案
@@ -17,7 +21,8 @@ final_score(subgoal)
 + lambda * Hu(user, condition_features, subgoal)
 ```
 
-这一版代码只做到数据流，不实现 Hu 模型。
+当前版本已经在这条数据流之后实现 Hu 模型与在线评分；本节公式仍用于
+Task 决策域，Coordination 决策域使用独立的候选集合和评分头。
 
 ## 2. 核心数据流
 

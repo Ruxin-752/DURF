@@ -33,6 +33,8 @@ def trajectory_step(
     ai_event: str | None = None,
     ai_condition_features: dict[str, Any] | None = None,
     ai_subgoal_candidates: list[dict[str, Any]] | None = None,
+    task_decision: dict[str, Any] | None = None,
+    coordination_decision: dict[str, Any] | None = None,
     state_facts: dict[str, Any] | None = None,
     extra: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
@@ -56,6 +58,8 @@ def trajectory_step(
         "ai_subgoal": ai_subgoal,
         "ai_condition_features": ai_condition_features or {},
         "ai_subgoal_candidates": ai_subgoal_candidates or [],
+        "task_decision": task_decision or {},
+        "coordination_decision": coordination_decision or {},
         "ai_event": ai_event,
         "human_action": human_action,
         "human_action_name": human_action_name,

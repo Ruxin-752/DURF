@@ -1,4 +1,4 @@
-"""Score candidate subgoals with a trained Hu-v0 reranker."""
+"""Score task or coordination candidates with a trained hierarchical Hu."""
 
 from __future__ import annotations
 
@@ -7,13 +7,24 @@ import json
 import sys
 from pathlib import Path
 
-from durf.hu.subgoal_reranker import LinearSubgoalReranker
+from durf.hu.subgoal_reranker import (
+    COORDINATION_DECISION_LEVEL,
+    DECISION_LEVELS,
+    TASK_DECISION_LEVEL,
+    HierarchicalHu,
+)
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--model", type=Path, required=True)
     parser.add_argument("--user-id", default="PILOT01")
+    parser.add_argument(
+        "--decision-level",
+        choices=DECISION_LEVELS,
+        default=TASK_DECISION_LEVEL,
+        help="Score task subgoals or coordination options.",
+    )
     condition_group = parser.add_mutually_exclusive_group(required=True)
     condition_group.add_argument(
         "--condition-json",
@@ -34,12 +45,18 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> int:
     args = parse_args()
-    model = LinearSubgoalReranker.load(args.model)
+    model = HierarchicalHu.load(args.model)
     if args.condition_file:
         condition_features = json.loads(args.condition_file.read_text(encoding="utf-8-sig"))
     else:
         condition_features = json.loads(args.condition_json)
-    ranked = model.rank_subgoals(
+    head = model.head_for(args.decision_level)
+    if head is None:
+        raise ValueError(
+            f"Hu model has no {args.decision_level!r} head. "
+            "Collect and train pairwise samples for that decision level first."
+        )
+    ranked = head.rank_subgoals(
         user_id=args.user_id,
         condition_features=condition_features,
         candidate_subgoals=args.candidate_subgoals,

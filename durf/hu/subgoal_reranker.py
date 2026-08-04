@@ -19,11 +19,22 @@ from typing import Any
 
 import numpy as np
 
-from durf.feedback_attribution.condition_features import CONDITION_KEYS
+from durf.feedback_attribution.condition_features import (
+    CONDITION_KEYS,
+    COORDINATION_CONDITION_KEYS,
+    TASK_CONDITION_KEYS,
+)
 from durf.feedback_attribution.io_utils import read_jsonl
-from durf.feedback_attribution.subgoal_preferences import HU_SUBGOALS
+from durf.feedback_attribution.subgoal_preferences import (
+    COORDINATION_SUBGOALS,
+    HU_SUBGOALS,
+    TASK_HU_SUBGOALS,
+)
 
 
+TASK_DECISION_LEVEL = "task"
+COORDINATION_DECISION_LEVEL = "coordination"
+DECISION_LEVELS = (TASK_DECISION_LEVEL, COORDINATION_DECISION_LEVEL)
 UNKNOWN_CONDITION_VALUE = 0.0
 TRUE_CONDITION_VALUE = 1.0
 FALSE_CONDITION_VALUE = -1.0
@@ -36,8 +47,10 @@ class PairwiseSample:
     condition_features: dict[str, Any]
     preferred_subgoal: str
     rejected_subgoal: str
+    decision_level: str = TASK_DECISION_LEVEL
     source_feedback_id: str | None = None
     source_event: str | None = None
+    source_decision_id: str | None = None
 
 
 def condition_value(value: Any) -> float:
@@ -65,6 +78,22 @@ def resolve_dataset_path(path: Path) -> Path:
     return path
 
 
+def infer_decision_level(
+    preferred_subgoal: str,
+    rejected_subgoal: str,
+    explicit_level: Any = None,
+) -> str | None:
+    level = str(explicit_level or "").strip().lower()
+    if level in DECISION_LEVELS:
+        return level
+    pair = {preferred_subgoal, rejected_subgoal}
+    if pair.issubset(set(COORDINATION_SUBGOALS)):
+        return COORDINATION_DECISION_LEVEL
+    if pair.issubset(set(TASK_HU_SUBGOALS)):
+        return TASK_DECISION_LEVEL
+    return None
+
+
 def load_pairwise_samples(paths: list[Path]) -> list[PairwiseSample]:
     samples: list[PairwiseSample] = []
     for raw_path in paths:
@@ -80,6 +109,13 @@ def load_pairwise_samples(paths: list[Path]) -> list[PairwiseSample]:
                 continue
             if preferred not in HU_SUBGOALS or rejected not in HU_SUBGOALS:
                 continue
+            decision_level = infer_decision_level(
+                preferred,
+                rejected,
+                record.get("decision_level"),
+            )
+            if decision_level is None:
+                continue
             samples.append(
                 PairwiseSample(
                     user_id=str(record.get("user_id") or "UNKNOWN_USER"),
@@ -87,8 +123,10 @@ def load_pairwise_samples(paths: list[Path]) -> list[PairwiseSample]:
                     condition_features=dict(record.get("condition_features") or {}),
                     preferred_subgoal=preferred,
                     rejected_subgoal=rejected,
+                    decision_level=decision_level,
                     source_feedback_id=record.get("source_feedback_id"),
                     source_event=record.get("source_event"),
+                    source_decision_id=record.get("source_decision_id"),
                 )
             )
     return samples
@@ -133,9 +171,21 @@ class LinearSubgoalReranker:
         )
 
     @classmethod
-    def from_samples(cls, samples: list[PairwiseSample], seed: int = 0):
+    def from_samples(
+        cls,
+        samples: list[PairwiseSample],
+        seed: int = 0,
+        *,
+        subgoals: tuple[str, ...] = HU_SUBGOALS,
+        condition_keys: tuple[str, ...] = CONDITION_KEYS,
+    ):
         users = tuple(sorted({sample.user_id for sample in samples}))
-        return cls(users=users, seed=seed)
+        return cls(
+            subgoals=subgoals,
+            condition_keys=condition_keys,
+            users=users,
+            seed=seed,
+        )
 
     def score(self, user_id: str, condition_features: dict[str, Any], subgoal: str) -> float:
         if subgoal not in self.subgoal_to_index:
@@ -297,6 +347,170 @@ class LinearSubgoalReranker:
             dtype=np.float32,
         ).reshape((len(model.users), len(model.subgoals)))
         return model
+
+    def save(self, path: Path) -> None:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(self.to_dict(), indent=2), encoding="utf-8")
+
+    @classmethod
+    def load(cls, path: Path):
+        return cls.from_dict(json.loads(path.read_text(encoding="utf-8")))
+
+
+class HierarchicalHu:
+    """One Hu interface with independent task and coordination heads."""
+
+    def __init__(
+        self,
+        *,
+        task_head: LinearSubgoalReranker | None,
+        coordination_head: LinearSubgoalReranker | None,
+    ) -> None:
+        self.task_head = task_head
+        self.coordination_head = coordination_head
+
+    @classmethod
+    def from_samples(cls, samples: list[PairwiseSample], seed: int = 0):
+        task_samples = [
+            sample
+            for sample in samples
+            if sample.decision_level == TASK_DECISION_LEVEL
+        ]
+        coordination_samples = [
+            sample
+            for sample in samples
+            if sample.decision_level == COORDINATION_DECISION_LEVEL
+        ]
+        task_head = (
+            LinearSubgoalReranker.from_samples(
+                task_samples,
+                seed=seed,
+                subgoals=TASK_HU_SUBGOALS,
+                condition_keys=TASK_CONDITION_KEYS,
+            )
+            if task_samples
+            else None
+        )
+        coordination_head = (
+            LinearSubgoalReranker.from_samples(
+                coordination_samples,
+                seed=seed + 1,
+                subgoals=COORDINATION_SUBGOALS,
+                condition_keys=COORDINATION_CONDITION_KEYS,
+            )
+            if coordination_samples
+            else None
+        )
+        return cls(
+            task_head=task_head,
+            coordination_head=coordination_head,
+        )
+
+    def head_for(self, decision_level: str) -> LinearSubgoalReranker | None:
+        if decision_level == TASK_DECISION_LEVEL:
+            return self.task_head
+        if decision_level == COORDINATION_DECISION_LEVEL:
+            return self.coordination_head
+        raise KeyError(f"Unknown decision level: {decision_level}")
+
+    def score(
+        self,
+        decision_level: str,
+        user_id: str,
+        condition_features: dict[str, Any],
+        candidate: str,
+    ) -> float:
+        head = self.head_for(decision_level)
+        if head is None or candidate not in head.subgoal_to_index:
+            return 0.0
+        return head.score(user_id, condition_features, candidate)
+
+    def train(
+        self,
+        samples: list[PairwiseSample],
+        **kwargs,
+    ) -> dict[str, dict[str, list[float]] | None]:
+        history: dict[str, dict[str, list[float]] | None] = {
+            TASK_DECISION_LEVEL: None,
+            COORDINATION_DECISION_LEVEL: None,
+        }
+        for decision_level in DECISION_LEVELS:
+            head = self.head_for(decision_level)
+            domain_samples = [
+                sample
+                for sample in samples
+                if sample.decision_level == decision_level
+            ]
+            if head is not None and domain_samples:
+                history[decision_level] = head.train(domain_samples, **kwargs)
+        return history
+
+    def evaluate(self, samples: list[PairwiseSample]) -> dict[str, Any]:
+        metrics = {}
+        for decision_level in DECISION_LEVELS:
+            head = self.head_for(decision_level)
+            domain_samples = [
+                sample
+                for sample in samples
+                if sample.decision_level == decision_level
+            ]
+            metrics[decision_level] = (
+                head.evaluate(domain_samples)
+                if head is not None
+                else {
+                    "samples": len(domain_samples),
+                    "pairwise_accuracy": None,
+                    "mean_margin": None,
+                }
+            )
+        return metrics
+
+    def top_condition_weights(self, limit: int = 20) -> dict[str, list[dict[str, Any]]]:
+        return {
+            TASK_DECISION_LEVEL: (
+                self.task_head.top_condition_weights(limit)
+                if self.task_head is not None
+                else []
+            ),
+            COORDINATION_DECISION_LEVEL: (
+                self.coordination_head.top_condition_weights(limit)
+                if self.coordination_head is not None
+                else []
+            ),
+        }
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "model_type": "hierarchical_linear_pairwise_hu",
+            "task_head": self.task_head.to_dict() if self.task_head else None,
+            "coordination_head": (
+                self.coordination_head.to_dict()
+                if self.coordination_head
+                else None
+            ),
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]):
+        if data.get("model_type") == "linear_pairwise_subgoal_reranker":
+            return cls(
+                task_head=LinearSubgoalReranker.from_dict(data),
+                coordination_head=None,
+            )
+        if data.get("model_type") != "hierarchical_linear_pairwise_hu":
+            raise ValueError(f"Unsupported Hu model: {data.get('model_type')}")
+        return cls(
+            task_head=(
+                LinearSubgoalReranker.from_dict(data["task_head"])
+                if data.get("task_head")
+                else None
+            ),
+            coordination_head=(
+                LinearSubgoalReranker.from_dict(data["coordination_head"])
+                if data.get("coordination_head")
+                else None
+            ),
+        )
 
     def save(self, path: Path) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)

@@ -32,6 +32,67 @@ ACTOR_TEAM = "team"
 ACTOR_UNKNOWN = "unknown"
 
 
+def detect_coordination_decision_events(window: list[dict]) -> list[dict]:
+    """Convert explicit runtime coordination decisions into neutral events."""
+    grouped: dict[str, list[dict]] = {}
+    for step in window:
+        decision = step.get("coordination_decision") or {}
+        decision_id = str(decision.get("decision_id") or "")
+        if decision_id:
+            grouped.setdefault(decision_id, []).append(step)
+
+    events = []
+    for decision_id, steps in grouped.items():
+        ordered = sorted(
+            steps,
+            key=lambda step: int(step.get("total_step") or -1),
+        )
+        first = ordered[0]
+        last = ordered[-1]
+        decision = first.get("coordination_decision") or {}
+        selected = decision.get("selected")
+        if selected == "YIELD":
+            event_type = "AI_yielded_to_human"
+        elif selected == "CONTINUE_CURRENT_SUBGOAL":
+            event_type = "AI_maintained_current_subgoal_during_conflict"
+        else:
+            continue
+        candidates = [
+            str(option)
+            for option in decision.get("candidate_set") or []
+            if option and option != selected
+        ]
+        events.append(
+            candidate_event(
+                event_type=event_type,
+                start_timestep=int(first.get("total_step") or 0),
+                end_timestep=int(last.get("total_step") or 0),
+                evidence={
+                    "decision_id": decision_id,
+                    "decision_level": "coordination",
+                    "conflict_type": decision.get("conflict_type"),
+                    "task_subgoal": decision.get("task_subgoal"),
+                    "selected_option": selected,
+                    "candidate_set": decision.get("candidate_set") or [],
+                    "runtime_candidates": decision.get("candidates") or [],
+                    "termination_visible_until": int(
+                        last.get("total_step") or 0
+                    ),
+                },
+                severity=0.2,
+                confidence=0.95,
+                actor=ACTOR_AI,
+                event_valence=VALENCE_NEUTRAL_CONTEXT,
+                related_subgoal=selected,
+                alternative_subgoals=candidates,
+                condition_features=(
+                    decision.get("condition_at_decision") or {}
+                ),
+            )
+        )
+    return events
+
+
 def recent_window(
     trajectory: list[dict],
     *,
@@ -1172,6 +1233,7 @@ def ready_pot_event(streak: list[dict]) -> dict:
 
 def detect_candidate_events(window: list[dict]) -> list[dict]:
     events: list[dict] = []
+    events.extend(detect_coordination_decision_events(window))
     events.extend(detect_successfully_delivered_soup(window))
     events.extend(detect_ai_successfully_picked_up_soup(window))
     events.extend(detect_ai_successfully_put_ingredient_into_pot(window))

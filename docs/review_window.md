@@ -36,6 +36,18 @@ Review 窗口会读取同一个 session 文件夹下的这些文件：
   - 用来显示反馈发生前的一小段轨迹。
   - 里面包括 AI/人类位置、手持物、锅状态、地图对象、AI 当前 subgoal、候选 subgoal 分数等。
 
+Review 窗口的“近期轨迹”页提供“在地图上回放当前评价时段”按钮。地图回放直接使用
+`trajectory.jsonl` 中已经记录的状态，不重新运行 agent，也不修改自动归因结果。播放器会显示：
+
+- AI（蓝色）和人类（绿色）的位置、朝向与手持物；
+- 锅、原料、盘子、出餐口和台面物体；
+- 当前 timestep、双方动作、AI subgoal；
+- 当前帧命中的候选事件；
+- 自动或人工填写的归因时间段（红框）以及反馈发生时刻。
+
+播放器支持播放/暂停、前后单步、时间轴拖动和三档速度。默认额外显示归因窗口前后各
+3 步，帮助判断事件发生前因与结果。
+
 - `feedback_events.jsonl`
   - 玩家输入的自然语言反馈。
   - 每条反馈有 `feedback_event_id`、文本、发生 timestep、episode 信息。
@@ -80,6 +92,35 @@ Review 模块会写出两个文件：
 
 ## 每条 review 要确认什么
 
+新版窗口默认打开“审核摘要”页，不再要求审核者直接阅读整块 JSON。每条反馈只需确认四件事：
+
+1. 时间：反馈评价的是哪一段近期轨迹。
+2. 行为：反馈指向哪个 AI event。
+3. 条件：这个评价在什么状态条件下成立。
+4. 偏好：Hu 应提高和降低哪些 subgoal。
+
+中间证据区分为四个标签页：
+
+- `审核摘要`
+  - 默认页面。
+  - 集中显示玩家原话、自动建议、关键条件、subgoal 偏好和需要特别注意的问题。
+- `候选事件`
+  - 用表格比较反馈前检测到的候选 event。
+  - 选中候选后可以查看规则证据和关键条件。
+  - 双击候选，或点击“采用选中候选”，会自动填写右侧 event 和时间窗口，并把 decision 改为 `revise`。
+- `近期轨迹`
+  - 每个 timestep 只显示 AI/人类动作、AI subgoal、双方手持物和锅状态。
+  - 用于检查行为顺序，不再重复展示每一步的完整 condition 字典。
+- `完整 JSON`
+  - 保留全部原始证据，仅在摘要和表格不足以判断时查看。
+
+左侧状态会明确区分：
+
+- `AUTO: ...`：程序生成的默认建议，尚未人工保存。
+- `REVIEWED: ...`：已经写入 `review_decisions.jsonl` 的人工结论。
+
+注意：“上一条”和“下一条”不会保存当前修改。审核后应使用“保存”或“保存并下一条”。
+
 1. 时间窗口是否正确
    - 反馈到底是在评价最近几步，还是更早的一段行为。
 
@@ -98,10 +139,23 @@ Review 模块会写出两个文件：
    - 如果程序提取的条件不够或错误，可以手动补充或修正。
 
 5. subgoal preference 是否正确
-   - 检查 `preferred_subgoals` 和 `rejected_subgoals`。
+   - 右侧不再要求手工输入名称，而是从全部合法 `HU_SUBGOALS` 中多选。
+   - `preferred_subgoals` 表示：在当前 condition 下，更希望 AI 选择什么。
+   - `rejected_subgoals` 表示：在当前 condition 下，更不希望 AI 选择什么。
+   - 这是条件化的相对排序，不是永久提高或降低某个行为的全局奖励。
+   - 窗口会显示归因时间段里真实出现过的运行时候选，但仍允许从完整 Hu subgoal 集合中选择。
+   - 同一个 subgoal 不能同时出现在两侧。
    - 例如“我已经放最后一个原料了，你去拿盘子”应该更偏向：
-     - preferred: `GET_DISH`, `PICKUP_READY_SOUP`
+     - preferred: `GET_DISH`, `PICKUP_SOUP`
      - rejected: `GET_ONION`, `WAIT`
+
+自动默认值采用保守规则：
+
+- LLM 如果只明确给出 preferred 或 rejected 一侧，程序不会擅自补齐另一侧。
+- event 只有在明确表达替代行为时才提供默认 preferred。
+- 对负面事件，只有轨迹中实际观测到的 subgoal 与 preferred 不同时，才可能作为默认 rejected。
+- `AI_pick_drop_loop`、错误放置位置、冗余取物等无法由现有 subgoal 可靠表达的事件默认不生成完整 pair，必须人工确认或暂不训练。
+- 正向事件通常只能说明“喜欢什么”，不能自动证明“相对于哪个行为更喜欢”，因此默认可能只填写 preferred。
 
 6. schema update 如何处理
    - `schema_action` 可以是：
@@ -115,6 +169,7 @@ Review 模块会写出两个文件：
 7. 是否进入 Hu 训练
    - `use_for_hu_training=True` 表示这条审核结果可以作为 Hu 训练样本。
    - 模糊反馈、语义不清、证据不足的反馈可以保留为 `provenance_only`，暂时不训练。
+   - 保存时会检查：event、时间窗、preferred/rejected 是否完整，两侧是否冲突，以及 decision 是否允许训练。
 
 ## review_decisions.jsonl 字段
 

@@ -22,6 +22,13 @@ import tensorflow as tf
 from overcooked_ai_py.visualization.state_visualizer import StateVisualizer
 
 from durf.baseline.action_prior import StepPrefixPrior, available_priors
+from durf.baseline.coordination import (
+    CONTINUE_CURRENT_SUBGOAL,
+    YIELD,
+    CoordinationController,
+    build_coordination_candidates,
+    path_conflict_type,
+)
 from durf.baseline.collect_rule_teacher_dataset import (
     SUBGOAL_TO_INDEX,
     SUBGOALS,
@@ -44,7 +51,11 @@ from durf.baseline.runtime import (
 )
 from durf.feedback_attribution.condition_features import extract_condition_features
 from durf.group_a.deepseek_chat import DeepSeekChatError, chat_once
-from durf.hu.subgoal_reranker import LinearSubgoalReranker
+from durf.hu.subgoal_reranker import (
+    COORDINATION_DECISION_LEVEL,
+    TASK_DECISION_LEVEL,
+    HierarchicalHu,
+)
 
 
 STAY = 4
@@ -55,7 +66,7 @@ PAUSE_BUTTON = pygame.Rect(790, 620, 130, 42)
 CHAT_BUTTON = pygame.Rect(650, 620, 120, 42)
 PAUSE_DEBOUNCE_MS = 300
 LAYOUT_SWITCH_DEBOUNCE_MS = 300
-BUILD_ID = "pause-v8-visual-replay"
+BUILD_ID = "hierarchical-hu-v1"
 LAYOUT_NUMBER_KEYS = (pygame.K_1, pygame.K_2, pygame.K_3, pygame.K_4)
 WINDOWS_LAYOUT_NUMBER_KEYS = (0x31, 0x32, 0x33, 0x34)
 WINDOWS_CHAT_CHAR_KEYS = {
@@ -268,6 +279,15 @@ def parse_args() -> argparse.Namespace:
         type=float,
         default=0.0,
         help="Weight for Hu preference scores when --hu-apply is enabled.",
+    )
+    parser.add_argument(
+        "--hu-coordination-lambda",
+        type=float,
+        default=0.0,
+        help=(
+            "Weight for Hu coordination scores. Zero preserves the initial "
+            "coordination prior while still logging shadow scores."
+        ),
     )
     parser.add_argument(
         "--hu-apply",
@@ -767,9 +787,14 @@ def main() -> int:
         if args.ai_mode == "subgoal_executor"
         else None
     )
-    hu_model = LinearSubgoalReranker.load(args.hu_model) if args.hu_model else None
-    if args.hu_lambda < 0:
-        raise ValueError("--hu-lambda cannot be negative")
+    hu_model = HierarchicalHu.load(args.hu_model) if args.hu_model else None
+    if args.hu_lambda < 0 or args.hu_coordination_lambda < 0:
+        raise ValueError("Hu lambdas cannot be negative")
+    coordination_controller = CoordinationController(
+        min_commit_steps=1,
+        max_option_steps=3,
+        yield_cooldown_steps=2,
+    )
     ai_action_prior = StepPrefixPrior.from_name(args.ai_action_prior)
     env = make_direct_multi_env(current_layout, args.seed, horizon=args.horizon)
     envs_by_layout = {current_layout: env}
@@ -803,6 +828,7 @@ def main() -> int:
                 "hu_model": str(args.hu_model) if args.hu_model else None,
                 "hu_user_id": args.hu_user_id,
                 "hu_lambda": args.hu_lambda,
+                "hu_coordination_lambda": args.hu_coordination_lambda,
                 "hu_apply": args.hu_apply,
             },
             indent=2,
@@ -824,6 +850,8 @@ def main() -> int:
         "ai_subgoal",
         "ai_condition_features_json",
         "ai_subgoal_candidates_json",
+        "task_decision_json",
+        "coordination_decision_json",
         "ai_event",
         "human_action",
         "human_action_name",
@@ -961,6 +989,7 @@ def main() -> int:
         for candidate in candidates:
             try:
                 candidate.hu_score = hu_model.score(
+                    TASK_DECISION_LEVEL,
                     args.hu_user_id,
                     condition_features,
                     candidate.subgoal,
@@ -970,7 +999,7 @@ def main() -> int:
 
     def subgoal_executor_action(
         human_action: int,
-    ) -> tuple[int, str, list[dict], dict]:
+    ) -> tuple[int, str, list[dict], dict, dict]:
         if subgoal_model is None:
             raise RuntimeError("subgoal_executor_action called without a loaded model")
         motion_planner = motion_planners_by_layout[current_layout]
@@ -983,6 +1012,34 @@ def main() -> int:
         )
         subgoal_name = chosen.subgoal
         planner_action = chosen.action
+        target_positions = [
+            tuple(position)
+            for position in chosen.metadata.get("target_positions") or []
+            if isinstance(position, (list, tuple)) and len(position) == 2
+        ]
+        ai_pos = tuple(env.base_env.state.players[0].position)
+        condition_features["ai_current_subgoal"] = subgoal_name
+        condition_features["ai_adjacent_to_current_subgoal_target"] = any(
+            manhattan(ai_pos, position) == 1
+            for position in target_positions
+        )
+        serialized_candidates = serialize_subgoal_candidates(candidates)
+        task_decision = {
+            "record_type": "runtime_decision",
+            "decision_id": f"task:e{episode}:t{total_step + 1}",
+            "decision_level": TASK_DECISION_LEVEL,
+            "current_timestep": total_step + 1,
+            "condition_at_decision": condition_features,
+            "candidate_set": [
+                candidate.get("subgoal")
+                for candidate in serialized_candidates
+            ],
+            "candidates": serialized_candidates,
+            "selected": subgoal_name,
+            "selected_action": int(planner_action),
+            "hu_applied": bool(args.hu_apply and args.hu_lambda != 0.0),
+            "hu_lambda": args.hu_lambda,
+        }
         if subgoal_name in {
             "GET_TOMATO",
             "PUT_TOMATO_IN_POT",
@@ -996,8 +1053,9 @@ def main() -> int:
             return (
                 int(planner_action),
                 subgoal_name,
-                serialize_subgoal_candidates(candidates),
+                serialized_candidates,
                 condition_features,
+                task_decision,
             )
         subgoal_id = SUBGOAL_TO_INDEX[subgoal_name]
         observations = env.base_env.lossless_state_encoding_mdp(env.base_env.state)
@@ -1007,8 +1065,9 @@ def main() -> int:
         return (
             int(np.argmax(logits[0])),
             subgoal_name,
-            serialize_subgoal_candidates(candidates),
+            serialized_candidates,
             condition_features,
+            task_decision,
         )
 
     def motion_target(position, action_index: int):
@@ -1158,32 +1217,13 @@ def main() -> int:
         pot_states = env.base_env.mdp.get_pot_states(state)
         return any(bool(pot_states.get(key)) for key in keys)
 
-    def cooperative_action_wrapper(
+    def recovery_action_override(
         proposed_ai_action: int,
-        human_action: int,
         subgoal_name: str,
     ) -> tuple[int, str]:
         if args.ai_mode != "subgoal_executor":
             return proposed_ai_action, ""
         state = env.base_env.state
-        ai_player = state.players[0]
-        human_player = state.players[1]
-        ai_pos = list(ai_player.position)
-        human_pos = list(human_player.position)
-        ai_target = motion_target(ai_pos, proposed_ai_action)
-        human_target = motion_target(human_pos, human_action)
-        human_is_trying_to_move = action_moves(human_action)
-
-        if human_is_trying_to_move and human_target == ai_pos:
-            yield_action = choose_yield_action(ai_pos, human_pos, human_target)
-            if yield_action is not None:
-                return yield_action, "AI_YIELDED_TO_HUMAN_PATH"
-            return STAY, "AI_COULD_NOT_YIELD_TO_HUMAN_PATH"
-        if human_is_trying_to_move and action_moves(proposed_ai_action) and human_target == ai_target:
-            return STAY, "AI_AVOIDED_CONTESTED_TILE"
-        if action_moves(proposed_ai_action) and ai_target == human_pos:
-            return STAY, "AI_WAITED_FOR_HUMAN_BLOCK"
-
         issue = detect_subgoal_issue(state, subgoal_name)
         if issue:
             if issue == "AI_HELD_DISH_BEFORE_SOUP_READY":
@@ -1192,6 +1232,84 @@ def main() -> int:
                 return put_down_unneeded_object_action(state), issue
             return put_down_unneeded_object_action(state), issue
         return proposed_ai_action, ""
+
+    def coordination_action_decision(
+        proposed_ai_action: int,
+        human_action: int,
+        subgoal_name: str,
+        condition_features: dict,
+    ) -> tuple[int, str, dict]:
+        if args.ai_mode != "subgoal_executor":
+            coordination_controller.clear_if_no_conflict()
+            return proposed_ai_action, "", {}
+
+        state = env.base_env.state
+        ai_pos = tuple(state.players[0].position)
+        human_pos = tuple(state.players[1].position)
+        ai_target = tuple(motion_target(ai_pos, proposed_ai_action))
+        human_target = tuple(motion_target(human_pos, human_action))
+        conflict_type = path_conflict_type(
+            ai_pos=ai_pos,
+            human_pos=human_pos,
+            ai_target=ai_target,
+            human_target=human_target,
+            ai_is_moving=action_moves(proposed_ai_action),
+            human_is_moving=action_moves(human_action),
+        )
+        if conflict_type is None:
+            coordination_controller.clear_if_no_conflict()
+            return proposed_ai_action, "", {}
+
+        condition_features = dict(condition_features)
+        condition_features["human_trying_to_pass"] = (
+            human_target == ai_pos
+        )
+        condition_features["ai_on_human_path"] = (
+            human_target == ai_pos
+        )
+        yield_action = (
+            choose_yield_action(ai_pos, human_pos, human_target)
+            if conflict_type == "human_entering_ai_tile"
+            else STAY
+        )
+        candidates = build_coordination_candidates(
+            proposed_action=proposed_ai_action,
+            yield_action=yield_action,
+            stay_action=STAY,
+            conflict_type=conflict_type,
+        )
+
+        def coordination_hu_score(option: str) -> float:
+            if hu_model is None:
+                return 0.0
+            return hu_model.score(
+                COORDINATION_DECISION_LEVEL,
+                args.hu_user_id,
+                condition_features,
+                option,
+            )
+
+        result = coordination_controller.resolve(
+            timestep=total_step + 1,
+            episode=episode,
+            task_subgoal=subgoal_name,
+            conflict_type=conflict_type,
+            ai_pos=ai_pos,
+            human_pos=human_pos,
+            candidates=candidates,
+            condition_features=condition_features,
+            hu_score=coordination_hu_score if hu_model is not None else None,
+            hu_lambda=args.hu_coordination_lambda,
+            apply_hu=args.hu_apply,
+        )
+        if result is None:
+            return proposed_ai_action, "", {}
+        return result.action, result.event, result.decision
+
+    def hard_safety_guard(action: int) -> tuple[int, str]:
+        if 0 <= int(action) < len(ACTION_NAMES):
+            return int(action), ""
+        return STAY, "AI_SAFETY_REJECTED_INVALID_ACTION"
 
     def reset_episode(new_layout_index: int | None = None) -> None:
         nonlocal ai_obs
@@ -1230,6 +1348,7 @@ def main() -> int:
             ai_agent.reset()
         if ai_action_prior:
             ai_action_prior.reset()
+        coordination_controller.reset()
         episode += 1
         episode_step = 0
         episode_reward = 0.0
@@ -1610,30 +1729,51 @@ def main() -> int:
                         current_ai_subgoal = ""
                         current_ai_condition_features = {}
                         current_ai_subgoal_candidates = []
+                        current_task_decision = {}
                     elif args.ai_mode == "subgoal_executor":
                         (
                             ai_action_raw,
                             current_ai_subgoal,
                             current_ai_subgoal_candidates,
                             current_ai_condition_features,
+                            current_task_decision,
                         ) = subgoal_executor_action(human_action)
                     else:
                         ai_action_raw = rllib_action_index(ai_agent, env.base_env.state)
                         current_ai_subgoal = ""
                         current_ai_condition_features = {}
                         current_ai_subgoal_candidates = []
+                        current_task_decision = {}
                 else:
                     ai_action_raw = prior_action
                     current_ai_subgoal = "action_prior"
                     current_ai_condition_features = {}
                     current_ai_subgoal_candidates = []
+                    current_task_decision = {}
                 last_predict_ms = (time.perf_counter() - predict_started) * 1000
                 state_before = state_facts(env)
-                ai_action, current_ai_event = cooperative_action_wrapper(
+                recovered_action, recovery_event = recovery_action_override(
                     int(ai_action_raw),
-                    human_action,
                     current_ai_subgoal,
                 )
+                (
+                    coordinated_action,
+                    coordination_event,
+                    current_coordination_decision,
+                ) = coordination_action_decision(
+                    recovered_action,
+                    human_action,
+                    current_ai_subgoal,
+                    current_ai_condition_features,
+                )
+                ai_action, safety_event = hard_safety_guard(coordinated_action)
+                current_ai_event = (
+                    safety_event
+                    or coordination_event
+                    or recovery_event
+                )
+                if current_task_decision and recovery_event:
+                    current_task_decision["recovery_event"] = recovery_event
                 step_started = time.perf_counter()
                 (ai_obs, _), (reward, _), done, _ = env.multi_step(
                     ai_action,
@@ -1661,6 +1801,8 @@ def main() -> int:
                         "ai_subgoal": current_ai_subgoal,
                         "ai_condition_features": current_ai_condition_features,
                         "ai_subgoal_candidates": current_ai_subgoal_candidates,
+                        "task_decision": current_task_decision,
+                        "coordination_decision": current_coordination_decision,
                         "ai_event": current_ai_event,
                         "human_action": human_action,
                         "human_action_name": ACTION_NAMES[human_action],
@@ -1689,6 +1831,10 @@ def main() -> int:
                         ),
                         "ai_subgoal_candidates_json": json_dumps(
                             current_ai_subgoal_candidates
+                        ),
+                        "task_decision_json": json_dumps(current_task_decision),
+                        "coordination_decision_json": json_dumps(
+                            current_coordination_decision
                         ),
                         "ai_event": current_ai_event,
                         "human_action": human_action,

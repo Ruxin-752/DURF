@@ -26,8 +26,10 @@ MODEL_CONDITION_KEYS = (
     "ai_has_dish",
     "human_has_tomato",
     "human_has_onion",
+    "human_has_soup",
     "ai_has_tomato",
     "ai_has_onion",
+    "ai_has_soup",
     "ai_empty_handed",
     "recipe_needs_tomato",
     "recipe_needs_onion",
@@ -44,10 +46,30 @@ MODEL_CONDITION_KEYS = (
     "useful_counter_object_closer_than_dispenser",
     "useful_counter_object_closer_to_pot_than_dispenser",
     "useful_counter_object_lower_task_cost_than_dispenser",
+    "ai_adjacent_to_current_subgoal_target",
 )
 
 # Kept as the public model feature list for compatibility with Hu-v0.
 CONDITION_KEYS = MODEL_CONDITION_KEYS
+
+TASK_CONDITION_KEYS = MODEL_CONDITION_KEYS
+
+COORDINATION_CONDITION_KEYS = (
+    "human_trying_to_pass",
+    "narrow_corridor",
+    "ai_on_human_path",
+    "ai_adjacent_to_current_subgoal_target",
+    "ai_empty_handed",
+    "human_has_dish",
+    "human_has_tomato",
+    "human_has_onion",
+    "human_has_soup",
+    "ai_has_dish",
+    "ai_has_tomato",
+    "ai_has_onion",
+    "ai_has_soup",
+    "pot_cooking_or_ready",
+)
 
 # These values are retained for attribution provenance and human review. Hu-v0
 # consumes the fixed boolean MODEL_CONDITION_KEYS above, not raw strings or
@@ -69,6 +91,7 @@ CONDITION_CONTEXT_KEYS = (
     "matching_dispenser_distance",
     "matching_dispenser_pot_distance",
     "matching_dispenser_total_task_distance",
+    "ai_current_subgoal",
 )
 
 RING_TOMATO_ONION_RECIPE = ("tomato", "tomato", "onion")
@@ -424,8 +447,10 @@ def extract_condition_features(step: dict[str, Any] | None) -> dict[str, Any]:
     features["ai_has_dish"] = ai_held == "dish" if ai_held is not None else False
     features["human_has_tomato"] = human_held == "tomato" if human_held is not None else False
     features["human_has_onion"] = human_held == "onion" if human_held is not None else False
+    features["human_has_soup"] = human_held == "soup" if human_held is not None else False
     features["ai_has_tomato"] = ai_held == "tomato" if ai_held is not None else False
     features["ai_has_onion"] = ai_held == "onion" if ai_held is not None else False
+    features["ai_has_soup"] = ai_held == "soup" if ai_held is not None else False
     features["ai_empty_handed"] = ai_held is None
     features["recipe_needs_tomato"] = recipe_needs_from_facts(facts, "tomato")
     features["recipe_needs_onion"] = recipe_needs_from_facts(facts, "onion")

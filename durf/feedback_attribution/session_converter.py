@@ -38,6 +38,11 @@ def convert_trajectory(session_dir: Path) -> list[dict]:
                     row.get("ai_subgoal_candidates_json")
                 )
                 or [],
+                task_decision=as_json(row.get("task_decision_json")) or {},
+                coordination_decision=as_json(
+                    row.get("coordination_decision_json")
+                )
+                or {},
                 state_facts=as_json(row.get("state_after_json")),
                 extra={
                     "predict_ms": as_float(row.get("predict_ms")),

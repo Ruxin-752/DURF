@@ -249,6 +249,9 @@ def normalize_llm_result(
         target_event=target.get("event_type") if target else None,
         preferred_subgoals=parsed.get("preferred_subgoals"),
         rejected_subgoals=parsed.get("rejected_subgoals"),
+        observed_subgoal=target.get("related_subgoal") if target else None,
+        alternative_subgoals=target.get("alternative_subgoals") if target else None,
+        event_valence=target.get("event_valence") if target else None,
     )
 
     rationale = parsed.get("rationale") or "No rationale returned."

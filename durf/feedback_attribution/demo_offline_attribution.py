@@ -97,6 +97,8 @@ def run_demo(
         "hu_training_samples": hu_counts["hu_training_samples"],
         "schema_updates": hu_counts["schema_updates"],
         "probe_hits": probe_counts["probe_hits"],
+        "review_decisions_consumed": hu_counts["review_decisions_consumed"],
+        "reviewed_training_records": hu_counts["reviewed_training_records"],
     }
 
 
@@ -127,6 +129,11 @@ def main() -> int:
     print(f"hu_subgoal_preferences.jsonl records: {counts['hu_training_samples']}")
     print(f"schema_updates.jsonl records: {counts['schema_updates']}")
     print(f"probe_hits.jsonl records: {counts['probe_hits']}")
+    print(
+        "review decisions consumed: "
+        f"{counts['review_decisions_consumed']} "
+        f"(training={counts['reviewed_training_records']})"
+    )
     if args.use_llm:
         print(f"llm_attribution_audit.jsonl records: {counts['llm_audits']}")
     return 0

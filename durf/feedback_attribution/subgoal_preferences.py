@@ -11,7 +11,7 @@ from __future__ import annotations
 from typing import Any
 
 
-TASK_SUBGOALS = (
+PLANNER_TASK_SUBGOALS = (
     "GET_TOMATO",
     "PUT_TOMATO_IN_POT",
     "GET_ONION",
@@ -22,15 +22,25 @@ TASK_SUBGOALS = (
     "WAIT",
 )
 
-# Hu can reason over a slightly richer set than the current task planner.
-HU_SUBGOALS = (
-    *TASK_SUBGOALS,
-    "YIELD",
+# Hu can reason over a slightly richer task set than the current task planner.
+TASK_HU_SUBGOALS = (
+    *PLANNER_TASK_SUBGOALS,
     "WAIT_NEAR_POT",
     "PUT_DOWN_OBJECT",
     "GET_USEFUL_INGREDIENT",
-    "CONTINUE_CURRENT_SUBGOAL",
 )
+
+COORDINATION_SUBGOALS = (
+    "CONTINUE_CURRENT_SUBGOAL",
+    "YIELD",
+    "HOLD_POSITION",
+    "REROUTE",
+)
+
+HU_SUBGOALS = (*TASK_HU_SUBGOALS, *COORDINATION_SUBGOALS)
+
+# Backward-compatible name used by older imports.
+TASK_SUBGOALS = PLANNER_TASK_SUBGOALS
 
 SUBGOAL_ALIASES = {
     "DELIVER_SOUP": "SERVE_SOUP",
@@ -48,6 +58,9 @@ SUBGOAL_ALIASES = {
 }
 
 
+# Complete pairs are provided only when the event itself identifies both the
+# desired alternative and the behavior that should lose priority. Partial
+# defaults are review suggestions, not automatically trainable Hu labels.
 EVENT_SUBGOAL_DEFAULTS: dict[str, dict[str, list[str]]] = {
     "AI_blocked_human_path": {
         "preferred": ["YIELD"],
@@ -59,61 +72,35 @@ EVENT_SUBGOAL_DEFAULTS: dict[str, dict[str, list[str]]] = {
     },
     "AI_successfully_yielded": {
         "preferred": ["YIELD"],
-        "rejected": ["CONTINUE_CURRENT_SUBGOAL"],
+        "rejected": [],
     },
     "AI_ignored_ready_or_nearly_ready_pot": {
         "preferred": ["GET_DISH", "PICKUP_SOUP"],
-        "rejected": ["WAIT", "GET_TOMATO", "GET_ONION"],
+        "rejected": [],
     },
     "AI_missed_plate_pickup_opportunity": {
         "preferred": ["GET_DISH"],
-        "rejected": ["GET_TOMATO", "GET_ONION", "WAIT"],
+        "rejected": [],
     },
     "AI_failed_to_prepare_ingredient_while_waiting": {
         "preferred": ["GET_USEFUL_INGREDIENT"],
         "rejected": ["WAIT"],
     },
-    "AI_pick_drop_loop": {
-        "preferred": ["CONTINUE_CURRENT_SUBGOAL", "PUT_DOWN_OBJECT"],
-        "rejected": ["WAIT"],
-    },
-    "AI_missed_useful_ingredient_pickup": {
-        "preferred": ["GET_USEFUL_INGREDIENT"],
-        "rejected": ["CONTINUE_CURRENT_SUBGOAL", "WAIT"],
-    },
-    "AI_chose_redundant_ingredient_task": {
-        "preferred": ["GET_ONION", "GET_TOMATO"],
-        "rejected": ["CONTINUE_CURRENT_SUBGOAL"],
-    },
     "AI_successfully_put_ingredient_into_pot": {
-        "preferred": ["PUT_TOMATO_IN_POT", "PUT_ONION_IN_POT"],
-        "rejected": ["WAIT"],
+        "preferred": [],
+        "rejected": [],
     },
     "AI_successfully_picked_up_soup": {
         "preferred": ["PICKUP_SOUP"],
-        "rejected": ["WAIT"],
+        "rejected": [],
     },
     "AI_successfully_delivered_soup": {
         "preferred": ["SERVE_SOUP"],
-        "rejected": ["WAIT"],
-    },
-    "AI_wandered_without_task_progress": {
-        "preferred": ["GET_USEFUL_INGREDIENT", "GET_DISH", "YIELD"],
-        "rejected": ["WAIT", "CONTINUE_CURRENT_SUBGOAL"],
-    },
-    "AI_held_unneeded_object_too_long": {
-        "preferred": ["PUT_DOWN_OBJECT"],
-        "rejected": ["CONTINUE_CURRENT_SUBGOAL", "WAIT"],
-    },
-    "AI_put_object_on_unhelpful_counter": {
-        "preferred": ["PUT_DOWN_OBJECT"],
-        "rejected": ["CONTINUE_CURRENT_SUBGOAL"],
-    },
-    "AI_should_stage_object_near_pot": {
-        "preferred": ["PUT_DOWN_OBJECT", "WAIT_NEAR_POT"],
-        "rejected": ["CONTINUE_CURRENT_SUBGOAL"],
+        "rejected": [],
     },
 }
+
+NEGATIVE_EVENT_VALENCES = {"negative_problem", "missed_opportunity"}
 
 
 def canonical_subgoal(value: Any) -> str | None:
@@ -145,21 +132,36 @@ def infer_subgoal_preferences(
     target_event: str | None,
     preferred_subgoals: Any = None,
     rejected_subgoals: Any = None,
+    observed_subgoal: Any = None,
+    alternative_subgoals: Any = None,
+    event_valence: str | None = None,
 ) -> tuple[list[str], list[str]]:
     """Return preferred/rejected subgoals for Hu pairwise labels.
 
-    LLM output wins if it already supplied subgoals.  Otherwise we use the
-    conservative event defaults above.
+    Explicit semantic output is never completed with guessed values. When both
+    explicit sides are empty, conservative event defaults may suggest one or
+    both sides. For a negative event, the actually observed subgoal may fill
+    the rejected side only when a distinct preferred alternative is known.
     """
 
     preferred = normalize_subgoals(preferred_subgoals)
     rejected = normalize_subgoals(rejected_subgoals)
-    if preferred and rejected:
+    if preferred or rejected:
         return preferred, rejected
 
     defaults = EVENT_SUBGOAL_DEFAULTS.get(str(target_event), {})
+    preferred = list(defaults.get("preferred", []))
+    rejected = list(defaults.get("rejected", []))
+
     if not preferred:
-        preferred = list(defaults.get("preferred", []))
-    if not rejected:
-        rejected = list(defaults.get("rejected", []))
+        preferred = normalize_subgoals(alternative_subgoals)
+
+    if preferred and not rejected and event_valence in NEGATIVE_EVENT_VALENCES:
+        observed = normalize_subgoals([observed_subgoal])
+        rejected = [
+            subgoal
+            for subgoal in observed
+            if subgoal not in preferred
+        ]
+
     return preferred, rejected

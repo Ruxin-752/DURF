@@ -6,11 +6,26 @@ import unittest
 
 from durf.feedback_attribution.condition_features import extract_condition_features
 from durf.feedback_attribution.event_detectors import (
+    detect_coordination_decision_events,
     detect_ai_missed_labor_division_opportunity,
     detect_ai_missed_useful_counter_object,
 )
+from durf.feedback_attribution.hu_dataset_builder import (
+    build_provenance_record,
+    build_training_samples,
+)
 from durf.feedback_attribution.sample_builder import candidates_visible_at_feedback
-from durf.hu.subgoal_reranker import LinearSubgoalReranker
+from durf.feedback_attribution.subgoal_preferences import (
+    infer_subgoal_preferences,
+)
+from durf.hu.subgoal_reranker import (
+    COORDINATION_DECISION_LEVEL,
+    TASK_DECISION_LEVEL,
+    HierarchicalHu,
+    LinearSubgoalReranker,
+    PairwiseSample,
+)
+from durf.hu.train_subgoal_reranker import split_samples
 
 
 TERRAIN = [
@@ -134,8 +149,195 @@ class ConditionFeatureTests(unittest.TestCase):
 
         self.assertIsInstance(score, float)
 
+    def test_hierarchical_hu_updates_decision_heads_independently(self):
+        samples = [
+            PairwiseSample(
+                user_id="PILOT01",
+                layout="test",
+                condition_features={"pot_empty": True},
+                preferred_subgoal="GET_TOMATO",
+                rejected_subgoal="WAIT",
+                decision_level=TASK_DECISION_LEVEL,
+            ),
+            PairwiseSample(
+                user_id="PILOT01",
+                layout="test",
+                condition_features={
+                    "human_trying_to_pass": True,
+                    "ai_adjacent_to_current_subgoal_target": True,
+                },
+                preferred_subgoal="CONTINUE_CURRENT_SUBGOAL",
+                rejected_subgoal="YIELD",
+                decision_level=COORDINATION_DECISION_LEVEL,
+            ),
+        ]
+        model = HierarchicalHu.from_samples(samples, seed=1)
+
+        model.train(samples, epochs=30, learning_rate=0.05, seed=1)
+
+        task_margin = model.score(
+            TASK_DECISION_LEVEL,
+            "PILOT01",
+            {"pot_empty": True},
+            "GET_TOMATO",
+        ) - model.score(
+            TASK_DECISION_LEVEL,
+            "PILOT01",
+            {"pot_empty": True},
+            "WAIT",
+        )
+        coordination_margin = model.score(
+            COORDINATION_DECISION_LEVEL,
+            "PILOT01",
+            {
+                "human_trying_to_pass": True,
+                "ai_adjacent_to_current_subgoal_target": True,
+            },
+            "CONTINUE_CURRENT_SUBGOAL",
+        ) - model.score(
+            COORDINATION_DECISION_LEVEL,
+            "PILOT01",
+            {
+                "human_trying_to_pass": True,
+                "ai_adjacent_to_current_subgoal_target": True,
+            },
+            "YIELD",
+        )
+
+        self.assertGreater(task_margin, 0.0)
+        self.assertGreater(coordination_margin, 0.0)
+
+    def test_old_single_head_model_loads_as_task_only_hu(self):
+        old_model = LinearSubgoalReranker(condition_keys=("pot_empty",))
+
+        hierarchical = HierarchicalHu.from_dict(old_model.to_dict())
+
+        self.assertIsNotNone(hierarchical.task_head)
+        self.assertIsNone(hierarchical.coordination_head)
+        self.assertEqual(
+            hierarchical.score(
+                COORDINATION_DECISION_LEVEL,
+                "PILOT01",
+                {},
+                "YIELD",
+            ),
+            0.0,
+        )
+
+    def test_train_validation_split_keeps_each_domain_in_training(self):
+        samples = [
+            PairwiseSample(
+                user_id="PILOT01",
+                layout="test",
+                condition_features={},
+                preferred_subgoal="GET_TOMATO",
+                rejected_subgoal="WAIT",
+                decision_level=TASK_DECISION_LEVEL,
+            ),
+            PairwiseSample(
+                user_id="PILOT01",
+                layout="test",
+                condition_features={},
+                preferred_subgoal="YIELD",
+                rejected_subgoal="CONTINUE_CURRENT_SUBGOAL",
+                decision_level=COORDINATION_DECISION_LEVEL,
+            ),
+        ]
+
+        train, validation = split_samples(samples, validation_fraction=0.5, seed=1)
+
+        self.assertEqual(len(train), 2)
+        self.assertEqual(validation, [])
+
+
+class ReviewedDatasetTests(unittest.TestCase):
+    def test_human_review_overrides_automatic_label(self):
+        attribution = {
+            "feedback_event_id": "feedback:1",
+            "target_event": "AI_missed_useful_ingredient_pickup",
+            "target_time_window": [8, 10],
+            "condition_features": {"pot_empty": True},
+            "preferred_subgoals": ["GET_TOMATO"],
+            "rejected_subgoals": ["WAIT"],
+            "needs_clarification": True,
+            "candidate_events": [],
+        }
+        review = {
+            "decision": "revise",
+            "approved_event": "AI_blocked_human_path",
+            "approved_time_window": [9, 10],
+            "approved_condition_overrides": {
+                "human_trying_to_pass": True,
+                "narrow_corridor": True,
+            },
+            "approved_preference": {
+                "preferred_subgoals": ["YIELD"],
+                "rejected_subgoals": ["CONTINUE_CURRENT_SUBGOAL"],
+            },
+            "use_for_hu_training": True,
+        }
+
+        provenance = build_provenance_record(
+            attribution=attribution,
+            feedback=None,
+            trajectory=[],
+            user_id="PILOT01",
+            review_decision=review,
+        )
+        samples = build_training_samples([provenance])
+
+        self.assertEqual(provenance["target_event"], "AI_blocked_human_path")
+        self.assertEqual(provenance["decision_level"], "coordination")
+        self.assertFalse(provenance["needs_clarification"])
+        self.assertEqual(len(samples), 1)
+        self.assertEqual(samples[0]["preferred_subgoal"], "YIELD")
+        self.assertEqual(
+            samples[0]["rejected_subgoal"],
+            "CONTINUE_CURRENT_SUBGOAL",
+        )
+        self.assertEqual(samples[0]["label_source"], "human_review")
+
+    def test_reviewed_record_not_approved_for_training_is_excluded(self):
+        provenance = {
+            "reviewed": True,
+            "use_for_hu_training": False,
+            "needs_clarification": False,
+            "target_event": "AI_blocked_human_path",
+            "event_actor": "ai",
+            "preferred_subgoals": ["YIELD"],
+            "rejected_subgoals": ["CONTINUE_CURRENT_SUBGOAL"],
+        }
+
+        self.assertEqual(build_training_samples([provenance]), [])
+
 
 class CandidateEventTests(unittest.TestCase):
+    def test_explicit_coordination_decision_becomes_neutral_event(self):
+        step = make_step(10, ai_subgoal="GET_TOMATO")
+        step["coordination_decision"] = {
+            "decision_id": "coord:e1:t10:n1",
+            "decision_level": "coordination",
+            "conflict_type": "human_entering_ai_tile",
+            "task_subgoal": "GET_TOMATO",
+            "condition_at_decision": {
+                "human_trying_to_pass": True,
+                "ai_adjacent_to_current_subgoal_target": True,
+            },
+            "candidate_set": ["CONTINUE_CURRENT_SUBGOAL", "YIELD"],
+            "candidates": [],
+            "selected": "YIELD",
+        }
+
+        events = detect_coordination_decision_events([step])
+
+        self.assertEqual(len(events), 1)
+        self.assertEqual(events[0]["event_type"], "AI_yielded_to_human")
+        self.assertEqual(events[0]["event_valence"], "neutral_context")
+        self.assertEqual(
+            events[0]["evidence"]["decision_id"],
+            "coord:e1:t10:n1",
+        )
+
     def test_detects_ignored_closer_counter_object(self):
         steps = [
             make_step(
@@ -220,6 +422,41 @@ class CandidateEventTests(unittest.TestCase):
         self.assertTrue(visible)
         self.assertTrue(all(event["end_timestep"] <= 2 for event in visible))
         self.assertEqual(visible[0]["end_timestep"], 2)
+
+
+class SubgoalPreferenceTests(unittest.TestCase):
+    def test_ambiguous_pick_drop_event_does_not_invent_pair(self):
+        preferred, rejected = infer_subgoal_preferences(
+            target_event="AI_pick_drop_loop",
+            observed_subgoal="WAIT",
+            event_valence="negative_problem",
+        )
+
+        self.assertEqual(preferred, [])
+        self.assertEqual(rejected, [])
+
+    def test_negative_event_can_compare_known_alternative_to_observed_subgoal(self):
+        preferred, rejected = infer_subgoal_preferences(
+            target_event="AI_missed_labor_division_opportunity",
+            observed_subgoal="WAIT",
+            alternative_subgoals=["GET_DISH"],
+            event_valence="missed_opportunity",
+        )
+
+        self.assertEqual(preferred, ["GET_DISH"])
+        self.assertEqual(rejected, ["WAIT"])
+
+    def test_partial_llm_output_is_not_completed_by_static_defaults(self):
+        preferred, rejected = infer_subgoal_preferences(
+            target_event="AI_blocked_human_path",
+            preferred_subgoals=["YIELD"],
+            rejected_subgoals=[],
+            observed_subgoal="CONTINUE_CURRENT_SUBGOAL",
+            event_valence="negative_problem",
+        )
+
+        self.assertEqual(preferred, ["YIELD"])
+        self.assertEqual(rejected, [])
 
 
 if __name__ == "__main__":
