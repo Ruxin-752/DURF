@@ -14,14 +14,13 @@ from typing import Any, Callable
 
 CONTINUE_CURRENT_SUBGOAL = "CONTINUE_CURRENT_SUBGOAL"
 YIELD = "YIELD"
-HOLD_POSITION = "HOLD_POSITION"
-REROUTE = "REROUTE"
 
+# Only runtime-constructible options. HOLD_POSITION collapsed into YIELD's
+# stay action; REROUTE is a replan decision and lives at the task layer, so it
+# must not appear in the coordination option vocabulary.
 COORDINATION_OPTIONS = (
     CONTINUE_CURRENT_SUBGOAL,
     YIELD,
-    HOLD_POSITION,
-    REROUTE,
 )
 
 CONFLICT_HUMAN_ENTERING_AI_TILE = "human_entering_ai_tile"

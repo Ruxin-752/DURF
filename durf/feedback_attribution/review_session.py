@@ -57,8 +57,6 @@ SUBGOAL_DESCRIPTIONS = {
     "PUT_DOWN_OBJECT": "放下手中物品",
     "GET_USEFUL_INGREDIENT": "获取当前有用的原料",
     "CONTINUE_CURRENT_SUBGOAL": "继续当前 subgoal",
-    "HOLD_POSITION": "短暂保持位置，让对方先通过",
-    "REROUTE": "保持当前任务，但改走另一条路径",
 }
 
 NON_TRAINING_DECISIONS = {

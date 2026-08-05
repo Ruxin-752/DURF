@@ -61,7 +61,7 @@ CONTINUE_CURRENT_SUBGOAL
 YIELD
 ```
 
-`HOLD_POSITION` 和 `REROUTE` 已保留在 Hu 合法词表中，但尚未作为运行时候选启用。原因是它们需要能保持原 task 目标的路径级实现，不能用随意移动代替。
+`HOLD_POSITION` 与 `YIELD` 在动作上重合（都是停在原地），已从词表移除；`REROUTE` 属于 task 层的路径重规划决策，需要独立的 planner 工作流，不作为协调选项保留。
 
 ## 3. 基础分数与 Hu 分数
 
@@ -326,4 +326,4 @@ python -m durf.group_a.play_with_baseline `
 - 两个 head 是否都有足够 pairwise 样本；
 - Hu 是否在同一 probe condition 下稳定改变候选排序；
 - Hu 改变偏好后是否保持任务完成率；
-- 是否需要正式实现 `HOLD_POSITION` 和保持 task 目标的 `REROUTE`。
+- 是否需要正式实现 `REROUTE`（保持 task 目标的路径重规划）并为其建立独立的决策域、候选生成与训练数据。

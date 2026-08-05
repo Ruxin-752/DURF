@@ -30,11 +30,12 @@ TASK_HU_SUBGOALS = (
     "GET_USEFUL_INGREDIENT",
 )
 
+# Only options that are actually constructed as runtime candidates are kept.
+# HOLD_POSITION duplicates YIELD's stay-action; REROUTE is a replanning-level
+# decision that needs its own path-planner workflow, not a coordination cell.
 COORDINATION_SUBGOALS = (
     "CONTINUE_CURRENT_SUBGOAL",
     "YIELD",
-    "HOLD_POSITION",
-    "REROUTE",
 )
 
 HU_SUBGOALS = (*TASK_HU_SUBGOALS, *COORDINATION_SUBGOALS)
