@@ -458,6 +458,65 @@ def feature_candidate(
     )
 
 
+def put_down_candidates(
+    state,
+    mdp,
+    motion_planner: MotionPlanner,
+    player,
+    blocked_positions: set[tuple[int, int]],
+    held_name: str,
+) -> list[CandidateSubgoal]:
+    """Candidate pool for holding an ingredient no pot needs.
+
+    Dropping the unneeded ingredient on a free counter is the productive
+    choice, so PUT_DOWN_OBJECT must be in the pool.  Without it, probes that
+    expect PUT_DOWN_OBJECT can never evaluate against the real task pool and
+    always report preferred_available=False.
+    """
+    counters = (
+        list(mdp.get_counter_locations())
+        if hasattr(mdp, "get_counter_locations")
+        else []
+    )
+    feature_positions: set[tuple[int, int]] = set()
+    for getter_name in (
+        "get_pot_locations",
+        "get_serving_locations",
+        "get_dish_dispenser_locations",
+        "get_tomato_dispenser_locations",
+        "get_onion_dispenser_locations",
+    ):
+        getter = getattr(mdp, getter_name, None)
+        if getter is not None:
+            feature_positions.update(getter())
+    occupied = set(getattr(state, "objects", {}).keys())
+    player_pos = tuple(player.position)
+    free = sorted(
+        (
+            tuple(position)
+            for position in counters
+            if tuple(position) not in feature_positions
+            and tuple(position) not in occupied
+        ),
+        key=lambda position: (
+            abs(position[0] - player_pos[0]) + abs(position[1] - player_pos[1])
+        ),
+    )
+    candidate = feature_candidate(
+        subgoal="PUT_DOWN_OBJECT",
+        task_score=60.0,
+        reason="holding_unneeded_ingredient_drop_on_free_counter",
+        motion_planner=motion_planner,
+        player=player,
+        feature_positions=free,
+        blocked_positions=blocked_positions,
+        metadata={"held_object": held_name},
+    )
+    if candidate is not None:
+        return [candidate, stay_candidate("holding_unneeded_ingredient")]
+    return [stay_candidate("holding_unneeded_ingredient")]
+
+
 def generate_candidate_subgoals(
     state,
     motion_planner: MotionPlanner,
@@ -479,7 +538,14 @@ def generate_candidate_subgoals(
         if held_name in ("tomato", "onion"):
             ingredient_targets = pots_needing_ingredient(state, mdp, held_name)
             if not ingredient_targets:
-                return [stay_candidate("holding_unneeded_ingredient")]
+                return put_down_candidates(
+                    state,
+                    mdp,
+                    motion_planner,
+                    player,
+                    blocked_positions,
+                    held_name,
+                )
             subgoal = (
                 "PUT_TOMATO_IN_POT"
                 if held_name == "tomato"

@@ -6,13 +6,24 @@ import unittest
 
 from durf.feedback_attribution.condition_features import extract_condition_features
 from durf.feedback_attribution.event_detectors import (
-    detect_coordination_decision_events,
+    detect_ai_failed_to_yield_or_clear_path,
+    detect_ai_held_unneeded_object_too_long,
+    detect_ai_ignored_ready_or_nearly_ready_pot,
     detect_ai_missed_labor_division_opportunity,
+    detect_ai_missed_plate_pickup_opportunity,
     detect_ai_missed_useful_counter_object,
+    detect_ai_pick_drop_loop,
+    detect_ai_put_object_on_unhelpful_counter,
+    detect_ai_successfully_put_ingredient_into_pot,
+    detect_coordination_decision_events,
 )
 from durf.feedback_attribution.hu_dataset_builder import (
     build_provenance_record,
     build_training_samples,
+)
+from durf.feedback_attribution.probe_state_detector import (
+    DEFAULT_PROBES,
+    build_probe_hit,
 )
 from durf.feedback_attribution.sample_builder import candidates_visible_at_feedback
 from durf.feedback_attribution.subgoal_preferences import (
@@ -20,12 +31,20 @@ from durf.feedback_attribution.subgoal_preferences import (
 )
 from durf.hu.subgoal_reranker import (
     COORDINATION_DECISION_LEVEL,
+    COORDINATION_SUBGOALS,
     TASK_DECISION_LEVEL,
+    TASK_HU_SUBGOALS,
     HierarchicalHu,
     LinearSubgoalReranker,
     PairwiseSample,
 )
-from durf.hu.train_subgoal_reranker import split_samples
+from durf.hu.train_subgoal_reranker import (
+    check_participant_protocol,
+    dedupe_against_train,
+    dedupe_samples,
+    evaluate_by_user,
+    split_samples,
+)
 
 
 TERRAIN = [
@@ -87,6 +106,55 @@ def make_step(
         "ai_subgoal": ai_subgoal,
         "state_facts": facts,
         "extra": {"state_before": facts},
+    }
+
+
+def facts(
+    *,
+    ai_pos: tuple[int, int] = (3, 1),
+    human_pos: tuple[int, int] = (1, 3),
+    ai_held: str | None = None,
+    human_held: str | None = None,
+    objects: list[dict] | None = None,
+    pot_states: dict | None = None,
+) -> dict:
+    """State snapshot for detectors that need distinct before/after facts."""
+
+    def held(name: str | None, position: tuple[int, int]) -> dict | None:
+        if name is None:
+            return None
+        return {"name": name, "position": list(position)}
+
+    return {
+        "ai_pos": list(ai_pos),
+        "human_pos": list(human_pos),
+        "ai_held_object": held(ai_held, ai_pos),
+        "human_held_object": held(human_held, human_pos),
+        "objects": objects or [],
+        "pot_states": pot_states or {"empty": [[2, 0]]},
+        "layout_features": {
+            "layout_name": "ring_tomato_onion_test",
+            "terrain": TERRAIN,
+        },
+    }
+
+
+def before_after_step(
+    total_step: int,
+    *,
+    before: dict,
+    after: dict,
+    ai_action: str = "stay",
+    human_action: str = "stay",
+    ai_subgoal: str = "WAIT",
+) -> dict:
+    return {
+        "total_step": total_step,
+        "ai_action_name": ai_action,
+        "human_action_name": human_action,
+        "ai_subgoal": ai_subgoal,
+        "state_facts": after,
+        "extra": {"state_before": before},
     }
 
 
@@ -310,6 +378,65 @@ class ReviewedDatasetTests(unittest.TestCase):
 
         self.assertEqual(build_training_samples([provenance]), [])
 
+    def test_coordination_single_sided_preferred_completes_rejected_side(self):
+        provenance = {
+            "reviewed": False,
+            "needs_clarification": False,
+            "target_event": "AI_maintained_current_subgoal_during_conflict",
+            "event_actor": "ai",
+            "decision_level": "coordination",
+            "preferred_subgoals": ["CONTINUE_CURRENT_SUBGOAL"],
+            "rejected_subgoals": [],
+            "user_id": "PILOT01",
+            "feedback_event_id": "feedback:single",
+            "layout": "ring_tomato_onion_10x6_h0_full_task",
+            "condition_features": {"ai_adjacent_to_current_subgoal_target": True},
+        }
+
+        samples = build_training_samples([provenance])
+        self.assertEqual(len(samples), 1)
+        self.assertEqual(samples[0]["preferred_subgoal"], "CONTINUE_CURRENT_SUBGOAL")
+        self.assertEqual(samples[0]["rejected_subgoal"], "YIELD")
+
+    def test_coordination_single_sided_rejected_completes_preferred_side(self):
+        provenance = {
+            "reviewed": False,
+            "needs_clarification": False,
+            "target_event": "AI_successfully_yielded",
+            "event_actor": "ai",
+            "decision_level": "coordination",
+            "preferred_subgoals": [],
+            "rejected_subgoals": ["CONTINUE_CURRENT_SUBGOAL"],
+            "user_id": "PILOT01",
+            "feedback_event_id": "feedback:single-rej",
+            "layout": "ring_tomato_onion_10x6_h0_full_task",
+            "condition_features": {"human_trying_to_pass": True},
+        }
+
+        samples = build_training_samples([provenance])
+        self.assertEqual(len(samples), 1)
+        self.assertEqual(samples[0]["preferred_subgoal"], "YIELD")
+        self.assertEqual(samples[0]["rejected_subgoal"], "CONTINUE_CURRENT_SUBGOAL")
+
+    def test_task_single_sided_labels_still_skipped(self):
+        # Task is not a binary domain: one-sided labels remain unpaired and
+        # must not be silently completed by complementing.
+        provenance = {
+            "reviewed": False,
+            "needs_clarification": False,
+            "target_event": "AI_ignored_ready_or_nearly_ready_pot",
+            "event_actor": "ai",
+            "decision_level": "task",
+            "preferred_subgoals": ["GET_DISH"],
+            "rejected_subgoals": [],
+            "user_id": "PILOT01",
+            "feedback_event_id": "feedback:task-single",
+            "layout": "ring_tomato_onion_10x6_h0_full_task",
+            "condition_features": {"pot_cooking_or_ready": True},
+        }
+
+        self.assertEqual(build_training_samples([provenance]), [])
+
 
 class CandidateEventTests(unittest.TestCase):
     def test_explicit_coordination_decision_becomes_neutral_event(self):
@@ -331,7 +458,7 @@ class CandidateEventTests(unittest.TestCase):
         events = detect_coordination_decision_events([step])
 
         self.assertEqual(len(events), 1)
-        self.assertEqual(events[0]["event_type"], "AI_yielded_to_human")
+        self.assertEqual(events[0]["event_type"], "AI_successfully_yielded")
         self.assertEqual(events[0]["event_valence"], "neutral_context")
         self.assertEqual(
             events[0]["evidence"]["decision_id"],
@@ -385,6 +512,213 @@ class CandidateEventTests(unittest.TestCase):
             "human_covers_last_ingredient",
         )
         self.assertEqual(events[0]["alternative_subgoals"], ["GET_DISH"])
+
+    def test_put_ingredient_requires_adjacency_and_flags_human_ambiguity(self):
+        soup_before = [
+            wrapped_object("soup", (2, 0), ingredients=["tomato"])
+        ]
+        soup_after = [
+            wrapped_object("soup", (2, 0), ingredients=["tomato", "tomato"])
+        ]
+
+        adjacent = before_after_step(
+            1,
+            before=facts(ai_pos=(2, 1), ai_held="tomato", objects=soup_before),
+            after=facts(ai_pos=(2, 1), ai_held=None, objects=soup_after),
+            ai_action="interact",
+        )
+        events = detect_ai_successfully_put_ingredient_into_pot([adjacent])
+
+        self.assertEqual(len(events), 1)
+        self.assertEqual(events[0]["confidence"], 0.85)
+        self.assertFalse(events[0]["evidence"]["human_acted_same_step"])
+
+        far = before_after_step(
+            2,
+            before=facts(ai_pos=(4, 2), ai_held="tomato", objects=soup_before),
+            after=facts(ai_pos=(4, 2), ai_held=None, objects=soup_after),
+            ai_action="interact",
+        )
+        self.assertEqual(detect_ai_successfully_put_ingredient_into_pot([far]), [])
+
+        ambiguous = before_after_step(
+            3,
+            before=facts(
+                ai_pos=(2, 1),
+                ai_held="tomato",
+                human_held="onion",
+                objects=soup_before,
+            ),
+            after=facts(
+                ai_pos=(2, 1),
+                ai_held=None,
+                human_held=None,
+                objects=soup_after,
+            ),
+            ai_action="interact",
+            human_action="interact",
+        )
+        events = detect_ai_successfully_put_ingredient_into_pot([ambiguous])
+
+        self.assertEqual(len(events), 1)
+        self.assertTrue(events[0]["evidence"]["human_acted_same_step"])
+        self.assertEqual(events[0]["confidence"], 0.7)
+
+    def test_held_unneeded_fires_on_sliding_window_not_contiguous_streak(self):
+        objects = [
+            wrapped_object(
+                "soup",
+                (2, 0),
+                ingredients=["tomato", "tomato"],
+                is_cooking=False,
+                is_ready=False,
+            )
+        ]
+        steps = []
+        for total_step in range(1, 16):
+            step = make_step(
+                total_step,
+                objects=objects,
+                pot_states={"2_items": [[2, 0]]},
+                ai_held=None,
+            )
+            if total_step in {1, 5, 9, 12, 15}:
+                step["state_facts"]["ai_held_object"] = {
+                    "name": "tomato",
+                    "position": [3, 1],
+                }
+            steps.append(step)
+
+        events = detect_ai_held_unneeded_object_too_long(steps)
+
+        self.assertEqual(len(events), 1)
+        self.assertEqual(events[0]["event_type"], "AI_held_unneeded_object_too_long")
+        self.assertEqual(events[0]["evidence"]["duration_steps"], 5)
+
+    def test_ignored_pot_fires_during_cooking_not_only_ready(self):
+        steps = [
+            make_step(
+                total_step,
+                ai_pos=(3, 1),
+                ai_held=None,
+                pot_states={"cooking": [[2, 0]]},
+            )
+            for total_step in (1, 2, 3)
+        ]
+
+        events = detect_ai_ignored_ready_or_nearly_ready_pot(steps)
+
+        self.assertEqual(len(events), 1)
+        self.assertEqual(events[0]["event_type"], "AI_ignored_ready_or_nearly_ready_pot")
+        self.assertEqual(events[0]["evidence"]["detected_pot_states"], ["cooking", "ready"])
+
+    def test_missed_plate_fires_after_three_frames(self):
+        steps = [
+            make_step(
+                total_step,
+                ai_pos=(3, 1),
+                ai_held=None,
+                human_held=None,
+                pot_states={"cooking": [[2, 0]]},
+                ai_subgoal="WAIT",
+            )
+            for total_step in (1, 2, 3)
+        ]
+
+        events = detect_ai_missed_plate_pickup_opportunity(steps)
+
+        self.assertEqual(len(events), 1)
+        self.assertEqual(events[0]["event_type"], "AI_missed_plate_pickup_opportunity")
+
+    def test_put_on_unhelpful_counter_is_neutral_context(self):
+        step = before_after_step(
+            1,
+            before=facts(ai_pos=(3, 1), ai_held="tomato"),
+            after=facts(
+                ai_pos=(3, 1),
+                ai_held=None,
+                objects=[wrapped_object("tomato", (4, 4))],
+            ),
+            ai_action="interact",
+        )
+
+        events = detect_ai_put_object_on_unhelpful_counter([step])
+
+        self.assertEqual(len(events), 1)
+        self.assertEqual(events[0]["event_valence"], "neutral_context")
+        self.assertTrue(events[0]["evidence"]["drop_may_be_staging_or_yield"])
+
+    @staticmethod
+    def pick_drop_steps(positions: list[tuple[int, int]]) -> list[dict]:
+        """Alternating pickups (None -> tomato) and drops (tomato -> None)."""
+        steps = []
+        for total, tile in enumerate(positions, start=1):
+            if total % 2 == 1:
+                before = facts(ai_pos=tile, ai_held=None)
+                after = facts(ai_pos=tile, ai_held="tomato")
+            else:
+                before = facts(ai_pos=tile, ai_held="tomato")
+                after = facts(ai_pos=tile, ai_held=None)
+            steps.append(
+                before_after_step(
+                    total,
+                    before=before,
+                    after=after,
+                    ai_action="interact",
+                )
+            )
+        return steps
+
+    def test_pick_drop_loop_fires_only_on_same_tile_repeats(self):
+        loop_steps = self.pick_drop_steps([(3, 1)] * 6)
+
+        events = detect_ai_pick_drop_loop(loop_steps)
+
+        self.assertEqual(len(events), 1)
+        self.assertEqual(events[0]["event_type"], "AI_pick_drop_loop")
+        self.assertEqual(events[0]["confidence"], 0.85)
+        self.assertEqual(events[0]["evidence"]["loop_tile"], [3, 1])
+        self.assertEqual(events[0]["evidence"]["pick_drop_count"], 6)
+
+    def test_pick_drop_moving_between_tiles_is_not_a_loop(self):
+        moving_steps = self.pick_drop_steps(
+            [(3, 1), (4, 1), (4, 1), (5, 1), (5, 1), (3, 1)]
+        )
+
+        events = detect_ai_pick_drop_loop(moving_steps)
+
+        self.assertEqual(events, [])
+
+    def test_duplicate_dish_requires_human_inferred_pickup_soup(self):
+        steps = [
+            make_step(
+                total_step,
+                human_held="dish",
+                pot_states={"cooking": [[2, 0]]},
+                ai_subgoal="GET_DISH",
+            )
+            for total_step in (1, 2)
+        ]
+
+        events = detect_ai_missed_labor_division_opportunity(steps)
+
+        self.assertEqual(len(events), 1)
+        self.assertEqual(events[0]["evidence"]["opportunity_kind"], "duplicate_dish_task")
+
+    def test_duplicate_dish_not_reported_before_human_commits_to_pot(self):
+        steps = [
+            make_step(
+                total_step,
+                human_held="dish",
+                pot_states={"empty": [[2, 0]]},
+                ai_subgoal="GET_DISH",
+            )
+            for total_step in (1, 2)
+        ]
+
+        events = detect_ai_missed_labor_division_opportunity(steps)
+
+        self.assertEqual(events, [])
 
     def test_feedback_candidates_do_not_include_future_evidence(self):
         objects = [
@@ -457,6 +791,368 @@ class SubgoalPreferenceTests(unittest.TestCase):
 
         self.assertEqual(preferred, ["YIELD"])
         self.assertEqual(rejected, [])
+
+
+def coordination_step(
+    *,
+    total_step: int,
+    selected: str,
+    candidates: list[dict],
+    conflict_type: str = "human_entering_ai_tile",
+    ai_subgoal: str = "GET_TOMATO",
+    task_candidates: list[dict] | None = None,
+) -> dict:
+    return {
+        "total_step": total_step,
+        "ai_action_name": "stay",
+        "human_action_name": "north",
+        "ai_subgoal": ai_subgoal,
+        "state_facts": {
+            "ai_pos": [1, 4],
+            "human_pos": [2, 4],
+            "ai_held_object": None,
+            "human_held_object": None,
+            "objects": [],
+            "pot_states": {"empty": [[2, 0]]},
+            "layout_features": {
+                "layout_name": "test",
+                "terrain": ["XXXXX", "X   X", "XXXXX"],
+            },
+        },
+        "extra": {"state_before": {"ai_pos": [1, 4], "human_pos": [2, 4]}},
+        "ai_subgoal_candidates": task_candidates or [],
+        "coordination_decision": {
+            "record_type": "runtime_decision",
+            "decision_level": "coordination",
+            "conflict_type": conflict_type,
+            "task_subgoal": ai_subgoal,
+            "selected": selected,
+            "candidates": candidates,
+        },
+    }
+
+
+class ProbeDetectionTests(unittest.TestCase):
+    def test_coordination_probe_reads_coordination_candidate_pool(self):
+        yield_probe = next(
+            probe
+            for probe in DEFAULT_PROBES
+            if probe.name == "human_path_conflict_ai_should_yield"
+        )
+        step = coordination_step(
+            total_step=10,
+            selected="YIELD",
+            candidates=[
+                {
+                    "option": "YIELD",
+                    "action": 4,
+                    "base_score": 1.0,
+                    "hu_score": 0.5,
+                    "final_score": 1.5,
+                    "reason": "yield_during_human_entering_ai_tile",
+                    "feasible": True,
+                },
+                {
+                    "option": "CONTINUE_CURRENT_SUBGOAL",
+                    "action": 0,
+                    "base_score": 0.0,
+                    "hu_score": 0.1,
+                    "final_score": 0.1,
+                    "reason": "continue_task_during_human_entering_ai_tile",
+                    "feasible": True,
+                },
+            ],
+            # The task pool deliberately contains no YIELD; the old buggy path
+            # read it and reported the coordination probe as unevaluable.
+            task_candidates=[
+                {"subgoal": "GET_TOMATO", "final_score": 70.0},
+                {"subgoal": "WAIT", "final_score": 0.0},
+            ],
+        )
+
+        hit = build_probe_hit(step, yield_probe)
+
+        self.assertEqual(hit["chosen_subgoal"], "YIELD")
+        self.assertFalse(hit["evaluation"]["evaluation_unavailable"])
+        self.assertEqual(hit["evaluation"]["best_preferred_rank"], 1)
+        self.assertEqual(hit["evaluation"]["best_rejected_rank"], 2)
+        self.assertTrue(hit["evaluation"]["chosen_is_preferred"])
+        self.assertEqual(
+            [row["subgoal"] for row in hit["candidate_ranking"]],
+            ["YIELD", "CONTINUE_CURRENT_SUBGOAL"],
+        )
+
+    def test_coordination_probe_without_decision_is_marked_unavailable(self):
+        yield_probe = next(
+            probe
+            for probe in DEFAULT_PROBES
+            if probe.name == "human_path_conflict_ai_should_yield"
+        )
+        step = coordination_step(
+            total_step=11,
+            selected="YIELD",
+            candidates=[],
+        )
+        step.pop("coordination_decision")
+
+        hit = build_probe_hit(step, yield_probe)
+
+        self.assertTrue(hit["evaluation"]["evaluation_unavailable"])
+        self.assertFalse(hit["evaluation"]["preferred_available"])
+        self.assertEqual(hit["evaluation"]["best_preferred_rank"], None)
+
+    def test_task_probe_keeps_reading_task_candidate_pool(self):
+        task_probe = next(
+            probe
+            for probe in DEFAULT_PROBES
+            if probe.name == "pot_ready_ai_should_get_dish"
+        )
+        step = make_step(12, ai_subgoal="GET_TOMATO")
+        step["ai_subgoal_candidates"] = [
+            {"subgoal": "GET_DISH", "final_score": 80.0},
+            {"subgoal": "GET_TOMATO", "final_score": 70.0},
+            {"subgoal": "WAIT", "final_score": 0.0},
+        ]
+
+        hit = build_probe_hit(step, task_probe)
+
+        self.assertFalse(hit["evaluation"]["evaluation_unavailable"])
+        self.assertEqual(hit["evaluation"]["best_preferred_rank"], 1)
+        self.assertEqual(hit["evaluation"]["best_rejected_rank"], 2)
+
+
+    def test_detects_detour_requiring_ai_standing(self):
+        before = facts(ai_pos=(3, 3), human_pos=(1, 3))
+        after = facts(ai_pos=(3, 3), human_pos=(2, 3))
+        step = {
+            "total_step": 5,
+            "ai_action_name": "stay",
+            "human_action_name": "east",
+            "ai_subgoal": "WAIT",
+            "state_facts": after,
+            "extra": {"state_before": before},
+        }
+
+        events = detect_ai_failed_to_yield_or_clear_path([step])
+
+        self.assertEqual(len(events), 1)
+        self.assertEqual(events[0]["event_type"], "AI_failed_to_yield_or_clear_path")
+        self.assertTrue(events[0]["evidence"]["ai_blocks_next_tile"])
+        self.assertEqual(events[0]["evidence"]["human_attempted_target"], [2, 3])
+
+    def test_direct_block_is_not_a_detour_event(self):
+        # Human's destination is exactly the AI tile; that is the existing
+        # AI_blocked_human_path case, not the detour case.
+        before = facts(ai_pos=(2, 3), human_pos=(1, 3))
+        after = facts(ai_pos=(2, 3), human_pos=(1, 3))
+        step = {
+            "total_step": 5,
+            "ai_action_name": "stay",
+            "human_action_name": "east",
+            "ai_subgoal": "WAIT",
+            "state_facts": after,
+            "extra": {"state_before": before},
+        }
+
+        events = detect_ai_failed_to_yield_or_clear_path([step])
+
+        self.assertEqual(events, [])
+
+    def test_detour_event_not_emitted_when_human_moves_away_from_ai(self):
+        # Human moves east but the AI is not on the tile after the destination.
+        before = facts(ai_pos=(4, 3), human_pos=(1, 3))
+        after = facts(ai_pos=(4, 3), human_pos=(2, 3))
+        step = {
+            "total_step": 5,
+            "ai_action_name": "stay",
+            "human_action_name": "east",
+            "ai_subgoal": "WAIT",
+            "state_facts": after,
+            "extra": {"state_before": before},
+        }
+
+        events = detect_ai_failed_to_yield_or_clear_path([step])
+
+        self.assertEqual(events, [])
+
+    def test_probe_vocabulary_aligned_with_runtime_candidate_pools(self):
+        # Runtime-constructible task candidates today (collect_rule_teacher_dataset
+        # SUBGOALS plus PUT_DOWN_OBJECT from the holding-unneeded branch).
+        runtime_task_candidates = {
+            "GET_TOMATO",
+            "PUT_TOMATO_IN_POT",
+            "GET_ONION",
+            "PUT_ONION_IN_POT",
+            "GET_DISH",
+            "PICKUP_SOUP",
+            "SERVE_SOUP",
+            "WAIT",
+            "PUT_DOWN_OBJECT",
+        }
+        for probe in DEFAULT_PROBES:
+            for subgoal in (*probe.preferred_subgoals, *probe.rejected_subgoals):
+                self.assertIn(
+                    subgoal,
+                    runtime_task_candidates
+                    if probe.domain == "task"
+                    else set(COORDINATION_SUBGOALS),
+                    f"{probe.name} references non-runtime subgoal {subgoal}",
+                )
+
+    def test_ready_pot_probe_prefers_only_empty_hand_reachable_dish(self):
+        pot_probe = next(
+            probe
+            for probe in DEFAULT_PROBES
+            if probe.name == "pot_ready_ai_should_get_dish"
+        )
+        # ai_empty_handed=True implies PICKUP_SOUP is unreachable (the AI has
+        # no dish yet), so it must not be a preferred label.
+        self.assertNotIn("PICKUP_SOUP", pot_probe.preferred_subgoals)
+        self.assertIn("GET_DISH", pot_probe.preferred_subgoals)
+
+    def test_probe_rejected_within_runtime_vocabulary(self):
+        # held-unneeded probes must not reject GET_TOMATO/GET_ONION, which the
+        # runtime pool cannot contain while the AI is holding the object.
+        onion_probe = next(
+            probe
+            for probe in DEFAULT_PROBES
+            if probe.name == "ai_holding_unneeded_onion_should_put_down"
+        )
+        self.assertNotIn("GET_ONION", onion_probe.rejected_subgoals)
+        self.assertNotIn("GET_TOMATO", onion_probe.rejected_subgoals)
+
+
+class TrainSplitTests(unittest.TestCase):
+    def _sample(
+        self,
+        feedback_id: str | None,
+        preferred: str = "GET_DISH",
+        rejected: str = "WAIT",
+        user_id: str = "PILOT01",
+    ) -> PairwiseSample:
+        return PairwiseSample(
+            user_id=user_id,
+            layout="ring_tomato_onion_test",
+            condition_features={"pot_cooking_or_ready": True},
+            preferred_subgoal=preferred,
+            rejected_subgoal=rejected,
+            decision_level=TASK_DECISION_LEVEL,
+            source_feedback_id=feedback_id,
+        )
+
+    def test_dedupe_against_train_skips_reused_feedback(self):
+        train = [
+            self._sample("chat_messages.csv:49"),
+            self._sample("chat_messages.csv:50"),
+        ]
+        test = [
+            self._sample("chat_messages.csv:49", preferred="GET_TOMATO"),
+            self._sample("chat_messages.csv:99"),
+        ]
+
+        result = dedupe_against_train(test, train)
+
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0].source_feedback_id, "chat_messages.csv:99")
+
+    def test_dedupe_keeps_all_when_no_train_ids(self):
+        train = [
+            self._sample(None),
+        ]
+        test = [
+            self._sample("chat_messages.csv:49"),
+            self._sample("chat_messages.csv:50"),
+        ]
+
+        result = dedupe_against_train(test, train)
+
+        self.assertEqual(len(result), 2)
+
+    def test_dedupe_samples_keeps_sibling_pairs_from_same_feedback(self):
+        # One feedback expands into several pairs; all are legitimate.
+        samples = [
+            self._sample(
+                "chat_messages.csv:49:2026-07-22T13:18:02.836+00:00",
+                preferred="PUT_TOMATO_IN_POT",
+                rejected="WAIT",
+            ),
+            self._sample(
+                "chat_messages.csv:49:2026-07-22T13:18:02.836+00:00",
+                preferred="PUT_TOMATO_IN_POT",
+                rejected="GET_TOMATO",
+            ),
+        ]
+
+        result = dedupe_samples(samples)
+
+        self.assertEqual(len(result), 2)
+
+    def test_dedupe_samples_drops_exact_duplicate_pair(self):
+        samples = [
+            self._sample("chat_messages.csv:49", preferred="GET_DISH"),
+            self._sample("chat_messages.csv:49", preferred="GET_DISH"),
+            self._sample("chat_messages.csv:50", preferred="GET_DISH"),
+        ]
+
+        result = dedupe_samples(samples)
+
+        self.assertEqual(len(result), 2)
+
+    def test_protocol_rejects_unseen_test_user(self):
+        train = [
+            self._sample("chat_messages.csv:1", user_id="PILOT01"),
+        ]
+        test = [
+            self._sample("chat_messages.csv:9", user_id="PILOT01"),
+            self._sample("chat_messages.csv:10", user_id="PILOT99"),
+        ]
+
+        with self.assertRaises(ValueError) as ctx:
+            check_participant_protocol(train, test)
+
+        self.assertIn("PILOT99", str(ctx.exception))
+
+    def test_protocol_warns_when_test_predates_train(self):
+        train = [
+            self._sample(
+                "chat_messages.csv:5:2026-07-22T14:00:00+00:00",
+                user_id="PILOT01",
+            ),
+        ]
+        test = [
+            self._sample(
+                "chat_messages.csv:2:2026-07-22T10:00:00+00:00",
+                user_id="PILOT01",
+            ),
+        ]
+
+        checks = check_participant_protocol(train, test)
+
+        self.assertTrue(checks["protocol_ok"])
+        self.assertEqual(len(checks["temporal_warnings"]), 1)
+
+    def test_evaluate_by_user_reports_each_user(self):
+        train = [
+            self._sample("chat_messages.csv:1", user_id="PILOT01"),
+            self._sample("chat_messages.csv:1", user_id="PILOT02"),
+        ]
+        test = [
+            self._sample("chat_messages.csv:9", user_id="PILOT01"),
+            self._sample("chat_messages.csv:10", user_id="PILOT02"),
+        ]
+        model = HierarchicalHu.from_samples(train)
+
+        metrics = evaluate_by_user(model, test)
+
+        self.assertEqual(sorted(metrics), ["PILOT01", "PILOT02"])
+        self.assertEqual(
+            metrics["PILOT01"]["task"]["samples"],
+            1,
+        )
+        self.assertEqual(
+            metrics["PILOT02"]["task"]["samples"],
+            1,
+        )
 
 
 if __name__ == "__main__":

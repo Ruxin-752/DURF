@@ -232,6 +232,21 @@ def build_training_samples(
             continue
         preferred = provenance.get("preferred_subgoals") or []
         rejected = provenance.get("rejected_subgoals") or []
+        # Coordination is a binary domain: a single-sided label identifies the
+        # other option as the rejected/preferred side by elimination.
+        if provenance.get("decision_level") == "coordination":
+            if preferred and not rejected:
+                rejected = [
+                    subgoal
+                    for subgoal in COORDINATION_SUBGOALS
+                    if subgoal not in preferred
+                ]
+            elif rejected and not preferred:
+                preferred = [
+                    subgoal
+                    for subgoal in COORDINATION_SUBGOALS
+                    if subgoal not in rejected
+                ]
         if not preferred or not rejected:
             continue
         for preferred_subgoal in preferred:

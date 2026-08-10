@@ -264,6 +264,26 @@ outputs/hu_models/hu_v0_pilot01/metadata.json
 哪个条件提升/压低了哪个 subgoal 的偏好分数？
 ```
 
+### 6.2.1 每个参与者独立 train/test
+
+评估协议是：同一参与者先玩一局收集训练数据 -> 训练 -> 同一人再玩一局，用第二局的数据做 test：
+
+```powershell
+python -m durf.hu.train_subgoal_reranker `
+  --dataset outputs\human_ai_sessions\<第一局 session> `
+  --test-dataset outputs\human_ai_sessions\<第二局 session> `
+  --output-dir outputs\hu_models\pilot01_eval `
+  --epochs 200
+```
+
+`--test-dataset` 强制 per-participant 协议：
+
+- test 里出现没有训练数据的 user 会直接报错（每个 test session 必须是同一参与者的后续对局）；
+- 如果某个 user 的 test 反馈时间早于其训练反馈时间，会在 `protocol_checks.temporal_warnings` 警告（很可能 `--dataset` / `--test-dataset` 传反了）；
+- 与训练数据复用同一 `source_feedback_id` 的样本会被剔除，不进入 test 指标（防止同一条反馈泄漏）。
+
+`metadata.json` 中除聚合的 `test_metrics_by_level` 外，还按参与者拆分输出 `test_metrics_by_user`，以及协议检查结果 `protocol_checks`（`protocol_ok`、`test_users_without_training_data`、`temporal_warnings`）。
+
 ### 6.3 用 Hu-v0 给候选 subgoals 打分
 
 推荐使用 `--condition-file`，避免 PowerShell JSON 引号问题：

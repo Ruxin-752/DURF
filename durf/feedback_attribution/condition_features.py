@@ -571,6 +571,11 @@ def extract_condition_features(step: dict[str, Any] | None) -> dict[str, Any]:
     if delta and human_before is not None and human_after is not None:
         attempted_target = add_pos(human_before, delta)
         target_was_ai = attempted_target in {ai_before, ai_after}
+        # Both features are derived from the attempted move: "trying to pass"
+        # is the active intent, "on the path" the geometric blocking fact.
+        # Online sim sessions further decouple these (path blocking persists
+        # across stationary steps); offline replay cannot reconstruct the
+        # human's last movement direction, so the two stay equal here.
         features["human_trying_to_pass"] = target_was_ai
         features["ai_on_human_path"] = target_was_ai
         terrain = (before.get("layout_features") or {}).get("terrain") or []

@@ -71,8 +71,16 @@ EVENT_SUBGOAL_DEFAULTS: dict[str, dict[str, list[str]]] = {
         "preferred": ["YIELD"],
         "rejected": ["CONTINUE_CURRENT_SUBGOAL"],
     },
+    "AI_failed_to_yield_or_clear_path": {
+        "preferred": ["YIELD"],
+        "rejected": ["CONTINUE_CURRENT_SUBGOAL"],
+    },
     "AI_successfully_yielded": {
         "preferred": ["YIELD"],
+        "rejected": [],
+    },
+    "AI_maintained_current_subgoal_during_conflict": {
+        "preferred": ["CONTINUE_CURRENT_SUBGOAL"],
         "rejected": [],
     },
     "AI_ignored_ready_or_nearly_ready_pot": {

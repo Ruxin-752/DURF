@@ -26,7 +26,7 @@
 }
 ```
 
-之后每次运行游戏或回放轨迹时，只要 condition 再次满足这个模式，就会记录一次 probe hit。这样我们可以比较：
+之后每次运行游戏或回放轨迹时，只要 condition 再次满足这个模式，就会记录一次 probe hit。同一个 probe 在同一个 episode 内默认至少间隔 3 帧（`--min-gap-steps`）才再次记录，避免高频刷屏。这样我们可以比较：
 
 ```text
 Hu 前：这个 probe 下 subgoal 排序是什么？
@@ -191,10 +191,19 @@ feedback -> attribution -> preferred_subgoal > rejected_subgoal
 Probe 评估使用：
 
 ```text
-trajectory step -> condition features -> probe hit -> subgoal ranking
+trajectory step -> condition features -> probe hit -> candidate ranking
 ```
 
 因此 probe 不是“靠用户反馈抓取”的，而是“由程序在轨迹中自动识别”的。
+
+## 候选池按 domain 读取
+
+每个 probe 声明自己的 `domain`（`task` 或 `coordination`），决定从哪份候选池读取评价依据：
+
+- **task probe** 读取 `ai_subgoal_candidates`（task head 的 subgoal 池），`chosen_subgoal` 取该步执行的 task subgoal；
+- **coordination probe** 读取 `coordination_decision.candidates`（协调选项池），`chosen_subgoal` 取 `coordination_decision.selected`。协调候选在构造时就绑定到具体低层动作，永远不会出现在 task 池中，因此不能从 `ai_subgoal_candidates` 读取——否则协调 probe 的 preferred/rejected 全部落空，评价静默空转。
+
+当 coordination probe 命中但该步没有 `coordination_decision` 记录（例如旧版运行时产物）时，hit 会输出 `evaluation.evaluation_unavailable=true`，而不是对一个空池做无意义的评价。统计 Hu 前后差异时，应忽略 `evaluation_unavailable=true` 的 hit，并单独报告其数量，作为数据覆盖不足的信号。
 
 ## 如何比较 Hu 前后
 

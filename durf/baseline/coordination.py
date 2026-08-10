@@ -26,6 +26,9 @@ COORDINATION_OPTIONS = (
 CONFLICT_HUMAN_ENTERING_AI_TILE = "human_entering_ai_tile"
 CONFLICT_CONTESTED_DESTINATION = "contested_destination"
 CONFLICT_AI_ENTERING_HUMAN_TILE = "ai_entering_human_tile"
+# The human's destination is free, but the AI occupies the tile just beyond
+# it along the human's motion direction, so the human would have to detour.
+CONFLICT_AI_BLOCKING_HUMAN_ROUTE = "ai_blocking_human_route"
 
 
 @dataclass
@@ -79,13 +82,32 @@ def path_conflict_type(
     ai_is_moving: bool,
     human_is_moving: bool,
 ) -> str | None:
-    """Classify immediate path conflicts without assigning normative value."""
+    """Classify immediate path conflicts without assigning normative value.
+
+    ``ai_blocking_human_route`` extends the trigger surface beyond instant
+    geometry: the human's destination itself is free, but the AI occupies the
+    tile just beyond it along the human's motion direction, so the human would
+    have to detour around the AI.  Without this case, "AI standing so the
+    human must route around it" never triggers a coordination decision and
+    coordination feedback is never collected.
+    """
     if human_is_moving and human_target == ai_pos:
         return CONFLICT_HUMAN_ENTERING_AI_TILE
     if human_is_moving and ai_is_moving and human_target == ai_target:
         return CONFLICT_CONTESTED_DESTINATION
     if ai_is_moving and ai_target == human_pos:
         return CONFLICT_AI_ENTERING_HUMAN_TILE
+    if human_is_moving and human_target != human_pos:
+        human_delta = (
+            human_target[0] - human_pos[0],
+            human_target[1] - human_pos[1],
+        )
+        step_after_target = (
+            human_target[0] + human_delta[0],
+            human_target[1] + human_delta[1],
+        )
+        if step_after_target == ai_pos:
+            return CONFLICT_AI_BLOCKING_HUMAN_ROUTE
     return None
 
 
@@ -95,26 +117,38 @@ def build_coordination_candidates(
     yield_action: int | None,
     stay_action: int,
     conflict_type: str,
+    ai_adjacent_to_current_subgoal_target: bool = False,
     yield_on_conflict_score: float = 1.0,
     continue_score: float = 0.0,
 ) -> list[CoordinationCandidate]:
     """Build the minimal executable coordination choice set.
 
-    The initial prior favors YIELD to reproduce the old polite wrapper when Hu
-    is disabled.  Hu may reverse this ordering.
+    The default prior favors YIELD to reproduce the old polite wrapper when Hu
+    is disabled.  When the AI is one step from completing its task subgoal
+    (``ai_adjacent_to_current_subgoal_target``), persistence beats politeness:
+    the human should route around, so the prior is reversed to prefer
+    CONTINUE_CURRENT_SUBGOAL.  Hu may still reverse either ordering.
     """
     effective_yield_action = stay_action if yield_action is None else yield_action
+    if ai_adjacent_to_current_subgoal_target:
+        continue_prior = yield_on_conflict_score
+        yield_prior = continue_score
+        continue_reason = f"continue_task_during_{conflict_type}_near_task_goal"
+    else:
+        continue_prior = continue_score
+        yield_prior = yield_on_conflict_score
+        continue_reason = f"continue_task_during_{conflict_type}"
     return [
         CoordinationCandidate(
             option=CONTINUE_CURRENT_SUBGOAL,
             action=proposed_action,
-            base_score=continue_score,
-            reason=f"continue_task_during_{conflict_type}",
+            base_score=continue_prior,
+            reason=continue_reason,
         ),
         CoordinationCandidate(
             option=YIELD,
             action=effective_yield_action,
-            base_score=yield_on_conflict_score,
+            base_score=yield_prior,
             reason=f"yield_during_{conflict_type}",
         ),
     ]
@@ -257,9 +291,9 @@ class CoordinationController:
             raise RuntimeError("Coordination decision lost active state")
 
         event = (
-            "AI_YIELDED_TO_HUMAN_PATH"
+            "AI_successfully_yielded"
             if selected.option == YIELD
-            else "AI_MAINTAINED_CURRENT_SUBGOAL_DURING_CONFLICT"
+            else "AI_maintained_current_subgoal_during_conflict"
         )
         return CoordinationResult(
             action=selected.action,

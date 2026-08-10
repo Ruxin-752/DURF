@@ -1048,6 +1048,7 @@ def main() -> int:
             "GET_DISH",
             "PICKUP_SOUP",
             "SERVE_SOUP",
+            "PUT_DOWN_OBJECT",
             "WAIT",
         }:
             return (
@@ -1261,15 +1262,23 @@ def main() -> int:
             return proposed_ai_action, "", {}
 
         condition_features = dict(condition_features)
-        condition_features["human_trying_to_pass"] = (
-            human_target == ai_pos
-        )
-        condition_features["ai_on_human_path"] = (
-            human_target == ai_pos
-        )
+        if action_moves(human_action):
+            human_delta = (
+                human_target[0] - human_pos[0],
+                human_target[1] - human_pos[1],
+            )
+            route_blocked = human_target == ai_pos or (
+                human_target[0] + human_delta[0],
+                human_target[1] + human_delta[1],
+            ) == ai_pos
+        else:
+            route_blocked = False
+        condition_features["human_trying_to_pass"] = route_blocked
+        condition_features["ai_on_human_path"] = route_blocked
         yield_action = (
             choose_yield_action(ai_pos, human_pos, human_target)
-            if conflict_type == "human_entering_ai_tile"
+            if conflict_type
+            in ("human_entering_ai_tile", "ai_blocking_human_route")
             else STAY
         )
         candidates = build_coordination_candidates(
@@ -1277,6 +1286,11 @@ def main() -> int:
             yield_action=yield_action,
             stay_action=STAY,
             conflict_type=conflict_type,
+            ai_adjacent_to_current_subgoal_target=bool(
+                condition_features.get(
+                    "ai_adjacent_to_current_subgoal_target"
+                )
+            ),
         )
 
         def coordination_hu_score(option: str) -> float:
