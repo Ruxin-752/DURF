@@ -12,7 +12,7 @@
 
 ## 1. Snapshot Identity
 
-Snapshot date: 2026-03-14 (progress notes refreshed after P0/P1/3 + 4b work).
+Snapshot date: 2026-08-10 (P0 checkpoint commit; freeze-v0/v1 batch committed).
 
 Repository root on the original workstation:
 
@@ -22,15 +22,15 @@ C:\Users\my185\Desktop\研究\durf\DURF
 
 Prefer repository-relative paths in code and documentation.
 
-Git state when this skill was created:
+Git state after P0 commit:
 
 ```text
-branch: dev/human-ai-feedback
-HEAD: 723426a Trim coordination vocabulary to runtime-constructible options
-origin/dev/human-ai-feedback: 1d8aa48 agent更智能
+branch: refactor/trim-coordination-vocabulary
+HEAD: 85f7b86 Checkpoint: freeze-v0/v1 config, sim-human pipeline, condition decoupling, per-participant protocol
+origin/dev/human-ai-feedback: c773cdc Implement hierarchical Hu pipeline and complete feedback data flow
 ```
 
-11 modified files are uncommitted (docs + detectors + coordination + play_with_baseline + hu trainer + tests). Run the snapshot script before work and never discard these changes.
+Working tree is clean. Previous uncommitted batch (freeze-v0, freeze-v1, sim pipeline, attribution keyword fixes, per-participant protocol, probe domain routing, event detector hardening) is now committed as `85f7b86`.
 
 ## 2. Completed Work
 
@@ -203,10 +203,10 @@ Do not report the validation model as a successful experimental Hu. It was train
 
 ## 4. Current Gaps
 
-### P0: repository safety
+### P0: repository safety ✅
 
-- Review the uncommitted batch, rerun tests, create a clean checkpoint commit, and push it.
-- Ensure model/output artifacts remain ignored unless deliberately packaged.
+- ~~Review the uncommitted batch, rerun tests, create a clean checkpoint commit, and push it.~~
+- **Done (2026-08-10)**: 56 focused tests pass. Full batch committed as `85f7b86` on `refactor/trim-coordination-vocabulary`. Working tree clean. Model/output artifacts remain `.gitignore`-d. Push pending.
 
 ### P1: real pilot data
 
@@ -251,8 +251,8 @@ Do not report the validation model as a successful experimental Hu. It was train
 
 Follow this order unless a newly discovered blocker changes it:
 
-1. Audit and commit the current implementation batch (freeze v0 + sim + attribution keyword fixes are uncommitted).
-2. Run sim sessions at scale (several seeds/personas) to grow coordination pairs, or switch to real pilot sessions; sessions must carry decision logs.
+1. ~~Audit and commit the current implementation batch.~~ **Done** (`85f7b86`, 2026-08-10).
+2. **← CURRENT**: Run sim sessions at scale (several seeds/personas) to grow coordination pairs, or switch to real pilot sessions; sessions must carry decision logs.
 3. Run offline attribution with LLM and review all pilot feedback.
 4. Rebuild reviewed Hu datasets and inspect domain/sample counts.
 5. Train hierarchical Hu (sim data first per user decision) and run offline probe scoring on decision-logged sessions.
@@ -260,7 +260,7 @@ Follow this order unless a newly discovered blocker changes it:
 7. Build the unified evaluation report.
 8. Implement the localized baseline; formal protocol is frozen in freeze-v0.
 
-Items 4b (per-participant split) and P0/P1/3 (probe/event alignment) are done in the uncommitted batch; freeze-v0 (2026-03-14) pins the experimental configuration before training; sim pipeline (synthetic_sim_human) produces usable coordination pairs.
+Per-participant split (4b), probe/event alignment (P0/P1/3), freeze-v0, freeze-v1, sim pipeline, and attribution keyword fixes are committed. sim_both_v1 coordination head at 0.923. Next bottleneck: coordination condition coverage (need reverse-preference data under same conditions for the coordination head).
 
 ## 6. Delivery Gates
 
