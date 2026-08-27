@@ -178,3 +178,7 @@ feedback_log.csv
 # Regenerable Route2 corpora / experiment intermediates (too large for GitHub)
 /baselines/baseline_b_linguistic_feedback/adapted_overcooked/data/route2_teacher_feedback.paper_v5.synthetic.json
 /baselines/baseline_b_linguistic_feedback/adapted_overcooked/outputs/route2/paper_aligned_36configs/dataset.json
+
+# The root Python packaging rule `lib/` must not hide the Web application source.
+!/web/lib/
+!/web/lib/**

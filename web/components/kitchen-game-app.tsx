@@ -34,6 +34,7 @@ import {
   type Direction,
   type GameState,
 } from '@/lib/game';
+import { shouldIgnoreGameHotkeys } from '@/lib/game-hotkeys';
 import {
   ResearchEventQueue,
   getOrCreateAnonymousUserId,
@@ -49,6 +50,7 @@ import {
   aggregateProbabilities,
   gameFeatureCounts,
   inferValence,
+  lowConfidenceRouteMessage,
   namedFeaturesFromText,
   splitFeedbackPhrases,
   toResearchPrediction,
@@ -62,6 +64,7 @@ interface VisiblePhrase {
 
 interface VisibleFeedback {
   utterance: string;
+  route: FeedbackRoute;
   phrases: VisiblePhrase[];
   outcome: string;
   trace: string;
@@ -134,7 +137,13 @@ function KitchenBoard({ game }: { game: GameState }) {
           {chefs.map((chef) => {
             const data = chef === 'player' ? game.player : game.partner;
             return (
-              <div className={`chef chef-${chef}`} key={chef} title={chef === 'player' ? '你' : 'AI伙伴'}>
+              <div
+                aria-label={`${chef === 'player' ? '你' : 'AI伙伴'}，面向${data.facing}，手持${itemLabel(data.held)}`}
+                className={`chef chef-${chef}`}
+                data-facing={data.facing}
+                key={chef}
+                title={chef === 'player' ? '你' : 'AI伙伴'}
+              >
                 <span className="chef-hat" />
                 <span className="chef-face" />
                 <span className="chef-body" />
@@ -178,8 +187,8 @@ function Controls({
   onInteract: () => void;
 }) {
   return (
-    <div className="controls" aria-label="游戏控制">
-      <div className="dpad">
+    <div className="controls" role="group" aria-label="游戏控制">
+      <div className="dpad" role="group" aria-label="移动方向">
         <button disabled={disabled} onClick={() => onMove('up')} aria-label="向上">▲</button>
         <button disabled={disabled} onClick={() => onMove('left')} aria-label="向左">◀</button>
         <button disabled={disabled} onClick={() => onMove('down')} aria-label="向下">▼</button>
@@ -200,8 +209,15 @@ function ProbabilityRows({ phrase }: { phrase: VisiblePhrase }) {
         const score = phrase.research.probabilities[label];
         return (
           <div className="probability-row" key={label}>
-            <span>{label.slice(0, 4)}</span>
-            <div className="probability-track">
+            <span>{LABEL_COPY[label].chinese}</span>
+            <div
+              aria-label={`${LABEL_COPY[label].chinese}概率 ${(score * 100).toFixed(1)}%`}
+              aria-valuemax={100}
+              aria-valuemin={0}
+              aria-valuenow={Number((score * 100).toFixed(1))}
+              className="probability-track"
+              role="progressbar"
+            >
               <i style={{ width: `${Math.max(1, score * 100)}%`, background: LABEL_COPY[label].color }} />
             </div>
             <strong>{(score * 100).toFixed(1)}%</strong>
@@ -293,8 +309,7 @@ export function KitchenGameApp() {
 
   useEffect(() => {
     const keyDown = (event: KeyboardEvent) => {
-      const target = event.target as HTMLElement | null;
-      if (target?.matches('input, textarea, select, button')) return;
+      if (shouldIgnoreGameHotkeys(event.target)) return;
       const directions: Record<string, Direction> = {
         w: 'up',
         arrowup: 'up',
@@ -438,7 +453,7 @@ export function KitchenGameApp() {
         trace = 'u + trajectory → 10模型集成 → 53维奖励向量 → 独立高斯精度2更新 w（fG仅诊断）';
       }
 
-      setVisibleFeedback({ utterance, phrases: visiblePhrases, outcome, trace, changedFeatures });
+      setVisibleFeedback({ utterance, route, phrases: visiblePhrases, outcome, trace, changedFeatures });
       const feedbackId = crypto.randomUUID();
       queueRef.current?.enqueue(
         'feedback',
@@ -481,6 +496,7 @@ export function KitchenGameApp() {
     } catch (error) {
       setVisibleFeedback({
         utterance,
+        route,
         phrases: [],
         outcome: `反馈处理失败：${error instanceof Error ? error.message : '未知错误'}`,
         trace: '未写入模型权重',
@@ -509,8 +525,8 @@ export function KitchenGameApp() {
           </div>
         </div>
         <div className="header-badges">
-          <span className={`status-pill status-${game.status}`}><i />{statusCopy}</span>
-          <span className={`model-pill model-${modelStatus}`}>
+          <span className={`status-pill status-${game.status}`} role="status" aria-live="polite"><i />{statusCopy}</span>
+          <span className={`model-pill model-${modelStatus}`} role="status" aria-live="polite">
             {modelStatus === 'loading' && '模型加载中…'}
             {modelStatus === 'ready' && '浏览器模型就绪'}
             {modelStatus === 'error' && '模型加载失败'}
@@ -554,7 +570,10 @@ export function KitchenGameApp() {
           <div className="consent-card">
             <h3>匿名研究同意</h3>
             <p>开始后仅收集匿名 UUID、游戏轨迹、文字反馈、三类概率与模型更新路径，用于改进研究模型。</p>
-            <p><strong>不收集</strong> IP、姓名或邮箱。可随时关闭页面退出。</p>
+            <p>
+              应用不会把原始 IP、姓名或邮箱写入研究数据表；托管平台可能保留必要的运维日志。
+              请勿在文字反馈中填写个人信息，可随时关闭页面停止继续收集。
+            </p>
             <label>
               <input
                 type="checkbox"
@@ -578,14 +597,14 @@ export function KitchenGameApp() {
             )}
           </div>
 
-          <div className={`sync-line sync-${syncStatus.state}`}>
+          <div className={`sync-line sync-${syncStatus.state}`} role="status" aria-live="polite">
             <i /> 数据队列：{syncStatus.state === 'synced' ? '已同步' : syncStatus.state === 'syncing' ? '同步中' : syncStatus.state === 'offline' ? '离线等待重试' : `${syncStatus.pending} 条待发送`}
           </div>
         </aside>
 
         <section className="game-column">
           <div className="game-toolbar">
-            <div>
+            <div role="status" aria-live="polite" aria-atomic="true">
               <span className="live-dot" />
               {game.lastAction}
             </div>
@@ -600,10 +619,10 @@ export function KitchenGameApp() {
           </div>
 
           {modelStatus === 'loading' && (
-            <div className="model-notice"><span className="pixel-loader" />正在加载三分类与 Route2 十模型集成，请稍候…</div>
+            <div className="model-notice" role="status" aria-live="polite"><span className="pixel-loader" />正在加载三分类与 Route2 十模型集成，请稍候…</div>
           )}
           {modelStatus === 'error' && (
-            <div className="model-notice notice-error">模型文件未能加载：{modelError}</div>
+            <div className="model-notice notice-error" role="alert">模型文件未能加载：{modelError}</div>
           )}
 
           <KitchenBoard game={game} />
@@ -667,7 +686,7 @@ export function KitchenGameApp() {
           )}
 
           {visibleFeedback && (
-            <div className="feedback-results" aria-live="polite">
+            <div className="feedback-results" role="status" aria-live="polite">
               {visibleFeedback.phrases.map((phrase, index) => {
                 const copy = LABEL_COPY[phrase.research.label];
                 return (
@@ -681,7 +700,7 @@ export function KitchenGameApp() {
                     <ProbabilityRows phrase={phrase} />
                     <p className={phrase.model.abstained ? 'confidence-warning' : 'confidence-ok'}>
                       {phrase.model.abstained
-                        ? `低于 ${(phrase.model.threshold * 100).toFixed(0)}% 阈值：Route1 不更新`
+                        ? lowConfidenceRouteMessage(visibleFeedback.route, phrase.model.threshold)
                         : `已校准置信度 · 阈值 ${(phrase.model.threshold * 100).toFixed(0)}%`}
                     </p>
                   </article>
@@ -704,7 +723,11 @@ export function KitchenGameApp() {
 
           <details className="privacy-details">
             <summary>数据与隐私说明</summary>
-            <p>事件按批次发送到 D1；event_id 幂等，断网时留在当前页面队列重试。数据包括 schema/model hash、完整概率和 route trace。研究导出接口仅接受管理员 Bearer Token。</p>
+            <p>
+              事件按批次发送到 D1；event_id 幂等，断网时留在当前页面内存队列重试。
+              数据包括 schema/model hash、完整概率和 route trace。安全限流只使用短期的网络地址哈希，
+              不保存或导出原始 IP；研究导出接口仅接受管理员 Bearer Token。
+            </p>
           </details>
         </aside>
       </section>

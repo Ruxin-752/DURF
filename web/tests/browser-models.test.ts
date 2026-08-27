@@ -134,7 +134,10 @@ describe("browser Route2 model parity", () => {
       time_cost: -0.4923825293779373,
       wrong_ingredient: -1.9088760972023011,
     };
-    const prediction = models.route2("Please take a dish instead.", new Array(53).fill(0));
+    const prediction = models.route2(
+      "Please take a dish instead.",
+      Array.from({ length: 53 }, () => 0),
+    );
     expect(Object.keys(prediction.weights)).toHaveLength(53);
     for (const [feature, value] of Object.entries(expected)) {
       expect(Math.abs(prediction.weights[feature] - value)).toBeLessThan(1e-5);

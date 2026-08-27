@@ -1,44 +1,86 @@
 import { env } from 'cloudflare:workers';
-import { persistResearchBatch } from '@/lib/db';
-import { allowAnonymousBatch } from '@/lib/rate-limit';
+import { persistResearchBatch, ResearchSessionConflictError } from '@/lib/db';
+import { readBoundedJson, validateResearchPostHeaders } from '@/lib/research-http';
+import {
+  clearResearchSessionCookie,
+  consumeResearchRateLimit,
+  researchRateLimitKey,
+  verifyResearchSessionToken,
+} from '@/lib/research-security';
 import { MAX_REQUEST_BYTES, parseResearchBatch } from '@/lib/validation';
 
-function json(body: unknown, status = 200): Response {
+const BATCHES_PER_SESSION_MINUTE = 40;
+const BATCHES_PER_NETWORK_MINUTE = 300;
+const MINUTE_MS = 60_000;
+
+function json(body: unknown, status = 200, headers?: HeadersInit): Response {
+  const responseHeaders = new Headers(headers);
+  responseHeaders.set('Cache-Control', 'no-store');
+  responseHeaders.set('X-Content-Type-Options', 'nosniff');
   return Response.json(body, {
     status,
-    headers: { 'Cache-Control': 'no-store' },
+    headers: responseHeaders,
   });
 }
 
 export async function POST(request: Request): Promise<Response> {
-  const contentLength = Number(request.headers.get('content-length') ?? 0);
-  if (contentLength > MAX_REQUEST_BYTES) return json({ error: '请求过大' }, 413);
+  const workerEnv = env as unknown as Env;
+  const headerCheck = validateResearchPostHeaders(request, workerEnv.SITE_ORIGIN);
+  if (!headerCheck.ok) return json({ error: headerCheck.error }, headerCheck.status);
 
-  const raw = await request.text();
-  if (new TextEncoder().encode(raw).byteLength > MAX_REQUEST_BYTES) {
-    return json({ error: '请求过大' }, 413);
-  }
-
-  let input: unknown;
-  try {
-    input = JSON.parse(raw);
-  } catch {
-    return json({ error: 'JSON 格式无效' }, 400);
-  }
-
-  const parsed = parseResearchBatch(input);
-  if (!parsed.ok) return json({ error: parsed.error }, 400);
-  if (!allowAnonymousBatch(parsed.value.session.anonymousUserId)) {
-    return json({ error: '提交过于频繁，请稍后重试' }, 429);
-  }
-
-  const database = (env as unknown as Env).DB;
+  const database = workerEnv.DB;
   if (!database) return json({ error: '研究数据库尚未绑定' }, 503);
 
+  const body = await readBoundedJson(request, MAX_REQUEST_BYTES);
+  if (!body.ok) return json({ error: body.error }, body.status);
+  const parsed = parseResearchBatch(body.value);
+  if (!parsed.ok) return json({ error: parsed.error }, 400);
+
   try {
+    const verified = await verifyResearchSessionToken(
+      database,
+      request,
+      parsed.value.session,
+    );
+    if (!verified.ok) {
+      return json(
+        { error: verified.error },
+        401,
+        { 'Set-Cookie': clearResearchSessionCookie() },
+      );
+    }
+
+    const now = Date.now();
+    const networkKey = await researchRateLimitKey(database, request, 'research-batch-network');
+    const networkRate = await consumeResearchRateLimit(
+      database,
+      networkKey,
+      BATCHES_PER_NETWORK_MINUTE,
+      MINUTE_MS,
+      now,
+    );
+    const sessionRate = await consumeResearchRateLimit(
+      database,
+      `research-batch-session:${verified.tokenHash}`,
+      BATCHES_PER_SESSION_MINUTE,
+      MINUTE_MS,
+      now,
+    );
+    if (!networkRate.allowed || !sessionRate.allowed) {
+      const resetAt = Math.max(networkRate.resetAt, sessionRate.resetAt);
+      return json(
+        { error: '提交过于频繁，请稍后重试' },
+        429,
+        { 'Retry-After': String(Math.max(1, Math.ceil((resetAt - now) / 1000))) },
+      );
+    }
+
     const result = await persistResearchBatch(database, parsed.value);
-    return json({ ok: true, ...result });
+    return json(result);
   } catch (error) {
+    if (error instanceof ResearchSessionConflictError) {
+      return json({ error: error.message }, 409);
+    }
     console.error('research batch persistence failed', error);
     return json({ error: '数据暂时无法保存，客户端会自动重试' }, 503);
   }

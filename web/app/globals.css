@@ -7,10 +7,10 @@
   --sand: #dfbf88;
   --wood: #8b4d32;
   --dark-wood: #502b26;
-  --pumpkin: #db6b36;
+  --pumpkin: #9b3f1c;
   --tomato: #c84437;
-  --berry: #a94859;
-  --sage: #4e8a73;
+  --berry: #96364a;
+  --sage: #2e6c56;
   --blue: #4a7695;
   --line: #c99d64;
   --shadow: 0 6px 0 #3f2421, 0 13px 30px rgb(45 24 20 / 18%);
@@ -575,6 +575,7 @@ button:not(:disabled):active {
 .kitchen-tile {
   position: relative;
   display: grid;
+  overflow: hidden;
   min-width: 0;
   place-items: center;
   border: 1px solid rgb(104 61 36 / 25%);
@@ -613,10 +614,20 @@ button:not(:disabled):active {
   text-shadow: 1px 1px #3f2421;
 }
 
+.station-mark > span:not(.station-icon) {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .station-mark small {
   position: absolute;
-  right: -4px;
-  bottom: -5px;
+  right: 0;
+  bottom: 0;
+  max-width: 100%;
+  overflow: hidden;
   padding: 2px;
   background: #fff1bd;
   color: #6d372d;
@@ -761,18 +772,22 @@ button:not(:disabled):active {
 .chef-name {
   position: absolute;
   z-index: 3;
-  right: -9%;
-  bottom: -13%;
+  right: 0;
+  bottom: 0;
+  max-width: 100%;
+  overflow: hidden;
   padding: 1px 2px;
   background: #3c2520;
   color: white;
   font-size: clamp(5px, .6vw, 8px);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .held-item {
   position: absolute;
   z-index: 5;
-  right: -10%;
+  right: 0;
   top: 45%;
   width: 26%;
   height: 22%;
@@ -977,12 +992,13 @@ kbd {
   grid-template-columns: 8px 1fr auto;
   align-items: center;
   gap: 7px;
-  font-size: 9px;
+  color: #4f3429;
+  font-size: 12px;
   font-weight: 800;
 }
 
 .classifier-key i { width: 8px; height: 8px; }
-.classifier-key small { color: #936d50; font-size: 8px; font-weight: 500; }
+.classifier-key small { color: #5f4032; font-size: 12px; font-weight: 600; }
 
 .empty-feedback {
   padding: 26px 16px;
@@ -1043,7 +1059,7 @@ kbd {
 .phrase-number,
 .update-card > span {
   color: #a27650;
-  font-size: 8px;
+  font-size: 11px;
   font-weight: 900;
   letter-spacing: .1em;
 }
@@ -1053,7 +1069,7 @@ kbd {
   padding-left: 8px;
   border-left: 3px solid #d49b55;
   font-family: system-ui, 'Microsoft YaHei', sans-serif;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.45;
 }
 
@@ -1061,7 +1077,7 @@ kbd {
   justify-content: space-between;
   gap: 8px;
   margin-bottom: 8px;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .prediction-line span { font-weight: 900; }
@@ -1074,21 +1090,21 @@ kbd {
 
 .probability-row {
   display: grid;
-  grid-template-columns: 35px minmax(0, 1fr) 42px;
+  grid-template-columns: 56px minmax(0, 1fr) 52px;
   align-items: center;
   gap: 6px;
-  color: #805b43;
-  font-size: 7px;
+  color: #5f4032;
+  font-size: 12px;
 }
 
 .probability-row strong {
   color: #5f4032;
   text-align: right;
-  font-size: 8px;
+  font-size: 12px;
 }
 
 .probability-track {
-  height: 7px;
+  height: 10px;
   border: 1px solid #8e674a;
   background: #e8d7b9;
 }
@@ -1102,7 +1118,8 @@ kbd {
 .confidence-ok {
   margin: 8px 0 0;
   padding: 5px 6px;
-  font-size: 8px;
+  font-size: 12px;
+  line-height: 1.5;
 }
 
 .confidence-warning { background: #f4c0a4; color: #8a322e; }
