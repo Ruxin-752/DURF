@@ -112,7 +112,7 @@ function mostChanged(delta: Record<string, number>): Array<[string, number]> {
 }
 
 function lowConfidenceCopy(threshold: number): string {
-  return `Below the calibrated ${(threshold * 100).toFixed(0)}% threshold. Treat this classification as uncertain.`;
+  return `Below the model's ${(threshold * 100).toFixed(0)}% decision threshold. Classification is uncertain.`;
 }
 
 function stationAt(x: number, y: number) {
@@ -726,7 +726,7 @@ export function KitchenGameApp() {
             <div className="empty-feedback">
               <div className="speech-pixels" aria-hidden="true"><i /><i /><i /></div>
               <h3>Phrase-by-phrase classifications appear here</h3>
-              <p>Each phrase shows all three probabilities, the top class, calibrated confidence, and any low-confidence warning.</p>
+              <p>Each phrase shows all three model scores, the top class, and any low-confidence warning.</p>
             </div>
           )}
 
@@ -749,7 +749,7 @@ export function KitchenGameApp() {
                     <p className={phrase.model.abstained ? 'confidence-warning' : 'confidence-ok'}>
                       {phrase.model.abstained
                         ? lowConfidenceCopy(phrase.model.threshold)
-                        : `Calibrated confidence · threshold ${(phrase.model.threshold * 100).toFixed(0)}%`}
+                        : `Model confidence · not measured accuracy · threshold ${(phrase.model.threshold * 100).toFixed(0)}%`}
                     </p>
                   </article>
                 );

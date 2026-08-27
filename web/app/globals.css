@@ -1297,10 +1297,12 @@ kbd {
 
 .feedback-results {
   display: grid;
+  min-width: 0;
   gap: 10px;
 }
 
 .phrase-card {
+  min-width: 0;
   padding: 11px;
   border: 2px solid #896143;
   background: #fffdf4;
@@ -1336,7 +1338,15 @@ kbd {
 }
 
 .prediction-line span { font-weight: 900; }
-.prediction-line strong { font-size: 15px; }
+.prediction-line span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.prediction-line strong {
+  flex: 0 0 auto;
+  font-size: 15px;
+  white-space: nowrap;
+}
 
 .probability-list {
   display: grid;
@@ -1345,20 +1355,29 @@ kbd {
 
 .probability-row {
   display: grid;
-  grid-template-columns: 56px minmax(0, 1fr) 52px;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 6px;
+  gap: 4px 10px;
   color: #5f4032;
   font-size: 12px;
+}
+
+.probability-row > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .probability-row strong {
   color: #5f4032;
   text-align: right;
   font-size: 12px;
+  white-space: nowrap;
 }
 
 .probability-track {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  min-width: 0;
   height: 10px;
   border: 1px solid #8e674a;
   background: #e8d7b9;
@@ -1373,6 +1392,7 @@ kbd {
 .confidence-ok {
   margin: 8px 0 0;
   padding: 5px 6px;
+  overflow-wrap: anywhere;
   font-size: 12px;
   line-height: 1.5;
 }
