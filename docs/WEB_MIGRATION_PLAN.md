@@ -1,5 +1,11 @@
 # DURF Web 迁移与远程数据闭环方案
 
+## 当前状态（2026-08-27）
+
+远程研究体验版已部署：[DURF 暖炉厨房实验室](https://durf-kitchen-lab-study.active-wren-5858.chatgpt.site)。当前版本用于尽快验证浏览器 UI、三分类、Route1/Route2 展示和匿名数据闭环；它使用浏览器 TypeScript 状态机与冻结模型导出。原地图的格子、设施和出生点逐字符锁定，Pygame 通道保持独立且测试通过。站点采用公开网址，不使用邮件邀请。
+
+当前体验版不等于 Python 环境的逐步动力学完全复刻。需要论文级线上实验时，下一阶段仍应按下文方案把 Python `OvercookedEnv + ComfortSubgoalAgent` 作为服务端权威状态；浏览器只负责输入与显示。这样既保留桌面 Pygame，也能让 Web 与训练代码共享同一条更新链。
+
 ## 结论
 
 推荐采用“浏览器只负责输入与像素渲染，Python 服务端负责权威状态、AI 推理和日志”的架构。不要把 Pygame、TensorFlow 或 RLlib 直接搬进浏览器，也不要把旧 Flask Demo 原样恢复。
