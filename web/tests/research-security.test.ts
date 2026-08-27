@@ -255,7 +255,7 @@ describe('current consent and batch identity validation', () => {
       },
       events: [event, { ...event, sequenceNumber: 1 }],
     });
-    expect(parsed).toMatchObject({ ok: false, error: '批次内 eventId 重复' });
+    expect(parsed).toMatchObject({ ok: false, error: 'Duplicate eventId in batch' });
   });
 });
 

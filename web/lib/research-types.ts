@@ -1,6 +1,6 @@
-export const SCHEMA_VERSION = 'durf-web-event-v1';
-export const CLIENT_VERSION = 'durf-kitchen-beta-0.1.0';
-export const CONSENT_VERSION = 'durf-anonymous-research-2026-08-20';
+export const SCHEMA_VERSION = 'durf-web-event-v2';
+export const CLIENT_VERSION = 'durf-kitchen-beta-0.2.0';
+export const CONSENT_VERSION = 'durf-anonymous-research-en-2026-08-27-v2';
 
 export type FeedbackLabel = 'Evaluative' | 'Imperative' | 'Descriptive';
 export type FeedbackRoute = 'route1' | 'route2';

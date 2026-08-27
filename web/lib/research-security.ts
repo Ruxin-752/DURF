@@ -224,19 +224,19 @@ export function validateStoredResearchSession(
   >,
   now = Date.now(),
 ): ResearchSessionVerification {
-  if (!row) return { ok: false, error: '匿名研究会话不存在' };
+  if (!row) return { ok: false, error: 'Anonymous research session not found' };
   if (row.revoked_at !== null || row.expires_at <= now) {
-    return { ok: false, error: '匿名研究会话已过期' };
+    return { ok: false, error: 'Anonymous research session has expired' };
   }
   if (row.consent_version !== CONSENT_VERSION || expected.consentVersion !== CONSENT_VERSION) {
-    return { ok: false, error: '同意书版本已更新，请重新确认' };
+    return { ok: false, error: 'The consent form has changed. Please confirm it again.' };
   }
   if (
     row.session_id !== expected.sessionId ||
     row.anonymous_user_id !== expected.anonymousUserId ||
     row.consented_at !== expected.consentedAt
   ) {
-    return { ok: false, error: '匿名研究会话与请求不匹配' };
+    return { ok: false, error: 'Anonymous research session does not match the request' };
   }
   return { ok: true, tokenHash: row.token_hash, expiresAt: row.expires_at };
 }
@@ -253,7 +253,7 @@ export async function verifyResearchSessionToken(
   await initializeDatabase(db);
   const token = cookieValue(request, RESEARCH_SESSION_COOKIE);
   if (!token || !/^[A-Za-z0-9_-]{43}$/u.test(token)) {
-    return { ok: false, error: '缺少有效的匿名研究会话' };
+    return { ok: false, error: 'A valid anonymous research session is required' };
   }
   const tokenHash = await sha256Hex(token);
   const row = await db

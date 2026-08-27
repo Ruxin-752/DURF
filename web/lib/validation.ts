@@ -46,38 +46,38 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function text(value: unknown, name: string, max: number): string {
   if (typeof value !== 'string' || value.length === 0 || value.length > max) {
-    throw new Error(`${name} 必须是 1-${max} 字符的字符串`);
+    throw new Error(`${name} must be a string with 1-${max} characters`);
   }
   return value;
 }
 
 function uuid(value: unknown, name: string): string {
   const parsed = text(value, name, 64);
-  if (!UUID_PATTERN.test(parsed)) throw new Error(`${name} 不是有效 UUID`);
+  if (!UUID_PATTERN.test(parsed)) throw new Error(`${name} is not a valid UUID`);
   return parsed;
 }
 
 function integer(value: unknown, name: string, min = 0): number {
   if (!Number.isSafeInteger(value) || (value as number) < min) {
-    throw new Error(`${name} 必须是大于等于 ${min} 的整数`);
+    throw new Error(`${name} must be an integer greater than or equal to ${min}`);
   }
   return value as number;
 }
 
 function timestamp(value: unknown, name: string, now = Date.now()): number {
   const parsed = integer(value, name, 1_500_000_000_000);
-  if (parsed > now + 86_400_000) throw new Error(`${name} 超出允许时间范围`);
+  if (parsed > now + 86_400_000) throw new Error(`${name} is outside the allowed time range`);
   return parsed;
 }
 
 function version(value: unknown, name: string): string {
   const parsed = text(value, name, 128);
-  if (!SAFE_VERSION_PATTERN.test(parsed)) throw new Error(`${name} 包含非法字符`);
+  if (!SAFE_VERSION_PATTERN.test(parsed)) throw new Error(`${name} contains invalid characters`);
   return parsed;
 }
 
 function assertNoSensitiveKeys(value: unknown, path = 'payload', depth = 0): void {
-  if (depth > 8) throw new Error(`${path} 嵌套过深`);
+  if (depth > 8) throw new Error(`${path} is nested too deeply`);
   if (Array.isArray(value)) {
     value.forEach((item, index) => assertNoSensitiveKeys(item, `${path}[${index}]`, depth + 1));
     return;
@@ -85,14 +85,14 @@ function assertNoSensitiveKeys(value: unknown, path = 'payload', depth = 0): voi
   if (!isRecord(value)) return;
   for (const [key, nested] of Object.entries(value)) {
     if (FORBIDDEN_KEYS.has(key.toLowerCase())) {
-      throw new Error(`${path} 不允许包含 ${key}`);
+      throw new Error(`${path} must not contain ${key}`);
     }
     assertNoSensitiveKeys(nested, `${path}.${key}`, depth + 1);
   }
 }
 
 function probabilities(value: unknown): FeedbackProbabilities {
-  if (!isRecord(value)) throw new Error('probabilities 必须是对象');
+  if (!isRecord(value)) throw new Error('probabilities must be an object');
   const result = {
     Evaluative: Number(value.Evaluative),
     Imperative: Number(value.Imperative),
@@ -100,21 +100,21 @@ function probabilities(value: unknown): FeedbackProbabilities {
   };
   for (const [label, score] of Object.entries(result)) {
     if (!Number.isFinite(score) || score < 0 || score > 1) {
-      throw new Error(`${label} 概率必须在 0 到 1 之间`);
+      throw new Error(`${label} probability must be between 0 and 1`);
     }
   }
   const sum = result.Evaluative + result.Imperative + result.Descriptive;
-  if (Math.abs(sum - 1) > 0.02) throw new Error('三类概率之和必须接近 1');
+  if (Math.abs(sum - 1) > 0.02) throw new Error('The three probabilities must sum to approximately 1');
   return result;
 }
 
 function phrase(value: unknown): PhraseResearchPrediction {
-  if (!isRecord(value)) throw new Error('phrase prediction 必须是对象');
+  if (!isRecord(value)) throw new Error('phrase prediction must be an object');
   const label = value.label as FeedbackLabel;
-  if (!LABELS.has(label)) throw new Error('phrase label 非法');
+  if (!LABELS.has(label)) throw new Error('phrase label is invalid');
   const confidence = Number(value.confidence);
   if (!Number.isFinite(confidence) || confidence < 0 || confidence > 1) {
-    throw new Error('phrase confidence 必须在 0 到 1 之间');
+    throw new Error('phrase confidence must be between 0 and 1');
   }
   return {
     phrase: text(value.phrase, 'phrase', 240),
@@ -126,13 +126,13 @@ function phrase(value: unknown): PhraseResearchPrediction {
 }
 
 function feedback(value: unknown): FeedbackRecord {
-  if (!isRecord(value)) throw new Error('feedback 必须是对象');
+  if (!isRecord(value)) throw new Error('feedback must be an object');
   const route = value.route as FeedbackRoute;
   const topLabel = value.topLabel as FeedbackLabel;
-  if (!ROUTES.has(route)) throw new Error('feedback route 非法');
-  if (!LABELS.has(topLabel)) throw new Error('feedback topLabel 非法');
+  if (!ROUTES.has(route)) throw new Error('feedback route is invalid');
+  if (!LABELS.has(topLabel)) throw new Error('feedback topLabel is invalid');
   if (!Array.isArray(value.phrases) || value.phrases.length < 1 || value.phrases.length > 12) {
-    throw new Error('feedback phrases 必须包含 1-12 个短语');
+    throw new Error('feedback phrases must contain 1-12 phrases');
   }
   return {
     feedbackId: uuid(value.feedbackId, 'feedbackId'),
@@ -149,9 +149,9 @@ function feedback(value: unknown): FeedbackRecord {
 }
 
 function session(value: unknown): SessionRecord {
-  if (!isRecord(value)) throw new Error('session 必须是对象');
+  if (!isRecord(value)) throw new Error('session must be an object');
   const summary = value.summary;
-  if (summary !== undefined && !isRecord(summary)) throw new Error('summary 必须是对象');
+  if (summary !== undefined && !isRecord(summary)) throw new Error('summary must be an object');
   if (summary) assertNoSensitiveKeys(summary, 'session.summary');
   return {
     sessionId: uuid(value.sessionId, 'sessionId'),
@@ -167,21 +167,21 @@ function session(value: unknown): SessionRecord {
 }
 
 function event(value: unknown, sessionId: string): ResearchEvent {
-  if (!isRecord(value)) throw new Error('event 必须是对象');
+  if (!isRecord(value)) throw new Error('event must be an object');
   const eventType = value.eventType as ResearchEventType;
-  if (!EVENT_TYPES.has(eventType)) throw new Error('eventType 非法');
-  if (!isRecord(value.payload)) throw new Error('event payload 必须是对象');
+  if (!EVENT_TYPES.has(eventType)) throw new Error('eventType is invalid');
+  if (!isRecord(value.payload)) throw new Error('event payload must be an object');
   assertNoSensitiveKeys(value.payload);
   const payloadJson = JSON.stringify(value.payload);
-  if (payloadJson.length > 16_384) throw new Error('event payload 过大');
+  if (payloadJson.length > 16_384) throw new Error('event payload is too large');
   const parsedSessionId = uuid(value.sessionId, 'event sessionId');
-  if (parsedSessionId !== sessionId) throw new Error('event sessionId 与批次不一致');
+  if (parsedSessionId !== sessionId) throw new Error('event sessionId does not match the batch');
   const modelHash =
     value.modelHash === undefined ? undefined : version(value.modelHash, 'event modelHash');
   const routeTrace =
     value.routeTrace === undefined ? undefined : text(value.routeTrace, 'event routeTrace', 512);
   const parsedFeedback = value.feedback === undefined ? undefined : feedback(value.feedback);
-  if (eventType === 'feedback' && !parsedFeedback) throw new Error('feedback 事件缺少反馈记录');
+  if (eventType === 'feedback' && !parsedFeedback) throw new Error('feedback event is missing its feedback record');
   return {
     eventId: uuid(value.eventId, 'eventId'),
     sessionId: parsedSessionId,
@@ -199,22 +199,22 @@ function event(value: unknown, sessionId: string): ResearchEvent {
 
 export function parseResearchBatch(value: unknown): ValidationResult<ResearchBatch> {
   try {
-    if (!isRecord(value)) throw new Error('请求体必须是对象');
+    if (!isRecord(value)) throw new Error('Request body must be an object');
     const parsedSession = session(value.session);
     if (!Array.isArray(value.events) || value.events.length < 1) {
-      throw new Error('events 不能为空');
+      throw new Error('events must not be empty');
     }
     if (value.events.length > MAX_BATCH_EVENTS) {
-      throw new Error(`每批最多 ${MAX_BATCH_EVENTS} 个事件`);
+      throw new Error(`Each batch may contain at most ${MAX_BATCH_EVENTS} events`);
     }
     const events = value.events.map((item) => event(item, parsedSession.sessionId));
     const sequenceNumbers = new Set(events.map((item) => item.sequenceNumber));
-    if (sequenceNumbers.size !== events.length) throw new Error('批次内 sequenceNumber 重复');
+    if (sequenceNumbers.size !== events.length) throw new Error('Duplicate sequenceNumber in batch');
     const eventIds = new Set(events.map((item) => item.eventId));
-    if (eventIds.size !== events.length) throw new Error('批次内 eventId 重复');
+    if (eventIds.size !== events.length) throw new Error('Duplicate eventId in batch');
     return { ok: true, value: { session: parsedSession, events } };
   } catch (error) {
-    return { ok: false, error: error instanceof Error ? error.message : '请求无效' };
+    return { ok: false, error: error instanceof Error ? error.message : 'Invalid request' };
   }
 }
 
@@ -223,12 +223,12 @@ export function parseResearchSessionGrant(
   now = Date.now(),
 ): ValidationResult<ResearchSessionGrantRequest> {
   try {
-    if (!isRecord(value)) throw new Error('请求体必须是对象');
+    if (!isRecord(value)) throw new Error('Request body must be an object');
     const consentVersion = version(value.consentVersion, 'consentVersion');
-    if (consentVersion !== CONSENT_VERSION) throw new Error('同意书版本已更新，请重新确认');
+    if (consentVersion !== CONSENT_VERSION) throw new Error('The consent form has changed. Please confirm it again.');
     const consentedAt = timestamp(value.consentedAt, 'consentedAt', now);
     if (consentedAt < now - MAX_CONSENT_AGE_MS || consentedAt > now + 60_000) {
-      throw new Error('同意时间无效，请重新确认');
+      throw new Error('Consent time is invalid. Please confirm it again.');
     }
     return {
       ok: true,
@@ -240,6 +240,6 @@ export function parseResearchSessionGrant(
       },
     };
   } catch (error) {
-    return { ok: false, error: error instanceof Error ? error.message : '请求无效' };
+    return { ok: false, error: error instanceof Error ? error.message : 'Invalid request' };
   }
 }

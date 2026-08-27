@@ -29,7 +29,7 @@ export async function POST(request: Request): Promise<Response> {
   if (!headerCheck.ok) return json({ error: headerCheck.error }, headerCheck.status);
 
   const database = workerEnv.DB;
-  if (!database) return json({ error: '研究数据库尚未绑定' }, 503);
+  if (!database) return json({ error: 'The research database is not configured' }, 503);
 
   const body = await readBoundedJson(request, MAX_REQUEST_BYTES);
   if (!body.ok) return json({ error: body.error }, body.status);
@@ -69,7 +69,7 @@ export async function POST(request: Request): Promise<Response> {
     if (!networkRate.allowed || !sessionRate.allowed) {
       const resetAt = Math.max(networkRate.resetAt, sessionRate.resetAt);
       return json(
-        { error: '提交过于频繁，请稍后重试' },
+        { error: 'Too many submissions. Please try again later.' },
         429,
         { 'Retry-After': String(Math.max(1, Math.ceil((resetAt - now) / 1000))) },
       );
@@ -82,6 +82,6 @@ export async function POST(request: Request): Promise<Response> {
       return json({ error: error.message }, 409);
     }
     console.error('research batch persistence failed', error);
-    return json({ error: '数据暂时无法保存，客户端会自动重试' }, 503);
+    return json({ error: 'Data could not be saved. The client will retry automatically.' }, 503);
   }
 }

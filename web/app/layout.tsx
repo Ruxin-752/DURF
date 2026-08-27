@@ -3,7 +3,7 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: 'DURF Kitchen Lab',
-  description: '匿名语言反馈研究与合作厨房游戏 beta',
+  description: 'Anonymous language-feedback research and cooperative kitchen game beta',
 };
 
 export const viewport: Viewport = {
@@ -16,7 +16,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="zh-CN">
+    <html lang="en">
       <body>{children}</body>
     </html>
   );

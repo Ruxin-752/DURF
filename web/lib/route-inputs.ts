@@ -1,4 +1,4 @@
-import type { GameState } from './game';
+import { ROUND_SECONDS, type GameState } from './game';
 import type {
   FeedbackFormPrediction,
   FeedbackLabel as ModelFeedbackLabel,
@@ -40,8 +40,8 @@ export function lowConfidenceRouteMessage(
 ): string {
   const percent = (threshold * 100).toFixed(0);
   return route === 'route2'
-    ? `低于 ${percent}% 阈值：fG 仅作诊断，Route2 仍按十模型输出更新；只有 Route1 会拒绝。`
-    : `低于 ${percent}% 阈值：Route1 拒绝整句且不更新；Route2 不由 fG 门控。`;
+    ? `Below the ${percent}% threshold: fG is diagnostic only. Route 2 still updates from the 10-model ensemble; only Route 1 rejects it.`
+    : `Below the ${percent}% threshold: Route 1 rejects the whole utterance and does not update. Route 2 is not gated by fG.`;
 }
 
 export function toResearchPrediction(
@@ -91,14 +91,24 @@ export function inferValence(text: string): number {
 }
 
 export function gameFeatureCounts(state: GameState): Record<string, number> {
+  const pickedItem = (item: 'tomato' | 'onion' | 'dish' | 'soup'): number =>
+    Number(
+      state.lastStepEvents.some(
+        (event) =>
+          event.code === `pick_${item}` ||
+          (event.code === 'pickup_counter' && event.item === item),
+      ),
+    );
+
   return {
     ingredient_tomato:
       Number(state.player.held === 'tomato') + Number(state.partner.held === 'tomato'),
     ingredient_onion:
       Number(state.player.held === 'onion') + Number(state.partner.held === 'onion'),
-    pick_tomato: Number(state.lastAction.includes('拿了番茄')),
-    pick_onion: Number(state.lastAction.includes('拿了洋葱')),
-    pick_dish: Number(state.lastAction.includes('拿了盘子')),
+    pick_tomato: pickedItem('tomato'),
+    pick_onion: pickedItem('onion'),
+    pick_dish: pickedItem('dish'),
+    pick_ready_soup: pickedItem('soup'),
     pot_empty: Number(state.pot.stage === 'empty'),
     pot_cooking: Number(state.pot.stage === 'cooking'),
     pot_has_one_tomato: Number(state.pot.tomatoes === 1),
@@ -107,10 +117,12 @@ export function gameFeatureCounts(state: GameState): Record<string, number> {
       state.pot.tomatoes === 2 && state.pot.onions === 1,
     ),
     soup_ready: Number(state.pot.stage === 'ready'),
-    serve_ready_soup: Number(state.lastAction.includes('完成一份')),
+    serve_ready_soup: Number(
+      state.lastStepEvents.some((event) => event.code === 'serve_correct_soup'),
+    ),
     supports_serving: Number(state.partner.held === 'soup'),
     completes_recipe: Number(state.ordersCompleted > 0),
-    time_cost: (90 - state.secondsLeft) / 90,
+    time_cost: (ROUND_SECONDS - state.secondsLeft) / ROUND_SECONDS,
     distance_cost: 0,
   };
 }

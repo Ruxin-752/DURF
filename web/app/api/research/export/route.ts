@@ -14,14 +14,14 @@ export async function GET(request: Request): Promise<Response> {
   const workerEnv = env as unknown as Env;
   const expected = workerEnv.ADMIN_EXPORT_TOKEN;
   if (!expected) {
-    return Response.json({ error: 'ADMIN_EXPORT_TOKEN 尚未配置' }, { status: 503 });
+    return Response.json({ error: 'ADMIN_EXPORT_TOKEN is not configured' }, { status: 503 });
   }
 
   const authorization = request.headers.get('authorization') ?? '';
   const provided = authorization.startsWith('Bearer ') ? authorization.slice(7) : '';
   if (!tokensMatch(provided, expected)) {
     return Response.json(
-      { error: '未授权' },
+      { error: 'Unauthorized' },
       {
         status: 401,
         headers: { 'WWW-Authenticate': 'Bearer', 'Cache-Control': 'no-store' },
@@ -29,7 +29,7 @@ export async function GET(request: Request): Promise<Response> {
     );
   }
   if (!workerEnv.DB) {
-    return Response.json({ error: '研究数据库尚未绑定' }, { status: 503 });
+    return Response.json({ error: 'The research database is not configured' }, { status: 503 });
   }
 
   const jsonl = await exportTrainingJsonl(workerEnv.DB);

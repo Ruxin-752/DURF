@@ -22,16 +22,18 @@ import {
 import {
   BOARD_HEIGHT,
   BOARD_WIDTH,
+  STEPS_PER_SECOND,
   STATIONS,
   TERRAIN_ROWS,
+  chooseAiAction,
+  counterKey,
   createGameState,
-  interactPlayer,
   itemLabel,
-  movePlayer,
   startGame,
-  tickGame,
+  stepGame,
   togglePause,
   type Direction,
+  type GameAction,
   type GameState,
 } from '@/lib/game';
 import { shouldIgnoreGameHotkeys } from '@/lib/game-hotkeys';
@@ -72,9 +74,9 @@ interface VisibleFeedback {
 }
 
 const LABEL_COPY = {
-  Evaluative: { name: 'Evaluative', chinese: '评价型', color: 'var(--berry)' },
-  Imperative: { name: 'Imperative', chinese: '指令型', color: 'var(--pumpkin)' },
-  Descriptive: { name: 'Descriptive', chinese: '描述型', color: 'var(--sage)' },
+  Evaluative: { name: 'Evaluative', color: 'var(--berry)' },
+  Imperative: { name: 'Imperative', color: 'var(--pumpkin)' },
+  Descriptive: { name: 'Descriptive', color: 'var(--sage)' },
 } as const;
 
 const EMPTY_SYNC: QueueStatus = { pending: 0, state: 'idle' };
@@ -86,6 +88,20 @@ function gameSummary(game: GameState): Record<string, unknown> {
     secondsRemaining: game.secondsLeft,
     finalStatus: game.status,
     finalTick: game.tick,
+  };
+}
+
+function gameStateSnapshot(game: GameState): Record<string, unknown> {
+  return {
+    status: game.status,
+    tick: game.tick,
+    score: game.score,
+    ordersCompleted: game.ordersCompleted,
+    secondsLeft: game.secondsLeft,
+    player: game.player,
+    partner: game.partner,
+    pot: game.pot,
+    counterObjects: game.counterObjects,
   };
 }
 
@@ -109,6 +125,7 @@ function KitchenBoard({ game }: { game: GameState }) {
       const station = stationAt(x, y);
       const terrain = TERRAIN_ROWS[y][x];
       const isCounter = terrain === 'X';
+      const counterObject = game.counterObjects[counterKey({ x, y })];
       const chefs = [
         game.player.x === x && game.player.y === y ? 'player' : null,
         game.partner.x === x && game.partner.y === y ? 'partner' : null,
@@ -117,7 +134,7 @@ function KitchenBoard({ game }: { game: GameState }) {
         <div
           className={`kitchen-tile ${isCounter ? 'counter-tile' : ''} ${station ? `station-${station.kind}` : ''}`}
           key={`${x}-${y}`}
-          aria-label={station?.label}
+          aria-label={station?.label ?? (counterObject ? `Counter holding ${itemLabel(counterObject.item)}` : isCounter ? 'Counter' : undefined)}
         >
           {station && (
             <div className="station-mark" title={station.label}>
@@ -126,28 +143,35 @@ function KitchenBoard({ game }: { game: GameState }) {
               {station.kind === 'pot' && game.pot.stage !== 'empty' && (
                 <small>
                   {game.pot.stage === 'ready'
-                    ? '好了'
+                    ? 'READY'
                     : game.pot.stage === 'filling'
                       ? `${game.pot.tomatoes}T${game.pot.onions}O`
-                      : `${game.pot.secondsRemaining}s`}
+                      : `${Math.ceil(game.pot.secondsRemaining / STEPS_PER_SECOND)}s`}
                 </small>
               )}
             </div>
+          )}
+          {counterObject && (
+            <span
+              className={`counter-object item-${counterObject.item}`}
+              aria-label={`${itemLabel(counterObject.item)} on counter`}
+              title={`${itemLabel(counterObject.item)} on counter`}
+            />
           )}
           {chefs.map((chef) => {
             const data = chef === 'player' ? game.player : game.partner;
             return (
               <div
-                aria-label={`${chef === 'player' ? '你' : 'AI伙伴'}，面向${data.facing}，手持${itemLabel(data.held)}`}
+                aria-label={`${chef === 'player' ? 'You' : 'AI partner'}, facing ${data.facing}, holding ${itemLabel(data.held)}`}
                 className={`chef chef-${chef}`}
                 data-facing={data.facing}
                 key={chef}
-                title={chef === 'player' ? '你' : 'AI伙伴'}
+                title={chef === 'player' ? 'You' : 'AI partner'}
               >
                 <span className="chef-hat" />
                 <span className="chef-face" />
                 <span className="chef-body" />
-                <span className="chef-name">{chef === 'player' ? '你' : 'AI'}</span>
+                <span className="chef-name">{chef === 'player' ? 'YOU' : 'AI'}</span>
                 {data.held && <span className={`held-item item-${data.held}`} />}
               </div>
             );
@@ -162,7 +186,7 @@ function KitchenBoard({ game }: { game: GameState }) {
       <div
         className="kitchen-board"
         role="img"
-        aria-label="合作厨房游戏地图"
+        aria-label="Cooperative kitchen game board"
         style={{
           gridTemplateColumns: `repeat(${BOARD_WIDTH}, minmax(0, 1fr))`,
           aspectRatio: `${BOARD_WIDTH} / ${BOARD_HEIGHT}`,
@@ -170,8 +194,14 @@ function KitchenBoard({ game }: { game: GameState }) {
       >
         {tiles}
       </div>
+      {game.status === 'paused' && (
+        <div className="pause-overlay" role="status" aria-live="assertive">
+          <strong>PAUSED</strong>
+          <span>Press P or Resume to continue</span>
+        </div>
+      )}
       <div className="board-legend" aria-hidden="true">
-        <span>番茄 T</span><i /> <span>洋葱 O</span><i /> <span>锅 P</span><i /> <span>盘 D</span><i /> <span>出餐 S</span>
+        <span>Tomato T</span><i /> <span>Onion O</span><i /> <span>Pot P</span><i /> <span>Dish D</span><i /> <span>Serve S</span>
       </div>
     </div>
   );
@@ -187,16 +217,16 @@ function Controls({
   onInteract: () => void;
 }) {
   return (
-    <div className="controls" role="group" aria-label="游戏控制">
-      <div className="dpad" role="group" aria-label="移动方向">
-        <button disabled={disabled} onClick={() => onMove('up')} aria-label="向上">▲</button>
-        <button disabled={disabled} onClick={() => onMove('left')} aria-label="向左">◀</button>
-        <button disabled={disabled} onClick={() => onMove('down')} aria-label="向下">▼</button>
-        <button disabled={disabled} onClick={() => onMove('right')} aria-label="向右">▶</button>
+    <div className="controls" role="group" aria-label="Game controls">
+      <div className="dpad" role="group" aria-label="Movement direction">
+        <button disabled={disabled} onClick={() => onMove('up')} aria-label="Move up">▲</button>
+        <button disabled={disabled} onClick={() => onMove('left')} aria-label="Move left">◀</button>
+        <button disabled={disabled} onClick={() => onMove('down')} aria-label="Move down">▼</button>
+        <button disabled={disabled} onClick={() => onMove('right')} aria-label="Move right">▶</button>
       </div>
       <button className="action-button" disabled={disabled} onClick={onInteract}>
         <span>SPACE</span>
-        操作
+        INTERACT
       </button>
     </div>
   );
@@ -209,9 +239,9 @@ function ProbabilityRows({ phrase }: { phrase: VisiblePhrase }) {
         const score = phrase.research.probabilities[label];
         return (
           <div className="probability-row" key={label}>
-            <span>{LABEL_COPY[label].chinese}</span>
+            <span>{LABEL_COPY[label].name}</span>
             <div
-              aria-label={`${LABEL_COPY[label].chinese}概率 ${(score * 100).toFixed(1)}%`}
+              aria-label={`${LABEL_COPY[label].name} probability ${(score * 100).toFixed(1)}%`}
               aria-valuemax={100}
               aria-valuemin={0}
               aria-valuenow={Number((score * 100).toFixed(1))}
@@ -243,6 +273,7 @@ export function KitchenGameApp() {
   const queueRef = useRef<ResearchEventQueue | null>(null);
   const route1Ref = useRef<FullGaussianState | null>(null);
   const route2Ref = useRef<IndependentGaussianState | null>(null);
+  const pendingHumanActionRef = useRef<GameAction>('stay');
 
   useEffect(() => {
     let cancelled = false;
@@ -256,7 +287,7 @@ export function KitchenGameApp() {
       })
       .catch((error) => {
         if (cancelled) return;
-        setModelError(error instanceof Error ? error.message : '未知加载错误');
+        setModelError(error instanceof Error ? error.message : 'Unknown loading error');
         setModelStatus('error');
       });
     return () => {
@@ -294,15 +325,28 @@ export function KitchenGameApp() {
     [],
   );
 
+  const queueHumanAction = useCallback(
+    (action: GameAction, eventType: 'move' | 'interact') => {
+      const current = gameRef.current;
+      if (current.status !== 'running') return;
+      pendingHumanActionRef.current = action;
+      queueRef.current?.enqueue(eventType, {
+        requestedAction: action,
+        scheduledForTick: current.tick + 1,
+      });
+    },
+    [],
+  );
   const handleMove = useCallback(
-    (direction: Direction) => commitGame((current) => movePlayer(current, direction), 'move'),
-    [commitGame],
+    (direction: Direction) => queueHumanAction(direction, 'move'),
+    [queueHumanAction],
   );
   const handleInteract = useCallback(
-    () => commitGame(interactPlayer, 'interact'),
-    [commitGame],
+    () => queueHumanAction('interact', 'interact'),
+    [queueHumanAction],
   );
   const handlePause = useCallback(() => {
+    pendingHumanActionRef.current = 'stay';
     const type = gameRef.current.status === 'running' ? 'pause' : 'resume';
     commitGame(togglePause, type);
   }, [commitGame]);
@@ -329,6 +373,7 @@ export function KitchenGameApp() {
         handleInteract();
       } else if (key === 'p') {
         event.preventDefault();
+        if (event.repeat) return;
         handlePause();
       }
     };
@@ -340,25 +385,28 @@ export function KitchenGameApp() {
     if (game.status !== 'running') return;
     const timer = window.setInterval(() => {
       const previous = gameRef.current;
-      const next = tickGame(previous);
+      if (previous.status !== 'running') return;
+      const humanAction = pendingHumanActionRef.current;
+      pendingHumanActionRef.current = 'stay';
+      const aiAction = chooseAiAction(previous);
+      const next = stepGame(previous, aiAction, humanAction);
       gameRef.current = next;
       setGame(next);
-      if (next.tick % 5 === 0 || next.status === 'finished') {
-        queueRef.current?.enqueue('tick_summary', {
-          tick: next.tick,
-          secondsLeft: next.secondsLeft,
-          score: next.score,
-          ordersCompleted: next.ordersCompleted,
-          player: { x: next.player.x, y: next.player.y, held: next.player.held },
-          partner: { x: next.partner.x, y: next.partner.y, held: next.partner.held },
-          pot: next.pot,
-          featureCounts: gameFeatureCounts(next),
-        });
-      }
+      queueRef.current?.enqueue('tick_summary', {
+        tick: next.tick,
+        requestedJointActions: { ai: aiAction, human: humanAction },
+        executedJointActions: { ai: aiAction, human: humanAction },
+        stateBefore: gameStateSnapshot(previous),
+        stateAfter: gameStateSnapshot(next),
+        reward: next.score - previous.score,
+        done: next.status === 'finished',
+        stepEvents: next.lastStepEvents,
+        featureCounts: gameFeatureCounts(next),
+      });
       if (previous.status === 'running' && next.status === 'finished') {
         queueRef.current?.end(gameSummary(next));
       }
-    }, 1_000);
+    }, 1_000 / STEPS_PER_SECOND);
     return () => window.clearInterval(timer);
   }, [game.status]);
 
@@ -369,6 +417,7 @@ export function KitchenGameApp() {
     queueRef.current = queue;
     route1Ref.current = createFullGaussianPrior(models.features);
     route2Ref.current = createIndependentGaussianPrior(models.features);
+    pendingHumanActionRef.current = 'stay';
     const next = startGame(createGameState());
     gameRef.current = next;
     setGame(next);
@@ -437,11 +486,11 @@ export function KitchenGameApp() {
           ? 'feedback_form_low_confidence'
           : results.find((result) => result.status === 'rejected')?.reason;
         outcome = rejected
-          ? `Route1 未改权重：${reason ?? 'grounding_rejected'}`
-          : `Route1 已按论文链路更新 ${results.length} 个短语`;
+          ? `Route 1 did not update the weights: ${reason ?? 'grounding_rejected'}`
+          : `Route 1 updated ${results.length} phrase${results.length === 1 ? '' : 's'} through the paper-aligned pipeline`;
         trace = rejected
-          ? `u → fG(低置信/拒绝:${reason ?? 'unknown'}) → 不更新 w`
-          : '每个短语 u → fG(三类) → f(轨迹/动作/命名特征) → 各自 ζ → 统一贝叶斯更新 w；任一拒绝则整句回滚';
+          ? `u → fG (low confidence/rejected: ${reason ?? 'unknown'}) → no update to w`
+          : 'For each phrase: u → fG (3 classes) → f (trajectory/action/named features) → phrase-specific ζ → one Bayesian update to w. Any rejection rolls back the whole utterance.';
       } else {
         const prior = route2Ref.current ?? createIndependentGaussianPrior(models.features);
         const prediction = models.route2(utterance, gameFeatureCounts(gameRef.current));
@@ -449,8 +498,8 @@ export function KitchenGameApp() {
         route2Ref.current = result.state;
         updaterModelHash = prediction.modelHash;
         changedFeatures = mostChanged(result.delta);
-        outcome = `Route2 的 ${prediction.ensembleSize} 个模型已更新全部 ${models.features.length} 维权重`;
-        trace = 'u + trajectory → 10模型集成 → 53维奖励向量 → 独立高斯精度2更新 w（fG仅诊断）';
+        outcome = `Route 2 used ${prediction.ensembleSize} models to update all ${models.features.length} reward weights`;
+        trace = 'u + trajectory → 10-model ensemble → 53D reward vector → independent-Gaussian update with precision 2 (fG is diagnostic only).';
       }
 
       setVisibleFeedback({ utterance, route, phrases: visiblePhrases, outcome, trace, changedFeatures });
@@ -498,8 +547,8 @@ export function KitchenGameApp() {
         utterance,
         route,
         phrases: [],
-        outcome: `反馈处理失败：${error instanceof Error ? error.message : '未知错误'}`,
-        trace: '未写入模型权重',
+        outcome: `Feedback processing failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        trace: 'No model weights were changed.',
         changedFeatures: [],
       });
     } finally {
@@ -508,10 +557,10 @@ export function KitchenGameApp() {
   };
 
   const statusCopy = {
-    waiting: '等待开始',
-    running: '营业中',
-    paused: '已暂停',
-    finished: '本轮结束',
+    waiting: 'Waiting to start',
+    running: 'Shift running',
+    paused: 'Paused',
+    finished: 'Shift complete',
   }[game.status];
 
   return (
@@ -521,15 +570,15 @@ export function KitchenGameApp() {
           <span className="brand-mark" aria-hidden="true"><i /><i /><i /></span>
           <div>
             <p>DURF RESEARCH BETA</p>
-            <h1>暖炉厨房实验室</h1>
+            <h1>DURF Kitchen Lab</h1>
           </div>
         </div>
         <div className="header-badges">
           <span className={`status-pill status-${game.status}`} role="status" aria-live="polite"><i />{statusCopy}</span>
           <span className={`model-pill model-${modelStatus}`} role="status" aria-live="polite">
-            {modelStatus === 'loading' && '模型加载中…'}
-            {modelStatus === 'ready' && '浏览器模型就绪'}
-            {modelStatus === 'error' && '模型加载失败'}
+            {modelStatus === 'loading' && 'Loading models…'}
+            {modelStatus === 'ready' && 'Browser models ready'}
+            {modelStatus === 'error' && 'Model loading failed'}
           </span>
         </div>
       </header>
@@ -538,41 +587,41 @@ export function KitchenGameApp() {
         <aside className="panel mission-panel">
           <div className="panel-heading">
             <p>SHIFT BOARD</p>
-            <h2>本轮任务</h2>
+            <h2>Round Mission</h2>
           </div>
 
           <div className="score-grid">
-            <div><span>得分</span><strong>{game.score}</strong></div>
-            <div><span>剩余</span><strong className={game.secondsLeft <= 15 ? 'urgent' : ''}>{game.secondsLeft}s</strong></div>
+            <div><span>Score</span><strong>{game.score}</strong></div>
+            <div><span>Time left</span><strong className={game.secondsLeft <= 15 ? 'urgent' : ''}>{game.secondsLeft}s</strong></div>
           </div>
 
           <div className="order-ticket">
             <div className="ticket-pin" />
-            <span>当前订单 #{game.ordersCompleted + 1}</span>
+            <span>Current order #{game.ordersCompleted + 1}</span>
             <div className="soup-pixel" aria-hidden="true"><i /><i /><i /></div>
-            <h3>番茄洋葱汤</h3>
+            <h3>Tomato-Onion Soup</h3>
             <ol>
-              <li><b>1</b> 两个番茄入锅</li>
-              <li><b>2</b> 一个洋葱入锅</li>
-              <li><b>3</b> 等待烹煮完成</li>
-              <li><b>4</b> 拿盘盛汤并出餐</li>
+              <li><b>1</b> Add two tomatoes</li>
+              <li><b>2</b> Add one onion</li>
+              <li><b>3</b> Wait until cooked</li>
+              <li><b>4</b> Plate and serve the soup</li>
             </ol>
-            <p>完成奖励 +100 分 · 加时 5 秒</p>
+            <p>Correct delivery reward: +20 points</p>
           </div>
 
           <div className="crew-status">
-            <h3>协作状态</h3>
-            <div><span className="mini-chef mini-player" />你 <strong>{itemLabel(game.player.held)}</strong></div>
-            <div><span className="mini-chef mini-ai" />AI伙伴 <strong>{itemLabel(game.partner.held)}</strong></div>
-            <div><span className={`mini-pot pot-${game.pot.stage}`} />汤锅 <strong>{game.pot.stage === 'empty' ? '空' : game.pot.stage === 'filling' ? `${game.pot.tomatoes}番茄 ${game.pot.onions}洋葱` : game.pot.stage === 'ready' ? '已煮好' : `烹煮 ${game.pot.secondsRemaining}s`}</strong></div>
+            <h3>Team Status</h3>
+            <div><span className="mini-chef mini-player" />You <strong>{itemLabel(game.player.held)}</strong></div>
+            <div><span className="mini-chef mini-ai" />AI partner <strong>{itemLabel(game.partner.held)}</strong></div>
+            <div><span className={`mini-pot pot-${game.pot.stage}`} />Pot <strong>{game.pot.stage === 'empty' ? 'Empty' : game.pot.stage === 'filling' ? `${game.pot.tomatoes} tomato, ${game.pot.onions} onion` : game.pot.stage === 'ready' ? 'Ready' : `Cooking · ${Math.ceil(game.pot.secondsRemaining / STEPS_PER_SECOND)}s`}</strong></div>
           </div>
 
           <div className="consent-card">
-            <h3>匿名研究同意</h3>
-            <p>开始后仅收集匿名 UUID、游戏轨迹、文字反馈、三类概率与模型更新路径，用于改进研究模型。</p>
+            <h3>Anonymous Research Consent</h3>
+            <p>After you start, we collect an anonymous UUID, game trajectories, text feedback, three-class probabilities, and model-update traces to improve the research models.</p>
             <p>
-              应用不会把原始 IP、姓名或邮箱写入研究数据表；托管平台可能保留必要的运维日志。
-              请勿在文字反馈中填写个人信息，可随时关闭页面停止继续收集。
+              The app does not write raw IP addresses, names, or email addresses to the research tables. The hosting platform may retain necessary operational logs.
+              Do not include personal information in feedback. Close the page at any time to stop further collection.
             </p>
             <label>
               <input
@@ -581,24 +630,24 @@ export function KitchenGameApp() {
                 onChange={(event) => setConsented(event.target.checked)}
                 disabled={game.status !== 'waiting'}
               />
-              <span>我已阅读并自愿同意匿名研究数据收集</span>
+              <span>I have read this notice and voluntarily consent to anonymous research data collection.</span>
             </label>
             <button
               className="primary-button"
               onClick={beginRound}
               disabled={!consented || modelStatus !== 'ready' || game.status !== 'waiting'}
             >
-              开始营业
+              Start Shift
             </button>
             {modelStatus === 'error' && (
               <button className="text-button" onClick={() => window.location.reload()}>
-                重试加载模型
+                Retry model loading
               </button>
             )}
           </div>
 
           <div className={`sync-line sync-${syncStatus.state}`} role="status" aria-live="polite">
-            <i /> 数据队列：{syncStatus.state === 'synced' ? '已同步' : syncStatus.state === 'syncing' ? '同步中' : syncStatus.state === 'offline' ? '离线等待重试' : `${syncStatus.pending} 条待发送`}
+            <i /> Data queue: {syncStatus.state === 'synced' ? 'Synced' : syncStatus.state === 'syncing' ? 'Syncing' : syncStatus.state === 'offline' ? 'Offline — retrying' : `${syncStatus.pending} pending`}
           </div>
         </aside>
 
@@ -610,28 +659,28 @@ export function KitchenGameApp() {
             </div>
             <div className="toolbar-actions">
               <button onClick={handlePause} disabled={!['running', 'paused'].includes(game.status)}>
-                {game.status === 'paused' ? '继续' : '暂停'}
+                {game.status === 'paused' ? 'Resume' : 'Pause'}
               </button>
               <button onClick={beginRound} disabled={!consented || modelStatus !== 'ready'}>
-                重新开局
+                Restart
               </button>
             </div>
           </div>
 
           {modelStatus === 'loading' && (
-            <div className="model-notice" role="status" aria-live="polite"><span className="pixel-loader" />正在加载三分类与 Route2 十模型集成，请稍候…</div>
+            <div className="model-notice" role="status" aria-live="polite"><span className="pixel-loader" />Loading the three-class model and Route 2 ensemble…</div>
           )}
           {modelStatus === 'error' && (
-            <div className="model-notice notice-error" role="alert">模型文件未能加载：{modelError}</div>
+            <div className="model-notice notice-error" role="alert">Model files could not be loaded: {modelError}</div>
           )}
 
           <KitchenBoard game={game} />
           {game.status === 'finished' && (
             <div className="round-result" role="status">
               <span>SHIFT COMPLETE</span>
-              <strong>{game.score} 分</strong>
-              <p>完成 {game.ordersCompleted} 份订单</p>
-              <button onClick={beginRound}>再来一轮</button>
+              <strong>{game.score} points</strong>
+              <p>{game.ordersCompleted} order{game.ordersCompleted === 1 ? '' : 's'} completed</p>
+              <button onClick={beginRound}>Play again</button>
             </div>
           )}
 
@@ -640,48 +689,48 @@ export function KitchenGameApp() {
             onMove={handleMove}
             onInteract={handleInteract}
           />
-          <p className="keyboard-help"><kbd>WASD</kbd> / <kbd>方向键</kbd> 移动 · <kbd>Space</kbd> 操作 · <kbd>P</kbd> 暂停</p>
+          <p className="keyboard-help"><kbd>WASD</kbd> / <kbd>Arrow keys</kbd> move · <kbd>Space</kbd> interact · <kbd>P</kbd> pause</p>
         </section>
 
         <aside className="panel feedback-panel">
           <div className="panel-heading">
             <p>LANGUAGE FEEDBACK</p>
-            <h2>对 AI 说一句话</h2>
+            <h2>Say Something to the AI</h2>
           </div>
 
-          <div className="route-switch" role="radiogroup" aria-label="反馈更新路线">
+          <div className="route-switch" role="radiogroup" aria-label="Feedback update route">
             <button className={route === 'route1' ? 'active' : ''} onClick={() => setRoute('route1')} role="radio" aria-checked={route === 'route1'}>
-              <b>Route 1</b><span>论文解耦链路</span>
+              <b>Route 1</b><span>Paper-aligned decoupled pipeline</span>
             </button>
             <button className={route === 'route2' ? 'active' : ''} onClick={() => setRoute('route2')} role="radio" aria-checked={route === 'route2'}>
-              <b>Route 2</b><span>10 模型集成</span>
+              <b>Route 2</b><span>10-model ensemble</span>
             </button>
           </div>
 
           <form className="feedback-form" onSubmit={submitFeedback}>
-            <label htmlFor="feedback-input">反馈内容（最多 500 字）</label>
+            <label htmlFor="feedback-input">Feedback (up to 500 characters)</label>
             <textarea
               id="feedback-input"
               maxLength={500}
               value={feedbackText}
               onChange={(event) => setFeedbackText(event.target.value)}
-              placeholder="例如：That last route was bad. Please take a dish instead."
+              placeholder="Example: That last route was bad. Please take a dish instead."
               disabled={game.status === 'waiting' || modelStatus !== 'ready'}
             />
-            <div><span>{feedbackText.length}/500</span><button disabled={!feedbackText.trim() || processingFeedback || game.status === 'waiting'}>{processingFeedback ? '分析中…' : '分析并更新'}</button></div>
+            <div><span>{feedbackText.length}/500</span><button disabled={!feedbackText.trim() || processingFeedback || game.status === 'waiting'}>{processingFeedback ? 'Analyzing…' : 'Analyze and update'}</button></div>
           </form>
 
           <div className="classifier-key">
             {(Object.keys(LABEL_COPY) as Array<keyof typeof LABEL_COPY>).map((label) => (
-              <span key={label}><i style={{ background: LABEL_COPY[label].color }} />{LABEL_COPY[label].name}<small>{LABEL_COPY[label].chinese}</small></span>
+              <span key={label}><i style={{ background: LABEL_COPY[label].color }} />{LABEL_COPY[label].name}</span>
             ))}
           </div>
 
           {!visibleFeedback && (
             <div className="empty-feedback">
               <div className="speech-pixels" aria-hidden="true"><i /><i /><i /></div>
-              <h3>逐短语分类会显示在这里</h3>
-              <p>每个短语都显示三类完整概率、最高类别、校准置信度和低置信提示。</p>
+              <h3>Phrase-by-phrase classifications appear here</h3>
+              <p>Each phrase shows all three probabilities, the top class, calibrated confidence, and any low-confidence warning.</p>
             </div>
           )}
 
@@ -691,17 +740,17 @@ export function KitchenGameApp() {
                 const copy = LABEL_COPY[phrase.research.label];
                 return (
                   <article className={`phrase-card ${phrase.model.abstained ? 'low-confidence' : ''}`} key={`${phrase.research.phrase}-${index}`}>
-                    <div className="phrase-number">短语 {index + 1}</div>
+                    <div className="phrase-number">Phrase {index + 1}</div>
                     <blockquote>{phrase.research.phrase}</blockquote>
                     <div className="prediction-line">
-                      <span style={{ color: copy.color }}>{copy.name} · {copy.chinese}</span>
+                      <span style={{ color: copy.color }}>{copy.name}</span>
                       <strong>{(phrase.model.confidence * 100).toFixed(1)}%</strong>
                     </div>
                     <ProbabilityRows phrase={phrase} />
                     <p className={phrase.model.abstained ? 'confidence-warning' : 'confidence-ok'}>
                       {phrase.model.abstained
                         ? lowConfidenceRouteMessage(visibleFeedback.route, phrase.model.threshold)
-                        : `已校准置信度 · 阈值 ${(phrase.model.threshold * 100).toFixed(0)}%`}
+                        : `Calibrated confidence · threshold ${(phrase.model.threshold * 100).toFixed(0)}%`}
                     </p>
                   </article>
                 );
@@ -722,11 +771,11 @@ export function KitchenGameApp() {
           )}
 
           <details className="privacy-details">
-            <summary>数据与隐私说明</summary>
+            <summary>Data and privacy</summary>
             <p>
-              事件按批次发送到 D1；event_id 幂等，断网时留在当前页面内存队列重试。
-              数据包括 schema/model hash、完整概率和 route trace。安全限流只使用短期的网络地址哈希，
-              不保存或导出原始 IP；研究导出接口仅接受管理员 Bearer Token。
+              Events are batched to D1. Idempotent event IDs prevent duplicate writes, and offline events stay in this page&apos;s memory queue for retry.
+              Records include schema/model hashes, full probabilities, and route traces. Abuse protection uses only a short-lived network-address hash.
+              Raw IP addresses are not stored or exported, and the research export endpoint requires an administrator Bearer token.
             </p>
           </details>
         </aside>
@@ -734,7 +783,7 @@ export function KitchenGameApp() {
 
       <footer>
         <span>DURF Kitchen Lab · Research Beta</span>
-        <span>原创 CSS 像素美术 · 未使用 Overcooked/Team17 素材</span>
+        <span>Original CSS pixel art · No Overcooked or Team17 assets used</span>
       </footer>
     </main>
   );

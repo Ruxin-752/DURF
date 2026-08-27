@@ -24,7 +24,7 @@ export async function POST(request: Request): Promise<Response> {
   if (!headerCheck.ok) return json({ error: headerCheck.error }, headerCheck.status);
 
   const database = workerEnv.DB;
-  if (!database) return json({ error: '研究数据库尚未绑定' }, 503);
+  if (!database) return json({ error: 'The research database is not configured' }, 503);
 
   const body = await readBoundedJson(request, MAX_SESSION_REQUEST_BYTES);
   if (!body.ok) return json({ error: body.error }, body.status);
@@ -43,7 +43,7 @@ export async function POST(request: Request): Promise<Response> {
     );
     if (!rate.allowed) {
       return json(
-        { error: '匿名研究会话创建过于频繁，请稍后重试' },
+        { error: 'Too many anonymous research sessions. Please try again later.' },
         429,
         { 'Retry-After': String(Math.max(1, Math.ceil((rate.resetAt - now) / 1000))) },
       );
@@ -62,6 +62,6 @@ export async function POST(request: Request): Promise<Response> {
     );
   } catch (error) {
     console.error('research session issuance failed', error);
-    return json({ error: '匿名研究会话暂时无法创建，请稍后重试' }, 503);
+    return json({ error: 'The anonymous research session could not be created. Please try again later.' }, 503);
   }
 }

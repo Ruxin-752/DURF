@@ -103,7 +103,7 @@ export function initializeDatabase(db: D1Database): Promise<void> {
 
 export class ResearchSessionConflictError extends Error {
   constructor() {
-    super('session_id 已存在且会话元数据不一致');
+    super('session_id already exists with different session metadata');
     this.name = 'ResearchSessionConflictError';
   }
 }
