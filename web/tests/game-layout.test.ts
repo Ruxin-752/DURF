@@ -6,6 +6,7 @@ import {
   BOARD_WIDTH,
   COOK_TIME_STEPS,
   CORRECT_SOUP_REWARD,
+  GAME_STEP_INTERVAL_MS,
   PLAYER_STARTS,
   ROUND_SECONDS,
   ROUND_STEPS,
@@ -104,6 +105,7 @@ describe('immutable original Overcooked layout geometry', () => {
   it('keeps the Pygame episode timing and recipe constants', () => {
     expect(ROUND_STEPS).toBe(800);
     expect(STEPS_PER_SECOND).toBe(2);
+    expect(GAME_STEP_INTERVAL_MS).toBe(500);
     expect(ROUND_SECONDS).toBe(400);
     expect(COOK_TIME_STEPS).toBe(20);
     expect(CORRECT_SOUP_REWARD).toBe(20);
@@ -111,6 +113,14 @@ describe('immutable original Overcooked layout geometry', () => {
 });
 
 describe('Pygame-compatible joint environment steps', () => {
+  it('moves AI and human by at most one tile in the same 500 ms step', () => {
+    const initial = createGameState('running');
+    const state = stepGame(initial, 'right', 'right');
+    expect([state.partner.x, state.partner.y]).toEqual([4, 1]);
+    expect([state.player.x, state.player.y]).toEqual([7, 1]);
+    expect(state.tick).toBe(1);
+  });
+
   it('resolves same-cell and swap collisions by keeping both positions', () => {
     const initial = createGameState('running');
     const sameCell = stepGame(

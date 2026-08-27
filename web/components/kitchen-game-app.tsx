@@ -22,6 +22,7 @@ import {
 import {
   BOARD_HEIGHT,
   BOARD_WIDTH,
+  GAME_STEP_INTERVAL_MS,
   STEPS_PER_SECOND,
   STATIONS,
   TERRAIN_ROWS,
@@ -36,7 +37,11 @@ import {
   type GameAction,
   type GameState,
 } from '@/lib/game';
-import { shouldIgnoreGameHotkeys } from '@/lib/game-hotkeys';
+import {
+  humanActionForJointStep,
+  movementDirectionForKey,
+  shouldIgnoreGameHotkeys,
+} from '@/lib/game-hotkeys';
 import {
   ResearchEventQueue,
   getOrCreateAnonymousUserId,
@@ -274,6 +279,7 @@ export function KitchenGameApp() {
   const route1Ref = useRef<FullGaussianState | null>(null);
   const route2Ref = useRef<IndependentGaussianState | null>(null);
   const pendingHumanActionRef = useRef<GameAction>('stay');
+  const pressedHumanMovementKeysRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     let cancelled = false;
@@ -347,6 +353,7 @@ export function KitchenGameApp() {
   );
   const handlePause = useCallback(() => {
     pendingHumanActionRef.current = 'stay';
+    pressedHumanMovementKeysRef.current.clear();
     const type = gameRef.current.status === 'running' ? 'pause' : 'resume';
     commitGame(togglePause, type);
   }, [commitGame]);
@@ -354,20 +361,15 @@ export function KitchenGameApp() {
   useEffect(() => {
     const keyDown = (event: KeyboardEvent) => {
       if (shouldIgnoreGameHotkeys(event.target)) return;
-      const directions: Record<string, Direction> = {
-        w: 'up',
-        arrowup: 'up',
-        a: 'left',
-        arrowleft: 'left',
-        s: 'down',
-        arrowdown: 'down',
-        d: 'right',
-        arrowright: 'right',
-      };
       const key = event.key.toLowerCase();
-      if (directions[key]) {
+      const direction = movementDirectionForKey(key);
+      if (direction) {
         event.preventDefault();
-        handleMove(directions[key]);
+        if (!event.repeat) {
+          pressedHumanMovementKeysRef.current.delete(key);
+          pressedHumanMovementKeysRef.current.add(key);
+          handleMove(direction);
+        }
       } else if (event.code === 'Space') {
         event.preventDefault();
         handleInteract();
@@ -377,8 +379,21 @@ export function KitchenGameApp() {
         handlePause();
       }
     };
+    const keyUp = (event: KeyboardEvent) => {
+      const key = event.key.toLowerCase();
+      if (movementDirectionForKey(key)) {
+        pressedHumanMovementKeysRef.current.delete(key);
+      }
+    };
+    const clearHeldMovement = () => pressedHumanMovementKeysRef.current.clear();
     window.addEventListener('keydown', keyDown);
-    return () => window.removeEventListener('keydown', keyDown);
+    window.addEventListener('keyup', keyUp);
+    window.addEventListener('blur', clearHeldMovement);
+    return () => {
+      window.removeEventListener('keydown', keyDown);
+      window.removeEventListener('keyup', keyUp);
+      window.removeEventListener('blur', clearHeldMovement);
+    };
   }, [handleInteract, handleMove, handlePause]);
 
   useEffect(() => {
@@ -386,7 +401,10 @@ export function KitchenGameApp() {
     const timer = window.setInterval(() => {
       const previous = gameRef.current;
       if (previous.status !== 'running') return;
-      const humanAction = pendingHumanActionRef.current;
+      const humanAction = humanActionForJointStep(
+        pendingHumanActionRef.current,
+        pressedHumanMovementKeysRef.current,
+      );
       pendingHumanActionRef.current = 'stay';
       const aiAction = chooseAiAction(previous);
       const next = stepGame(previous, aiAction, humanAction);
@@ -406,7 +424,7 @@ export function KitchenGameApp() {
       if (previous.status === 'running' && next.status === 'finished') {
         queueRef.current?.end(gameSummary(next));
       }
-    }, 1_000 / STEPS_PER_SECOND);
+    }, GAME_STEP_INTERVAL_MS);
     return () => window.clearInterval(timer);
   }, [game.status]);
 
@@ -418,6 +436,7 @@ export function KitchenGameApp() {
     route1Ref.current = createFullGaussianPrior(models.features);
     route2Ref.current = createIndependentGaussianPrior(models.features);
     pendingHumanActionRef.current = 'stay';
+    pressedHumanMovementKeysRef.current.clear();
     const next = startGame(createGameState());
     gameRef.current = next;
     setGame(next);

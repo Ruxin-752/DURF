@@ -20,6 +20,7 @@ export const BOARD_WIDTH = 10;
 export const BOARD_HEIGHT = 6;
 export const ROUND_STEPS = 800;
 export const STEPS_PER_SECOND = 2;
+export const GAME_STEP_INTERVAL_MS = 1_000 / STEPS_PER_SECOND;
 export const ROUND_SECONDS = ROUND_STEPS / STEPS_PER_SECOND;
 export const COOK_TIME_STEPS = 20;
 export const CORRECT_SOUP_REWARD = 20;
