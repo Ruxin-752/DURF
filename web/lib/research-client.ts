@@ -51,8 +51,9 @@ export class ResearchEventQueue {
     anonymousUserId: string,
     private readonly onStatus?: (status: QueueStatus) => void,
     private readonly fetcher: FetchLike = (input, init) => fetch(input, init),
+    consentedAt = Date.now(),
   ) {
-    const now = Date.now();
+    const now = consentedAt;
     this.sessionId = crypto.randomUUID();
     this.anonymousUserId = anonymousUserId;
     this.session = {
@@ -67,7 +68,7 @@ export class ResearchEventQueue {
     this.timer = setInterval(() => void this.flush(), FLUSH_INTERVAL_MS);
     this.enqueue('session_start', {
       consentVersion: CONSENT_VERSION,
-      privacyMode: 'anonymous-no-raw-ip-no-email',
+      privacyMode: 'pseudonymous-no-raw-ip-no-email',
     });
     void this.ensureResearchSession().catch(() => this.report('offline'));
   }

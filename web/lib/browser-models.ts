@@ -140,6 +140,21 @@ export interface BrowserModels {
   route2(text: string, featureCounts?: number[] | Record<string, number>): Route2Prediction;
 }
 
+interface BrowserModelManifestEntry {
+  path: string;
+  sha256: string;
+}
+
+interface BrowserModelManifest {
+  schema_version: "durf-browser-model-manifest-v1";
+  models: {
+    feedback_form: BrowserModelManifestEntry;
+    route2: BrowserModelManifestEntry;
+  };
+}
+
+type FetchLike = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+
 const ASCII_PUNCTUATION = /[!"#$%&()*+,\-./:;<=>?@[\\\]^_`{|}~]/g;
 const NUMBER_WORDS: Record<string, string> = {
   "0": "zero",
@@ -466,18 +481,77 @@ export function createBrowserModels(
 
 let modelPromise: Promise<BrowserModels> | null = null;
 
+const MODEL_PATH_PATTERN = /^\/models\/[A-Za-z0-9._-]+\.json$/u;
+const SHA256_PATTERN = /^[0-9a-f]{64}$/u;
+
+function modelUrl(baseUrl: string, path: string): string {
+  if (!MODEL_PATH_PATTERN.test(path)) throw new Error("model manifest path is invalid");
+  return `${baseUrl.replace(/\/$/u, "")}${path}`;
+}
+
+async function sha256Hex(bytes: ArrayBuffer): Promise<string> {
+  if (!globalThis.crypto?.subtle) {
+    throw new Error("SHA-256 verification is unavailable in this browser");
+  }
+  const digest = await globalThis.crypto.subtle.digest("SHA-256", bytes);
+  return [...new Uint8Array(digest)]
+    .map((value) => value.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+async function fetchJsonWithHash<T>(
+  baseUrl: string,
+  entry: BrowserModelManifestEntry,
+  label: string,
+  fetcher: FetchLike,
+): Promise<T> {
+  if (!SHA256_PATTERN.test(entry.sha256)) {
+    throw new Error(`${label} model hash is invalid`);
+  }
+  const response = await fetcher(modelUrl(baseUrl, entry.path), { cache: "no-store" });
+  if (!response.ok) throw new Error(`failed to load ${label} model`);
+  const bytes = await response.arrayBuffer();
+  const actualHash = await sha256Hex(bytes);
+  if (actualHash !== entry.sha256) throw new Error(`${label} model hash mismatch`);
+  return JSON.parse(new TextDecoder().decode(bytes)) as T;
+}
+
+export async function loadBrowserModelsFromManifest(
+  baseUrl = "",
+  fetcher: FetchLike = (input, init) => fetch(input, init),
+): Promise<BrowserModels> {
+  const response = await fetcher(`${baseUrl.replace(/\/$/u, "")}/models/manifest.json`, {
+    cache: "no-store",
+  });
+  if (!response.ok) throw new Error("failed to load browser model manifest");
+  const manifest = (await response.json()) as BrowserModelManifest;
+  if (
+    manifest.schema_version !== "durf-browser-model-manifest-v1" ||
+    !manifest.models?.feedback_form ||
+    !manifest.models?.route2
+  ) {
+    throw new Error("unsupported browser model manifest");
+  }
+  const [feedback, route2] = await Promise.all([
+    fetchJsonWithHash<FeedbackArtifact>(
+      baseUrl,
+      manifest.models.feedback_form,
+      "feedback-form",
+      fetcher,
+    ),
+    fetchJsonWithHash<Route2Artifact>(
+      baseUrl,
+      manifest.models.route2,
+      "Route2",
+      fetcher,
+    ),
+  ]);
+  return createBrowserModels(feedback, route2);
+}
+
 export function loadBrowserModels(baseUrl = ""): Promise<BrowserModels> {
   if (!modelPromise) {
-    modelPromise = Promise.all([
-      fetch(`${baseUrl}/models/feedback-form-v3.json`).then((response) => {
-        if (!response.ok) throw new Error("failed to load feedback-form model");
-        return response.json() as Promise<FeedbackArtifact>;
-      }),
-      fetch(`${baseUrl}/models/route2-v5.json`).then((response) => {
-        if (!response.ok) throw new Error("failed to load Route2 model");
-        return response.json() as Promise<Route2Artifact>;
-      }),
-    ]).then(([feedback, route2]) => createBrowserModels(feedback, route2));
+    modelPromise = loadBrowserModelsFromManifest(baseUrl);
   }
   return modelPromise;
 }

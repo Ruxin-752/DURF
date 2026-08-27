@@ -9,6 +9,7 @@ import {
   createBrowserModels,
   createFullGaussianPrior,
   createIndependentGaussianPrior,
+  loadBrowserModelsFromManifest,
   route2Tokenize,
 } from "../lib/browser-models";
 
@@ -20,6 +21,47 @@ const route2Artifact = JSON.parse(
   readFileSync(join(root, "public", "models", "route2-v5.json"), "utf8"),
 );
 const models = createBrowserModels(feedbackArtifact, route2Artifact);
+
+describe("browser model release manifest", () => {
+  const manifestText = readFileSync(
+    join(root, "public", "models", "manifest.json"),
+    "utf8",
+  );
+  const feedbackBytes = readFileSync(
+    join(root, "public", "models", "feedback-form-v3.json"),
+  );
+  const route2Bytes = readFileSync(join(root, "public", "models", "route2-v5.json"));
+
+  function releaseFetcher(manifest = manifestText) {
+    return async (input: RequestInfo | URL): Promise<Response> => {
+      const path = String(input);
+      if (path === "/models/manifest.json") return new Response(manifest);
+      if (path === "/models/feedback-form-v3.json") {
+        return new Response(new Uint8Array(feedbackBytes));
+      }
+      if (path === "/models/route2-v5.json") {
+        return new Response(new Uint8Array(route2Bytes));
+      }
+      return new Response("not found", { status: 404 });
+    };
+  }
+
+  it("loads both versioned artifacts through the manifest after SHA-256 verification", async () => {
+    const released = await loadBrowserModelsFromManifest("", releaseFetcher());
+    expect(released.features).toHaveLength(53);
+    expect(released.classify("Please take a dish.").modelHash).toBe(
+      "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+    );
+  });
+
+  it("rejects an artifact whose bytes do not match the release manifest", async () => {
+    const manifest = JSON.parse(manifestText);
+    manifest.models.feedback_form.sha256 = "0".repeat(64);
+    await expect(
+      loadBrowserModelsFromManifest("", releaseFetcher(JSON.stringify(manifest))),
+    ).rejects.toThrow("feedback-form model hash mismatch");
+  });
+});
 
 describe("browser feedback-form model parity", () => {
   const gold: Record<string, Record<string, number>> = {

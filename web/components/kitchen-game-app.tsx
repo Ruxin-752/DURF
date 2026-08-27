@@ -37,6 +37,7 @@ import {
   type GameAction,
   type GameState,
 } from '@/lib/game';
+import { configuredFeedbackRoute } from '@/lib/feedback-route-config';
 import {
   humanActionForJointStep,
   movementDirectionForKey,
@@ -45,11 +46,9 @@ import {
 import {
   ResearchEventQueue,
   getOrCreateAnonymousUserId,
-  type QueueStatus,
 } from '@/lib/research-client';
 import {
   SCHEMA_VERSION,
-  type FeedbackRoute,
   type PhraseResearchPrediction,
 } from '@/lib/research-types';
 import {
@@ -57,7 +56,6 @@ import {
   aggregateProbabilities,
   gameFeatureCounts,
   inferValence,
-  lowConfidenceRouteMessage,
   namedFeaturesFromText,
   splitFeedbackPhrases,
   toResearchPrediction,
@@ -70,12 +68,8 @@ interface VisiblePhrase {
 }
 
 interface VisibleFeedback {
-  utterance: string;
-  route: FeedbackRoute;
   phrases: VisiblePhrase[];
-  outcome: string;
-  trace: string;
-  changedFeatures: Array<[string, number]>;
+  error?: string;
 }
 
 const LABEL_COPY = {
@@ -84,7 +78,7 @@ const LABEL_COPY = {
   Descriptive: { name: 'Descriptive', color: 'var(--sage)' },
 } as const;
 
-const EMPTY_SYNC: QueueStatus = { pending: 0, state: 'idle' };
+const DEPLOYMENT_FEEDBACK_ROUTE = configuredFeedbackRoute();
 
 function gameSummary(game: GameState): Record<string, unknown> {
   return {
@@ -115,6 +109,10 @@ function mostChanged(delta: Record<string, number>): Array<[string, number]> {
     .filter(([, value]) => Number.isFinite(value))
     .sort((left, right) => Math.abs(right[1]) - Math.abs(left[1]))
     .slice(0, 5);
+}
+
+function lowConfidenceCopy(threshold: number): string {
+  return `Below the calibrated ${(threshold * 100).toFixed(0)}% threshold. Treat this classification as uncertain.`;
 }
 
 function stationAt(x: number, y: number) {
@@ -173,11 +171,16 @@ function KitchenBoard({ game }: { game: GameState }) {
                 key={chef}
                 title={chef === 'player' ? 'You' : 'AI partner'}
               >
-                <span className="chef-hat" />
-                <span className="chef-face" />
-                <span className="chef-body" />
+                <span aria-hidden="true" className="chef-feet" />
+                <span aria-hidden="true" className="chef-body" />
+                <span aria-hidden="true" className="chef-arms" />
+                <span aria-hidden="true" className="chef-apron" />
+                <span aria-hidden="true" className="chef-hair" />
+                <span aria-hidden="true" className="chef-face" />
+                <span aria-hidden="true" className="chef-scarf" />
+                <span aria-hidden="true" className="chef-hat" />
                 <span className="chef-name">{chef === 'player' ? 'YOU' : 'AI'}</span>
-                {data.held && <span className={`held-item item-${data.held}`} />}
+                {data.held && <span aria-hidden="true" className={`held-item item-${data.held}`} />}
               </div>
             );
           })}
@@ -267,14 +270,13 @@ export function KitchenGameApp() {
   const [game, setGame] = useState<GameState>(() => createGameState());
   const gameRef = useRef(game);
   const [consented, setConsented] = useState(false);
+  const [consentChecked, setConsentChecked] = useState(false);
   const [models, setModels] = useState<BrowserModels | null>(null);
   const [modelStatus, setModelStatus] = useState<'loading' | 'ready' | 'error'>('loading');
   const [modelError, setModelError] = useState('');
-  const [route, setRoute] = useState<FeedbackRoute>('route1');
   const [feedbackText, setFeedbackText] = useState('');
   const [visibleFeedback, setVisibleFeedback] = useState<VisibleFeedback | null>(null);
   const [processingFeedback, setProcessingFeedback] = useState(false);
-  const [syncStatus, setSyncStatus] = useState<QueueStatus>(EMPTY_SYNC);
   const queueRef = useRef<ResearchEventQueue | null>(null);
   const route1Ref = useRef<FullGaussianState | null>(null);
   const route2Ref = useRef<IndependentGaussianState | null>(null);
@@ -302,7 +304,12 @@ export function KitchenGameApp() {
   }, []);
 
   useEffect(() => {
-    const handlePageHide = () => queueRef.current?.flushWithBeacon();
+    const handlePageHide = (event: PageTransitionEvent) => {
+      const queue = queueRef.current;
+      if (!queue) return;
+      if (!event.persisted) queue.end(gameSummary(gameRef.current));
+      queue.flushWithBeacon();
+    };
     window.addEventListener('pagehide', handlePageHide);
     return () => window.removeEventListener('pagehide', handlePageHide);
   }, []);
@@ -421,18 +428,23 @@ export function KitchenGameApp() {
         stepEvents: next.lastStepEvents,
         featureCounts: gameFeatureCounts(next),
       });
-      if (previous.status === 'running' && next.status === 'finished') {
-        queueRef.current?.end(gameSummary(next));
-      }
     }, GAME_STEP_INTERVAL_MS);
     return () => window.clearInterval(timer);
   }, [game.status]);
 
-  const beginRound = useCallback(() => {
-    if (!consented || !models || modelStatus !== 'ready') return;
-    queueRef.current?.end(gameSummary(gameRef.current));
-    const queue = new ResearchEventQueue(getOrCreateAnonymousUserId(), setSyncStatus);
-    queueRef.current = queue;
+  const startRound = useCallback((consentedAt?: number) => {
+    if (!models || modelStatus !== 'ready') return;
+    if (!queueRef.current) {
+      if (consentedAt === undefined) return;
+      queueRef.current = new ResearchEventQueue(
+        getOrCreateAnonymousUserId(),
+        undefined,
+        undefined,
+        consentedAt,
+      );
+    } else {
+      queueRef.current.enqueue('restart', gameSummary(gameRef.current));
+    }
     route1Ref.current = createFullGaussianPrior(models.features);
     route2Ref.current = createIndependentGaussianPrior(models.features);
     pendingHumanActionRef.current = 'stay';
@@ -442,7 +454,19 @@ export function KitchenGameApp() {
     setGame(next);
     setVisibleFeedback(null);
     setFeedbackText('');
-  }, [consented, modelStatus, models]);
+  }, [modelStatus, models]);
+
+  const beginRound = useCallback(() => {
+    if (!consented) return;
+    startRound();
+  }, [consented, startRound]);
+
+  const acceptConsentAndStart = useCallback(() => {
+    if (!consentChecked) return;
+    const consentedAt = Date.now();
+    setConsented(true);
+    startRound(consentedAt);
+  }, [consentChecked, startRound]);
 
   const submitFeedback = async (event: FormEvent) => {
     event.preventDefault();
@@ -467,7 +491,7 @@ export function KitchenGameApp() {
       let changedFeatures: Array<[string, number]> = [];
       let updaterModelHash = classifierHash;
 
-      if (route === 'route1') {
+      if (DEPLOYMENT_FEEDBACK_ROUTE === 'route1') {
         const prior = route1Ref.current ?? createFullGaussianPrior(models.features);
         let candidate = prior;
         const results: Route1PaperResult[] = [];
@@ -520,14 +544,13 @@ export function KitchenGameApp() {
         outcome = `Route 2 used ${prediction.ensembleSize} models to update all ${models.features.length} reward weights`;
         trace = 'u + trajectory → 10-model ensemble → 53D reward vector → independent-Gaussian update with precision 2 (fG is diagnostic only).';
       }
-
-      setVisibleFeedback({ utterance, route, phrases: visiblePhrases, outcome, trace, changedFeatures });
+      setVisibleFeedback({ phrases: visiblePhrases });
       const feedbackId = crypto.randomUUID();
       queueRef.current?.enqueue(
         'feedback',
         {
           utterance,
-          selectedRoute: route,
+          selectedRoute: DEPLOYMENT_FEEDBACK_ROUTE,
           classifierModelHash: classifierHash,
           updaterModelHash,
           calibrated: modelPredictions.every((prediction) => prediction.calibrated),
@@ -549,7 +572,7 @@ export function KitchenGameApp() {
           feedback: {
             feedbackId,
             utterance,
-            route,
+            route: DEPLOYMENT_FEEDBACK_ROUTE,
             topLabel: topResearchLabel(aggregate),
             lowConfidence,
             probabilities: aggregate,
@@ -563,12 +586,8 @@ export function KitchenGameApp() {
       setFeedbackText('');
     } catch (error) {
       setVisibleFeedback({
-        utterance,
-        route,
         phrases: [],
-        outcome: `Feedback processing failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        trace: 'No model weights were changed.',
-        changedFeatures: [],
+        error: `Feedback processing failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
       });
     } finally {
       setProcessingFeedback(false);
@@ -595,8 +614,8 @@ export function KitchenGameApp() {
         <div className="header-badges">
           <span className={`status-pill status-${game.status}`} role="status" aria-live="polite"><i />{statusCopy}</span>
           <span className={`model-pill model-${modelStatus}`} role="status" aria-live="polite">
-            {modelStatus === 'loading' && 'Loading models…'}
-            {modelStatus === 'ready' && 'Browser models ready'}
+            {modelStatus === 'loading' && 'Loading model…'}
+            {modelStatus === 'ready' && 'Language model ready'}
             {modelStatus === 'error' && 'Model loading failed'}
           </span>
         </div>
@@ -635,39 +654,6 @@ export function KitchenGameApp() {
             <div><span className={`mini-pot pot-${game.pot.stage}`} />Pot <strong>{game.pot.stage === 'empty' ? 'Empty' : game.pot.stage === 'filling' ? `${game.pot.tomatoes} tomato, ${game.pot.onions} onion` : game.pot.stage === 'ready' ? 'Ready' : `Cooking · ${Math.ceil(game.pot.secondsRemaining / STEPS_PER_SECOND)}s`}</strong></div>
           </div>
 
-          <div className="consent-card">
-            <h3>Anonymous Research Consent</h3>
-            <p>After you start, we collect an anonymous UUID, game trajectories, text feedback, three-class probabilities, and model-update traces to improve the research models.</p>
-            <p>
-              The app does not write raw IP addresses, names, or email addresses to the research tables. The hosting platform may retain necessary operational logs.
-              Do not include personal information in feedback. Close the page at any time to stop further collection.
-            </p>
-            <label>
-              <input
-                type="checkbox"
-                checked={consented}
-                onChange={(event) => setConsented(event.target.checked)}
-                disabled={game.status !== 'waiting'}
-              />
-              <span>I have read this notice and voluntarily consent to anonymous research data collection.</span>
-            </label>
-            <button
-              className="primary-button"
-              onClick={beginRound}
-              disabled={!consented || modelStatus !== 'ready' || game.status !== 'waiting'}
-            >
-              Start Shift
-            </button>
-            {modelStatus === 'error' && (
-              <button className="text-button" onClick={() => window.location.reload()}>
-                Retry model loading
-              </button>
-            )}
-          </div>
-
-          <div className={`sync-line sync-${syncStatus.state}`} role="status" aria-live="polite">
-            <i /> Data queue: {syncStatus.state === 'synced' ? 'Synced' : syncStatus.state === 'syncing' ? 'Syncing' : syncStatus.state === 'offline' ? 'Offline — retrying' : `${syncStatus.pending} pending`}
-          </div>
         </aside>
 
         <section className="game-column">
@@ -687,7 +673,7 @@ export function KitchenGameApp() {
           </div>
 
           {modelStatus === 'loading' && (
-            <div className="model-notice" role="status" aria-live="polite"><span className="pixel-loader" />Loading the three-class model and Route 2 ensemble…</div>
+            <div className="model-notice" role="status" aria-live="polite"><span className="pixel-loader" />Loading the language model…</div>
           )}
           {modelStatus === 'error' && (
             <div className="model-notice notice-error" role="alert">Model files could not be loaded: {modelError}</div>
@@ -717,15 +703,6 @@ export function KitchenGameApp() {
             <h2>Say Something to the AI</h2>
           </div>
 
-          <div className="route-switch" role="radiogroup" aria-label="Feedback update route">
-            <button className={route === 'route1' ? 'active' : ''} onClick={() => setRoute('route1')} role="radio" aria-checked={route === 'route1'}>
-              <b>Route 1</b><span>Paper-aligned decoupled pipeline</span>
-            </button>
-            <button className={route === 'route2' ? 'active' : ''} onClick={() => setRoute('route2')} role="radio" aria-checked={route === 'route2'}>
-              <b>Route 2</b><span>10-model ensemble</span>
-            </button>
-          </div>
-
           <form className="feedback-form" onSubmit={submitFeedback}>
             <label htmlFor="feedback-input">Feedback (up to 500 characters)</label>
             <textarea
@@ -733,10 +710,10 @@ export function KitchenGameApp() {
               maxLength={500}
               value={feedbackText}
               onChange={(event) => setFeedbackText(event.target.value)}
-              placeholder="Example: That last route was bad. Please take a dish instead."
+              placeholder="Example: That last move was bad. Please take a dish instead."
               disabled={game.status === 'waiting' || modelStatus !== 'ready'}
             />
-            <div><span>{feedbackText.length}/500</span><button disabled={!feedbackText.trim() || processingFeedback || game.status === 'waiting'}>{processingFeedback ? 'Analyzing…' : 'Analyze and update'}</button></div>
+            <div><span>{feedbackText.length}/500</span><button disabled={!feedbackText.trim() || processingFeedback || game.status === 'waiting'}>{processingFeedback ? 'Analyzing…' : 'Submit feedback'}</button></div>
           </form>
 
           <div className="classifier-key">
@@ -755,6 +732,9 @@ export function KitchenGameApp() {
 
           {visibleFeedback && (
             <div className="feedback-results" role="status" aria-live="polite">
+              {visibleFeedback.error && (
+                <div className="model-notice notice-error" role="alert">{visibleFeedback.error}</div>
+              )}
               {visibleFeedback.phrases.map((phrase, index) => {
                 const copy = LABEL_COPY[phrase.research.label];
                 return (
@@ -768,41 +748,59 @@ export function KitchenGameApp() {
                     <ProbabilityRows phrase={phrase} />
                     <p className={phrase.model.abstained ? 'confidence-warning' : 'confidence-ok'}>
                       {phrase.model.abstained
-                        ? lowConfidenceRouteMessage(visibleFeedback.route, phrase.model.threshold)
+                        ? lowConfidenceCopy(phrase.model.threshold)
                         : `Calibrated confidence · threshold ${(phrase.model.threshold * 100).toFixed(0)}%`}
                     </p>
                   </article>
                 );
               })}
-              <div className="update-card">
-                <span>UPDATE TRACE</span>
-                <h3>{visibleFeedback.outcome}</h3>
-                <p>{visibleFeedback.trace}</p>
-                {visibleFeedback.changedFeatures.length > 0 && (
-                  <div className="feature-chips">
-                    {visibleFeedback.changedFeatures.map(([feature, value]) => (
-                      <code key={feature}>{feature} {value >= 0 ? '+' : ''}{value.toFixed(3)}</code>
-                    ))}
-                  </div>
-                )}
-              </div>
             </div>
           )}
-
-          <details className="privacy-details">
-            <summary>Data and privacy</summary>
-            <p>
-              Events are batched to D1. Idempotent event IDs prevent duplicate writes, and offline events stay in this page&apos;s memory queue for retry.
-              Records include schema/model hashes, full probabilities, and route traces. Abuse protection uses only a short-lived network-address hash.
-              Raw IP addresses are not stored or exported, and the research export endpoint requires an administrator Bearer token.
-            </p>
-          </details>
         </aside>
       </section>
 
+      {!consented && (
+        <div className="consent-dialog-backdrop">
+          <section
+            aria-describedby="research-consent-description"
+            aria-labelledby="research-consent-title"
+            aria-modal="true"
+            className="consent-dialog"
+            role="dialog"
+          >
+            <span className="dialog-kicker">BEFORE YOUR SHIFT</span>
+            <h2 id="research-consent-title">Research data consent</h2>
+            <p id="research-consent-description">
+              If you continue, this study stores a random participant ID, game actions, the feedback text you type, and language-model classifications to improve the models. Do not enter personal information. Close the page to stop future collection.
+            </p>
+            <label className="consent-choice">
+              <input
+                autoFocus
+                checked={consentChecked}
+                onChange={(event) => setConsentChecked(event.target.checked)}
+                type="checkbox"
+              />
+              <span>I understand and voluntarily agree to this research data collection.</span>
+            </label>
+            <button
+              className="primary-button"
+              disabled={!consentChecked || modelStatus !== 'ready'}
+              onClick={acceptConsentAndStart}
+            >
+              {modelStatus === 'loading' ? 'Loading…' : 'Agree and start'}
+            </button>
+            {modelStatus === 'error' && (
+              <button className="text-button" onClick={() => window.location.reload()}>
+                Retry model loading
+              </button>
+            )}
+          </section>
+        </div>
+      )}
+
       <footer>
         <span>DURF Kitchen Lab · Research Beta</span>
-        <span>Original CSS pixel art · No Overcooked or Team17 assets used</span>
+        <span>Research data is collected only after consent</span>
       </footer>
     </main>
   );

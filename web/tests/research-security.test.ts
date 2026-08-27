@@ -461,4 +461,44 @@ describe('browser queue session handshake and write statuses', () => {
     expect(warning).toHaveBeenCalledOnce();
     vi.clearAllTimers();
   });
+
+  it('records the consent click time and reuses one page session across a restart', async () => {
+    vi.useFakeTimers();
+    const consentedAt = Date.now() - 1_000;
+    const sessionBodies: Array<{ consentedAt: number }> = [];
+    const batchEventTypes: string[][] = [];
+    const fetcher = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      const body = JSON.parse(String(init?.body)) as {
+        consentedAt?: number;
+        events?: Array<{ eventId: string; eventType: string }>;
+      };
+      if (url.endsWith('/session')) {
+        sessionBodies.push({ consentedAt: Number(body.consentedAt) });
+        return Response.json(
+          { ok: true, consentVersion: CONSENT_VERSION, expiresAt: Date.now() + 60_000 },
+          { status: 201 },
+        );
+      }
+      const events = body.events ?? [];
+      batchEventTypes.push(events.map((event) => event.eventType));
+      return Response.json({
+        ok: true,
+        accepted: events.length,
+        duplicate: 0,
+        conflict: 0,
+        events: events.map((event) => ({ eventId: event.eventId, status: 'accepted' })),
+      });
+    });
+    const queue = new ResearchEventQueue(USER_ID, undefined, fetcher, consentedAt);
+
+    await queue.flush();
+    queue.enqueue('restart', { score: 0 });
+    await queue.flush();
+
+    expect(sessionBodies).toEqual([{ consentedAt }]);
+    expect(batchEventTypes).toEqual([['session_start'], ['restart']]);
+    expect(fetcher.mock.calls.filter(([url]) => String(url).endsWith('/session'))).toHaveLength(1);
+    vi.clearAllTimers();
+  });
 });
