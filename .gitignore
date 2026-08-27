@@ -174,3 +174,7 @@ data/ppo_exp/
 reward_signal.txt
 feedback_log.csv
 *.tmp
+
+# Regenerable Route2 corpora / experiment intermediates (too large for GitHub)
+/baselines/baseline_b_linguistic_feedback/adapted_overcooked/data/route2_teacher_feedback.paper_v5.synthetic.json
+/baselines/baseline_b_linguistic_feedback/adapted_overcooked/outputs/route2/paper_aligned_36configs/dataset.json

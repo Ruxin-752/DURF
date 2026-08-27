@@ -1,0 +1,86 @@
+{
+  "candidate_rows": 8921,
+  "conflict_samples": [],
+  "cross_label_conflicting_texts": 0,
+  "cross_split_leaking_texts": 91,
+  "dropped_rows": {
+    "cross_split_exact_leakage": 1421,
+    "within_split_exact_duplicate": 170
+  },
+  "duplicate_rows": 170,
+  "forbidden_normalized_texts": 91,
+  "group_counts": {
+    "dev": 34,
+    "test": 28,
+    "train": 180
+  },
+  "inputs": {
+    "behavior": {
+      "path": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\data\\synthetic_feedback.deepseek_12k.validated.json",
+      "sha256": "5d11da47f392aa9d91e869e4ca96fb2e73e5e022e241cfff20310b5a5739ba61"
+    },
+    "contrastive": {
+      "path": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\data\\reference_classifier_contrastive.v1.json",
+      "sha256": "345aedd5c983d8eed238233f140d99464f953dd4cb7d71f7e9b82fb18d32ff9d"
+    },
+    "other": {
+      "path": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\synth\\deepseek_other_reference_v2.json",
+      "sha256": "a2317c8b741373098463a0ac9cc70a0748b8796001fa1b68e8e98123ca5eef9c"
+    },
+    "paper_labels": {
+      "path": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\original_rewards_repo\\notebooks\\data\\pilot_chat_messages_labels.csv",
+      "sha256": "b80963abc737c088cb7ff45865a9a73532aa4d7953e9db9a9dad8d7912595fa4"
+    },
+    "v7": {
+      "path": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\synth\\synthetic_feedback.reference_v7.raw.json",
+      "sha256": "23bdafae6745328712610dbfb031e0591239cf93862d042a1409fb2541be9808"
+    }
+  },
+  "kept_rows": 7330,
+  "origin_counts": {
+    "deepseek_behavior_v6": 2457,
+    "deepseek_other_v2": 913,
+    "deepseek_reference_v7": 3014,
+    "deterministic_contrastive_v1": 375,
+    "original_paper_strict_development": 571
+  },
+  "output": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\data\\reference_classifier_feedback.v8.json",
+  "paper_strict_development_selection": {
+    "dev_rows": 106,
+    "reserved_test_rows": 106,
+    "selected_seed": 186,
+    "train_rows": 465,
+    "version": "paper-task-text-disjoint-v1"
+  },
+  "policy": "v7_scope_plus_v6_behavior_plus_hard_other_plus_deterministic_contrastive_v1",
+  "reserved_external_text_rows_dropped": 0,
+  "selection_uses_model_predictions": false,
+  "split_label_counts": {
+    "dev": {
+      "action_behavioral": 176,
+      "action_spatial": 89,
+      "feature": 123,
+      "other": 123,
+      "trajectory": 90
+    },
+    "test": {
+      "action_behavioral": 270,
+      "action_spatial": 195,
+      "feature": 198,
+      "other": 116,
+      "trajectory": 157
+    },
+    "train": {
+      "action_behavioral": 2162,
+      "action_spatial": 922,
+      "feature": 1090,
+      "other": 773,
+      "trajectory": 846
+    }
+  },
+  "split_sizes": {
+    "dev": 601,
+    "test": 936,
+    "train": 5793
+  }
+}

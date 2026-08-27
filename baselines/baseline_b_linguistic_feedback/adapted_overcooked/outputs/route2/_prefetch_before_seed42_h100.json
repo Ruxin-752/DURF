@@ -1,0 +1,57 @@
+{
+  "layout": "ring_tomato_onion_10x6_h0_full_task",
+  "seed": 42,
+  "horizon": 100,
+  "lambda_pref": 1.0,
+  "learned_weights_path": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\route2\\learned_comfort_weights.json",
+  "learned_weights_sha256": "12285375f04e9816423200536cf13a807eed2cce3949d91805d497c58eb124b2",
+  "h0_rule": {
+    "kind": "h0_rule",
+    "steps": 100,
+    "soup_reward": 20.0,
+    "comfort_sum": 278.5,
+    "comfort_per_step": 2.785,
+    "discomfort_steps": 19,
+    "discomfort_rate": 0.19,
+    "subgoal_counts": {
+      "GET_TOMATO": 22,
+      "PUT_TOMATO_IN_POT": 22,
+      "GET_ONION": 7,
+      "PUT_ONION_IN_POT": 13,
+      "WAIT": 19,
+      "GET_DISH": 4,
+      "PICKUP_SOUP": 5,
+      "SERVE_SOUP": 8
+    },
+    "longest_wait_streak": 19,
+    "longest_avoidable_wait_streak": 0,
+    "wait_guard_steps": 0,
+    "policy_override_steps": 0,
+    "ai_policy_overrides_enabled": false
+  },
+  "comfort_subgoal": {
+    "kind": "comfort_subgoal",
+    "steps": 100,
+    "soup_reward": 0.0,
+    "comfort_sum": -531.5,
+    "comfort_per_step": -5.315,
+    "discomfort_steps": 71,
+    "discomfort_rate": 0.71,
+    "subgoal_counts": {
+      "GET_ONION": 10,
+      "PUT_ONION_IN_POT": 11,
+      "GET_TOMATO": 71,
+      "PUT_TOMATO_IN_POT": 8
+    },
+    "longest_wait_streak": 0,
+    "longest_avoidable_wait_streak": 0,
+    "wait_guard_steps": 0,
+    "policy_override_steps": 0,
+    "ai_policy_overrides_enabled": false
+  },
+  "delta": {
+    "soup_reward": -20.0,
+    "comfort_per_step": -8.100000000000001,
+    "discomfort_rate": 0.52
+  }
+}

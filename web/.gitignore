@@ -1,0 +1,23 @@
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+
+# testing and builds
+/coverage
+/.next/
+/.vinext/
+/out/
+/dist/
+/.wrangler/
+
+# local environment and logs
+.env*
+!.env.example
+*.log
+.DS_Store
+
+# generated
+next-env.d.ts
+/outputs/
+/work/

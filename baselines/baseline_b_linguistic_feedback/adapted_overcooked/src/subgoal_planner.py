@@ -47,6 +47,80 @@ def _distinct(items: list[str]) -> list[str]:
     return list(dict.fromkeys(items))
 
 
+def _human_covers_held_ingredient(
+    context: SubgoalContext, held: str, missing: list[str]
+) -> bool:
+    """Whether the human-held twin covers all remaining units of ``held``."""
+
+    remaining = int(Counter(missing)[held])
+    if remaining <= 0 or context.human_holding != held:
+        return False
+    committed = context.human_committed_units
+    if committed is None:
+        committed = 1
+    return int(committed) >= remaining
+
+
+def _prefetch_ingredient_deficits(context: SubgoalContext) -> list[str]:
+    """Next-order ingredient units not already staged or held by either actor."""
+
+    remaining = Counter(context.recipe)
+    for ingredient in _distinct(context.recipe):
+        remaining[ingredient] -= context.staged_units(ingredient)
+        remaining[ingredient] -= int(context.agent_holding == ingredient)
+        remaining[ingredient] -= int(context.human_holding == ingredient)
+
+    deficits: list[str] = []
+    for ingredient in context.recipe:
+        if remaining[ingredient] > 0:
+            deficits.append(ingredient)
+            remaining[ingredient] -= 1
+    return deficits
+
+
+def _open_work_not_covered_by_human(
+    context: SubgoalContext, missing: list[str]
+) -> list[str]:
+    """Open-pot units still needing the AI after the human-held commitment.
+
+    A staged counter object remains a useful pickup while a pot is open.  But
+    when the human already holds every remaining unit of that ingredient, an
+    empty AI must not immediately re-pick the object it just staged.  This is
+    resource accounting, not a preference or feedback-to-action rule.
+    """
+
+    remaining = Counter(missing)
+    held = context.human_holding
+    if held in remaining:
+        committed = context.human_committed_units
+        if committed is None:
+            committed = 1
+        remaining[held] = max(0, remaining[held] - int(committed))
+
+    uncovered: list[str] = []
+    for ingredient in missing:
+        if remaining[ingredient] > 0:
+            uncovered.append(ingredient)
+            remaining[ingredient] -= 1
+    return uncovered
+
+
+def _dish_supply(context: SubgoalContext) -> int:
+    """Dishes already staged or committed by either actor."""
+
+    dish_supply = context.staged_units("dish")
+    dish_supply += int(context.agent_holding == "dish")
+    dish_supply += int(context.human_holding == "dish")
+    return dish_supply
+
+
+def _active_soups_need_another_dish(context: SubgoalContext) -> bool:
+    """Whether ready/cooking soup demand exceeds staged and held dish supply."""
+
+    active_soups = context.ready_soup_count + context.cooking_soup_count
+    return active_soups > _dish_supply(context)
+
+
 def enumerate_feasible_subgoals(context: SubgoalContext | dict) -> list[str]:
     """Task-valid candidate subgoals for a state, mirroring H0's rule logic.
 
@@ -57,29 +131,58 @@ def enumerate_feasible_subgoals(context: SubgoalContext | dict) -> list[str]:
     """
 
     context = SubgoalContext.coerce(context)
-    missing = _missing_ingredients(context.recipe, context.pot_ingredients)
+    missing = context.open_missing_ingredients
     held = context.agent_holding
 
     candidates: list[str] = []
 
     if held in ("tomato", "onion"):
-        # Holding an ingredient: the only productive move is potting it, and
-        # only if the pot still needs it.
+        # Potting advances the task. If the human holds the same ingredient
+        # and has already covered every remaining unit, STASH is also a real
+        # option so learned coordination weights can choose instead of having
+        # duplicate work forced by candidate enumeration.
         if held in missing:
             candidates.append(INGREDIENT_POT_SUBGOALS[held])
+            if _human_covers_held_ingredient(context, held, missing):
+                candidates.append("STASH_HELD_OBJECT")
+        else:
+            candidates.append("STASH_HELD_OBJECT")
     elif held == "dish":
         # Holding a dish is only useful once a soup is ready to be plated.
         if context.soup_ready:
             candidates.append("PICKUP_SOUP")
+        else:
+            candidates.append("STASH_HELD_OBJECT")
     elif held == "soup":
         candidates.append("SERVE_SOUP")
     else:
-        # Empty-handed. If a soup is ready, fetching a dish supports serving;
-        # otherwise fetch each still-missing ingredient.
-        if context.soup_ready:
+        # Empty-handed work is the union across pots: a ready pot can need a
+        # dish while a second open pot simultaneously needs ingredients.
+        uncovered_open_work = _open_work_not_covered_by_human(context, missing)
+        # When the human-held ingredient covers the complete remaining open
+        # recipe, that pot is an imminent soup. Preparing exactly one dish is
+        # bounded downstream work; it avoids duplicate ingredient collection
+        # without treating the human commitment as "the AI has no work".
+        imminent_soup_count = int(bool(missing and not uncovered_open_work))
+        active_soup_count = context.ready_soup_count + context.cooking_soup_count
+        dish_work_uncovered = bool(
+            (context.soup_ready or imminent_soup_count)
+            and active_soup_count + imminent_soup_count > _dish_supply(context)
+        )
+        if dish_work_uncovered:
             candidates.append("GET_DISH")
-        else:
-            for ingredient in _distinct(missing):
+        for ingredient in _distinct(uncovered_open_work):
+            pickup = INGREDIENT_PICKUP_SUBGOALS.get(ingredient)
+            if pickup is not None:
+                candidates.append(pickup)
+
+        if context.soup_cooking and not context.soup_ready and not missing:
+            # Counter objects and held resources are completed preparation,
+            # so only enumerate deficits. This prevents STASH -> immediate
+            # re-pick loops without assigning an action any fixed preference.
+            if _active_soups_need_another_dish(context):
+                candidates.append("GET_DISH")
+            for ingredient in _distinct(_prefetch_ingredient_deficits(context)):
                 pickup = INGREDIENT_PICKUP_SUBGOALS.get(ingredient)
                 if pickup is not None:
                     candidates.append(pickup)
@@ -96,6 +199,7 @@ def plan_subgoal(
     lambda_pref: float = 1.0,
     feasible_subgoals: list[str] | None = None,
     tie_tolerance: float = 1e-9,
+    tie_fallback: str | None = None,
 ) -> dict:
     """Enumerate + re-rank + choose in one call (the runtime entry point).
 
@@ -120,6 +224,7 @@ def plan_subgoal(
         feasible,
         lambda_pref=lambda_pref,
         tie_tolerance=tie_tolerance,
+        tie_fallback=tie_fallback,
     )
     choice["feasible_subgoals"] = feasible
     return choice

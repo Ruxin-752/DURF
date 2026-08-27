@@ -53,9 +53,44 @@ from src.subgoal_teacher import feedback_intents, load_gold_weights  # noqa: E40
 DEFAULT_OUTPUT = ROOT / "data" / "synthetic_feedback.json"
 DEFAULT_CONTEXTS = ROOT / "outputs" / "synth" / "contexts.json"
 DEFAULT_LLM_CACHE = ROOT / "outputs" / "synth" / "llm_cache.jsonl"
-GENERATOR_VERSION = "deepseek-observer-v7"
+GENERATOR_VERSION = "deepseek-observer-v8"
 DEFAULT_MODEL = "deepseek-chat"
 PROMPT_VARIANTS = ("direct", "contrastive", "colloquial")
+
+GAME_ONTOLOGY = (
+    "Project game ontology: two players cooperate to make tomato/onion soup. "
+    "Supported objects are tomato, onion, dish, soup, pot, counter, and serving "
+    "counter. Supported high-level actions are get tomato/onion/dish, put a "
+    "tomato/onion in the pot, plate ready soup, serve soup, and wait/yield. "
+    "Do not invent chopping, washing, refrigerators, meat, burgers, or other recipes."
+)
+
+REFERENCE_ONTOLOGY = (
+    "The five reference labels are mutually exclusive:\n"
+    "- trajectory: the just-completed sequence as one whole; it must use an "
+    "explicit whole-scope cue such as overall, the whole move, that sequence, "
+    "or from start to finish.\n"
+    "- feature: an abstract behavior/property and its effect, such as blocking, "
+    "duplicating work, supplying a needed ingredient, or wasting time; it must "
+    "not point to a place/time, repeated history, or whole sequence.\n"
+    "- action_spatial: one isolated action at the current place/time; it must use "
+    "a deictic cue such as right now, right there, at the pot, or from that spot, "
+    "and must not describe a habit, property, or whole sequence.\n"
+    "- action_behavioral: a repeated behavior across occasions; it must use a "
+    "history cue such as keep, always, again, every time, usually, or a pattern, "
+    "and must not reduce the reference to one current action or a whole sequence.\n"
+    "- other: greetings, control/technical questions, self-plans, or neutral state "
+    "talk that does not evaluate, command, or describe the AI's behavior."
+)
+
+CONTRASTIVE_REFERENCE_EXAMPLES = (
+    "Contrastive examples about onion work (scope, not sentiment, determines the label):\n"
+    "- trajectory: Overall, that whole onion run was the right sequence.\n"
+    "- feature: Supplying the missing onion supports the recipe.\n"
+    "- action_spatial: Put that onion in the pot right now.\n"
+    "- action_behavioral: Keep adding the missing ingredient whenever the pot needs it.\n"
+    "- other: How many onions does this soup need?"
+)
 
 _POLARITY_LABEL = {1.0: "positive", -1.0: "negative"}
 
@@ -204,22 +239,14 @@ def _reference_instruction(reference_type: str, feedback_type: str) -> str:
     )
 
 
-def _llm_paraphrases(
+def _generation_messages(
     context_desc: str,
     intent,
     *,
     n: int,
-    cache: dict[str, list[str]],
-    cache_path: Path,
-    model: str = DEFAULT_MODEL,
-    temperature: float = 0.7,
-    top_p: float | None = 0.9,
-    split: str = "train",
-    prompt_variant: str = "direct",
-) -> list[str]:
-    """Ask DeepSeek to verbalize a rule-teacher label as an observer/critic."""
-
-    from durf.group_a.deepseek_chat import chat_once
+    prompt_variant: str,
+) -> list[dict[str, str]]:
+    """Build the versioned, contrastive prompt used for LLM augmentation."""
 
     positive = intent.polarity > 0
     stance = "GOOD" if positive else "BAD"
@@ -243,7 +270,9 @@ def _llm_paraphrases(
         "You are a person playing the cooperative game Overcooked with an AI "
         "teammate. Act only as an OBSERVER/CRITIC of the AI's behavior. Never "
         "narrate what you intend to do and never choose the label: the rule "
-        "teacher below is authoritative. Return short spoken feedback."
+        "teacher below is authoritative. Return short spoken feedback.\n\n"
+        f"{GAME_ONTOLOGY}\n\n{REFERENCE_ONTOLOGY}\n\n"
+        f"{CONTRASTIVE_REFERENCE_EXAMPLES}"
     )
     user = (
         f"Rule-teacher label: polarity={stance}; speech_act={intent.feedback_type}; "
@@ -255,6 +284,7 @@ def _llm_paraphrases(
         f"{_type_instruction(intent.feedback_type, positive)}\n"
         f"Reference style: {intent.reference_type}. "
         f"{_reference_instruction(intent.reference_type, intent.feedback_type)}\n"
+        "Use only the requested reference scope; do not mix cues from another label.\n"
         f"{variant_hint}\nWrite {n} DIFFERENT natural one-sentence reactions "
         f"you'd say to the AI. Hard rules:\n"
         f"- Every sentence must stay clearly {stance}; never sound {opposite}.\n"
@@ -264,7 +294,32 @@ def _llm_paraphrases(
         f"- Vary the wording; do not just reorder the same words.\n"
         f"Respond with a JSON array of {n} strings and nothing else."
     )
-    messages = [{"role": "system", "content": system}, {"role": "user", "content": user}]
+    return [{"role": "system", "content": system}, {"role": "user", "content": user}]
+
+
+def _llm_paraphrases(
+    context_desc: str,
+    intent,
+    *,
+    n: int,
+    cache: dict[str, list[str]],
+    cache_path: Path,
+    model: str = DEFAULT_MODEL,
+    temperature: float = 0.7,
+    top_p: float | None = 0.9,
+    split: str = "train",
+    prompt_variant: str = "direct",
+) -> list[str]:
+    """Ask DeepSeek to verbalize a rule-teacher label as an observer/critic."""
+
+    from durf.group_a.deepseek_chat import chat_once
+
+    messages = _generation_messages(
+        context_desc,
+        intent,
+        n=n,
+        prompt_variant=prompt_variant,
+    )
     key = _prompt_key(
         messages,
         model=model,

@@ -8,7 +8,7 @@ from overcooked_ai_py.mdp.actions import Action
 from overcooked_ai_py.planning.planners import MotionPlanner
 
 
-SUBGOALS = (
+H0_MODEL_SUBGOALS = (
     "GET_TOMATO",
     "PUT_TOMATO_IN_POT",
     "GET_ONION",
@@ -16,6 +16,15 @@ SUBGOALS = (
     "GET_DISH",
     "PICKUP_SOUP",
     "SERVE_SOUP",
+    "WAIT",
+)
+# The bundled H0 network keeps its original 8-way subgoal input contract.
+# STASH and YIELD_PATH are runtime feasibility actions executed by this
+# planner, not new neural output dimensions.  They are still ranked by the
+# learned reward once live geometry says they are executable.
+SUBGOALS = H0_MODEL_SUBGOALS[:-1] + (
+    "STASH_HELD_OBJECT",
+    "YIELD_PATH",
     "WAIT",
 )
 SUBGOAL_TO_INDEX = {name: index for index, name in enumerate(SUBGOALS)}
@@ -111,8 +120,133 @@ def ingredient_pickup_locations(state, mdp, ingredient: str) -> list[tuple[int, 
     return list(dict.fromkeys(locations))
 
 
+def dish_pickup_locations(state, mdp) -> list[tuple[int, int]]:
+    """Prefer reachable placed dishes while retaining the dispenser fallback."""
+
+    locations = [
+        *object_positions(state, "dish"),
+        *mdp.get_dish_dispenser_locations(),
+    ]
+    return list(dict.fromkeys(locations))
+
+
+def empty_non_feature_counter_locations(state, mdp) -> list[tuple[int, int]]:
+    """Empty counters on which a held object can safely be stashed.
+
+    Counter occupancy is state-dependent, while dispensers, pots and serving
+    windows are never valid stash targets.  The latter exclusion is retained
+    explicitly so this helper also behaves correctly with lightweight test
+    MDPs whose terrain APIs are less strict than OvercookedGridworld's.
+    """
+
+    get_counters = getattr(mdp, "get_counter_locations", None)
+    counters = list(get_counters()) if get_counters is not None else []
+    feature_positions: set[tuple[int, int]] = set()
+    for getter_name in (
+        "get_pot_locations",
+        "get_serving_locations",
+        "get_dish_dispenser_locations",
+        "get_tomato_dispenser_locations",
+        "get_onion_dispenser_locations",
+    ):
+        getter = getattr(mdp, getter_name, None)
+        if getter is not None:
+            feature_positions.update(tuple(position) for position in getter())
+    occupied = {tuple(position) for position in getattr(state, "objects", {})}
+    return [
+        tuple(position)
+        for position in counters
+        if tuple(position) not in feature_positions
+        and tuple(position) not in occupied
+    ]
+
+
+def useful_stash_counter_locations(state, mdp) -> list[tuple[int, int]]:
+    """Empty counters closest to a pot, with all-empty fallback.
+
+    STASH is preparation for a later pot/serving step, so placing an object on
+    a task-adjacent counter is a state-based utility criterion.  It does not
+    depend on feedback wording or on the learned reward, and the reward still
+    decides whether STASH is selected at all.
+    """
+
+    counters = empty_non_feature_counter_locations(state, mdp)
+    pots = [tuple(position) for position in mdp.get_pot_locations()]
+    if not counters or not pots:
+        return counters
+    distance = {
+        counter: min(
+            abs(counter[0] - pot[0]) + abs(counter[1] - pot[1]) for pot in pots
+        )
+        for counter in counters
+    }
+    best = min(distance.values())
+    return [counter for counter in counters if distance[counter] == best]
+
 def adjacent_position(player) -> tuple[int, int]:
     return Action.move_in_direction(player.position, player.orientation)
+
+
+def yield_path_action(state, mdp, player_index: int = 0) -> int | None:
+    """Return one legal step that vacates the human's explicit next tile.
+
+    This is deliberately a geometry predicate, not a language rule.  A yield
+    exists only when the teammate is adjacent, is currently facing the AI,
+    and the AI can move to another unoccupied floor tile in one step.  Side
+    exits are preferred over remaining on the teammate's forward ray; a
+    corridor-forward step is retained as the generic fallback.
+    """
+
+    players = list(getattr(state, "players", ()))
+    if len(players) < 2 or not 0 <= player_index < len(players):
+        return None
+    human_index = (
+        1 - player_index
+        if len(players) == 2
+        else (player_index + 1) % len(players)
+    )
+    ai = players[player_index]
+    human = players[human_index]
+    human_direction = tuple(getattr(human, "orientation", ()))
+    if human_direction not in Action.MOTION_ACTIONS or human_direction == Action.STAY:
+        return None
+    if Action.move_in_direction(human.position, human_direction) != ai.position:
+        return None
+
+    valid = set(mdp.get_valid_player_positions())
+    occupied = {
+        tuple(player.position)
+        for index, player in enumerate(players)
+        if index != player_index
+    }
+    hx, hy = human.position
+    dx, dy = human_direction
+    options: list[tuple[tuple[int, int, int], tuple[int, int]]] = []
+    for order, direction in enumerate(Action.MOTION_ACTIONS):
+        if direction == Action.STAY:
+            continue
+        destination = Action.move_in_direction(ai.position, direction)
+        if destination not in valid or destination in occupied:
+            continue
+        offset = (destination[0] - hx, destination[1] - hy)
+        # A zero cross product and positive dot product means the destination
+        # remains directly ahead of the human. Prefer a side exit when one is
+        # available, then prefer a tile with more onward room.
+        on_forward_ray = int(
+            offset[0] * dy - offset[1] * dx == 0
+            and offset[0] * dx + offset[1] * dy > 0
+        )
+        onward_degree = sum(
+            Action.move_in_direction(destination, nxt) in valid
+            and Action.move_in_direction(destination, nxt) not in occupied
+            for nxt in Action.MOTION_ACTIONS
+            if nxt != Action.STAY
+        )
+        options.append(((on_forward_ray, -onward_degree, order), direction))
+    if not options:
+        return None
+    _, chosen = min(options, key=lambda item: item[0])
+    return int(Action.ACTION_TO_INDEX[chosen])
 
 
 def adjacent_feature_action(
@@ -210,6 +344,70 @@ def bfs_first_action_to_feature(
     return None
 
 
+def bfs_first_action_to_positions(
+    mdp,
+    player,
+    target_positions: set[tuple[int, int]],
+    blocked_positions: set[tuple[int, int]] | None = None,
+) -> int | None:
+    """Move toward an open floor target without treating it as interactable."""
+
+    blocked_positions = blocked_positions or set()
+    valid_positions = set(mdp.get_valid_player_positions()) - blocked_positions
+    targets = set(target_positions) & valid_positions
+    start = player.position
+    if start in targets or not targets:
+        return None
+    valid_positions.add(start)
+    queue = deque([start])
+    parent: dict[tuple[int, int], tuple[tuple[int, int], tuple[int, int]] | None] = {
+        start: None
+    }
+    while queue:
+        position = queue.popleft()
+        for action in Action.MOTION_ACTIONS:
+            if action == Action.STAY:
+                continue
+            nxt = Action.move_in_direction(position, action)
+            if nxt not in valid_positions or nxt in parent:
+                continue
+            parent[nxt] = (position, action)
+            if nxt in targets:
+                first = nxt
+                while parent[first] is not None and parent[first][0] != start:
+                    first = parent[first][0]
+                return int(Action.ACTION_TO_INDEX[parent[first][1]])
+            queue.append(nxt)
+    return None
+
+
+def staging_action_for_blocked_feature(
+    mdp,
+    player,
+    feature_positions: list[tuple[int, int]],
+    blocked_positions: set[tuple[int, int]],
+) -> int | None:
+    """Approach a human-blocked interaction tile instead of freezing far away."""
+
+    valid_positions = set(mdp.get_valid_player_positions())
+    blocked_access: set[tuple[int, int]] = set()
+    for feature_pos in feature_positions:
+        for direction in Action.MOTION_ACTIONS:
+            if direction == Action.STAY:
+                continue
+            access = Action.move_in_direction(feature_pos, direction)
+            if access in valid_positions and access in blocked_positions:
+                blocked_access.add(access)
+    staging: set[tuple[int, int]] = set()
+    for access in blocked_access:
+        for direction in Action.MOTION_ACTIONS:
+            if direction == Action.STAY:
+                continue
+            candidate = Action.move_in_direction(access, direction)
+            if candidate in valid_positions and candidate not in blocked_positions:
+                staging.add(candidate)
+    return bfs_first_action_to_positions(mdp, player, staging, blocked_positions)
+
 def first_action_to_feature(
     motion_planner: MotionPlanner,
     player,
@@ -255,7 +453,15 @@ def first_action_to_feature(
         return int(Action.ACTION_TO_INDEX[best_plan[0]])
     if best_plan == [] and adjacent_position(player) in feature_positions:
         return int(Action.ACTION_TO_INDEX[Action.INTERACT])
-    return bfs_first_action_to_feature(
+    bfs_action = bfs_first_action_to_feature(
+        mdp,
+        player,
+        feature_positions,
+        blocked_positions,
+    )
+    if bfs_action is not None:
+        return bfs_action
+    return staging_action_for_blocked_feature(
         mdp,
         player,
         feature_positions,
@@ -281,7 +487,17 @@ def rule_teacher_decision(
     if held_name in ("tomato", "onion"):
         targets = pots_needing_ingredient(state, mdp, held_name)
         if not targets:
-            return "WAIT", int(Action.ACTION_TO_INDEX[Action.STAY])
+            action = first_action_to_feature(
+                motion_planner,
+                player,
+                useful_stash_counter_locations(state, mdp),
+                blocked_positions,
+            )
+            return "STASH_HELD_OBJECT", (
+                action
+                if action is not None
+                else int(Action.ACTION_TO_INDEX[Action.STAY])
+            )
         subgoal = (
             "PUT_TOMATO_IN_POT"
             if held_name == "tomato"
@@ -301,7 +517,17 @@ def rule_teacher_decision(
     if held_name == "dish":
         ready_pots = mdp.get_ready_pots(pot_states)
         if not ready_pots:
-            return "WAIT", int(Action.ACTION_TO_INDEX[Action.STAY])
+            action = first_action_to_feature(
+                motion_planner,
+                player,
+                useful_stash_counter_locations(state, mdp),
+                blocked_positions,
+            )
+            return "STASH_HELD_OBJECT", (
+                action
+                if action is not None
+                else int(Action.ACTION_TO_INDEX[Action.STAY])
+            )
         action = first_action_to_feature(
             motion_planner,
             player,
@@ -331,7 +557,7 @@ def rule_teacher_decision(
         action = first_action_to_feature(
             motion_planner,
             player,
-            mdp.get_dish_dispenser_locations(),
+            dish_pickup_locations(state, mdp),
             blocked_positions,
         )
         return "GET_DISH", (
@@ -367,22 +593,37 @@ def subgoal_target_positions(
     WHICH subgoal to pursue while H0 keeps owning execution.
     """
 
+    if subgoal == "STASH_HELD_OBJECT":
+        return useful_stash_counter_locations(state, mdp)
     pot_states = mdp.get_pot_states(state)
     if subgoal == "GET_TOMATO":
-        return ingredient_pickup_locations(state, mdp, "tomato")
+        # A counter tomato is already a completed staging result while every
+        # pot is closed (cooking/ready).  Treating it as the source of a new
+        # prefetch task makes the agent immediately undo STASH by picking the
+        # same object back up.  Once a pot can accept tomato again, staged
+        # objects regain priority over the dispenser.
+        if pots_needing_ingredient(state, mdp, "tomato"):
+            return ingredient_pickup_locations(state, mdp, "tomato")
+        return ingredient_dispenser_locations(mdp, "tomato")
     if subgoal == "GET_ONION":
-        return ingredient_pickup_locations(state, mdp, "onion")
+        if pots_needing_ingredient(state, mdp, "onion"):
+            return ingredient_pickup_locations(state, mdp, "onion")
+        return ingredient_dispenser_locations(mdp, "onion")
     if subgoal == "PUT_TOMATO_IN_POT":
         return pots_needing_ingredient(state, mdp, "tomato")
     if subgoal == "PUT_ONION_IN_POT":
         return pots_needing_ingredient(state, mdp, "onion")
     if subgoal == "GET_DISH":
-        return mdp.get_dish_dispenser_locations()
+        # Likewise, a staged dish should be consumed when soup is ready, but
+        # must not be picked up and stashed repeatedly during prefetch.
+        if mdp.get_ready_pots(pot_states):
+            return dish_pickup_locations(state, mdp)
+        return list(mdp.get_dish_dispenser_locations())
     if subgoal == "PICKUP_SOUP":
         return mdp.get_ready_pots(pot_states)
     if subgoal == "SERVE_SOUP":
         return mdp.get_serving_locations()
-    return []  # WAIT or unknown
+    return []  # YIELD_PATH, WAIT, or unknown
 
 
 def execute_subgoal(
@@ -396,6 +637,13 @@ def execute_subgoal(
     if subgoal == "WAIT":
         return int(Action.ACTION_TO_INDEX[Action.STAY])
     mdp = motion_planner.mdp
+    if subgoal == "YIELD_PATH":
+        action = yield_path_action(state, mdp, player_index=player_index)
+        return (
+            int(action)
+            if action is not None
+            else int(Action.ACTION_TO_INDEX[Action.STAY])
+        )
     player = state.players[player_index]
     blocked_positions = {
         other.position
@@ -415,13 +663,10 @@ def make_motion_planner(layout: str, seed: int, horizon: int) -> MotionPlanner:
     env = make_direct_multi_env(layout, seed=seed, horizon=horizon)
     try:
         mdp = env.base_env.mdp
-        counter_goals = []
-        if mdp.start_state is not None:
-            counter_goals = [
-                position
-                for position, _ in mdp.start_state.objects.items()
-                if mdp.get_terrain_type_at_pos(position) == "X"
-            ]
+        # Empty-counter availability changes during play, so every counter
+        # must be a possible motion goal. The executor filters occupied ones
+        # against the live state before selecting a stash target.
+        counter_goals = list(mdp.get_counter_locations())
         return MotionPlanner.from_pickle_or_compute(
             mdp,
             counter_goals=counter_goals,
@@ -441,14 +686,18 @@ def plan_h0_subgoal(state, mdp, player_index: int = 0) -> str:
 
     if held_name in ("tomato", "onion"):
         if not pots_needing_ingredient(state, mdp, held_name):
-            return "WAIT"
+            return "STASH_HELD_OBJECT"
         return (
             "PUT_TOMATO_IN_POT"
             if held_name == "tomato"
             else "PUT_ONION_IN_POT"
         )
     if held_name == "dish":
-        return "PICKUP_SOUP" if mdp.get_ready_pots(pot_states) else "WAIT"
+        return (
+            "PICKUP_SOUP"
+            if mdp.get_ready_pots(pot_states)
+            else "STASH_HELD_OBJECT"
+        )
     if held_name == "soup":
         return "SERVE_SOUP"
 

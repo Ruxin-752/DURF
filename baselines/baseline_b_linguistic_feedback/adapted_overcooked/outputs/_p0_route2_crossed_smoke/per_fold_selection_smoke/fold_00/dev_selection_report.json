@@ -1,0 +1,186 @@
+{
+  "candidates": [
+    {
+      "batch_reduction": "sum_examples",
+      "best_epoch": 1,
+      "candidate_id": "sgd_paper_accumulated_mse",
+      "epochs_run": 2,
+      "lr": 0.005,
+      "metric_totals": {
+        "cooking_correct": 0,
+        "cooking_total": 0,
+        "nearest_correct": 52,
+        "nearest_total": 104,
+        "sensitive_correct": 0,
+        "sensitive_total": 0,
+        "varying_squared_error_sum": 4028.814971923828,
+        "varying_values": 2704
+      },
+      "metrics": {
+        "cooking_reward_contexts": 0,
+        "dev_examples": 104,
+        "nearest_reward_config_accuracy": 0.5,
+        "preference_sensitive_behavior_accuracy": 0.0,
+        "preference_sensitive_cooking_accuracy": 0.0,
+        "varying_dimension_mse": 1.4899463653564453
+      },
+      "optimizer": "sgd",
+      "partition": "dev",
+      "test_examples_evaluated": 0,
+      "varying_dimension_weight": 1.0
+    },
+    {
+      "batch_reduction": "mean",
+      "best_epoch": 1,
+      "candidate_id": "sgd_batch_mean_mse",
+      "epochs_run": 2,
+      "lr": 0.005,
+      "metric_totals": {
+        "cooking_correct": 0,
+        "cooking_total": 0,
+        "nearest_correct": 52,
+        "nearest_total": 104,
+        "sensitive_correct": 0,
+        "sensitive_total": 0,
+        "varying_squared_error_sum": 12137.778511047363,
+        "varying_values": 2704
+      },
+      "metrics": {
+        "cooking_reward_contexts": 0,
+        "dev_examples": 104,
+        "nearest_reward_config_accuracy": 0.5,
+        "preference_sensitive_behavior_accuracy": 0.0,
+        "preference_sensitive_cooking_accuracy": 0.0,
+        "varying_dimension_mse": 4.488823413848877
+      },
+      "optimizer": "sgd",
+      "partition": "dev",
+      "test_examples_evaluated": 0,
+      "varying_dimension_weight": 1.0
+    },
+    {
+      "batch_reduction": "mean",
+      "best_epoch": 0,
+      "candidate_id": "adam_fixed_budget_mse",
+      "epochs_run": 2,
+      "lr": 0.01,
+      "metric_totals": {
+        "cooking_correct": 0,
+        "cooking_total": 0,
+        "nearest_correct": 52,
+        "nearest_total": 104,
+        "sensitive_correct": 0,
+        "sensitive_total": 0,
+        "varying_squared_error_sum": 4008.080972671509,
+        "varying_values": 2704
+      },
+      "metrics": {
+        "cooking_reward_contexts": 0,
+        "dev_examples": 104,
+        "nearest_reward_config_accuracy": 0.5,
+        "preference_sensitive_behavior_accuracy": 0.0,
+        "preference_sensitive_cooking_accuracy": 0.0,
+        "varying_dimension_mse": 1.4822784662246704
+      },
+      "optimizer": "adam",
+      "partition": "dev",
+      "test_examples_evaluated": 0,
+      "varying_dimension_weight": 1.0
+    },
+    {
+      "batch_reduction": "sum_examples",
+      "best_epoch": 1,
+      "candidate_id": "sgd_paper_accumulated_varying_weight_2",
+      "epochs_run": 2,
+      "lr": 0.005,
+      "metric_totals": {
+        "cooking_correct": 0,
+        "cooking_total": 0,
+        "nearest_correct": 52,
+        "nearest_total": 104,
+        "sensitive_correct": 0,
+        "sensitive_total": 0,
+        "varying_squared_error_sum": 3991.35658454895,
+        "varying_values": 2704
+      },
+      "metrics": {
+        "cooking_reward_contexts": 0,
+        "dev_examples": 104,
+        "nearest_reward_config_accuracy": 0.5,
+        "preference_sensitive_behavior_accuracy": 0.0,
+        "preference_sensitive_cooking_accuracy": 0.0,
+        "varying_dimension_mse": 1.4760934114456177
+      },
+      "optimizer": "sgd",
+      "partition": "dev",
+      "test_examples_evaluated": 0,
+      "varying_dimension_weight": 2.0
+    }
+  ],
+  "constant_baselines": {
+    "canonical": {
+      "cooking_reward_contexts": 0,
+      "dev_examples": 104,
+      "nearest_reward_config_accuracy": 0.5,
+      "preference_sensitive_behavior_accuracy": 0.0,
+      "preference_sensitive_cooking_accuracy": 0.0,
+      "varying_dimension_mse": 1.4115264415740967
+    },
+    "train_mean": {
+      "cooking_reward_contexts": 0,
+      "dev_examples": 104,
+      "nearest_reward_config_accuracy": 0.5,
+      "preference_sensitive_behavior_accuracy": 0.0,
+      "preference_sensitive_cooking_accuracy": 0.0,
+      "varying_dimension_mse": 1.5831263065338135
+    }
+  },
+  "dev_examples": 104,
+  "dev_reward_configs": [
+    "reward_06",
+    "reward_08"
+  ],
+  "dev_sensitive_groups": 0,
+  "fold": 0,
+  "partition": "dev",
+  "selection_rule": {
+    "primary": "minimum dev varying-dimension MSE",
+    "shortlist_tolerance": 0.014760934114456177,
+    "shortlisted_candidates": [
+      "sgd_paper_accumulated_mse",
+      "adam_fixed_budget_mse",
+      "sgd_paper_accumulated_varying_weight_2"
+    ],
+    "tie_breaks": [
+      "higher dev nearest-reward-config accuracy",
+      "higher dev preference-sensitive empty-hand cooking majority accuracy",
+      "predeclared registry priority (paper SGD first)"
+    ]
+  },
+  "test_accessed": false,
+  "test_examples_evaluated": 0,
+  "train_examples": 1664,
+  "varying_dimensions_from_train": 26,
+  "winner": {
+    "beats_constant_checks": {
+      "nearest_reward_config_accuracy": false,
+      "preference_sensitive_cooking_accuracy": false,
+      "varying_dimension_mse": false
+    },
+    "candidate_id": "sgd_paper_accumulated_mse",
+    "config": {
+      "batch_reduction": "sum_examples",
+      "lr": 0.005,
+      "optimizer": "sgd",
+      "varying_dimension_weight": 1.0
+    },
+    "dev_metrics": {
+      "cooking_reward_contexts": 0,
+      "dev_examples": 104,
+      "nearest_reward_config_accuracy": 0.5,
+      "preference_sensitive_behavior_accuracy": 0.0,
+      "preference_sensitive_cooking_accuracy": 0.0,
+      "varying_dimension_mse": 1.4899463653564453
+    }
+  }
+}

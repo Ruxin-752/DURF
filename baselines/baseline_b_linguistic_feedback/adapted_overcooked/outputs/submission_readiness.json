@@ -1,0 +1,203 @@
+{
+  "schema_version": "submission-readiness-v1",
+  "generated_at_utc": "2026-08-12T14:15:01.504908+00:00",
+  "overall_status": "engineering_ready_human_evaluation_pending",
+  "engineering_ready": true,
+  "engineering_checks": {
+    "paper_protocol_reproduced_at_about_87_percent": true,
+    "paper_strict_split_has_zero_active_overlap": true,
+    "route2_beats_constant_baselines": true,
+    "route2_uses_complete_53d_reward": true,
+    "route1_all_53_dimensions_are_decision_or_explicitly_null": true,
+    "route2_trajectory_required_gate_passes": true,
+    "online_adaptation_simulation_gate_passes": true,
+    "headless_route2_save_resume_smoke_passes": true,
+    "all_submission_tests_pass": true,
+    "human_reference_evaluator_fails_closed_without_gold": true,
+    "three_class_holdout_not_claimed_as_human_authored": true
+  },
+  "headline_metrics": {
+    "five_class_paper_protocol": {
+      "accuracy": 0.8716216216216216,
+      "macro_f1": 0.7525204953776382,
+      "claim_scope": "original random-row protocol reproduction"
+    },
+    "five_class_strict_exposed_regression": {
+      "accuracy": 0.7735849056603774,
+      "macro_f1": 0.7251823498139287,
+      "claim_scope": "task/text-disjoint exposed regression"
+    },
+    "route1_phrase_grounding_synthetic": {
+      "micro_f1": 0.7559113759076522,
+      "macro_f1": 0.589944441084976,
+      "claim_scope": "synthetic untouched split"
+    },
+    "route1_live_feature_contract": {
+      "schema_dimensions": 53,
+      "decision_varying_dimensions": 33,
+      "context_only_dimensions": 6,
+      "unsupported_decision_null_dimensions": 14
+    },
+    "route2_frozen_synthetic": {
+      "examples": 8513,
+      "full_reward_mse": 0.012748152948915958,
+      "varying_dimension_mse": 0.025100767612457275,
+      "nearest_reward_config_accuracy": 0.9998825325972043,
+      "claim_scope": "identifiable synthetic complete-reward task"
+    },
+    "route2_trajectory_required_synthetic": {
+      "examples": 60,
+      "full_varying_dimension_mse": 0.05484088603868162,
+      "text_only_varying_dimension_mse": 0.5125208669421152,
+      "full_nearest_target_accuracy": 1.0,
+      "text_only_nearest_target_accuracy": 0.10000000000000002,
+      "relative_mse_gain_over_text_only": 0.8929977497972283,
+      "claim_scope": "synthetic trajectory-input identifiability diagnostic; not human-language accuracy"
+    },
+    "online_adaptation_synthetic": {
+      "rounds": 40,
+      "frozen": {
+        "chosen_subgoals": {
+          "GET_DISH": 4,
+          "GET_ONION": 2,
+          "GET_TOMATO": 8,
+          "WAIT": 26
+        },
+        "cumulative_regret": 23.6,
+        "cumulative_teacher_utility": 16.400000000000002,
+        "episodes": 40,
+        "mean_regret": 0.5900000000000001,
+        "mean_teacher_utility": 0.41,
+        "preference_satisfaction_rate": 0.1,
+        "safety_violation_count": 14,
+        "safety_violation_rate": 0.35,
+        "task_proxy_mean": 0.2,
+        "task_proxy_total": 8.0
+      },
+      "adaptive": {
+        "chosen_subgoals": {
+          "GET_DISH": 6,
+          "GET_ONION": 4,
+          "GET_TOMATO": 20,
+          "SERVE_SOUP": 1,
+          "WAIT": 9
+        },
+        "cumulative_regret": 4.6,
+        "cumulative_teacher_utility": 35.4,
+        "episodes": 40,
+        "mean_regret": 0.11499999999999999,
+        "mean_teacher_utility": 0.8850000000000001,
+        "preference_satisfaction_rate": 0.775,
+        "safety_violation_count": 3,
+        "safety_violation_rate": 0.075,
+        "task_proxy_mean": 0.325,
+        "task_proxy_total": 13.0
+      },
+      "claim_scope": "synthetic online adaptation systems diagnostic; not human preference evidence"
+    },
+    "three_class_human_verified_ai_candidates": {
+      "rows": 89,
+      "accuracy": 0.6404494382022472,
+      "macro_f1": 0.6305643623053923,
+      "claim_scope": "human-confirmed labels on assistant-authored text"
+    }
+  },
+  "human_evidence": {
+    "five_class_gold_rows": 0,
+    "five_class_accuracy_claim_allowed": false,
+    "remaining_required": [
+      "participant/session-disjoint five-class and temporal-credit gold",
+      "fresh player session with real language feedback for ecological validation",
+      "blind frozen-H0 versus adaptive preference study"
+    ]
+  },
+  "runtime_verification": {
+    "passed": true,
+    "completed_sessions": 2,
+    "exact_resume_state_match": true,
+    "model_sha256": "7c621cfd6c0416b7cffd91ad80d88a1efc06ff87c0a1f69b852ac99dce882876",
+    "score_formula": "w_dot_phi",
+    "scope": "headless startup/save/resume smoke; no human feedback claim"
+  },
+  "test_verification": {
+    "schema_version": "submission-test-report-v1",
+    "completed_at_utc": "2026-08-12T12:13:35.8815299Z",
+    "python": "E:\\miniconda\\envs\\pantheonrl_env\\python.exe",
+    "suites": [
+      {
+        "name": "adapted_overcooked",
+        "command": "python -B -m unittest discover -s baselines/baseline_b_linguistic_feedback/adapted_overcooked/tests -p test_*.py",
+        "tests": 196,
+        "failures": 0,
+        "errors": 0,
+        "status": "passed"
+      },
+      {
+        "name": "durf_baseline",
+        "command": "python -B -m unittest discover -s durf/baseline -p test_*.py",
+        "tests": 35,
+        "failures": 0,
+        "errors": 0,
+        "status": "passed"
+      },
+      {
+        "name": "durf_group_a_ui",
+        "command": "python -B -m unittest discover -s durf/group_a -p test_*.py",
+        "tests": 8,
+        "failures": 0,
+        "errors": 0,
+        "status": "passed"
+      }
+    ],
+    "syntax_check": {
+      "python_files": 90,
+      "status": "passed"
+    },
+    "diff_check": {
+      "status": "passed",
+      "whitespace_errors": 0
+    },
+    "total_tests": 239,
+    "status": "passed"
+  },
+  "claim_boundaries": [
+    "87.16% is the original five-class random-row protocol reproduction.",
+    "77.36% is the stricter task/text-disjoint exposed regression.",
+    "Route 2 frozen metrics are synthetic and do not establish human-language generalization.",
+    "The three-class classifier is auxiliary and is not the paper's 87% classifier."
+  ],
+  "source_reports": [
+    {
+      "path": "outputs\\reference_classifier\\model.report.json",
+      "sha256": "f79831d812f08aceb8b6ff8406a8f4367ff0467341b38451d51e619f65ce385f"
+    },
+    {
+      "path": "outputs\\phrase_grounding\\model.joblib.report.json",
+      "sha256": "e4d01b5723fec07bbfebbff7309b3427dd970f70233193c62d86923e092bc4e4"
+    },
+    {
+      "path": "outputs\\route2\\paper_aligned_v5_seed137_selected\\evaluation_report.json",
+      "sha256": "fb4355c2b6c3348d3a4c228e7615ade8c55cc20b1fec4bdb4a8ea00f322356a4"
+    },
+    {
+      "path": "outputs\\route2\\trajectory_required_v1\\evaluation_report.json",
+      "sha256": "5a20d27a26220425cd4b58b233653add5350220f18d50b66d1a3605b3c816a09"
+    },
+    {
+      "path": "outputs\\route2\\trajectory_required_v1\\online_adaptation_simulation.json",
+      "sha256": "9d820bac0d086072a311ee3039765b1055fea42a464c74e5abe816d55b4b357c"
+    },
+    {
+      "path": "outputs\\human_reference_gold_classifier.report.json",
+      "sha256": "10d4b12a3cf079e0b5ee415a9725dcdcbb2ddfa91e2e0c159c0c1af62eaca757"
+    },
+    {
+      "path": "outputs\\human_feedback_form_holdout.evaluation.json",
+      "sha256": "ed9e57d8dc1cfc41d5ef5f9ad784fc0577657c84f0b4be19fa5a71a97e1d5aa6"
+    },
+    {
+      "path": "outputs\\submission_test_report.json",
+      "sha256": "f21a91828217793d837765150d390a55a509393ffa43d7d823958b4460f556e4"
+    }
+  ]
+}

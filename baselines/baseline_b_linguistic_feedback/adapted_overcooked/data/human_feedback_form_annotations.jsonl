@@ -1,0 +1,64 @@
+{"language":"That last move was helpful.","classification_label":"Evaluative"}
+{"language":"Please fetch an onion next.","classification_label":"Imperative"}
+{"language":"This onion is unnecessary.","classification_label":"Descriptive"}
+{"language":"That move was ok.","classification_label":"Evaluative"}
+{"language":"That move was bad.","classification_label":"Evaluative"}
+{"language":"That move was good","classification_label":"Evaluative"}
+{"language":"That move was efficient.","classification_label":"Evaluative"}
+{"language":"That move was really bad.","classification_label":"Evaluative"}
+{"language":"That move was really good.","classification_label":"Evaluative"}
+{"language":"That move was really helpful.","classification_label":"Evaluative"}
+{"language":"That move was fine.","classification_label":"Evaluative"}
+{"language":"That move was unneccessary.","classification_label":"Evaluative"}
+{"language":"That move was not helpful at all.","classification_label":"Evaluative"}
+{"language":"That move was quite impressice.","classification_label":"Evaluative"}
+{"language":"That move was not the best choice.","classification_label":"Evaluative"}
+{"language":"Please fetch a tomato next.","classification_label":"Imperative"}
+{"language":"Please fetch the plate next.","classification_label":"Imperative"}
+{"language":"Please go to grab the food next.","classification_label":"Imperative"}
+{"language":"Please take the soup to the serving window next.","classification_label":"Imperative"}
+{"language":"Please do not wait here next","classification_label":"Imperative"}
+{"language":"Please prepare some tomatos for the next round","classification_label":"Imperative"}
+{"language":"Please prepare some onions for the next round","classification_label":"Imperative"}
+{"language":"Please fetch the tomatos I put next to you not going to grab a new one","classification_label":"Imperative"}
+{"language":"Please fetch the nearest onion.","classification_label":"Imperative"}
+{"language":"Please fetch the nearest tomato.","classification_label":"Imperative"}
+{"language":"Please fetch nearest plate.","classification_label":"Imperative"}
+{"language":"When I am doing something, you should not stop.","classification_label":"Imperative"}
+{"language":"Please grab something for the next round.","classification_label":"Imperative"}
+{"language":"Please help me grab another tomato.","classification_label":"Imperative"}
+{"language":"Help me grab another onion.","classification_label":"Imperative"}
+{"language":"Help me grab another plate.","classification_label":"Imperative"}
+{"language":"Put the tomato next to the pot.","classification_label":"Imperative"}
+{"language":"Put the onion next to the pot.","classification_label":"Imperative"}
+{"language":"Put the plate next to the pot.","classification_label":"Imperative"}
+{"language":"Please do something not standing still.","classification_label":"Imperative"}
+{"language":"This tomato is unnecessary.","classification_label":"Descriptive"}
+{"language":"This plate is unnecessary.","classification_label":"Descriptive"}
+{"language":"Go to grab another tomato is unneccessary because I was going to do so.","classification_label":"Descriptive"}
+{"language":"Go to grab another onion is unneccessary because I was going to do so.","classification_label":"Descriptive"}
+{"language":"Go to grab another plate is unneccessary because I was going to do so.","classification_label":"Descriptive"}
+{"language":"Go to grab another tomato is unneccessary because I jut put one next to the pot.","classification_label":"Descriptive"}
+{"language":"Go to grab another onion is unneccessary because I jut put one next to the pot.","classification_label":"Descriptive"}
+{"language":"Go to grab another plate is unneccessary because I jut put one next to the pot.","classification_label":"Descriptive"}
+{"language":"Go to deliver the soup unneccessary because I jut put one next to the pot.","classification_label":"Descriptive"}
+{"language":"If you stay next to the pot, you will block my way.","classification_label":"Descriptive"}
+{"language":"If you stay here and doing nothing, it will be not helpful.","classification_label":"Descriptive"}
+{"language":"If you can prepare some ingredients for the next round, it will be pretty good.","classification_label":"Descriptive"}
+{"language":"If you can help me make more soup, it will be better.","classification_label":"Descriptive"}
+{"language":"It is good not blocking my way.","classification_label":"Descriptive"}
+{"language":"It is bad blocking my way.","classification_label":"Descriptive"}
+
+
+
+
+
+
+
+
+
+
+
+
+
+

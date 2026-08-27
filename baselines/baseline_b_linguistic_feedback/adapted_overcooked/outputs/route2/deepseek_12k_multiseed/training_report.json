@@ -1,0 +1,184 @@
+{
+  "feedback": "baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\data\\synthetic_feedback.deepseek_12k.validated.json",
+  "corpus_sha256": "4dafa02c4970e2343a4163693c53b4e712109ebd8343859c8362bd235c268a19",
+  "split_sha256": "f5f08ab07dc910f4721fa8ae5f92897820389c6d8dd664f7925971e9ede8071a",
+  "search_sha256": "c9bac10f95b7b638f08937b9f24917114101046efad973ff9544aa37360f20bb",
+  "candidates": [
+    {
+      "config": {
+        "lr": 0.003,
+        "weight_decay": 0.0,
+        "batch_size": 64
+      },
+      "seeds": [
+        {
+          "seed": 0,
+          "best_val_loss": 0.00041479020728729665,
+          "best_epoch": 20,
+          "epochs_run": 33
+        },
+        {
+          "seed": 1,
+          "best_val_loss": 0.00036220831680111587,
+          "best_epoch": 35,
+          "epochs_run": 48
+        },
+        {
+          "seed": 2,
+          "best_val_loss": 0.0003760516701731831,
+          "best_epoch": 17,
+          "epochs_run": 30
+        },
+        {
+          "seed": 3,
+          "best_val_loss": 0.00035322800977155566,
+          "best_epoch": 26,
+          "epochs_run": 39
+        },
+        {
+          "seed": 4,
+          "best_val_loss": 0.00036648588138632476,
+          "best_epoch": 7,
+          "epochs_run": 20
+        }
+      ],
+      "worst_seed_val_loss": 0.00041479020728729665,
+      "mean_val_loss": 0.00037455281708389523
+    },
+    {
+      "config": {
+        "lr": 0.003,
+        "weight_decay": 0.0001,
+        "batch_size": 64
+      },
+      "seeds": [
+        {
+          "seed": 0,
+          "best_val_loss": 0.0012089742813259363,
+          "best_epoch": 13,
+          "epochs_run": 26
+        },
+        {
+          "seed": 1,
+          "best_val_loss": 0.001184019260108471,
+          "best_epoch": 9,
+          "epochs_run": 22
+        },
+        {
+          "seed": 2,
+          "best_val_loss": 0.0011410460574552417,
+          "best_epoch": 32,
+          "epochs_run": 45
+        },
+        {
+          "seed": 3,
+          "best_val_loss": 0.0011716482695192099,
+          "best_epoch": 6,
+          "epochs_run": 19
+        },
+        {
+          "seed": 4,
+          "best_val_loss": 0.001188906142488122,
+          "best_epoch": 12,
+          "epochs_run": 25
+        }
+      ],
+      "worst_seed_val_loss": 0.0012089742813259363,
+      "mean_val_loss": 0.0011789188021793962
+    },
+    {
+      "config": {
+        "lr": 0.01,
+        "weight_decay": 0.0,
+        "batch_size": 64
+      },
+      "seeds": [
+        {
+          "seed": 0,
+          "best_val_loss": 0.0003948488738387823,
+          "best_epoch": 15,
+          "epochs_run": 28
+        },
+        {
+          "seed": 1,
+          "best_val_loss": 0.0003484708722680807,
+          "best_epoch": 6,
+          "epochs_run": 19
+        },
+        {
+          "seed": 2,
+          "best_val_loss": 0.00039642545743845403,
+          "best_epoch": 4,
+          "epochs_run": 17
+        },
+        {
+          "seed": 3,
+          "best_val_loss": 0.0004486338293645531,
+          "best_epoch": 3,
+          "epochs_run": 16
+        },
+        {
+          "seed": 4,
+          "best_val_loss": 0.0003857292467728257,
+          "best_epoch": 16,
+          "epochs_run": 29
+        }
+      ],
+      "worst_seed_val_loss": 0.0004486338293645531,
+      "mean_val_loss": 0.0003948216559365392
+    },
+    {
+      "config": {
+        "lr": 0.01,
+        "weight_decay": 0.0001,
+        "batch_size": 64
+      },
+      "seeds": [
+        {
+          "seed": 0,
+          "best_val_loss": 0.0011736679589375854,
+          "best_epoch": 22,
+          "epochs_run": 35
+        },
+        {
+          "seed": 1,
+          "best_val_loss": 0.0011366112157702446,
+          "best_epoch": 3,
+          "epochs_run": 16
+        },
+        {
+          "seed": 2,
+          "best_val_loss": 0.0011189611395820975,
+          "best_epoch": 39,
+          "epochs_run": 52
+        },
+        {
+          "seed": 3,
+          "best_val_loss": 0.0010767692001536489,
+          "best_epoch": 6,
+          "epochs_run": 19
+        },
+        {
+          "seed": 4,
+          "best_val_loss": 0.0010575115447863936,
+          "best_epoch": 5,
+          "epochs_run": 18
+        }
+      ],
+      "worst_seed_val_loss": 0.0011736679589375854,
+      "mean_val_loss": 0.001112704211845994
+    }
+  ],
+  "selected_config": {
+    "lr": 0.003,
+    "weight_decay": 0.0,
+    "batch_size": 64,
+    "seed": 3,
+    "epochs": 80,
+    "patience": 12,
+    "selection": "minimize worst-seed dev loss, then mean dev loss"
+  },
+  "selected_dev_loss": 0.00035322800977155566,
+  "untouched_test_loss": 0.00047278395504690707,
+  "checkpoint": "baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\route2\\deepseek_12k_multiseed\\model.pt"
+}

@@ -14,6 +14,7 @@ Runs headless (overcooked + motion planner only; no pygame, ray or torch).
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 from pathlib import Path
 
@@ -65,8 +66,16 @@ def rollout(kind: str, layout: str, seed: int, horizon: int, lambda_pref: float)
     breaker = StallBreaker(mdp, seed=seed)
     agent = None
     if kind == "comfort_subgoal":
+        if abs(float(lambda_pref) - 1.0) > 1e-12:
+            raise ValueError(
+                "paper-aligned comfort evaluation requires lambda_pref=1.0"
+            )
         agent = ComfortSubgoalAgent(
-            motion_planner, lambda_pref=lambda_pref, ai_index=0
+            motion_planner,
+            weights=load_comfort_weights(),
+            feedback_mode="frozen",
+            lambda_pref=1.0,
+            ai_index=0,
         )
 
     total_reward = 0.0
@@ -75,7 +84,10 @@ def rollout(kind: str, layout: str, seed: int, horizon: int, lambda_pref: float)
     subgoal_counts: dict[str, int] = {}
     wait_streak = 0
     longest_wait_streak = 0
+    avoidable_wait_streak = 0
+    longest_avoidable_wait_streak = 0
     wait_guard_steps = 0
+    policy_override_steps = 0
     steps = 0
 
     for _ in range(horizon):
@@ -100,8 +112,21 @@ def rollout(kind: str, layout: str, seed: int, horizon: int, lambda_pref: float)
         subgoal_counts[ai_subgoal] = subgoal_counts.get(ai_subgoal, 0) + 1
         wait_streak = wait_streak + 1 if ai_subgoal == "WAIT" else 0
         longest_wait_streak = max(longest_wait_streak, wait_streak)
+        avoidable_wait = bool(
+            kind == "comfort_subgoal"
+            and ai_subgoal == "WAIT"
+            and agent.last_decision.get("productive_alternative_available")
+            and not agent.last_decision.get("passive_cooking_wait_exempt")
+        )
+        avoidable_wait_streak = avoidable_wait_streak + 1 if avoidable_wait else 0
+        longest_avoidable_wait_streak = max(
+            longest_avoidable_wait_streak, avoidable_wait_streak
+        )
 
-        ai_action, _ = breaker.resolve(state, 0, ai_action, other_index=1)
+        # Neither AI condition receives a post-policy random nudge.  The green
+        # rule partner keeps its de-staller, identically in both conditions.
+        # This makes task reward and the logged proposed subgoal refer to the
+        # same AI policy.
         human_action, _ = breaker.resolve(state, 1, human_action, other_index=0)
         (_, _), (reward, _), done, _ = env.multi_step(int(ai_action), int(human_action))
         total_reward += float(reward)
@@ -119,7 +144,10 @@ def rollout(kind: str, layout: str, seed: int, horizon: int, lambda_pref: float)
         "discomfort_rate": discomfort_steps / steps if steps else 0.0,
         "subgoal_counts": subgoal_counts,
         "longest_wait_streak": longest_wait_streak,
+        "longest_avoidable_wait_streak": longest_avoidable_wait_streak,
         "wait_guard_steps": wait_guard_steps,
+        "policy_override_steps": policy_override_steps,
+        "ai_policy_overrides_enabled": False,
     }
 
 
@@ -151,6 +179,14 @@ def main() -> int:
         "seed": args.seed,
         "horizon": args.horizon,
         "lambda_pref": args.comfort_lambda,
+        "learned_weights_path": str(
+            (ADAPTED_ROOT / "outputs" / "route2" / "learned_comfort_weights.json")
+            .resolve()
+        ),
+        "learned_weights_sha256": hashlib.sha256(
+            (ADAPTED_ROOT / "outputs" / "route2" / "learned_comfort_weights.json")
+            .read_bytes()
+        ).hexdigest(),
         "h0_rule": baseline,
         "comfort_subgoal": comfort,
         "delta": {

@@ -1,0 +1,62 @@
+{
+  "feedback": "baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\data\\route2_teacher_feedback.proactivity_v4.synthetic.json",
+  "corpus_sha256": "0e5e07d46f17c6580678ad29c223e1f62bb93da3de9df052401300717ac90f79",
+  "split_sha256": "4fdd3a7fb08396606c4a8e259c20822c36706ba3d6ca1b33bdcb8a8b9259ec41",
+  "search_sha256": "ff22cfbf374f5df86ecd5dd3fa2a010aa0359e6075262fc42e74c5d4e7916cd9",
+  "candidates": [
+    {
+      "config": {
+        "optimizer": "adam",
+        "lr": 0.01,
+        "weight_decay": 0.0001,
+        "batch_size": 256
+      },
+      "seeds": [
+        {
+          "seed": 0,
+          "best_val_loss": 0.003849007422104478,
+          "best_epoch": 78,
+          "epochs_run": 80
+        },
+        {
+          "seed": 1,
+          "best_val_loss": 0.005104444455355406,
+          "best_epoch": 53,
+          "epochs_run": 66
+        },
+        {
+          "seed": 2,
+          "best_val_loss": 0.0033010165207087994,
+          "best_epoch": 68,
+          "epochs_run": 80
+        }
+      ],
+      "worst_seed_val_loss": 0.005104444455355406,
+      "mean_val_loss": 0.004084822799389561
+    }
+  ],
+  "selected_config": {
+    "optimizer": "adam",
+    "lr": 0.01,
+    "weight_decay": 0.0001,
+    "batch_size": 256,
+    "seed": 2,
+    "epochs": 80,
+    "patience": 12,
+    "selection": "minimize worst-seed dev loss, then mean dev loss",
+    "grouping_policy": "joint",
+    "use_feature_counts": true,
+    "target_mode": "full_teacher_reward",
+    "text_only_ablation": false
+  },
+  "selected_dev_loss": 0.0033010165207087994,
+  "untouched_test_loss": 0.003014395711943507,
+  "checkpoint": "baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\route2\\paper_aligned_proactivity_v4\\profile_multiseed\\model.pt",
+  "untouched_test_metrics": {
+    "mse": 0.003014395711943507,
+    "mean_cosine_similarity": 0.9995766282081604,
+    "active_sign_accuracy": 1.0,
+    "active_target_count": 17484,
+    "examples": 460
+  }
+}

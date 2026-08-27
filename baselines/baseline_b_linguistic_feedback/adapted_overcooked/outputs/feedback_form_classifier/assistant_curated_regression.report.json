@@ -1,0 +1,96 @@
+{
+  "all_read_only_input_sha256_unchanged": true,
+  "benchmark_role": "assistant_curated_regression",
+  "candidate_report": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\assistant_curated_feedback_form_candidates.report.json",
+  "candidate_report_sha256": "a3ef3101dd9f24f386ef2f65969b9ba5167ac0a8bab8009c68d4268fa7c0ea98",
+  "candidate_sha256": "de01899c409f6f54d6f9520c14072fc3a8102b6712ffaafbe61a3a0d1db73744",
+  "candidates": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\data\\assistant_curated_feedback_form_candidates.pending_review.jsonl",
+  "external_expected_hashes_supplied": {
+    "candidate_data": true,
+    "candidate_report": true,
+    "model": true,
+    "training_report": true
+  },
+  "human_accuracy_claim": false,
+  "label_counts": {
+    "descriptive": 30,
+    "evaluative": 29,
+    "imperative": 30
+  },
+  "membership_overlap_audit": {
+    "artifact_dev_normalized_text": 0,
+    "artifact_train_normalized_text": 0
+  },
+  "metrics": {
+    "accuracy": 0.6741573033707865,
+    "balanced_accuracy": 0.6773946360153257,
+    "canonical_label_order": [
+      "Evaluative",
+      "Imperative",
+      "Descriptive"
+    ],
+    "confusion_matrix": [
+      [
+        28,
+        0,
+        1
+      ],
+      [
+        4,
+        13,
+        13
+      ],
+      [
+        2,
+        9,
+        19
+      ]
+    ],
+    "label_order": [
+      "evaluative",
+      "imperative",
+      "descriptive"
+    ],
+    "macro_f1": 0.6640211640211641,
+    "per_class": {
+      "descriptive": {
+        "canonical_label": "Descriptive",
+        "f1": 0.6031746031746031,
+        "precision": 0.5757575757575758,
+        "recall": 0.6333333333333333,
+        "support": 30
+      },
+      "evaluative": {
+        "canonical_label": "Evaluative",
+        "f1": 0.8888888888888888,
+        "precision": 0.8235294117647058,
+        "recall": 0.9655172413793104,
+        "support": 29
+      },
+      "imperative": {
+        "canonical_label": "Imperative",
+        "f1": 0.5,
+        "precision": 0.5909090909090909,
+        "recall": 0.43333333333333335,
+        "support": 30
+      }
+    },
+    "rows": 89
+  },
+  "model": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\feedback_form_classifier\\model.joblib",
+  "model_sha256_after": "0f92f07f71ff03cc902693d8e613fc8af681d3ccee0d740322afb2a24c6ca4ab",
+  "model_sha256_before": "0f92f07f71ff03cc902693d8e613fc8af681d3ccee0d740322afb2a24c6ca4ab",
+  "model_sha256_unchanged": true,
+  "natural_human_player_language_claim": false,
+  "prediction_path": "model_only_vectorizer_and_classifier_predict",
+  "read_only_evaluator": true,
+  "rows": 89,
+  
+  "runtime_low_confidence_fallback_used": false,
+  "schema_version": "feedback-form-assistant-curated-regression-v1",
+  "target_source": "assistant_curated_suggested_labels",
+  "training_report": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\feedback_form_classifier\\model.report.json",
+  "training_report_sha256": "0530c636a576cfe46690f155c8123bf2fe91fcfe92e0ca436835f2e432562086",
+  "used_for_model_selection": false,
+  "used_for_training_or_hyperparameter_selection": false
+}

@@ -1,0 +1,9 @@
+{
+  "schema_version": "route2-ensemble-v1",
+  "features": ["a", "b"],
+  "use_feature_counts": true,
+  "members": [
+    {"fold": 0, "checkpoint": "member_0.pt"},
+    {"fold": 1, "checkpoint": "member_1.pt"}
+  ]
+}

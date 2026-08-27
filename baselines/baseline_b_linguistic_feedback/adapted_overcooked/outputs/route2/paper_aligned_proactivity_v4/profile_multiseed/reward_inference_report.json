@@ -1,0 +1,185 @@
+{
+  "by_reward_config": {
+    "reward_00_gold": {
+      "correct": 19,
+      "reward_metrics": {
+        "active_sign_accuracy": 1.0,
+        "active_target_count": 2964,
+        "examples": 76,
+        "mean_cosine_similarity": 0.9995306730270386,
+        "mse": 0.002917130943387747
+      },
+      "subgoal_accuracy": 1.0,
+      "total": 19
+    },
+    "reward_01": {
+      "correct": 19,
+      "reward_metrics": {
+        "active_sign_accuracy": 1.0,
+        "active_target_count": 2508,
+        "examples": 76,
+        "mean_cosine_similarity": 0.9997296333312988,
+        "mse": 0.002514296444132924
+      },
+      "subgoal_accuracy": 1.0,
+      "total": 19
+    },
+    "reward_09": {
+      "correct": 19,
+      "reward_metrics": {
+        "active_sign_accuracy": 1.0,
+        "active_target_count": 3120,
+        "examples": 80,
+        "mean_cosine_similarity": 0.9991675615310669,
+        "mse": 0.004422442987561226
+      },
+      "subgoal_accuracy": 1.0,
+      "total": 19
+    },
+    "reward_21": {
+      "correct": 19,
+      "reward_metrics": {
+        "active_sign_accuracy": 1.0,
+        "active_target_count": 2964,
+        "examples": 76,
+        "mean_cosine_similarity": 0.9994779825210571,
+        "mse": 0.0037048831582069397
+      },
+      "subgoal_accuracy": 1.0,
+      "total": 19
+    },
+    "reward_24": {
+      "correct": 19,
+      "reward_metrics": {
+        "active_sign_accuracy": 1.0,
+        "active_target_count": 2964,
+        "examples": 76,
+        "mean_cosine_similarity": 0.9997372627258301,
+        "mse": 0.0025275193620473146
+      },
+      "subgoal_accuracy": 1.0,
+      "total": 19
+    },
+    "reward_31": {
+      "correct": 19,
+      "reward_metrics": {
+        "active_sign_accuracy": 1.0,
+        "active_target_count": 2964,
+        "examples": 76,
+        "mean_cosine_similarity": 0.9998376965522766,
+        "mse": 0.0019259931286796927
+      },
+      "subgoal_accuracy": 1.0,
+      "total": 19
+    }
+  },
+  "checkpoint": "baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\route2\\paper_aligned_proactivity_v4\\profile_multiseed\\model.pt",
+  "corpus_sha256": "0e5e07d46f17c6580678ad29c223e1f62bb93da3de9df052401300717ac90f79",
+  "feedback": "baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\data\\route2_teacher_feedback.proactivity_v4.synthetic.json",
+  "gold_config": {
+    "correct": 19,
+    "reward_metrics": {
+      "active_sign_accuracy": 1.0,
+      "active_target_count": 2964,
+      "examples": 76,
+      "mean_cosine_similarity": 0.9995306730270386,
+      "mse": 0.002917130943387747
+    },
+    "subgoal_accuracy": 1.0,
+    "total": 19
+  },
+  "live_language_proactivity": {
+    "accuracy": 0.5,
+    "cases": [
+      {
+        "case_id": "positive_specific",
+        "chosen_subgoal": "GET_TOMATO",
+        "correct": true,
+        "expected": "prefetch",
+        "grounding_subgoal": "WAIT",
+        "reward_margin": 7.748603820800781e-07,
+        "scores": {
+          "GET_DISH": 0.04271161701035453,
+          "GET_ONION": 0.12458433169376804,
+          "GET_TOMATO": 0.12458510655415012,
+          "WAIT": -0.00023123849678086117
+        },
+        "text": "Please prepare an onion for the next round while this soup cooks."
+      },
+      {
+        "case_id": "positive_paraphrase",
+        "chosen_subgoal": "GET_TOMATO",
+        "correct": true,
+        "expected": "prefetch",
+        "grounding_subgoal": "WAIT",
+        "reward_margin": 8.195638656616211e-07,
+        "scores": {
+          "GET_DISH": 0.04194870421633823,
+          "GET_ONION": 0.12234005721256835,
+          "GET_TOMATO": 0.12234087677643402,
+          "WAIT": -0.00023241883172886446
+        },
+        "text": "Use the cooking time to get an ingredient ready for our next soup."
+      },
+      {
+        "case_id": "negative_specific",
+        "chosen_subgoal": "GET_TOMATO",
+        "correct": false,
+        "expected": "wait",
+        "grounding_subgoal": "GET_ONION",
+        "reward_margin": 8.568167686462402e-07,
+        "scores": {
+          "GET_DISH": 0.037913543565082364,
+          "GET_ONION": 0.10998743346135598,
+          "GET_TOMATO": 0.10998829027812462,
+          "WAIT": -0.00024593489069957286
+        },
+        "text": "Do not grab an onion this early; keep your hands free while the soup cooks."
+      },
+      {
+        "case_id": "negative_paraphrase",
+        "chosen_subgoal": "GET_TOMATO",
+        "correct": false,
+        "expected": "wait",
+        "grounding_subgoal": "GET_ONION",
+        "reward_margin": 8.344650268554688e-07,
+        "scores": {
+          "GET_DISH": 0.02797730291786138,
+          "GET_ONION": 0.08029676067235414,
+          "GET_TOMATO": 0.080297595137381,
+          "WAIT": -0.0002472733467584476
+        },
+        "text": "Wait until this soup is done; do not fill your hands yet."
+      }
+    ],
+    "correct": 2,
+    "total": 4
+  },
+  "reward_metrics": {
+    "active_sign_accuracy": 1.0,
+    "active_target_count": 17484,
+    "examples": 460,
+    "mean_cosine_similarity": 0.9995766282081604,
+    "mse": 0.003014395711943507
+  },
+  "split_sha256": "4fdd3a7fb08396606c4a8e259c20822c36706ba3d6ca1b33bdcb8a8b9259ec41",
+  "subgoal_metrics": {
+    "accuracy": 1.0,
+    "correct": 114,
+    "total": 114
+  },
+  "target_mode": "full_teacher_reward",
+  "test_reward_configs": [
+    "reward_00_gold",
+    "reward_01",
+    "reward_09",
+    "reward_21",
+    "reward_24",
+    "reward_31"
+  ],
+  "test_teacher_styles": [
+    "style_feature_evaluative",
+    "style_feature_imperative"
+  ],
+  "use_feature_counts": true
+}

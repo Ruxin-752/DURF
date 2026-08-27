@@ -7,12 +7,18 @@ import re
 
 import numpy as np
 
-from .feedback_form_classifier import classify_feedback
+from .feedback_form_classifier import FEEDBACK_TYPES, predict_feedback_form
 from .feedback_observations import (
     build_feedback_observations,
     without_privileged_labels,
 )
 from .reward_weight_model import BayesianRewardLearner
+from .subgoal_featurizer import (
+    LIVE_DECISION_FEATURES,
+    audit_live_feature_coverage,
+    candidate_varying_features,
+)
+from .text_analysis import limited_punc_tokenization
 
 
 ROUTE1_LITERAL = "route1-literal"
@@ -67,6 +73,80 @@ def _semantic_similarity(left: str, right: str) -> float:
     return len(left_tokens & right_tokens) / len(left_tokens | right_tokens)
 
 
+def _normalize_feedback_form_prediction(phrase: str, value: dict) -> dict:
+    """Normalize the exact UI/model prediction consumed by Route 1."""
+
+    row = dict(value or {})
+    feedback_type = str(row.get("feedback_type") or "unknown").lower()
+    raw_probabilities = row.get("probabilities")
+    probabilities: dict[str, float] = {}
+    if isinstance(raw_probabilities, dict):
+        for label, score in raw_probabilities.items():
+            normalized_label = str(label)
+            if normalized_label not in FEEDBACK_TYPES:
+                continue
+            try:
+                normalized_score = float(score)
+            except (TypeError, ValueError):
+                continue
+            if np.isfinite(normalized_score) and 0.0 <= normalized_score <= 1.0:
+                probabilities[normalized_label] = normalized_score
+    raw_confidence = row.get("confidence")
+    if raw_confidence is None and feedback_type in probabilities:
+        raw_confidence = probabilities[feedback_type]
+    try:
+        confidence = float(raw_confidence)
+    except (TypeError, ValueError):
+        confidence = float("nan")
+    try:
+        threshold = float(row.get("confidence_threshold"))
+    except (TypeError, ValueError):
+        threshold = 0.55
+    if not np.isfinite(threshold) or not 0.0 <= threshold <= 1.0:
+        threshold = 0.55
+    confidence_is_valid = bool(np.isfinite(confidence) and 0.0 <= confidence <= 1.0)
+    abstained = (
+        bool(row.get("abstained", False))
+        or feedback_type not in FEEDBACK_TYPES
+        or not confidence_is_valid
+        or confidence < threshold
+    )
+    return {
+        **row,
+        "text": phrase,
+        "feedback_type": feedback_type,
+        "confidence": confidence if confidence_is_valid else None,
+        "probabilities": probabilities,
+        "confidence_threshold": threshold,
+        "abstained": abstained,
+    }
+
+
+def _feedback_form_predictions(
+    text: str,
+    supplied: dict | None,
+) -> list[dict]:
+    """Return phrase-level ``f_G`` predictions from one authoritative source."""
+
+    if supplied:
+        supplied_rows = list(supplied.get("phrases") or [])
+        if not supplied_rows:
+            supplied_rows = [{**supplied, "text": text}]
+        predictions = []
+        for row in supplied_rows:
+            if not isinstance(row, dict):
+                continue
+            phrase = str(row.get("text") or row.get("phrase") or "").strip()
+            if phrase:
+                predictions.append(_normalize_feedback_form_prediction(phrase, row))
+        return predictions
+
+    return [
+        _normalize_feedback_form_prediction(phrase, dict(predict_feedback_form(phrase)))
+        for phrase in limited_punc_tokenization(text)
+    ]
+
+
 class OnlineRoute1Learner:
     """Classify, ground, and absorb live feedback with a Gaussian posterior."""
 
@@ -112,6 +192,14 @@ class OnlineRoute1Learner:
         self.max_update_kl = float(max_update_kl)
         self.pragmatic_confidence_threshold = float(pragmatic_confidence_threshold)
         self._recent_feedback: list[tuple[int, str]] = []
+        self.live_feature_coverage = audit_live_feature_coverage(features)
+        self.live_feature_mask = (
+            set(LIVE_DECISION_FEATURES)
+            if self.live_feature_coverage["schema_size"] == 53
+            and self.live_feature_coverage["decision_feature_count"]
+            == len(LIVE_DECISION_FEATURES)
+            else None
+        )
         pseudo = mode == ROUTE1_PSEUDOPRAGMATIC
         self.learner = BayesianRewardLearner(
             features,
@@ -128,7 +216,10 @@ class OnlineRoute1Learner:
         *,
         decision: dict | None = None,
         trajectory_features: dict[str, float] | None = None,
+        recent_events: list[dict] | None = None,
+        total_step: int | None = None,
         oracle_feedback: dict | None = None,
+        feedback_form_prediction: dict | None = None,
         interpretation: str = "inferred",
         source: str = "synthetic",
         confidence: float = 1.0,
@@ -184,11 +275,37 @@ class OnlineRoute1Learner:
         supplied = dict(oracle_feedback or {})
         supplied["text"] = cleaned
         feedback = supplied if interpretation == "oracle" else without_privileged_labels(supplied)
-        feedback_type = (
-            str(feedback.get("expected_feedback_type"))
-            if interpretation == "oracle" and feedback.get("expected_feedback_type")
-            else classify_feedback(cleaned)
-        )
+        if interpretation == "oracle":
+            feedback_type = str(
+                feedback.get("expected_feedback_type") or "unknown"
+            ).lower()
+            form_predictions = [
+                {
+                    "text": cleaned,
+                    "feedback_type": feedback_type,
+                    "confidence": 1.0,
+                    "probabilities": {feedback_type: 1.0},
+                    "classifier": "oracle_feedback_form",
+                    "confidence_threshold": 0.0,
+                    "abstained": False,
+                }
+            ]
+        else:
+            form_predictions = _feedback_form_predictions(
+                cleaned, feedback_form_prediction
+            )
+            distinct_forms = {
+                row["feedback_type"]
+                for row in form_predictions
+                if row["feedback_type"] in FEEDBACK_TYPES
+            }
+            feedback_type = (
+                next(iter(distinct_forms))
+                if len(distinct_forms) == 1
+                else "mixed"
+                if len(distinct_forms) > 1
+                else "unknown"
+            )
 
         ranking = list((decision or {}).get("ranking") or [])
         action_library = {
@@ -199,9 +316,9 @@ class OnlineRoute1Learner:
             for item in ranking
         }
         if interpretation == "inferred":
-            # Supply every runtime referent candidate, but let the independent
-            # phrase reference classifier choose which grounding path consumes
-            # it. Speech act is metadata, not a proxy for reference type.
+            # Supply every runtime referent candidate.  The three-way ``f_G``
+            # prediction selects the grounding branch; the five-way reference
+            # prediction may only refine a compatible subtype inside it.
             if trajectory_features:
                 feedback["trajectory_features"] = {
                     str(feature): float(value)
@@ -211,6 +328,13 @@ class OnlineRoute1Learner:
                 chosen = decision.get("chosen_subgoal")
                 if chosen in action_library:
                     feedback["trajectory_features"] = action_library[chosen]
+            if recent_events:
+                feedback["recent_events"] = [dict(event) for event in recent_events]
+                feedback["total_step"] = int(
+                    total_step
+                    if total_step is not None
+                    else max(int(event.get("total_step", 0)) for event in recent_events)
+                )
             target_action = infer_target_action(cleaned, action_library)
             if target_action:
                 feedback["target_action"] = target_action
@@ -220,17 +344,63 @@ class OnlineRoute1Learner:
             feedback_type=feedback_type,
             action_feature_library=action_library,
             prefer_explicit_reference=interpretation == "oracle",
+            live_feature_mask=self.live_feature_mask,
+            feedback_form_predictions=(
+                None if interpretation == "oracle" else form_predictions
+            ),
         )
         rejection_reasons: list[dict] = []
         if interpretation == "inferred":
             for index, observation in enumerate(observations):
-                if observation.get("reference_abstained") or float(
+                form_confidence = observation.get("feedback_form_confidence")
+                form_threshold = observation.get(
+                    "feedback_form_confidence_threshold"
+                )
+                try:
+                    form_confidence_value = float(form_confidence)
+                except (TypeError, ValueError):
+                    form_confidence_value = float("nan")
+                try:
+                    form_threshold_value = float(form_threshold)
+                except (TypeError, ValueError):
+                    form_threshold_value = 0.55
+                if (
+                    observation.get("feedback_form_abstained")
+                    or not np.isfinite(form_confidence_value)
+                    or form_confidence_value < form_threshold_value
+                ):
+                    rejection_reasons.append(
+                        {"observation": index, "stage": "feedback_form"}
+                    )
+                reference_confidence = float(
                     observation.get("reference_confidence", 1.0)
-                ) < self.minimum_reference_confidence:
-                    rejection_reasons.append({"observation": index, "stage": "reference"})
-                if observation.get("grounding_abstained") or float(
+                )
+                grounding_confidence = float(
                     observation.get("grounding_confidence", 0.0)
-                ) < self.minimum_grounding_confidence:
+                )
+                grounding_is_strong = (
+                    not observation.get("grounding_abstained")
+                    and grounding_confidence
+                    >= max(self.minimum_grounding_confidence, 0.6)
+                )
+                reference_is_weak = (
+                    observation.get("reference_abstained")
+                    or reference_confidence < self.minimum_reference_confidence
+                )
+                # Strong literal grounding can rescue a conservative reference
+                # abstention. The raw confidence still gates Pragmatic updates.
+                reference_grounding_override = bool(
+                    reference_is_weak and grounding_is_strong
+                )
+                observation["reference_grounding_override"] = (
+                    reference_grounding_override
+                )
+                if reference_is_weak and not reference_grounding_override:
+                    rejection_reasons.append({"observation": index, "stage": "reference"})
+                if (
+                    observation.get("grounding_abstained")
+                    or grounding_confidence < self.minimum_grounding_confidence
+                ):
                     rejection_reasons.append({"observation": index, "stage": "grounding"})
                 if float(
                     observation.get("valence_confidence", 1.0)
@@ -245,8 +415,17 @@ class OnlineRoute1Learner:
                 "interpretation": interpretation,
                 "text": cleaned,
                 "feedback_type": feedback_type,
+                "feedback_types": [
+                    row["feedback_type"] for row in form_predictions
+                ],
+                "feedback_form_prediction": copy.deepcopy(
+                    feedback_form_prediction
+                ),
+                "feedback_form_predictions": copy.deepcopy(form_predictions),
                 "rejection_reasons": rejection_reasons,
                 "candidate_observations": observations,
+                "recent_event_count": len(feedback.get("recent_events") or []),
+                "live_feature_coverage": self.live_feature_coverage,
                 "update_id": self.update_count,
             }
         before = self.learner.as_dict()
@@ -266,11 +445,20 @@ class OnlineRoute1Learner:
             grounding_confidence = float(observation.get("grounding_confidence", 1.0))
             reference_confidence = float(observation.get("reference_confidence", 1.0))
             valence_confidence = float(observation.get("valence_confidence", 1.0))
+            form_confidence = float(
+                observation.get("feedback_form_confidence", 1.0)
+            )
+            literal_reference_confidence = (
+                max(reference_confidence, self.minimum_reference_confidence)
+                if observation.get("reference_grounding_override")
+                else reference_confidence
+            )
             effective_multiplier = (
                 source_multiplier
                 * confidence
+                * form_confidence
                 * grounding_confidence
-                * reference_confidence
+                * literal_reference_confidence
                 * valence_confidence
             )
             if effective_multiplier < 0.15:
@@ -283,6 +471,7 @@ class OnlineRoute1Learner:
                     self.mode != ROUTE1_PSEUDOPRAGMATIC
                     or min(
                         confidence,
+                        form_confidence,
                         grounding_confidence,
                         reference_confidence,
                         valence_confidence,
@@ -298,6 +487,8 @@ class OnlineRoute1Learner:
                         self.learner.precision_scale * effective_multiplier
                     ),
                     "precision_multiplier": effective_multiplier,
+                    "feedback_form_confidence": form_confidence,
+                    "literal_reference_confidence": literal_reference_confidence,
                 }
             )
 
@@ -331,14 +522,25 @@ class OnlineRoute1Learner:
             "interpretation": interpretation,
             "text": cleaned,
             "feedback_type": feedback_type,
+            "feedback_types": [row["feedback_type"] for row in form_predictions],
+            "feedback_form_prediction": copy.deepcopy(feedback_form_prediction),
+            "feedback_form_predictions": copy.deepcopy(form_predictions),
             "reference_types": [
                 observation.get("reference_type") for observation in grounded
+            ],
+            "effective_reference_types": [
+                observation.get("effective_reference_type") for observation in grounded
             ],
             "source": source,
             "source_precision_multiplier": source_multiplier,
             "input_confidence": confidence,
             "update_id": self.update_count,
             "target_action": feedback.get("target_action"),
+            "recent_event_count": len(feedback.get("recent_events") or []),
+            "current_candidate_varying_features": sorted(
+                candidate_varying_features(list(action_library.values()))
+            ),
+            "live_feature_coverage": self.live_feature_coverage,
             "observations": grounded,
             "update_constraint": constraint,
             "weight_delta": {feature: merged_delta[feature] for feature in changed},
@@ -381,7 +583,7 @@ class OnlineRoute1Learner:
         }
 
     def load_state_dict(self, state: dict) -> None:
-        """Restore an exact posterior, rejecting incompatible feature schemas."""
+        """Atomically restore an exact, compatible Route 1 posterior."""
 
         if int(state.get("version", -1)) != STATE_VERSION:
             raise ValueError("unsupported Route 1 state version")
@@ -390,22 +592,97 @@ class OnlineRoute1Learner:
         features = list(state.get("features") or [])
         if features != self.learner.features:
             raise ValueError("Route 1 checkpoint feature schema does not match")
-        mean = np.asarray(state.get("mean"), dtype=float)
-        covariance = np.asarray(state.get("covariance"), dtype=float)
+        try:
+            mean = np.asarray(state.get("mean"), dtype=float)
+            covariance = np.asarray(state.get("covariance"), dtype=float)
+        except (TypeError, ValueError) as exc:
+            raise ValueError("invalid Route 1 checkpoint posterior") from exc
         n = len(features)
         if mean.shape != (n,) or covariance.shape != (n, n):
             raise ValueError("invalid Route 1 checkpoint posterior dimensions")
-        self.learner.belief.mean = mean
-        self.learner.belief.covariance = covariance
-        self.update_count = int(state.get("update_count", 0))
-        self.feedback_count = int(state.get("feedback_count", self.update_count))
-        self._recent_feedback = [
-            (int(index), str(text))
-            for index, text in (state.get("recent_feedback") or [])
-        ]
-        self.source_precision.update(
-            {str(key): float(value) for key, value in (state.get("source_precision") or {}).items()}
-        )
+        if not np.all(np.isfinite(mean)) or not np.all(np.isfinite(covariance)):
+            raise ValueError("Route 1 checkpoint posterior must be finite")
+        if not np.allclose(covariance, covariance.T, rtol=0.0, atol=1e-10):
+            raise ValueError("Route 1 checkpoint covariance must be symmetric")
+        try:
+            if np.min(np.linalg.eigvalsh(covariance)) <= 0:
+                raise ValueError("Route 1 checkpoint covariance must be positive definite")
+        except np.linalg.LinAlgError as exc:
+            raise ValueError("Route 1 checkpoint covariance is invalid") from exc
+
+        try:
+            update_count = int(state.get("update_count", 0))
+            feedback_count = int(state.get("feedback_count", update_count))
+        except (TypeError, ValueError) as exc:
+            raise ValueError("Route 1 checkpoint counters are invalid") from exc
+        if update_count < 0 or feedback_count < update_count:
+            raise ValueError("Route 1 checkpoint counters are invalid")
+
+        try:
+            recent_feedback = []
+            for item in state.get("recent_feedback") or []:
+                if not isinstance(item, (list, tuple)) or len(item) != 2:
+                    raise ValueError
+                index, text = int(item[0]), str(item[1])
+                if index < 0 or index > feedback_count or not text.strip():
+                    raise ValueError
+                recent_feedback.append((index, text))
+        except (TypeError, ValueError) as exc:
+            raise ValueError("Route 1 checkpoint recent feedback is invalid") from exc
+
+        raw_source_precision = state.get("source_precision")
+        if not isinstance(raw_source_precision, dict) or not raw_source_precision:
+            raise ValueError("Route 1 checkpoint source precision is missing")
+        try:
+            source_precision = {
+                str(key): float(value) for key, value in raw_source_precision.items()
+            }
+        except (TypeError, ValueError) as exc:
+            raise ValueError("Route 1 checkpoint source precision is invalid") from exc
+        if any(
+            not key or value <= 0 or not np.isfinite(value)
+            for key, value in source_precision.items()
+        ):
+            raise ValueError("Route 1 checkpoint source precision is invalid")
+
+        expected_hyperparameters = {
+            "valence_scale": self.learner.valence_scale,
+            "precision_scale": self.learner.precision_scale,
+            "pragmatic_valence": self.learner.pragmatic_valence,
+            "pragmatic_precision": self.learner.pragmatic_precision,
+        }
+        saved_hyperparameters = state.get("hyperparameters")
+        if not isinstance(saved_hyperparameters, dict):
+            raise ValueError("Route 1 checkpoint hyperparameters are missing")
+        for name, expected in expected_hyperparameters.items():
+            saved = saved_hyperparameters.get(name)
+            if expected is None:
+                if saved is not None:
+                    raise ValueError(
+                        "Route 1 checkpoint hyperparameters do not match learner"
+                    )
+                continue
+            try:
+                saved_value = float(saved)
+            except (TypeError, ValueError) as exc:
+                raise ValueError(
+                    "Route 1 checkpoint hyperparameters are invalid"
+                ) from exc
+            if not np.isfinite(saved_value) or not np.isclose(
+                saved_value, float(expected), rtol=0.0, atol=1e-12
+            ):
+                raise ValueError(
+                    "Route 1 checkpoint hyperparameters do not match learner"
+                )
+
+        # Commit only after every field has passed validation.  Callers can
+        # safely catch a resume error and continue using the current learner.
+        self.learner.belief.mean = mean.copy()
+        self.learner.belief.covariance = covariance.copy()
+        self.update_count = update_count
+        self.feedback_count = feedback_count
+        self._recent_feedback = recent_feedback
+        self.source_precision = source_precision
 
     def reset(self, *, prior_mean: dict[str, float] | None = None) -> None:
         """Reset the posterior while preserving the selected learner mode."""

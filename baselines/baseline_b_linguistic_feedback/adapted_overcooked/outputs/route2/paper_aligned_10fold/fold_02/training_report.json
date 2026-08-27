@@ -1,0 +1,57 @@
+{
+  "fold": 2,
+  "seed": 44,
+  "checkpoint": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\route2\\paper_aligned_10fold\\fold_02\\model.pt",
+  "vocab_size": 96,
+  "best_dev_mse": 0.900109589099884,
+  "best_epoch": 10,
+  "epochs_run": 23,
+  "split_sizes": {
+    "train": 14958,
+    "dev": 245,
+    "test": 283
+  },
+  "test_metrics": {
+    "mse": 0.41355669498443604,
+    "mean_cosine_similarity": 0.9332528710365295,
+    "active_sign_accuracy": 0.9790596961975098,
+    "active_target_count": 9933,
+    "examples": 283
+  },
+  "dev_teachers": [
+    "synthetic_teacher_003",
+    "synthetic_teacher_009",
+    "synthetic_teacher_018",
+    "synthetic_teacher_038",
+    "synthetic_teacher_044",
+    "synthetic_teacher_045",
+    "synthetic_teacher_052",
+    "synthetic_teacher_054",
+    "synthetic_teacher_061",
+    "synthetic_teacher_085"
+  ],
+  "test_teachers": [
+    "synthetic_teacher_014",
+    "synthetic_teacher_025",
+    "synthetic_teacher_032",
+    "synthetic_teacher_042",
+    "synthetic_teacher_062",
+    "synthetic_teacher_063",
+    "synthetic_teacher_065",
+    "synthetic_teacher_068",
+    "synthetic_teacher_073",
+    "synthetic_teacher_075"
+  ],
+  "dev_rewards": [
+    "reward_09",
+    "reward_15",
+    "reward_17",
+    "reward_31"
+  ],
+  "test_rewards": [
+    "reward_07",
+    "reward_10",
+    "reward_30",
+    "reward_35"
+  ]
+}

@@ -48,6 +48,7 @@ SUBGOAL_GLOSS = {
     "GET_DISH": "fetch a clean dish to plate a ready soup",
     "PICKUP_SOUP": "plate the soup from a ready pot",
     "SERVE_SOUP": "carry the plated soup to a serving window",
+    "STASH_HELD_OBJECT": "put an unusable held object on an empty counter",
     "WAIT": "stay put to yield space to your teammate",
 }
 

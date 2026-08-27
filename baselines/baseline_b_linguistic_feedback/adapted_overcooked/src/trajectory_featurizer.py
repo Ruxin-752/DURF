@@ -116,6 +116,32 @@ def featurize_trajectory_steps(trajectory_steps: list[dict]) -> dict[str, float]
     return counts
 
 
+def featurize_trajectory_events(trajectory_steps: list[dict]) -> list[dict]:
+    """Preserve per-step reward events for temporal credit assignment.
+
+    The aggregate featurizer remains useful for trajectory-level references.
+    This companion representation keeps event boundaries so an
+    ``action_spatial`` phrase can select one recent step and an
+    ``action_behavioral`` phrase can require a pattern repeated across steps.
+    Empty steps are retained as temporal context but cannot receive credit.
+    """
+
+    events = []
+    for order, step in enumerate(trajectory_steps, start=1):
+        total_step = step.get("total_step")
+        if total_step is None:
+            total_step = order
+        events.append(
+            {
+                "total_step": int(total_step),
+                "features": featurize_trajectory_steps([step]),
+                "ai_action_name": str(step.get("ai_action_name") or ""),
+                "human_action_name": str(step.get("human_action_name") or ""),
+            }
+        )
+    return events
+
+
 def featurize_trajectory_jsonl(path: str | Path) -> dict[str, float]:
     records = read_jsonl(path)
     return featurize_trajectory_steps(records)

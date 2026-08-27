@@ -14,6 +14,10 @@ For every example we check, from the text alone:
      for the model to attach the valence to.
   3. feedback-type agreement (``classify_feedback``) -- reported, not gated
      (the keyword classifier is crude and type is fuzzier than valence).
+  4. reference scope -- deterministic cues check that trajectory, feature,
+     spatial-action, and behavioral-action labels are recoverable from the text
+     without consulting the deployed reference classifier. Mixed-scope examples
+     and exact same-text/different-label conflicts are rejected.
 
 Template examples are the trusted coverage floor and are always kept; LLM
 paraphrases are kept only if they pass (1) and (2). The cleaned corpus is the
@@ -86,9 +90,132 @@ _NEG_CONTRADICTION = 0.5   # negative-labeled text that reads this positive -> r
 _POSITIVE_WORDS = {"good", "great", "nice", "perfect", "right", "help", "helps", "thanks"}
 _NEGATIVE_WORDS = {"bad", "wrong", "stop", "block", "blocks", "hurts", "waste", "wastes"}
 
+_REFERENCE_ORDER = (
+    "trajectory",
+    "feature",
+    "action_spatial",
+    "action_behavioral",
+    "other",
+)
+_REFERENCE_CUE_PATTERNS = {
+    "trajectory": re.compile(
+        r"\b(?:overall|whole|entire|trajectory|that sequence|the sequence|"
+        r"this sequence|start to finish|from start to finish|what you just did|"
+        r"everything you just did)\b|"
+        r"\b(?:good|great|nice|bad|poor|wrong)\s+(?:job|work|run|round)\b",
+        re.IGNORECASE,
+    ),
+    "action_behavioral": re.compile(
+        r"\b(?:keep|keeps|keeping|kept|always|again|every time|each time|usually|"
+        r"habit|pattern|repeated|repeatedly|constant|constantly|continually|whenever)\b",
+        re.IGNORECASE,
+    ),
+    "action_spatial": re.compile(
+        r"\b(?:right now|right there|there now|from that spot|at that spot|"
+        r"in that spot|this spot|that spot|over here|over there|currently|this time|"
+        r"on the left|on the right|at the (?:pot|counter|serving counter|dish rack))\b",
+        re.IGNORECASE,
+    ),
+    "feature": re.compile(
+        r"\b(?:block|blocks|blocked|blocking|duplicate|duplicates|duplicated|duplicating|"
+        r"redundant|waste|wastes|wasted|wasting|delay|delays|delayed|delaying|"
+        r"slow|slows|slowed|slowing|help|helps|helped|helping|support|supports|"
+        r"supported|supporting|needed|missing|ingredient|recipe|order|teamwork|"
+        r"efficient|efficiency|coordinate|coordination|complementary|path|route|access|"
+        r"split|splits|splitting|same task)\b",
+        re.IGNORECASE,
+    ),
+    "other": re.compile(
+        r"^(?:hello|hi\b|hey teammate|can you hear|are you ready|"
+        r"i(?:'ll| will| am going to|'m going to)\b|let me\b)|"
+        r"\b(?:lag|frame rate|audio|connection|screen|controls?|key binding|waving)\b",
+        re.IGNORECASE,
+    ),
+}
+
 
 def _normalized_text(text: str) -> str:
     return " ".join(re.findall(r"[a-z0-9]+", text.lower()))
+
+
+def _reference_semantic_check(example: dict) -> dict:
+    """Recover reference scope from explicit text cues, without a learned model.
+
+    Feature words are often a rationale inside an otherwise explicit trajectory,
+    spatial, or repeated-behavior reference. They count as a competing scope only
+    when the expected label is ``feature``; otherwise the stronger scope cue wins.
+    """
+
+    text = str(example.get("text") or "").strip()
+    expected = str(example.get("reference_type") or "")
+    cue_hits = {
+        label: bool(pattern.search(text))
+        for label, pattern in _REFERENCE_CUE_PATTERNS.items()
+    }
+    if text.endswith("?") and re.match(
+        r"^(?:what|which|where|how many|how much|is (?:the|this|that))\b",
+        text,
+        re.IGNORECASE,
+    ):
+        cue_hits["other"] = True
+    candidates = [
+        label
+        for label in ("trajectory", "action_spatial", "action_behavioral")
+        if cue_hits[label]
+    ]
+    if cue_hits["other"]:
+        candidates.append("other")
+    if cue_hits["feature"] and (not candidates or expected == "feature"):
+        candidates.append("feature")
+    candidates = [label for label in _REFERENCE_ORDER if label in set(candidates)]
+    cue_ok = expected in candidates
+    ambiguous = len(candidates) > 1
+    reasons = []
+    if expected in _REFERENCE_ORDER and not cue_ok:
+        reasons.append("missing_reference_cue")
+    if ambiguous:
+        reasons.append("ambiguous_reference_cues")
+    return {
+        "expected_reference_type": expected or None,
+        "reference_cue_hits": cue_hits,
+        "reference_candidates": candidates,
+        "reference_cue_ok": cue_ok,
+        "reference_ambiguous": ambiguous,
+        "reference_semantic_ok": cue_ok and not ambiguous,
+        "reference_semantic_reasons": reasons,
+    }
+
+
+def _cross_label_exact_conflicts(rows: list[dict]) -> list[dict]:
+    """Return normalized texts that carry more than one reference label."""
+
+    grouped: dict[str, list[tuple[int, dict]]] = defaultdict(list)
+    for index, row in enumerate(rows):
+        normalized = _normalized_text(str(row.get("text") or ""))
+        if normalized:
+            grouped[normalized].append((index, row))
+    conflicts = []
+    for normalized, indexed_rows in grouped.items():
+        labels = sorted(
+            {
+                str(row.get("reference_type"))
+                for _index, row in indexed_rows
+                if row.get("reference_type") is not None
+            }
+        )
+        if len(labels) <= 1:
+            continue
+        conflicts.append(
+            {
+                "normalized_text": normalized,
+                "labels": labels,
+                "row_indices": [index for index, _row in indexed_rows],
+                "feedback_ids": [
+                    row.get("feedback_id") for _index, row in indexed_rows
+                ],
+            }
+        )
+    return conflicts
 
 
 def _surface_sentiment(text: str) -> float:
@@ -172,7 +299,12 @@ def evaluate_example(example: dict, *, weights: dict[str, float] | None = None) 
 
     structural_errors = _structure_errors(example)
     feature_errors = _feature_errors(example, weights or load_gold_weights())
-    reasons = [*structural_errors, *feature_errors]
+    reference_semantics = _reference_semantic_check(example)
+    reasons = [
+        *structural_errors,
+        *feature_errors,
+        *reference_semantics["reference_semantic_reasons"],
+    ]
     if not sentiment_ok:
         reasons.append("sentiment_contradiction")
     if not grounding_ok:
@@ -186,6 +318,7 @@ def evaluate_example(example: dict, *, weights: dict[str, float] | None = None) 
         "reference_ok": reference_ok,
         "recovered_reference_type": reference_prediction["reference_type"],
         "reference_confidence": reference_prediction["confidence"],
+        **reference_semantics,
         "structure_ok": not structural_errors,
         "feature_consistency_ok": not feature_errors,
         "passed": (
@@ -193,6 +326,7 @@ def evaluate_example(example: dict, *, weights: dict[str, float] | None = None) 
             and grounding_ok
             and not structural_errors
             and not feature_errors
+            and reference_semantics["reference_semantic_ok"]
         ),
         "reasons": reasons,
     }
@@ -318,10 +452,23 @@ def validate_corpus(
     sentiment_agree = 0
     reference_total = 0
     reference_agree = 0
+    reference_semantic_total = 0
+    reference_cue_agree = 0
+    reference_ambiguous = 0
+    reference_semantic_passed = 0
+    reference_by_type: dict[str, dict[str, int]] = defaultdict(
+        lambda: {"total": 0, "cue_ok": 0, "ambiguous": 0, "passed": 0}
+    )
     weights = load_gold_weights()
     source_totals: dict[str, int] = {}
+    cross_label_conflicts = _cross_label_exact_conflicts(examples)
+    conflict_rows = {
+        index
+        for conflict in cross_label_conflicts
+        for index in conflict["row_indices"]
+    }
 
-    for example in examples:
+    for index, example in enumerate(examples):
         verdict = evaluate_example(example, weights=weights)
         source = example.get("source", "unknown")
         source_totals[source] = source_totals.get(source, 0) + 1
@@ -330,6 +477,25 @@ def validate_corpus(
         if verdict["reference_ok"] is not None:
             reference_total += 1
             reference_agree += int(verdict["reference_ok"])
+        expected_reference = verdict.get("expected_reference_type")
+        if expected_reference in _REFERENCE_ORDER:
+            reference_semantic_total += 1
+            reference_cue_agree += int(verdict["reference_cue_ok"])
+            reference_ambiguous += int(verdict["reference_ambiguous"])
+            reference_semantic_passed += int(verdict["reference_semantic_ok"])
+            type_stats = reference_by_type[str(expected_reference)]
+            type_stats["total"] += 1
+            type_stats["cue_ok"] += int(verdict["reference_cue_ok"])
+            type_stats["ambiguous"] += int(verdict["reference_ambiguous"])
+            type_stats["passed"] += int(verdict["reference_semantic_ok"])
+
+        if index in conflict_rows:
+            verdict = dict(verdict)
+            verdict["passed"] = False
+            verdict["reasons"] = [
+                *verdict["reasons"],
+                "cross_label_exact_conflict",
+            ]
 
         keep = verdict["passed"]
         if keep:
@@ -419,6 +585,46 @@ def validate_corpus(
         "reference_type_roundtrip_agreement": (
             reference_agree / reference_total if reference_total else None
         ),
+        "classifier_reference_type_roundtrip_agreement": (
+            reference_agree / reference_total if reference_total else None
+        ),
+        "reference_validation": {
+            "method": "deterministic_cues_independent_of_deployed_classifier",
+            "cue_agreement": (
+                reference_cue_agree / reference_semantic_total
+                if reference_semantic_total
+                else None
+            ),
+            "ambiguity_rate": (
+                reference_ambiguous / reference_semantic_total
+                if reference_semantic_total
+                else None
+            ),
+            "semantic_pass_rate": (
+                reference_semantic_passed / reference_semantic_total
+                if reference_semantic_total
+                else None
+            ),
+            "by_expected_type": {
+                label: dict(
+                    reference_by_type.get(
+                        label,
+                        {"total": 0, "cue_ok": 0, "ambiguous": 0, "passed": 0},
+                    )
+                )
+                for label in _REFERENCE_ORDER
+            },
+            "cross_label_exact_conflict_groups": len(cross_label_conflicts),
+            "cross_label_exact_conflict_rows": len(conflict_rows),
+            "cross_label_exact_conflict_samples": [
+                {
+                    "normalized_text": conflict["normalized_text"],
+                    "labels": conflict["labels"],
+                    "feedback_ids": conflict["feedback_ids"],
+                }
+                for conflict in cross_label_conflicts[:40]
+            ],
+        },
         "kept_valence_balance": _valence_counts(kept),
         "kept_type_coverage": _type_counts(kept),
         "kept_reference_type_coverage": {
@@ -449,6 +655,7 @@ def validate_corpus(
         "min_llm_keep_rate": 0.0,
         "min_diversity_ratio": 0.0,
         "max_cross_split_near_pairs": 1_000_000_000,
+        "max_cross_label_exact_conflict_groups": 0,
         **(quality_thresholds or {}),
     }
     llm_report = report["source_reports"].get("llm", {"keep_rate": 1.0})
@@ -461,6 +668,8 @@ def validate_corpus(
         >= thresholds["min_diversity_ratio"],
         "max_cross_split_near_pairs": duplicate_report["cross_split_near_pairs"]
         <= thresholds["max_cross_split_near_pairs"],
+        "max_cross_label_exact_conflict_groups": len(cross_label_conflicts)
+        <= thresholds["max_cross_label_exact_conflict_groups"],
     }
     report["quality_thresholds"] = thresholds
     report["quality_checks"] = checks
@@ -481,6 +690,7 @@ def main() -> int:
     parser.add_argument("--min-llm-keep-rate", type=float, default=0.7)
     parser.add_argument("--min-diversity-ratio", type=float, default=0.35)
     parser.add_argument("--max-cross-split-near-pairs", type=int, default=0)
+    parser.add_argument("--max-cross-label-exact-conflict-groups", type=int, default=0)
     parser.add_argument(
         "--enforce-quality",
         action="store_true",
@@ -508,6 +718,9 @@ def main() -> int:
             "min_llm_keep_rate": args.min_llm_keep_rate,
             "min_diversity_ratio": args.min_diversity_ratio,
             "max_cross_split_near_pairs": args.max_cross_split_near_pairs,
+            "max_cross_label_exact_conflict_groups": (
+                args.max_cross_label_exact_conflict_groups
+            ),
         },
     )
 
@@ -532,6 +745,16 @@ def main() -> int:
     )
     print(f"  kept valence: {report['kept_valence_balance']}")
     print(f"  kept types: {report['kept_type_coverage']}")
+    reference_validation = report["reference_validation"]
+    cue_agreement = reference_validation["cue_agreement"]
+    ambiguity_rate = reference_validation["ambiguity_rate"]
+    cue_text = f"{cue_agreement:.1%}" if cue_agreement is not None else "n/a"
+    ambiguity_text = f"{ambiguity_rate:.1%}" if ambiguity_rate is not None else "n/a"
+    print(
+        f"  independent reference cues: {cue_text} | "
+        f"ambiguous: {ambiguity_text} | cross-label exact conflicts: "
+        f"{reference_validation['cross_label_exact_conflict_groups']}"
+    )
     print(
         f"  kept diversity: {report['kept_unique_texts']} unique / "
         f"{report['kept']} ({report['kept_diversity_ratio']:.1%})"

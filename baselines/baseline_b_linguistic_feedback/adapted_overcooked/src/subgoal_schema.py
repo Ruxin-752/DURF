@@ -19,6 +19,8 @@ SUBGOALS: tuple[str, ...] = (
     "GET_DISH",
     "PICKUP_SOUP",
     "SERVE_SOUP",
+    "STASH_HELD_OBJECT",
+    "YIELD_PATH",
     "WAIT",
 )
 SUBGOAL_TO_INDEX: dict[str, int] = {name: index for index, name in enumerate(SUBGOALS)}
@@ -33,6 +35,8 @@ SUBGOAL_RESOURCE: dict[str, str | None] = {
     "GET_DISH": "dish",
     "PICKUP_SOUP": "soup",
     "SERVE_SOUP": "serving",
+    "STASH_HELD_OBJECT": None,
+    "YIELD_PATH": None,
     "WAIT": None,
 }
 

@@ -1,0 +1,1995 @@
+{
+  "checkpoint": "baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\route2\\scenario_benchmark\\model.pt",
+  "checkpoint_training_config": {
+    "batch_size": 64,
+    "epochs": 60,
+    "grouping_policy": "scenario",
+    "lr": 0.003,
+    "patience": 10,
+    "seed": 0,
+    "selection": "minimize worst-seed dev loss, then mean dev loss",
+    "weight_decay": 0.0001
+  },
+  "corpus_audit": {
+    "exact_duplicate_examples": [
+      {
+        "dropped_source_index": 623,
+        "kept_source_index": 282,
+        "normalized_text": "every time you serve the soup you cut right in front of me and block my path"
+      },
+      {
+        "dropped_source_index": 5520,
+        "kept_source_index": 3662,
+        "normalized_text": "go ahead and serve that soup now"
+      },
+      {
+        "dropped_source_index": 7098,
+        "kept_source_index": 3343,
+        "normalized_text": "hold off on serving the soup you re blocking the route i need"
+      },
+      {
+        "dropped_source_index": 7196,
+        "kept_source_index": 3403,
+        "normalized_text": "quit serving the soup you re cutting me off"
+      },
+      {
+        "dropped_source_index": 7224,
+        "kept_source_index": 3267,
+        "normalized_text": "stop serving the soup you re blocking my path"
+      },
+      {
+        "dropped_source_index": 7256,
+        "kept_source_index": 5313,
+        "normalized_text": "stop plating the soup because you re blocking my path"
+      },
+      {
+        "dropped_source_index": 7263,
+        "kept_source_index": 3488,
+        "normalized_text": "don t serve that soup now because you re blocking my path"
+      },
+      {
+        "dropped_source_index": 7450,
+        "kept_source_index": 5656,
+        "normalized_text": "serve the soup now to complement my tomato run"
+      },
+      {
+        "dropped_source_index": 7487,
+        "kept_source_index": 3662,
+        "normalized_text": "go ahead and serve that soup now"
+      }
+    ],
+    "exact_duplicates_removed": 9,
+    "input_count": 9713,
+    "near_duplicates": {
+      "count": 222,
+      "examples": [
+        {
+          "left_index": 15,
+          "left_text": "Your habit of serving the soup hurts our teamwork because you're blocking my way.",
+          "right_index": 46,
+          "right_text": "Your habit of plating the soup hurts our teamwork because you're blocking my way.",
+          "similarity": 0.95
+        },
+        {
+          "left_index": 61,
+          "left_text": "Your habit of grabbing an onion hurts our teamwork because you took the thing I needed.",
+          "right_index": 136,
+          "right_text": "Your habit of grabbing a tomato hurts our teamwork because you took the thing I needed.",
+          "similarity": 0.953488
+        },
+        {
+          "left_index": 90,
+          "left_text": "Every time you just stand there holding soup while the pot is cooking, you waste time we could use to prepare the next order.",
+          "right_index": 318,
+          "right_text": "Every time you just stand there holding soup while the pot is cooking, you waste time I could use to prep the next order.",
+          "similarity": 0.975207
+        },
+        {
+          "left_index": 368,
+          "left_text": "Your habit of serving the soup helps our teamwork because that splits the work nicely.",
+          "right_index": 377,
+          "right_text": "Your habit of plating the soup helps our teamwork because that splits the work nicely.",
+          "similarity": 0.952941
+        },
+        {
+          "left_index": 372,
+          "left_text": "Your habit of putting the tomato in the pot helps our teamwork because that's exactly the ingredient we need.",
+          "right_index": 384,
+          "right_text": "Your habit of putting the onion in the pot helps our teamwork because that's exactly the ingredient we need.",
+          "similarity": 0.967442
+        },
+        {
+          "left_index": 359,
+          "left_text": "Your habit of putting the onion in the pot helps our teamwork because that splits the work nicely.",
+          "right_index": 414,
+          "right_text": "Your habit of putting the tomato in the pot helps our teamwork because that splits the work nicely.",
+          "similarity": 0.964103
+        },
+        {
+          "left_index": 411,
+          "left_text": "Your habit of grabbing an onion helps our teamwork because that splits the work nicely.",
+          "right_index": 542,
+          "right_text": "Your habit of grabbing a tomato helps our teamwork because that splits the work nicely.",
+          "similarity": 0.953488
+        },
+        {
+          "left_index": 443,
+          "left_text": "Your habit of serving the soup helps our teamwork because that gets the order out.",
+          "right_index": 577,
+          "right_text": "Your habit of plating the soup helps our teamwork because that gets the order out.",
+          "similarity": 0.950617
+        },
+        {
+          "left_index": 668,
+          "left_text": "Your habit of grabbing a tomato is a bad choice because you took the thing I needed.",
+          "right_index": 691,
+          "right_text": "Your habit of grabbing an onion is a bad choice because you took the thing I needed.",
+          "similarity": 0.951807
+        },
+        {
+          "left_index": 704,
+          "left_text": "Your habit of putting the onion in the pot is a bad choice because we're both doing the same task.",
+          "right_index": 739,
+          "right_text": "Your habit of putting the tomato in the pot is a bad choice because we're both doing the same task.",
+          "similarity": 0.964103
+        },
+        {
+          "left_index": 627,
+          "left_text": "Your habit of serving the soup is a bad choice because you're blocking my way.",
+          "right_index": 763,
+          "right_text": "Your habit of plating the soup is a bad choice because you're blocking my way.",
+          "similarity": 0.948052
+        },
+        {
+          "left_index": 857,
+          "left_text": "Every time you just stay put like that you're wasting time we don't have.",
+          "right_index": 884,
+          "right_text": "Every time you stay put like that you're wasting time we don't have.",
+          "similarity": 0.964029
+        },
+        {
+          "left_index": 975,
+          "left_text": "Your habit of putting the tomato in the pot is a good choice because that splits the work nicely.",
+          "right_index": 995,
+          "right_text": "Your habit of putting the onion in the pot is a good choice because that splits the work nicely.",
+          "similarity": 0.963351
+        },
+        {
+          "left_index": 952,
+          "left_text": "Your habit of grabbing an onion is a good choice because that splits the work nicely.",
+          "right_index": 1091,
+          "right_text": "Your habit of grabbing a tomato is a good choice because that splits the work nicely.",
+          "similarity": 0.952381
+        },
+        {
+          "left_index": 1097,
+          "left_text": "Your habit of serving the soup is a good choice because that splits the work nicely.",
+          "right_index": 1155,
+          "right_text": "Your habit of plating the soup is a good choice because that splits the work nicely.",
+          "similarity": 0.951807
+        },
+        {
+          "left_index": 997,
+          "left_text": "Your habit of serving the soup is a good choice because that gets the order out.",
+          "right_index": 1268,
+          "right_text": "Your habit of plating the soup is a good choice because that gets the order out.",
+          "similarity": 0.949367
+        },
+        {
+          "left_index": 751,
+          "left_text": "Every time you just stand there holding soup, you're wasting time we don't have.",
+          "right_index": 1317,
+          "right_text": "Every time you just stand there holding back, you're wasting time we don't have.",
+          "similarity": 0.948718
+        },
+        {
+          "left_index": 1320,
+          "left_text": "Please stop your habit of serving the soup because you're blocking my way.",
+          "right_index": 1365,
+          "right_text": "Please stop your habit of plating the soup because you're blocking my way.",
+          "similarity": 0.945205
+        },
+        {
+          "left_index": 751,
+          "left_text": "Every time you just stand there holding soup, you're wasting time we don't have.",
+          "right_index": 1455,
+          "right_text": "Every time you just stand there holding soup, you waste time we don't have.",
+          "similarity": 0.953642
+        },
+        {
+          "left_index": 1368,
+          "left_text": "Please stop your habit of grabbing an onion because you took the thing I needed.",
+          "right_index": 1483,
+          "right_text": "Please stop your habit of grabbing a tomato because you took the thing I needed.",
+          "similarity": 0.949367
+        },
+        {
+          "left_index": 1492,
+          "left_text": "Please stop your habit of putting the onion in the pot because we're both doing the same task.",
+          "right_index": 1548,
+          "right_text": "Please stop your habit of putting the tomato in the pot because we're both doing the same task.",
+          "similarity": 0.962567
+        },
+        {
+          "left_index": 1639,
+          "left_text": "Please keep up your habit of putting the tomato in the pot because that splits the work nicely.",
+          "right_index": 1646,
+          "right_text": "Please keep up your habit of putting the onion in the pot because that splits the work nicely.",
+          "similarity": 0.962567
+        },
+        {
+          "left_index": 1623,
+          "left_text": "Please keep up your habit of plating the soup because that gets the order out.",
+          "right_index": 1668,
+          "right_text": "Please keep up your habit of serving the soup because that gets the order out.",
+          "similarity": 0.948052
+        },
+        {
+          "left_index": 1608,
+          "left_text": "Please keep up your habit of grabbing an onion because that splits the work nicely.",
+          "right_index": 1706,
+          "right_text": "Please keep up your habit of grabbing a tomato because that splits the work nicely.",
+          "similarity": 0.95122
+        },
+        {
+          "left_index": 1743,
+          "left_text": "Every time the recipe calls for onion, you grabbing it is perfect.",
+          "right_index": 1838,
+          "right_text": "Every time the order calls for onion, you grabbing it is perfect.",
+          "similarity": 0.944882
+        },
+        {
+          "left_index": 1779,
+          "left_text": "Keep grabbing that onion every time we need it for the recipe.",
+          "right_index": 1842,
+          "right_text": "Keep grabbing the onion every time we need it for the recipe.",
+          "similarity": 0.975207
+        },
+        {
+          "left_index": 1745,
+          "left_text": "Please keep up your habit of putting the onion in the pot because that's exactly the ingredient we need.",
+          "right_index": 1866,
+          "right_text": "Please keep up your habit of putting the tomato in the pot because that's exactly the ingredient we need.",
+          "similarity": 0.966184
+        },
+        {
+          "left_index": 1900,
+          "left_text": "Keep putting the tomato in the pot every time it's needed like that.",
+          "right_index": 1907,
+          "right_text": "Keep dropping the tomato in the pot every time it's needed like that.",
+          "similarity": 0.948148
+        },
+        {
+          "left_index": 1589,
+          "left_text": "Please keep up your habit of serving the soup because that splits the work nicely.",
+          "right_index": 1915,
+          "right_text": "Please keep up your habit of plating the soup because that splits the work nicely.",
+          "similarity": 0.950617
+        },
+        {
+          "left_index": 1925,
+          "left_text": "Putting the tomato in the pot right there hurts our teamwork because we're both doing the same task.",
+          "right_index": 1929,
+          "right_text": "Putting the onion in the pot right there hurts our teamwork because we're both doing the same task.",
+          "similarity": 0.964467
+        },
+        {
+          "left_index": 1919,
+          "left_text": "Serving the soup right there hurts our teamwork because you're blocking my way.",
+          "right_index": 1948,
+          "right_text": "Plating the soup right there hurts our teamwork because you're blocking my way.",
+          "similarity": 0.948718
+        },
+        {
+          "left_index": 2006,
+          "left_text": "Grabbing a tomato right there hurts our teamwork because you took the thing I needed.",
+          "right_index": 2029,
+          "right_text": "Grabbing an onion right there hurts our teamwork because you took the thing I needed.",
+          "similarity": 0.952381
+        },
+        {
+          "left_index": 2263,
+          "left_text": "Grabbing a tomato right there helps our teamwork because that splits the work nicely.",
+          "right_index": 2278,
+          "right_text": "Grabbing an onion right there helps our teamwork because that splits the work nicely.",
+          "similarity": 0.952381
+        },
+        {
+          "left_index": 2295,
+          "left_text": "Putting the tomato in the pot right there helps our teamwork because that splits the work nicely.",
+          "right_index": 2300,
+          "right_text": "Putting the onion in the pot right there helps our teamwork because that splits the work nicely.",
+          "similarity": 0.963351
+        },
+        {
+          "left_index": 2362,
+          "left_text": "Serving the soup right there helps our teamwork because that gets the order out.",
+          "right_index": 2430,
+          "right_text": "Plating the soup right there helps our teamwork because that gets the order out.",
+          "similarity": 0.949367
+        },
+        {
+          "left_index": 2330,
+          "left_text": "Serving the soup right there helps our teamwork because that splits the work nicely.",
+          "right_index": 2505,
+          "right_text": "Plating the soup right there helps our teamwork because that splits the work nicely.",
+          "similarity": 0.951807
+        },
+        {
+          "left_index": 2317,
+          "left_text": "Putting the onion in the pot right there helps our teamwork because that's exactly the ingredient we need.",
+          "right_index": 2509,
+          "right_text": "Putting the tomato in the pot right there helps our teamwork because that's exactly the ingredient we need.",
+          "similarity": 0.966825
+        },
+        {
+          "left_index": 2636,
+          "left_text": "Grabbing a tomato right there is a bad choice because you took the thing I needed.",
+          "right_index": 2707,
+          "right_text": "Grabbing an onion right there is a bad choice because you took the thing I needed.",
+          "similarity": 0.950617
+        },
+        {
+          "left_index": 2614,
+          "left_text": "Serving the soup right there is a bad choice because you're blocking my way.",
+          "right_index": 2716,
+          "right_text": "Plating the soup right there is a bad choice because you're blocking my way.",
+          "similarity": 0.946667
+        },
+        {
+          "left_index": 2779,
+          "left_text": "Putting the onion in the pot right there is a bad choice because we're both doing the same task.",
+          "right_index": 2834,
+          "right_text": "Putting the tomato in the pot right there is a bad choice because we're both doing the same task.",
+          "similarity": 0.963351
+        },
+        {
+          "left_index": 2908,
+          "left_text": "Serving the soup right there is a good choice because that splits the work nicely.",
+          "right_index": 2966,
+          "right_text": "Plating the soup right there is a good choice because that splits the work nicely.",
+          "similarity": 0.950617
+        },
+        {
+          "left_index": 2892,
+          "left_text": "Putting the onion in the pot right there is a good choice because that splits the work nicely.",
+          "right_index": 3047,
+          "right_text": "Putting the tomato in the pot right there is a good choice because that splits the work nicely.",
+          "similarity": 0.962567
+        },
+        {
+          "left_index": 3042,
+          "left_text": "Plating the soup right there is a good choice because that gets the order out.",
+          "right_index": 3068,
+          "right_text": "Serving the soup right there is a good choice because that gets the order out.",
+          "similarity": 0.948052
+        },
+        {
+          "left_index": 2902,
+          "left_text": "Grabbing an onion right there is a good choice because that splits the work nicely.",
+          "right_index": 3094,
+          "right_text": "Grabbing a tomato right there is a good choice because that splits the work nicely.",
+          "similarity": 0.95122
+        },
+        {
+          "left_index": 2962,
+          "left_text": "Putting the onion in the pot right there is a good choice because that's exactly the ingredient we need.",
+          "right_index": 3140,
+          "right_text": "Putting the tomato in the pot right there is a good choice because that's exactly the ingredient we need.",
+          "similarity": 0.966184
+        },
+        {
+          "left_index": 3233,
+          "left_text": "Don't serve that soup, you're blocking the serving route.",
+          "right_index": 3271,
+          "right_text": "Don't move the soup, you're blocking the serving route.",
+          "similarity": 0.925926
+        },
+        {
+          "left_index": 3265,
+          "left_text": "Don't stay put, go over to the pot.",
+          "right_index": 3318,
+          "right_text": "Don't stay put, get over to the pot.",
+          "similarity": 0.955224
+        },
+        {
+          "left_index": 3295,
+          "left_text": "Don't just stand there holding the onion, get to the pot.",
+          "right_index": 3343,
+          "right_text": "Don't just stand there holding the onion, move to the pot.",
+          "similarity": 0.954955
+        },
+        {
+          "left_index": 3287,
+          "left_text": "Please do not put the onion in the pot right there now because we're both doing the same task.",
+          "right_index": 3361,
+          "right_text": "Please do not put the tomato in the pot right there now because we're both doing the same task.",
+          "similarity": 0.962567
+        },
+        {
+          "left_index": 3242,
+          "left_text": "Please do not serve the soup right there now because you're blocking my way.",
+          "right_index": 3410,
+          "right_text": "Please do not plate the soup right there now because you're blocking my way.",
+          "similarity": 0.946667
+        },
+        {
+          "left_index": 3271,
+          "left_text": "Don't move the soup, you're blocking the serving route.",
+          "right_index": 3471,
+          "right_text": "Don't grab the soup, you're blocking the serving route.",
+          "similarity": 0.924528
+        },
+        {
+          "left_index": 3254,
+          "left_text": "Don't just stand there, get to the pot.",
+          "right_index": 3475,
+          "right_text": "Don't just stand there, go to the pot.",
+          "similarity": 0.958904
+        },
+        {
+          "left_index": 3325,
+          "left_text": "Please do not grab an onion right there now because you took the thing I needed.",
+          "right_index": 3515,
+          "right_text": "Please do not grab a tomato right there now because you took the thing I needed.",
+          "similarity": 0.949367
+        },
+        {
+          "left_index": 3392,
+          "left_text": "Don't take that tomato, I'm already going for it.",
+          "right_index": 3516,
+          "right_text": "Don't take that tomato, I was already going for it.",
+          "similarity": 0.958333
+        },
+        {
+          "left_index": 3557,
+          "left_text": "Please put the tomato in the pot right there now because that splits the work nicely.",
+          "right_index": 3573,
+          "right_text": "Please put the onion in the pot right there now because that splits the work nicely.",
+          "similarity": 0.958084
+        },
+        {
+          "left_index": 3587,
+          "left_text": "Please grab a tomato right there now because that splits the work nicely.",
+          "right_index": 3591,
+          "right_text": "Please grab an onion right there now because that splits the work nicely.",
+          "similarity": 0.944444
+        },
+        {
+          "left_index": 3568,
+          "left_text": "Stay where you are and let me handle the soup.",
+          "right_index": 3652,
+          "right_text": "Stay where you are and let me handle the onion.",
+          "similarity": 0.923077
+        },
+        {
+          "left_index": 3578,
+          "left_text": "Please serve the soup right there now because that splits the work nicely.",
+          "right_index": 3706,
+          "right_text": "Please plate the soup right there now because that splits the work nicely.",
+          "similarity": 0.945205
+        },
+        {
+          "left_index": 3685,
+          "left_text": "Please put the onion in the pot right there now because that's exactly the ingredient we need.",
+          "right_index": 3723,
+          "right_text": "Please put the tomato in the pot right there now because that's exactly the ingredient we need.",
+          "similarity": 0.962567
+        },
+        {
+          "left_index": 3605,
+          "left_text": "Stay right where you are so I can grab that soup.",
+          "right_index": 3725,
+          "right_text": "Stay right where you are so I can grab the soup.",
+          "similarity": 0.968421
+        },
+        {
+          "left_index": 3547,
+          "left_text": "Go ahead and drop that onion into the pot.",
+          "right_index": 3786,
+          "right_text": "Go ahead and drop that onion in the pot.",
+          "similarity": 0.975
+        },
+        {
+          "left_index": 3575,
+          "left_text": "Please serve the soup right there now because that gets the order out.",
+          "right_index": 3817,
+          "right_text": "Please plate the soup right there now because that gets the order out.",
+          "similarity": 0.942029
+        },
+        {
+          "left_index": 3920,
+          "left_text": "The onion hurts our teamwork because you took the thing I needed.",
+          "right_index": 3947,
+          "right_text": "The tomato hurts our teamwork because you took the thing I needed.",
+          "similarity": 0.945736
+        },
+        {
+          "left_index": 3921,
+          "left_text": "The dish hurts our teamwork because you're blocking my way.",
+          "right_index": 3971,
+          "right_text": "The soup hurts our teamwork because you're blocking my way.",
+          "similarity": 0.948276
+        },
+        {
+          "left_index": 3918,
+          "left_text": "You're blocking my path to the serving station with that soup.",
+          "right_index": 3976,
+          "right_text": "You're blocking my path to the onion station with that soup.",
+          "similarity": 0.933333
+        },
+        {
+          "left_index": 3918,
+          "left_text": "You're blocking my path to the serving station with that soup.",
+          "right_index": 3981,
+          "right_text": "You're blocking my path to the dish station with that soup.",
+          "similarity": 0.92437
+        },
+        {
+          "left_index": 3976,
+          "left_text": "You're blocking my path to the onion station with that soup.",
+          "right_index": 3981,
+          "right_text": "You're blocking my path to the dish station with that soup.",
+          "similarity": 0.940171
+        },
+        {
+          "left_index": 3941,
+          "left_text": "The onion hurts our teamwork because we're both doing the same task.",
+          "right_index": 3998,
+          "right_text": "The tomato hurts our teamwork because we're both doing the same task.",
+          "similarity": 0.948148
+        },
+        {
+          "left_index": 928,
+          "left_text": "You keep serving the soup and blocking the serving route I need to use.",
+          "right_index": 4106,
+          "right_text": "You are serving the soup and blocking the serving route I need to use.",
+          "similarity": 0.964029
+        },
+        {
+          "left_index": 4048,
+          "left_text": "By serving that soup now, you're cutting in front of me and wasting my time.",
+          "right_index": 4150,
+          "right_text": "By serving the soup, you're cutting in front of me and wasting my time.",
+          "similarity": 0.951049
+        },
+        {
+          "left_index": 3967,
+          "left_text": "By serving the soup, you're blocking the serving route I need.",
+          "right_index": 4162,
+          "right_text": "By serving the soup you are blocking the serving route I need.",
+          "similarity": 0.991736
+        },
+        {
+          "left_index": 4189,
+          "left_text": "The soup helps our teamwork because that splits the work nicely.",
+          "right_index": 4191,
+          "right_text": "The onion helps our teamwork because that splits the work nicely.",
+          "similarity": 0.944882
+        },
+        {
+          "left_index": 4189,
+          "left_text": "The soup helps our teamwork because that splits the work nicely.",
+          "right_index": 4195,
+          "right_text": "The tomato helps our teamwork because that splits the work nicely.",
+          "similarity": 0.9375
+        },
+        {
+          "left_index": 4191,
+          "left_text": "The onion helps our teamwork because that splits the work nicely.",
+          "right_index": 4195,
+          "right_text": "The tomato helps our teamwork because that splits the work nicely.",
+          "similarity": 0.945736
+        },
+        {
+          "left_index": 2341,
+          "left_text": "Serving that soup now completes the recipe and gets the order out.",
+          "right_index": 4251,
+          "right_text": "Serving that soup completes the recipe and gets an order out.",
+          "similarity": 0.928
+        },
+        {
+          "left_index": 4332,
+          "left_text": "Putting the onion in the pot adds a needed ingredient to match the current order.",
+          "right_index": 4423,
+          "right_text": "Putting that onion in the pot adds the needed ingredient to match the current order.",
+          "similarity": 0.957055
+        },
+        {
+          "left_index": 4456,
+          "left_text": "Completing the recipe by serving the soup moves us forward.",
+          "right_index": 4473,
+          "right_text": "You completing the recipe by serving the soup moves us forward.",
+          "similarity": 0.966667
+        },
+        {
+          "left_index": 4301,
+          "left_text": "The soup helps our teamwork because that gets the order out.",
+          "right_index": 4477,
+          "right_text": "The dish helps our teamwork because that gets the order out.",
+          "similarity": 0.949153
+        },
+        {
+          "left_index": 4254,
+          "left_text": "The onion helps our teamwork because that's exactly the ingredient we need.",
+          "right_index": 4479,
+          "right_text": "The tomato helps our teamwork because that's exactly the ingredient we need.",
+          "similarity": 0.95302
+        },
+        {
+          "left_index": 4493,
+          "left_text": "The soup is a bad choice because you're blocking my way.",
+          "right_index": 4515,
+          "right_text": "The dish is a bad choice because you're blocking my way.",
+          "similarity": 0.945455
+        },
+        {
+          "left_index": 4543,
+          "left_text": "The onion is a bad choice because we're both doing the same task.",
+          "right_index": 4599,
+          "right_text": "The tomato is a bad choice because we're both doing the same task.",
+          "similarity": 0.945736
+        },
+        {
+          "left_index": 4551,
+          "left_text": "The onion is a bad choice because you took the thing I needed.",
+          "right_index": 4627,
+          "right_text": "The tomato is a bad choice because you took the thing I needed.",
+          "similarity": 0.943089
+        },
+        {
+          "left_index": 4532,
+          "left_text": "Holding back like that is bad because it slows down the whole process.",
+          "right_index": 4629,
+          "right_text": "Holding back there is bad because it slows down the whole process.",
+          "similarity": 0.925373
+        },
+        {
+          "left_index": 4550,
+          "left_text": "Staying put when the soup is done just wastes time.",
+          "right_index": 4681,
+          "right_text": "Staying put when the soup is ready just wastes time.",
+          "similarity": 0.930693
+        },
+        {
+          "left_index": 2677,
+          "left_text": "Grabbing that tomato is bad because I was already heading for it.",
+          "right_index": 4727,
+          "right_text": "You grabbing that tomato is bad because I was already heading for it.",
+          "similarity": 0.969697
+        },
+        {
+          "left_index": 4767,
+          "left_text": "Your decision to stay put is bad because it adds unnecessary time cost to the recipe.",
+          "right_index": 4776,
+          "right_text": "Your decision to stay put is bad because it adds unnecessary time to the recipe.",
+          "similarity": 0.969325
+        },
+        {
+          "left_index": 4784,
+          "left_text": "The soup is a good choice because that splits the work nicely.",
+          "right_index": 4811,
+          "right_text": "The onion is a good choice because that splits the work nicely.",
+          "similarity": 0.943089
+        },
+        {
+          "left_index": 4791,
+          "left_text": "The tomato is a good choice because that's exactly the ingredient we need.",
+          "right_index": 4845,
+          "right_text": "The onion is a good choice because that's exactly the ingredient we need.",
+          "similarity": 0.951724
+        },
+        {
+          "left_index": 4784,
+          "left_text": "The soup is a good choice because that splits the work nicely.",
+          "right_index": 4847,
+          "right_text": "The tomato is a good choice because that splits the work nicely.",
+          "similarity": 0.935484
+        },
+        {
+          "left_index": 4811,
+          "left_text": "The onion is a good choice because that splits the work nicely.",
+          "right_index": 4847,
+          "right_text": "The tomato is a good choice because that splits the work nicely.",
+          "similarity": 0.944
+        },
+        {
+          "left_index": 4831,
+          "left_text": "The soup is a good choice because that gets the order out.",
+          "right_index": 4917,
+          "right_text": "The dish is a good choice because that gets the order out.",
+          "similarity": 0.947368
+        },
+        {
+          "left_index": 4818,
+          "left_text": "Grabbing the onion is perfect because it matches the current order.",
+          "right_index": 4926,
+          "right_text": "Grabbing the onion is spot-on because it matches the current order.",
+          "similarity": 0.924242
+        },
+        {
+          "left_index": 3520,
+          "left_text": "Don't serve that soup right now, you're blocking my path.",
+          "right_index": 5091,
+          "right_text": "Don't serve the soup right now, you're blocking my path.",
+          "similarity": 0.972477
+        },
+        {
+          "left_index": 5108,
+          "left_text": "Please avoid prioritizing the soup because you're blocking my way.",
+          "right_index": 5116,
+          "right_text": "Please avoid prioritizing the dish because you're blocking my way.",
+          "similarity": 0.953846
+        },
+        {
+          "left_index": 3271,
+          "left_text": "Don't move the soup, you're blocking the serving route.",
+          "right_index": 5118,
+          "right_text": "Don't plate the soup, you're blocking the serving route.",
+          "similarity": 0.934579
+        },
+        {
+          "left_index": 3471,
+          "left_text": "Don't grab the soup, you're blocking the serving route.",
+          "right_index": 5118,
+          "right_text": "Don't plate the soup, you're blocking the serving route.",
+          "similarity": 0.934579
+        },
+        {
+          "left_index": 3392,
+          "left_text": "Don't take that tomato, I'm already going for it.",
+          "right_index": 5135,
+          "right_text": "Don't grab that tomato, I'm already going for it.",
+          "similarity": 0.93617
+        },
+        {
+          "left_index": 3392,
+          "left_text": "Don't take that tomato, I'm already going for it.",
+          "right_index": 5163,
+          "right_text": "Don't take that tomato, I'm already heading for it.",
+          "similarity": 0.9375
+        },
+        {
+          "left_index": 5175,
+          "left_text": "Stop serving that soup, you're cutting in front of me.",
+          "right_index": 5214,
+          "right_text": "Quit serving that soup, you're cutting in front of me.",
+          "similarity": 0.942308
+        },
+        {
+          "left_index": 5199,
+          "left_text": "Quit serving the soup, you're cutting in front of me.",
+          "right_index": 5214,
+          "right_text": "Quit serving that soup, you're cutting in front of me.",
+          "similarity": 0.970874
+        }
+      ],
+      "pair_indices": [
+        [
+          15,
+          46,
+          0.95
+        ],
+        [
+          61,
+          136,
+          0.953488
+        ],
+        [
+          90,
+          318,
+          0.975207
+        ],
+        [
+          368,
+          377,
+          0.952941
+        ],
+        [
+          372,
+          384,
+          0.967442
+        ],
+        [
+          359,
+          414,
+          0.964103
+        ],
+        [
+          411,
+          542,
+          0.953488
+        ],
+        [
+          443,
+          577,
+          0.950617
+        ],
+        [
+          668,
+          691,
+          0.951807
+        ],
+        [
+          704,
+          739,
+          0.964103
+        ],
+        [
+          627,
+          763,
+          0.948052
+        ],
+        [
+          857,
+          884,
+          0.964029
+        ],
+        [
+          975,
+          995,
+          0.963351
+        ],
+        [
+          952,
+          1091,
+          0.952381
+        ],
+        [
+          1097,
+          1155,
+          0.951807
+        ],
+        [
+          997,
+          1268,
+          0.949367
+        ],
+        [
+          751,
+          1317,
+          0.948718
+        ],
+        [
+          1320,
+          1365,
+          0.945205
+        ],
+        [
+          751,
+          1455,
+          0.953642
+        ],
+        [
+          1368,
+          1483,
+          0.949367
+        ],
+        [
+          1492,
+          1548,
+          0.962567
+        ],
+        [
+          1639,
+          1646,
+          0.962567
+        ],
+        [
+          1623,
+          1668,
+          0.948052
+        ],
+        [
+          1608,
+          1706,
+          0.95122
+        ],
+        [
+          1743,
+          1838,
+          0.944882
+        ],
+        [
+          1779,
+          1842,
+          0.975207
+        ],
+        [
+          1745,
+          1866,
+          0.966184
+        ],
+        [
+          1900,
+          1907,
+          0.948148
+        ],
+        [
+          1589,
+          1915,
+          0.950617
+        ],
+        [
+          1925,
+          1929,
+          0.964467
+        ],
+        [
+          1919,
+          1948,
+          0.948718
+        ],
+        [
+          2006,
+          2029,
+          0.952381
+        ],
+        [
+          2263,
+          2278,
+          0.952381
+        ],
+        [
+          2295,
+          2300,
+          0.963351
+        ],
+        [
+          2362,
+          2430,
+          0.949367
+        ],
+        [
+          2330,
+          2505,
+          0.951807
+        ],
+        [
+          2317,
+          2509,
+          0.966825
+        ],
+        [
+          2636,
+          2707,
+          0.950617
+        ],
+        [
+          2614,
+          2716,
+          0.946667
+        ],
+        [
+          2779,
+          2834,
+          0.963351
+        ],
+        [
+          2908,
+          2966,
+          0.950617
+        ],
+        [
+          2892,
+          3047,
+          0.962567
+        ],
+        [
+          3042,
+          3068,
+          0.948052
+        ],
+        [
+          2902,
+          3094,
+          0.95122
+        ],
+        [
+          2962,
+          3140,
+          0.966184
+        ],
+        [
+          3233,
+          3271,
+          0.925926
+        ],
+        [
+          3265,
+          3318,
+          0.955224
+        ],
+        [
+          3295,
+          3343,
+          0.954955
+        ],
+        [
+          3287,
+          3361,
+          0.962567
+        ],
+        [
+          3242,
+          3410,
+          0.946667
+        ],
+        [
+          3271,
+          3471,
+          0.924528
+        ],
+        [
+          3254,
+          3475,
+          0.958904
+        ],
+        [
+          3325,
+          3515,
+          0.949367
+        ],
+        [
+          3392,
+          3516,
+          0.958333
+        ],
+        [
+          3557,
+          3573,
+          0.958084
+        ],
+        [
+          3587,
+          3591,
+          0.944444
+        ],
+        [
+          3568,
+          3652,
+          0.923077
+        ],
+        [
+          3578,
+          3706,
+          0.945205
+        ],
+        [
+          3685,
+          3723,
+          0.962567
+        ],
+        [
+          3605,
+          3725,
+          0.968421
+        ],
+        [
+          3547,
+          3786,
+          0.975
+        ],
+        [
+          3575,
+          3817,
+          0.942029
+        ],
+        [
+          3920,
+          3947,
+          0.945736
+        ],
+        [
+          3921,
+          3971,
+          0.948276
+        ],
+        [
+          3918,
+          3976,
+          0.933333
+        ],
+        [
+          3918,
+          3981,
+          0.92437
+        ],
+        [
+          3976,
+          3981,
+          0.940171
+        ],
+        [
+          3941,
+          3998,
+          0.948148
+        ],
+        [
+          928,
+          4106,
+          0.964029
+        ],
+        [
+          4048,
+          4150,
+          0.951049
+        ],
+        [
+          3967,
+          4162,
+          0.991736
+        ],
+        [
+          4189,
+          4191,
+          0.944882
+        ],
+        [
+          4189,
+          4195,
+          0.9375
+        ],
+        [
+          4191,
+          4195,
+          0.945736
+        ],
+        [
+          2341,
+          4251,
+          0.928
+        ],
+        [
+          4332,
+          4423,
+          0.957055
+        ],
+        [
+          4456,
+          4473,
+          0.966667
+        ],
+        [
+          4301,
+          4477,
+          0.949153
+        ],
+        [
+          4254,
+          4479,
+          0.95302
+        ],
+        [
+          4493,
+          4515,
+          0.945455
+        ],
+        [
+          4543,
+          4599,
+          0.945736
+        ],
+        [
+          4551,
+          4627,
+          0.943089
+        ],
+        [
+          4532,
+          4629,
+          0.925373
+        ],
+        [
+          4550,
+          4681,
+          0.930693
+        ],
+        [
+          2677,
+          4727,
+          0.969697
+        ],
+        [
+          4767,
+          4776,
+          0.969325
+        ],
+        [
+          4784,
+          4811,
+          0.943089
+        ],
+        [
+          4791,
+          4845,
+          0.951724
+        ],
+        [
+          4784,
+          4847,
+          0.935484
+        ],
+        [
+          4811,
+          4847,
+          0.944
+        ],
+        [
+          4831,
+          4917,
+          0.947368
+        ],
+        [
+          4818,
+          4926,
+          0.924242
+        ],
+        [
+          3520,
+          5091,
+          0.972477
+        ],
+        [
+          5108,
+          5116,
+          0.953846
+        ],
+        [
+          3271,
+          5118,
+          0.934579
+        ],
+        [
+          3471,
+          5118,
+          0.934579
+        ],
+        [
+          3392,
+          5135,
+          0.93617
+        ],
+        [
+          3392,
+          5163,
+          0.9375
+        ],
+        [
+          5175,
+          5214,
+          0.942308
+        ],
+        [
+          5199,
+          5214,
+          0.970874
+        ],
+        [
+          3284,
+          5235,
+          0.9375
+        ],
+        [
+          5193,
+          5243,
+          0.971963
+        ],
+        [
+          5152,
+          5251,
+          0.95302
+        ],
+        [
+          5168,
+          5271,
+          0.951049
+        ],
+        [
+          3266,
+          5281,
+          0.94382
+        ],
+        [
+          3424,
+          5286,
+          0.94382
+        ],
+        [
+          5243,
+          5312,
+          0.924528
+        ],
+        [
+          3284,
+          5326,
+          0.969697
+        ],
+        [
+          3233,
+          5328,
+          0.972477
+        ],
+        [
+          3271,
+          5328,
+          0.953271
+        ],
+        [
+          3471,
+          5328,
+          0.934579
+        ],
+        [
+          5118,
+          5328,
+          0.925926
+        ],
+        [
+          5268,
+          5379,
+          0.934783
+        ],
+        [
+          5286,
+          5407,
+          0.923077
+        ],
+        [
+          5110,
+          5412,
+          0.933333
+        ],
+        [
+          5428,
+          5441,
+          0.944
+        ],
+        [
+          5428,
+          5452,
+          0.944882
+        ],
+        [
+          5441,
+          5452,
+          0.936508
+        ],
+        [
+          3666,
+          5462,
+          0.942529
+        ],
+        [
+          5435,
+          5495,
+          0.948276
+        ],
+        [
+          5511,
+          5603,
+          0.962025
+        ],
+        [
+          5467,
+          5670,
+          0.952381
+        ],
+        [
+          5713,
+          5760,
+          0.95122
+        ],
+        [
+          5756,
+          5779,
+          0.954545
+        ],
+        [
+          6036,
+          6079,
+          0.951807
+        ],
+        [
+          6057,
+          6106,
+          0.954545
+        ],
+        [
+          6078,
+          6125,
+          0.964824
+        ],
+        [
+          6064,
+          6265,
+          0.954023
+        ],
+        [
+          6053,
+          6281,
+          0.968037
+        ],
+        [
+          6380,
+          6445,
+          0.964824
+        ],
+        [
+          6346,
+          6507,
+          0.949367
+        ],
+        [
+          6393,
+          6518,
+          0.952941
+        ],
+        [
+          1979,
+          6615,
+          0.923077
+        ],
+        [
+          6666,
+          6676,
+          0.964103
+        ],
+        [
+          6694,
+          6782,
+          0.952941
+        ],
+        [
+          6654,
+          6783,
+          0.953488
+        ],
+        [
+          6670,
+          6801,
+          0.950617
+        ],
+        [
+          6683,
+          6877,
+          0.967442
+        ],
+        [
+          2424,
+          6991,
+          0.969697
+        ],
+        [
+          3247,
+          6998,
+          0.959184
+        ],
+        [
+          5204,
+          7140,
+          0.962963
+        ],
+        [
+          7029,
+          7140,
+          0.946429
+        ],
+        [
+          7000,
+          7148,
+          0.965517
+        ],
+        [
+          3429,
+          7180,
+          0.924731
+        ],
+        [
+          3455,
+          7199,
+          0.945455
+        ],
+        [
+          3487,
+          7200,
+          0.973451
+        ],
+        [
+          5362,
+          7205,
+          0.97479
+        ],
+        [
+          7002,
+          7241,
+          0.941176
+        ],
+        [
+          7057,
+          7257,
+          0.973913
+        ],
+        [
+          3833,
+          7290,
+          0.921569
+        ],
+        [
+          206,
+          7565,
+          0.923077
+        ],
+        [
+          226,
+          7665,
+          0.965174
+        ],
+        [
+          1429,
+          7711,
+          0.984293
+        ],
+        [
+          5825,
+          7743,
+          0.965854
+        ],
+        [
+          7589,
+          7797,
+          0.978723
+        ],
+        [
+          991,
+          7813,
+          0.966825
+        ],
+        [
+          437,
+          7894,
+          0.92
+        ],
+        [
+          5146,
+          8014,
+          0.93617
+        ],
+        [
+          2833,
+          8018,
+          0.962963
+        ],
+        [
+          2166,
+          8024,
+          0.933333
+        ],
+        [
+          7488,
+          8132,
+          0.923077
+        ],
+        [
+          4336,
+          8174,
+          0.95935
+        ],
+        [
+          5039,
+          8183,
+          0.9375
+        ],
+        [
+          4288,
+          8198,
+          0.934426
+        ],
+        [
+          7202,
+          8272,
+          0.953125
+        ],
+        [
+          7200,
+          8276,
+          0.962963
+        ],
+        [
+          3534,
+          8285,
+          0.932039
+        ],
+        [
+          5175,
+          8285,
+          0.970874
+        ],
+        [
+          5199,
+          8285,
+          0.941176
+        ],
+        [
+          3233,
+          8293,
+          0.925926
+        ],
+        [
+          5328,
+          8293,
+          0.953271
+        ],
+        [
+          8077,
+          8295,
+          0.944444
+        ],
+        [
+          7003,
+          8437,
+          0.928
+        ],
+        [
+          2291,
+          8461,
+          0.948148
+        ],
+        [
+          411,
+          8538,
+          0.952941
+        ],
+        [
+          542,
+          8538,
+          0.941176
+        ],
+        [
+          952,
+          8591,
+          0.951807
+        ],
+        [
+          1091,
+          8591,
+          0.939759
+        ],
+        [
+          1608,
+          8671,
+          0.950617
+        ],
+        [
+          1706,
+          8671,
+          0.938272
+        ],
+        [
+          2263,
+          8771,
+          0.939759
+        ],
+        [
+          2278,
+          8771,
+          0.951807
+        ],
+        [
+          2902,
+          8831,
+          0.950617
+        ],
+        [
+          3094,
+          8831,
+          0.938272
+        ],
+        [
+          8915,
+          8950,
+          0.959184
+        ],
+        [
+          3587,
+          8961,
+          0.929577
+        ],
+        [
+          3591,
+          8961,
+          0.943662
+        ],
+        [
+          7488,
+          8963,
+          0.934783
+        ],
+        [
+          3567,
+          8970,
+          0.963855
+        ],
+        [
+          3824,
+          8993,
+          0.967742
+        ],
+        [
+          3741,
+          8996,
+          0.975
+        ],
+        [
+          3727,
+          9004,
+          0.967033
+        ],
+        [
+          3599,
+          9013,
+          0.923077
+        ],
+        [
+          3704,
+          9019,
+          0.935065
+        ],
+        [
+          8983,
+          9019,
+          0.933333
+        ],
+        [
+          8993,
+          9032,
+          0.9375
+        ],
+        [
+          8019,
+          9060,
+          0.929577
+        ],
+        [
+          4363,
+          9102,
+          0.937931
+        ],
+        [
+          4189,
+          9104,
+          0.952381
+        ],
+        [
+          4191,
+          9104,
+          0.944882
+        ],
+        [
+          4195,
+          9104,
+          0.921875
+        ],
+        [
+          4835,
+          9135,
+          0.941935
+        ],
+        [
+          8100,
+          9188,
+          0.938272
+        ],
+        [
+          4784,
+          9238,
+          0.95082
+        ],
+        [
+          4811,
+          9238,
+          0.943089
+        ],
+        [
+          4953,
+          9240,
+          0.96
+        ],
+        [
+          7397,
+          9264,
+          0.966102
+        ],
+        [
+          5428,
+          9329,
+          0.944
+        ],
+        [
+          5441,
+          9329,
+          0.951613
+        ],
+        [
+          5452,
+          9329,
+          0.920635
+        ],
+        [
+          9317,
+          9338,
+          0.942675
+        ],
+        [
+          2138,
+          9359,
+          0.964286
+        ],
+        [
+          6057,
+          9406,
+          0.954023
+        ],
+        [
+          6106,
+          9406,
+          0.942529
+        ],
+        [
+          6654,
+          9514,
+          0.952941
+        ],
+        [
+          6783,
+          9514,
+          0.941176
+        ],
+        [
+          7002,
+          9563,
+          0.942149
+        ],
+        [
+          7192,
+          9563,
+          0.97561
+        ],
+        [
+          7241,
+          9563,
+          0.933333
+        ],
+        [
+          937,
+          9659,
+          0.963731
+        ],
+        [
+          2781,
+          9664,
+          0.934579
+        ],
+        [
+          4534,
+          9667,
+          0.964912
+        ]
+      ],
+      "threshold": 0.92
+    },
+    "output_count": 9704,
+    "supervision_conflict_count": 9,
+    "supervision_conflicts": [
+      {
+        "dropped_source_index": 623,
+        "kept_source_index": 282,
+        "normalized_text": "every time you serve the soup you cut right in front of me and block my path"
+      },
+      {
+        "dropped_source_index": 5520,
+        "kept_source_index": 3662,
+        "normalized_text": "go ahead and serve that soup now"
+      },
+      {
+        "dropped_source_index": 7098,
+        "kept_source_index": 3343,
+        "normalized_text": "hold off on serving the soup you re blocking the route i need"
+      },
+      {
+        "dropped_source_index": 7196,
+        "kept_source_index": 3403,
+        "normalized_text": "quit serving the soup you re cutting me off"
+      },
+      {
+        "dropped_source_index": 7224,
+        "kept_source_index": 3267,
+        "normalized_text": "stop serving the soup you re blocking my path"
+      },
+      {
+        "dropped_source_index": 7256,
+        "kept_source_index": 5313,
+        "normalized_text": "stop plating the soup because you re blocking my path"
+      },
+      {
+        "dropped_source_index": 7263,
+        "kept_source_index": 3488,
+        "normalized_text": "don t serve that soup now because you re blocking my path"
+      },
+      {
+        "dropped_source_index": 7450,
+        "kept_source_index": 5656,
+        "normalized_text": "serve the soup now to complement my tomato run"
+      },
+      {
+        "dropped_source_index": 7487,
+        "kept_source_index": 3662,
+        "normalized_text": "go ahead and serve that soup now"
+      }
+    ]
+  },
+  "corpus_sha256": "4dafa02c4970e2343a4163693c53b4e712109ebd8343859c8362bd235c268a19",
+  "evaluation_config": {
+    "config_sha256": "91ea7b1ed83dc825cbd68da250e7405f2c2d329f58d047ef4001c653d7de936f",
+    "lambda_pref": 1.0,
+    "near_duplicate_threshold": 0.92,
+    "seed": 0,
+    "use_feature_counts": false
+  },
+  "export_aggregation": "scenario_balanced_mean",
+  "metrics": {
+    "export_all_scenarios": {
+      "accuracy": 0.7666666666666667,
+      "correct": 69,
+      "total": 90
+    },
+    "export_probes": {
+      "accuracy": 0.6,
+      "correct": 3,
+      "total": 5
+    },
+    "gold": {
+      "accuracy": 1.0,
+      "correct": 18,
+      "total": 18
+    },
+    "route1": {
+      "accuracy": 0.8333333333333334,
+      "correct": 15,
+      "total": 18
+    },
+    "route2_example_accuracy": 0.9183895538628944,
+    "route2_scenario_accuracy": 0.9444444444444444,
+    "zero": {
+      "accuracy": 0.0,
+      "correct": 0,
+      "total": 18
+    }
+  },
+  "split_manifest": "baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\route2\\scenario_benchmark\\split_manifest.json",
+  "split_sha256": "971acea7100af55f92ab7ce3acd12e6e27e4ffbf478835f3085f55142d7a0904",
+  "test_split": {
+    "groups": [
+      "ctx_0000_pot[empty]_empty_hold[empty]_human[idle]",
+      "ctx_0014_pot[empty]_empty_hold[onion]_human[get_onion]",
+      "ctx_0017_pot[empty]_empty_hold[onion]_human[serve_soup]",
+      "ctx_0026_pot[tomato]_partial_hold[empty]_human[get_onion]",
+      "ctx_0027_pot[tomato]_partial_hold[empty]_human[pick_dish_then_serve]",
+      "ctx_0028_pot[tomato]_partial_hold[empty]_human[pickup_soup]",
+      "ctx_0035_pot[tomato]_partial_hold[tomato]_human[serve_soup]",
+      "ctx_0049_pot[tomato-tomato]_partial_hold[empty]_human[get_tomato]",
+      "ctx_0050_pot[tomato-tomato]_partial_hold[empty]_human[get_onion]",
+      "ctx_0057_pot[tomato-tomato]_partial_hold[onion]_human[pick_dish_then_serve]",
+      "ctx_0058_pot[tomato-tomato]_partial_hold[onion]_human[pickup_soup]",
+      "ctx_0061_pot[tomato-tomato]_partial_hold[soup]_human[get_tomato]",
+      "ctx_0069_pot[tomato-tomato-onion]_cooking_hold[soup]_human[pick_dish_then_serve]",
+      "ctx_0076_pot[tomato-tomato-onion]_ready_hold[empty]_human[pickup_soup]",
+      "ctx_0079_pot[tomato-tomato-onion]_ready_hold[dish]_human[get_tomato]",
+      "ctx_0081_pot[tomato-tomato-onion]_ready_hold[dish]_human[pick_dish_then_serve]",
+      "ctx_0083_pot[tomato-tomato-onion]_ready_hold[dish]_human[serve_soup]",
+      "ctx_0088_pot[tomato-tomato-onion]_ready_hold[soup]_human[pickup_soup]"
+    ],
+    "scenarios": 18,
+    "utterances": 1838
+  }
+}

@@ -1,0 +1,92 @@
+{
+  "feedback": "baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\data\\route2_teacher_feedback.proactivity_v3.synthetic.json",
+  "corpus_sha256": "f27c0613a490104942b5f78de1edebcbe75362d46623c490a3023cba14d5a6de",
+  "split_sha256": "6f4d170c46057589604c51bb53b9340d3c4628d21a0f8f1d6728833013c9486c",
+  "search_sha256": "29cd7848e8597826e8be4dbb6adedaef6bbb3f3e40cea7684061d78cc4983fe5",
+  "candidates": [
+    {
+      "config": {
+        "optimizer": "adam",
+        "lr": 0.003,
+        "weight_decay": 0.0001,
+        "batch_size": 256
+      },
+      "seeds": [
+        {
+          "seed": 0,
+          "best_val_loss": 0.004302606917917728,
+          "best_epoch": 43,
+          "epochs_run": 56
+        },
+        {
+          "seed": 1,
+          "best_val_loss": 0.007430728990584612,
+          "best_epoch": 75,
+          "epochs_run": 80
+        },
+        {
+          "seed": 2,
+          "best_val_loss": 0.004805341828614473,
+          "best_epoch": 79,
+          "epochs_run": 80
+        }
+      ],
+      "worst_seed_val_loss": 0.007430728990584612,
+      "mean_val_loss": 0.005512892579038938
+    },
+    {
+      "config": {
+        "optimizer": "adam",
+        "lr": 0.01,
+        "weight_decay": 0.0001,
+        "batch_size": 256
+      },
+      "seeds": [
+        {
+          "seed": 0,
+          "best_val_loss": 0.0050689722411334515,
+          "best_epoch": 19,
+          "epochs_run": 32
+        },
+        {
+          "seed": 1,
+          "best_val_loss": 0.006299364846199751,
+          "best_epoch": 79,
+          "epochs_run": 80
+        },
+        {
+          "seed": 2,
+          "best_val_loss": 0.0051141949370503426,
+          "best_epoch": 57,
+          "epochs_run": 70
+        }
+      ],
+      "worst_seed_val_loss": 0.006299364846199751,
+      "mean_val_loss": 0.005494177341461182
+    }
+  ],
+  "selected_config": {
+    "optimizer": "adam",
+    "lr": 0.01,
+    "weight_decay": 0.0001,
+    "batch_size": 256,
+    "seed": 0,
+    "epochs": 80,
+    "patience": 12,
+    "selection": "minimize worst-seed dev loss, then mean dev loss",
+    "grouping_policy": "joint",
+    "use_feature_counts": true,
+    "target_mode": "full_teacher_reward",
+    "text_only_ablation": false
+  },
+  "selected_dev_loss": 0.0050689722411334515,
+  "untouched_test_loss": 0.004895433783531189,
+  "checkpoint": "baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\route2\\paper_aligned_proactivity_v3\\profile_multiseed\\model.pt",
+  "untouched_test_metrics": {
+    "mse": 0.004895433783531189,
+    "mean_cosine_similarity": 0.9993488192558289,
+    "active_sign_accuracy": 1.0,
+    "active_target_count": 18252,
+    "examples": 480
+  }
+}

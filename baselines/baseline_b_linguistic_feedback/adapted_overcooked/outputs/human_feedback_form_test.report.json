@@ -1,0 +1,19 @@
+{
+  "benchmark_role": "human_template_family_disjoint_test",
+  "claim_limit": "template-family-disjoint only; not teacher/session-held-out",
+  "dev_normalized_text_overlap": 0,
+  "dev_template_family_overlap": 0,
+  "label_counts": {},
+  "metrics": null,
+  "model": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\feedback_form_classifier\\model.joblib",
+  "model_sha256": "0f92f07f71ff03cc902693d8e613fc8af681d3ccee0d740322afb2a24c6ca4ab",
+  "read_only_evaluator": true,
+  "status": "no_human_test_data",
+  "teacher_session_identity_available": false,
+  "test_data": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\data\\human_feedback_form_test.json",
+  "test_data_sha256": "a5338d955b09046ec0b16f3a9625b7955c763aae07dc722e474e6078745f932f",
+  "test_rows": 0,
+  "train_normalized_text_overlap": 0,
+  "train_template_family_overlap": 0,
+  "used_for_training_or_hyperparameter_selection": false
+}

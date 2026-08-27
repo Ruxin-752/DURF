@@ -1,5 +1,15 @@
 # Baseline B 每一步 ↔ 原论文对应表
 
+> **Route 2 update (2026-08-10):** full reward-vector supervision, nonzero
+> trajectory features, 36 reward configurations, and the paper's ten-fold
+> teacher/reward holdout rotation are implemented using 12 stable synthetic
+> authors. Ten dev-selected models are hash-frozen before a one-time test. The
+> network remains the paper's
+> `EmbeddingBag(30) -> hidden 128 -> reward vector` architecture, adapted to the
+> 53-dimensional Overcooked schema. The reference classifier also reproduces
+> the paper benchmark at 87.16% accuracy. See
+> [ROUTE2_AUDIT_REPORT.md](ROUTE2_AUDIT_REPORT.md); older text-only
+> descriptions below are historical.
 原论文：*Learning Rewards from Linguistic Feedback*（Sumers, Ho, Hawkins, Narasimhan, Griffiths, AAAI 2021, arXiv:2009.14715）。
 
 本文件把 `adapted_overcooked/` 里的**每一步实现**和论文里的**对应概念/公式/流程**一一对应，方便审阅“这份 Overcooked 适配是不是忠实复现了论文思路”。
@@ -15,12 +25,13 @@
 
 ```text
 论文:      linguistic feedback -> (feedback type + sentiment) -> ground to reward features -> update belief over feature weights w -> act / predict
-本实现:    feedback text        -> classify + extract_sentiment -> ground_feedback           -> RewardWeightModel.update(w)        -> probe evaluation
+本实现:    feedback text        -> phrase-level f_G + sentiment -> constrained reference subtype -> ground_feedback -> posterior update
 ```
 
 | 步骤 | 本实现代码 | 原论文对应 |
 |---|---|---|
-| ① 短语指涉分类 | `phrase_reference_classifier.predict_reference_type` | 论文 TF-IDF+LR 五类 reference type；speech act 另行记录，不控制 grounding |
+| ① 三类反馈形式 `f_G` | `feedback_form_classifier.predict_feedback_form` | 论文 `Evaluative / Imperative / Descriptive`；同一份 UI 预测控制 Route 1 grounding 与 precision gate |
+| ①b 类内指涉细化 | `phrase_reference_classifier.predict_reference_type` | 原作者代码的五类 reference subtype；只可在三类分支内部细化，不能跨类覆盖 |
 | ② 情感/极性抽取 | `sentiment_extractor.extract_sentiment` | 论文用情感分析得到反馈的正负 valence（VADER） |
 | ③ 反馈落到特征上（grounding） | `overcooked_grounding.ground_feedback` → `observations.build_observations` | 论文把反馈映射到奖励特征 φ 上的“被指涉特征”（reference vector） |
 | ④ 高斯信念 + 共轭贝叶斯更新 | `belief_model.GaussianBelief` + `reward_weight_model.BayesianRewardLearner` | 论文 `beliefs.py::MultivariateNormal` + `agents.py::MultivariateNormalLearner` 的共轭高斯更新 |
@@ -32,16 +43,23 @@
 
 ## 1. 逐步一一对应
 
-### 步骤 ① 短语指涉类型分类
-- **实现**：`phrase_reference_classifier.py` + `train_phrase_reference_classifier.py`
-  - 按论文标点规则切短语，以同款预处理、TF-IDF 1–2 gram 和 LogisticRegression
-    预测 `trajectory / feature / action_spatial / action_behavioral / other`。
-- **论文对应**：原论文分类的是短语“指向什么”，并据此选择 grounding 路径；
-  `evaluative / imperative / descriptive` 是独立的 speech-act 元数据。
-- **当前结果**：按完整场景隔离、并加入 DeepSeek 弱类/拒识类后，合成 untouched
-  test accuracy 74.2%、macro-F1 68.3%、balanced accuracy 72.6%。这个严格数字
-  低于旧的 intent-family 拆分结果，但消除了同场景泄漏；尚无真人 Overcooked
-  金标准，因此不能与论文真人测试的约 87% 直接等同。
+### 步骤 ① 三类反馈形式与类内指涉细化
+- **实现**：`feedback_form_classifier.py` 先逐短语预测论文三类 `f_G`；
+  `phrase_reference_classifier.py` + `train_phrase_reference_classifier.py`
+  再提供受约束的细粒度 subtype。
+  - 按论文标点规则切短语。论文复现保留原预处理和 word TF-IDF；部署模型使用
+    raw word 1–2 gram + char_wb 3–5 gram 和 LogisticRegression，预测
+    `trajectory / feature / action_spatial / action_behavioral / other`。
+- **论文对应**：三类 `f_G` 选择 grounding 路径：Evaluative → trajectory，
+  Imperative → action，Descriptive → feature。五类是原作者发布代码里的细化；
+  `action_behavioral` 只能细化 Evaluative 的轨迹时间归因，跨类预测会被记录并
+  投影回三类默认路径，`other` 仍安全拒绝。
+- **当前结果**：在论文原始 982 条人工标签和相同随机行 85/15 协议上复现
+  accuracy 87.162%、macro-F1 75.252%；该协议存在重复文本和 task 重叠，只用于
+  论文协议复现。v8 综合开发集为 accuracy 87.02%、macro-F1 87.08%；固定且
+  无泄漏、但已经查看的 paper-v1 回归为 77.36% / 72.52%。861 条旧 Overcooked
+  合成回归集为 92.68% / 92.40%，不是真人外部测试。尚无真人 Overcooked
+  金标准，因此真人语言准确率仍未知。
 
 ### 步骤 ② 情感 / 极性抽取
 - **实现**：`sentiment_extractor.py::extract_sentiment`
@@ -135,10 +153,10 @@ evaluate_leave_one_probe_out              # ⑦ 泛化评估
 | Literal / PseudoPragmatic 两个 learner 变体 | `--mode literal / pseudopragmatic` | ✅ 忠实复现 |
 | 采样信念 → argmax 选动作 | `evaluate_probes_sampled`（对应 `execute_trajectories`） | ✅ 忠实复现 |
 | VADER 情感做 valence | `sentiment_extractor.py` 用 NLTK VADER 复刻 `modified_vader_observation`（英语单语） | ✅ 已对齐（见 `DIFFERENCES_FROM_PAPER.md` §1） |
-| 学习式推断网络（路线2） | `scripts/train_route2.py` 已在 **DeepSeek 合成语料**上训练（text-only，分组 CV 早停）；held-out subgoal accuracy 18/18=100%。严格对齐版 `train_route2_inference_network.py` 仍保留"训练前停止"边界 | ✅ 已训练（合成真值，验证 language generalization） |
+| 学习式推断网络（路线2） | `paper_v5` 语料上做完整 53 维奖励训练；逐折 dev-only 选模，teacher/reward 双轴隔离，checkpoint 与 manifest 冻结后一次性 test | ✅ 合成 full-reward 协议通过；真人 local probe 未通过 |
 | 指涉分类/grounding | 论文结构的短语级 TF-IDF+LR 五类分类器；类别概率参与 grounding confidence，低置信更新降权 | ✅ 结构对齐；训练数据仍以合成为主 |
 | colored-shape 任务特征 | Overcooked 协作特征 | 换 domain，结构不变 |
-| 真实教师-学习者交互数据 | **DeepSeek 合成语料** 2693 条（validated 2619，遵循 `.cursor/skills/llm-feedback-corpus`）+ 手写 probe 对照 | 真实人类语料仍是缺口，见 `MIGRATION_NOTES.md` / `DIFFERENCES_FROM_PAPER.md §9` |
+| 真实教师-学习者交互数据 | Route 2 正式语料为 83,592 条合成样本（12 authors × 36 configs 的完整覆盖）；另有独立手写 probe | 真实人类语料仍是缺口，见 `MIGRATION_NOTES.md` / `DIFFERENCES_FROM_PAPER.md §9` |
 
 > 论文原始代码保留在 `../original_rewards_repo/` 仅作参考，不被 Overcooked 运行时导入。
 
@@ -152,7 +170,7 @@ evaluate_leave_one_probe_out              # ⑦ 泛化评估
 
 ## 4. 一句话总结
 
-奖励学习核心已忠实复现论文的贝叶斯高斯信念、共轭更新与采样式动作选择。Route 1 的 live chat 现执行“短语五类指涉分类→grounding→来源感知后验更新→subgoal 重排”，真人评论默认用更高 observation precision，并保存完整 posterior。严格场景隔离下五类 TF-IDF+LR 的合成 untouched-test accuracy 为 74.2%、macro-F1 为 68.3%；inferred Route 1 subgoal accuracy 为 91.1%，grounding coverage 为 80.4%，但真人语料仍是缺口。20-seed 行为协议在 dev 选择 `lambda=0.75`，untouched test 的平均 soup 从 76 提升到 88、discomfort rate 从 16.6% 降到 14.7%，但 comfort score 方差仍很大。数据来源与诚实边界见 `DIFFERENCES_FROM_PAPER.md §7/§9`。
+奖励学习核心已复现论文的贝叶斯高斯信念、共轭更新、Route 2 网络结构和十折 teacher/reward holdout。Route 1 live chat 执行“短语五类指涉分类→grounding→来源感知后验更新→subgoal 重排”；Route 2 部署时平均十个完整奖励预测。原始分类器 benchmark 复现为 87.162% accuracy；Route 2 冻结 synthetic test 的变化维 MSE 为 0.025101、最近配置 accuracy 为 99.9883%、偏好敏感行为 majority 为 97.5490%，但真人风格 local probe 只有 1/4。所有 live 决策固定使用 `w · phi`（`lambda=1`）；真人 Overcooked 数据仍是最终缺口。数据来源与诚实边界见 `ROUTE2_AUDIT_REPORT.md` 和 `DIFFERENCES_FROM_PAPER.md §7/§9`。
 
 ---
 

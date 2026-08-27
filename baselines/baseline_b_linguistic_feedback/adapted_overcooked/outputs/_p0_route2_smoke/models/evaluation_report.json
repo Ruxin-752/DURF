@@ -1,0 +1,1370 @@
+{
+  "aggregate_held_out": {
+    "ablations": {
+      "text_only_input": {
+        "behavior_metrics": {
+          "all": {
+            "per_reward_context_majority": {
+              "accuracy": 0.3181818181818182,
+              "correct": 21,
+              "total": 66
+            },
+            "per_utterance": {
+              "accuracy": 0.30405405405405406,
+              "correct": 45,
+              "total": 148
+            }
+          },
+          "preference_sensitive": {
+            "per_reward_context_majority": {
+              "accuracy": 0.875,
+              "correct": 7,
+              "total": 8
+            },
+            "per_utterance": {
+              "accuracy": 0.875,
+              "correct": 14,
+              "total": 16
+            }
+          },
+          "preference_sensitive_empty_hand_cooking": {
+            "per_reward_context_majority": {
+              "accuracy": 0.0,
+              "correct": 0,
+              "total": 0
+            },
+            "per_utterance": {
+              "accuracy": 0.0,
+              "correct": 0,
+              "total": 0
+            }
+          }
+        },
+        "nearest_reward_config": {
+          "accuracy": 0.10135135135135136,
+          "correct": 15,
+          "distance_dimensions": 26,
+          "total": 148
+        },
+        "reward_metrics": {
+          "active_sign_accuracy": 0.49618321657180786,
+          "active_target_count": 5502,
+          "dimensions": 53,
+          "examples": 148,
+          "mean_cosine_similarity": 0.006464197766035795,
+          "mse": 3.002671718597412
+        },
+        "varying_dimension_reward_metrics": {
+          "active_sign_accuracy": 0.5120179057121277,
+          "active_target_count": 3578,
+          "dimensions": 26,
+          "examples": 148,
+          "mean_cosine_similarity": 0.03254566341638565,
+          "mse": 4.0412278175354
+        }
+      },
+      "trajectory_only_input": {
+        "behavior_metrics": {
+          "all": {
+            "per_reward_context_majority": {
+              "accuracy": 0.48484848484848486,
+              "correct": 32,
+              "total": 66
+            },
+            "per_utterance": {
+              "accuracy": 0.4864864864864865,
+              "correct": 72,
+              "total": 148
+            }
+          },
+          "preference_sensitive": {
+            "per_reward_context_majority": {
+              "accuracy": 0.875,
+              "correct": 7,
+              "total": 8
+            },
+            "per_utterance": {
+              "accuracy": 0.8125,
+              "correct": 13,
+              "total": 16
+            }
+          },
+          "preference_sensitive_empty_hand_cooking": {
+            "per_reward_context_majority": {
+              "accuracy": 0.0,
+              "correct": 0,
+              "total": 0
+            },
+            "per_utterance": {
+              "accuracy": 0.0,
+              "correct": 0,
+              "total": 0
+            }
+          }
+        },
+        "nearest_reward_config": {
+          "accuracy": 0.10135135135135136,
+          "correct": 15,
+          "distance_dimensions": 26,
+          "total": 148
+        },
+        "reward_metrics": {
+          "active_sign_accuracy": 0.5267175436019897,
+          "active_target_count": 5502,
+          "dimensions": 53,
+          "examples": 148,
+          "mean_cosine_similarity": 0.060610998421907425,
+          "mse": 2.99363374710083
+        },
+        "varying_dimension_reward_metrics": {
+          "active_sign_accuracy": 0.5304639339447021,
+          "active_target_count": 3578,
+          "dimensions": 26,
+          "examples": 148,
+          "mean_cosine_similarity": 0.046048603951931,
+          "mse": 4.042951583862305
+        }
+      }
+    },
+    "behavior_metrics": {
+      "per_reward_context_majority": {
+        "accuracy": 0.3181818181818182,
+        "correct": 21,
+        "total": 66
+      },
+      "per_utterance": {
+        "accuracy": 0.2972972972972973,
+        "correct": 44,
+        "total": 148
+      }
+    },
+    "constant_baselines": {
+      "canonical": {
+        "behavior_metrics": {
+          "all": {
+            "per_reward_context_majority": {
+              "accuracy": 0.9848484848484849,
+              "correct": 65,
+              "total": 66
+            },
+            "per_utterance": {
+              "accuracy": 0.9864864864864865,
+              "correct": 146,
+              "total": 148
+            }
+          },
+          "preference_sensitive": {
+            "per_reward_context_majority": {
+              "accuracy": 0.875,
+              "correct": 7,
+              "total": 8
+            },
+            "per_utterance": {
+              "accuracy": 0.875,
+              "correct": 14,
+              "total": 16
+            }
+          },
+          "preference_sensitive_empty_hand_cooking": {
+            "per_reward_context_majority": {
+              "accuracy": 0.0,
+              "correct": 0,
+              "total": 0
+            },
+            "per_utterance": {
+              "accuracy": 0.0,
+              "correct": 0,
+              "total": 0
+            }
+          }
+        },
+        "nearest_reward_config": {
+          "accuracy": 0.04054054054054054,
+          "correct": 6,
+          "distance_dimensions": 26,
+          "total": 148
+        },
+        "reward_metrics": {
+          "active_sign_accuracy": 0.9487459063529968,
+          "active_target_count": 5502,
+          "dimensions": 53,
+          "examples": 148,
+          "mean_cosine_similarity": 0.912568986415863,
+          "mse": 0.5683605670928955
+        },
+        "varying_dimension_reward_metrics": {
+          "active_sign_accuracy": 0.9211850166320801,
+          "active_target_count": 3578,
+          "dimensions": 26,
+          "examples": 148,
+          "mean_cosine_similarity": 0.8734221458435059,
+          "mse": 1.158581256866455
+        }
+      },
+      "train_mean": {
+        "behavior_metrics": {
+          "all": {
+            "per_reward_context_majority": {
+              "accuracy": 0.9848484848484849,
+              "correct": 65,
+              "total": 66
+            },
+            "per_utterance": {
+              "accuracy": 0.9864864864864865,
+              "correct": 146,
+              "total": 148
+            }
+          },
+          "preference_sensitive": {
+            "per_reward_context_majority": {
+              "accuracy": 0.875,
+              "correct": 7,
+              "total": 8
+            },
+            "per_utterance": {
+              "accuracy": 0.875,
+              "correct": 14,
+              "total": 16
+            }
+          },
+          "preference_sensitive_empty_hand_cooking": {
+            "per_reward_context_majority": {
+              "accuracy": 0.0,
+              "correct": 0,
+              "total": 0
+            },
+            "per_utterance": {
+              "accuracy": 0.0,
+              "correct": 0,
+              "total": 0
+            }
+          }
+        },
+        "nearest_reward_config": {
+          "accuracy": 0.04054054054054054,
+          "correct": 6,
+          "distance_dimensions": 26,
+          "total": 148
+        },
+        "reward_metrics": {
+          "active_sign_accuracy": 0.9258451461791992,
+          "active_target_count": 5502,
+          "dimensions": 53,
+          "examples": 148,
+          "mean_cosine_similarity": 0.9189416170120239,
+          "mse": 0.5554875731468201
+        },
+        "varying_dimension_reward_metrics": {
+          "active_sign_accuracy": 0.8859698176383972,
+          "active_target_count": 3578,
+          "dimensions": 26,
+          "examples": 148,
+          "mean_cosine_similarity": 0.8860628008842468,
+          "mse": 1.1323400735855103
+        }
+      }
+    },
+    "model": {
+      "behavior_metrics": {
+        "all": {
+          "per_reward_context_majority": {
+            "accuracy": 0.3181818181818182,
+            "correct": 21,
+            "total": 66
+          },
+          "per_utterance": {
+            "accuracy": 0.2972972972972973,
+            "correct": 44,
+            "total": 148
+          }
+        },
+        "preference_sensitive": {
+          "per_reward_context_majority": {
+            "accuracy": 0.875,
+            "correct": 7,
+            "total": 8
+          },
+          "per_utterance": {
+            "accuracy": 0.875,
+            "correct": 14,
+            "total": 16
+          }
+        },
+        "preference_sensitive_empty_hand_cooking": {
+          "per_reward_context_majority": {
+            "accuracy": 0.0,
+            "correct": 0,
+            "total": 0
+          },
+          "per_utterance": {
+            "accuracy": 0.0,
+            "correct": 0,
+            "total": 0
+          }
+        }
+      },
+      "nearest_reward_config": {
+        "accuracy": 0.10135135135135136,
+        "correct": 15,
+        "distance_dimensions": 26,
+        "total": 148
+      },
+      "reward_metrics": {
+        "active_sign_accuracy": 0.49363866448402405,
+        "active_target_count": 5502,
+        "dimensions": 53,
+        "examples": 148,
+        "mean_cosine_similarity": 0.004504370503127575,
+        "mse": 3.0032896995544434
+      },
+      "varying_dimension_reward_metrics": {
+        "active_sign_accuracy": 0.5139743089675903,
+        "active_target_count": 3578,
+        "dimensions": 26,
+        "examples": 148,
+        "mean_cosine_similarity": 0.03103812411427498,
+        "mse": 4.042468070983887
+      }
+    },
+    "model_projected_to_nearest_reward_config": {
+      "behavior_metrics": {
+        "all": {
+          "per_reward_context_majority": {
+            "accuracy": 0.9848484848484849,
+            "correct": 65,
+            "total": 66
+          },
+          "per_utterance": {
+            "accuracy": 0.9864864864864865,
+            "correct": 146,
+            "total": 148
+          }
+        },
+        "preference_sensitive": {
+          "per_reward_context_majority": {
+            "accuracy": 0.875,
+            "correct": 7,
+            "total": 8
+          },
+          "per_utterance": {
+            "accuracy": 0.875,
+            "correct": 14,
+            "total": 16
+          }
+        },
+        "preference_sensitive_empty_hand_cooking": {
+          "per_reward_context_majority": {
+            "accuracy": 0.0,
+            "correct": 0,
+            "total": 0
+          },
+          "per_utterance": {
+            "accuracy": 0.0,
+            "correct": 0,
+            "total": 0
+          }
+        }
+      },
+      "nearest_reward_config": {
+        "accuracy": 0.10135135135135136,
+        "correct": 15,
+        "distance_dimensions": 26,
+        "total": 148
+      },
+      "reward_metrics": {
+        "active_sign_accuracy": 0.8876771926879883,
+        "active_target_count": 5502,
+        "dimensions": 53,
+        "examples": 148,
+        "mean_cosine_similarity": 0.8251166939735413,
+        "mse": 1.1046160459518433
+      },
+      "varying_dimension_reward_metrics": {
+        "active_sign_accuracy": 0.8272777795791626,
+        "active_target_count": 3578,
+        "dimensions": 26,
+        "examples": 148,
+        "mean_cosine_similarity": 0.7472559213638306,
+        "mse": 2.2517170906066895
+      }
+    },
+    "reward_metrics": {
+      "active_sign_accuracy": 0.49363866448402405,
+      "active_target_count": 5502,
+      "dimensions": 53,
+      "examples": 148,
+      "mean_cosine_similarity": 0.004504370503127575,
+      "mse": 3.0032896995544434
+    }
+  },
+  "corpus_sha256": "8277a0e547f02694d57c1f4f6187ab829c75581ebc16da7cff5f0a9a1e81b9fc",
+  "cross_validation_coverage": {
+    "corpus_examples": 1040,
+    "never_test_examples": 892,
+    "test_assignment_frequency_max": 1,
+    "test_assignment_frequency_min": 0,
+    "total_excluded_fold_assignments": 3326,
+    "unique_dev_examples": 148,
+    "unique_dev_fraction": 0.1423076923076923,
+    "unique_test_examples": 148,
+    "unique_test_fraction": 0.1423076923076923
+  },
+  "ensemble_deployment_language_probe": {
+    "accuracy": 0.5,
+    "cases": [
+      {
+        "case_id": "positive_specific",
+        "chosen_subgoal": "GET_ONION",
+        "correct": true,
+        "expected": "prefetch",
+        "max_model_disagreement": 0.1418381339670558,
+        "mean_model_disagreement": 0.08622079429576998,
+        "reward_margin": 0.006521022133529189,
+        "text": "Please prepare an onion for the next round while this soup cooks."
+      },
+      {
+        "case_id": "positive_paraphrase",
+        "chosen_subgoal": "GET_ONION",
+        "correct": true,
+        "expected": "prefetch",
+        "max_model_disagreement": 0.13237699819424223,
+        "mean_model_disagreement": 0.0855661122505495,
+        "reward_margin": 0.005952618876472117,
+        "text": "Use the cooking time to get an ingredient ready for our next soup."
+      },
+      {
+        "case_id": "negative_specific",
+        "chosen_subgoal": "GET_ONION",
+        "correct": false,
+        "expected": "wait",
+        "max_model_disagreement": 0.1371389648171238,
+        "mean_model_disagreement": 0.0806549679969743,
+        "reward_margin": 0.011574987974017847,
+        "text": "Do not grab an onion this early; keep your hands free while the soup cooks."
+      },
+      {
+        "case_id": "negative_paraphrase",
+        "chosen_subgoal": "GET_ONION",
+        "correct": false,
+        "expected": "wait",
+        "max_model_disagreement": 0.1886776027917541,
+        "mean_model_disagreement": 0.10491256299214227,
+        "reward_margin": 0.045918121747672555,
+        "text": "Wait until this soup is done; do not fill your hands yet."
+      }
+    ],
+    "claim_scope": "behavioral response only; not complete-reward accuracy",
+    "correct": 2,
+    "status": "separate_handwritten_local_language_probe_not_cv_estimate",
+    "total": 4
+  },
+  "folds": [
+    {
+      "coverage": {
+        "corpus_examples": 1040,
+        "dev_examples": 22,
+        "excluded_axis_pairs": {
+          "teacher_dev__reward_test": 21,
+          "teacher_dev__reward_train": 94,
+          "teacher_test__reward_dev": 22,
+          "teacher_test__reward_train": 94,
+          "teacher_train__reward_dev": 90,
+          "teacher_train__reward_test": 90
+        },
+        "excluded_examples": 411,
+        "excluded_fraction": 0.3951923076923077,
+        "included_fraction": 0.6048076923076923,
+        "test_examples": 21,
+        "train_examples": 586
+      },
+      "fold": 0,
+      "heldout_overlap_audit": {
+        "test_exact_input_in_train": 0,
+        "test_exact_input_in_train_fraction": 0.0,
+        "test_exact_text_in_train": 0,
+        "test_exact_text_in_train_fraction": 0.0
+      },
+      "model": {
+        "behavior_metrics": {
+          "all": {
+            "per_reward_context_majority": {
+              "accuracy": 0.7,
+              "correct": 7,
+              "total": 10
+            },
+            "per_utterance": {
+              "accuracy": 0.7142857142857143,
+              "correct": 15,
+              "total": 21
+            }
+          },
+          "preference_sensitive": {
+            "per_reward_context_majority": {
+              "accuracy": 1.0,
+              "correct": 1,
+              "total": 1
+            },
+            "per_utterance": {
+              "accuracy": 1.0,
+              "correct": 2,
+              "total": 2
+            }
+          },
+          "preference_sensitive_empty_hand_cooking": {
+            "per_reward_context_majority": {
+              "accuracy": 0.0,
+              "correct": 0,
+              "total": 0
+            },
+            "per_utterance": {
+              "accuracy": 0.0,
+              "correct": 0,
+              "total": 0
+            }
+          }
+        },
+        "nearest_reward_config": {
+          "accuracy": 0.0,
+          "correct": 0,
+          "distance_dimensions": 26,
+          "total": 21
+        },
+        "reward_metrics": {
+          "active_sign_accuracy": 0.5054945349693298,
+          "active_target_count": 819,
+          "dimensions": 53,
+          "examples": 21,
+          "mean_cosine_similarity": 0.00363912689499557,
+          "mse": 3.032749891281128
+        },
+        "varying_dimension_reward_metrics": {
+          "active_sign_accuracy": 0.5439560413360596,
+          "active_target_count": 546,
+          "dimensions": 26,
+          "examples": 21,
+          "mean_cosine_similarity": 0.02264557220041752,
+          "mse": 4.104976177215576
+        }
+      },
+      "test_examples": 21
+    },
+    {
+      "coverage": {
+        "corpus_examples": 1040,
+        "dev_examples": 21,
+        "excluded_axis_pairs": {
+          "teacher_dev__reward_test": 17,
+          "teacher_dev__reward_train": 99,
+          "teacher_test__reward_dev": 15,
+          "teacher_test__reward_train": 92,
+          "teacher_train__reward_dev": 96,
+          "teacher_train__reward_test": 102
+        },
+        "excluded_examples": 421,
+        "excluded_fraction": 0.4048076923076923,
+        "included_fraction": 0.5951923076923077,
+        "test_examples": 17,
+        "train_examples": 581
+      },
+      "fold": 1,
+      "heldout_overlap_audit": {
+        "test_exact_input_in_train": 0,
+        "test_exact_input_in_train_fraction": 0.0,
+        "test_exact_text_in_train": 0,
+        "test_exact_text_in_train_fraction": 0.0
+      },
+      "model": {
+        "behavior_metrics": {
+          "all": {
+            "per_reward_context_majority": {
+              "accuracy": 0.8571428571428571,
+              "correct": 6,
+              "total": 7
+            },
+            "per_utterance": {
+              "accuracy": 0.8235294117647058,
+              "correct": 14,
+              "total": 17
+            }
+          },
+          "preference_sensitive": {
+            "per_reward_context_majority": {
+              "accuracy": 1.0,
+              "correct": 1,
+              "total": 1
+            },
+            "per_utterance": {
+              "accuracy": 1.0,
+              "correct": 2,
+              "total": 2
+            }
+          },
+          "preference_sensitive_empty_hand_cooking": {
+            "per_reward_context_majority": {
+              "accuracy": 0.0,
+              "correct": 0,
+              "total": 0
+            },
+            "per_utterance": {
+              "accuracy": 0.0,
+              "correct": 0,
+              "total": 0
+            }
+          }
+        },
+        "nearest_reward_config": {
+          "accuracy": 0.0,
+          "correct": 0,
+          "distance_dimensions": 26,
+          "total": 17
+        },
+        "reward_metrics": {
+          "active_sign_accuracy": 0.5912519097328186,
+          "active_target_count": 663,
+          "dimensions": 53,
+          "examples": 17,
+          "mean_cosine_similarity": 0.223666250705719,
+          "mse": 2.042708158493042
+        },
+        "varying_dimension_reward_metrics": {
+          "active_sign_accuracy": 0.5791855454444885,
+          "active_target_count": 442,
+          "dimensions": 26,
+          "examples": 17,
+          "mean_cosine_similarity": 0.18236768245697021,
+          "mse": 2.138982057571411
+        }
+      },
+      "test_examples": 17
+    },
+    {
+      "coverage": {
+        "corpus_examples": 1040,
+        "dev_examples": 17,
+        "excluded_axis_pairs": {
+          "teacher_dev__reward_test": 15,
+          "teacher_dev__reward_train": 92,
+          "teacher_test__reward_dev": 17,
+          "teacher_test__reward_train": 92,
+          "teacher_train__reward_dev": 102,
+          "teacher_train__reward_test": 90
+        },
+        "excluded_examples": 408,
+        "excluded_fraction": 0.3923076923076923,
+        "included_fraction": 0.6076923076923076,
+        "test_examples": 15,
+        "train_examples": 600
+      },
+      "fold": 2,
+      "heldout_overlap_audit": {
+        "test_exact_input_in_train": 0,
+        "test_exact_input_in_train_fraction": 0.0,
+        "test_exact_text_in_train": 0,
+        "test_exact_text_in_train_fraction": 0.0
+      },
+      "model": {
+        "behavior_metrics": {
+          "all": {
+            "per_reward_context_majority": {
+              "accuracy": 0.2857142857142857,
+              "correct": 2,
+              "total": 7
+            },
+            "per_utterance": {
+              "accuracy": 0.3333333333333333,
+              "correct": 5,
+              "total": 15
+            }
+          },
+          "preference_sensitive": {
+            "per_reward_context_majority": {
+              "accuracy": 1.0,
+              "correct": 1,
+              "total": 1
+            },
+            "per_utterance": {
+              "accuracy": 1.0,
+              "correct": 2,
+              "total": 2
+            }
+          },
+          "preference_sensitive_empty_hand_cooking": {
+            "per_reward_context_majority": {
+              "accuracy": 0.0,
+              "correct": 0,
+              "total": 0
+            },
+            "per_utterance": {
+              "accuracy": 0.0,
+              "correct": 0,
+              "total": 0
+            }
+          }
+        },
+        "nearest_reward_config": {
+          "accuracy": 0.0,
+          "correct": 0,
+          "distance_dimensions": 26,
+          "total": 15
+        },
+        "reward_metrics": {
+          "active_sign_accuracy": 0.5692307949066162,
+          "active_target_count": 585,
+          "dimensions": 53,
+          "examples": 15,
+          "mean_cosine_similarity": 0.20191584527492523,
+          "mse": 4.3559160232543945
+        },
+        "varying_dimension_reward_metrics": {
+          "active_sign_accuracy": 0.5205128192901611,
+          "active_target_count": 390,
+          "dimensions": 26,
+          "examples": 15,
+          "mean_cosine_similarity": 0.1468353271484375,
+          "mse": 6.863621711730957
+        }
+      },
+      "test_examples": 15
+    },
+    {
+      "coverage": {
+        "corpus_examples": 1040,
+        "dev_examples": 15,
+        "excluded_axis_pairs": {
+          "teacher_dev__reward_test": 17,
+          "teacher_dev__reward_train": 92,
+          "teacher_test__reward_dev": 15,
+          "teacher_test__reward_train": 92,
+          "teacher_train__reward_dev": 90,
+          "teacher_train__reward_test": 102
+        },
+        "excluded_examples": 408,
+        "excluded_fraction": 0.3923076923076923,
+        "included_fraction": 0.6076923076923076,
+        "test_examples": 17,
+        "train_examples": 600
+      },
+      "fold": 3,
+      "heldout_overlap_audit": {
+        "test_exact_input_in_train": 0,
+        "test_exact_input_in_train_fraction": 0.0,
+        "test_exact_text_in_train": 0,
+        "test_exact_text_in_train_fraction": 0.0
+      },
+      "model": {
+        "behavior_metrics": {
+          "all": {
+            "per_reward_context_majority": {
+              "accuracy": 0.14285714285714285,
+              "correct": 1,
+              "total": 7
+            },
+            "per_utterance": {
+              "accuracy": 0.11764705882352941,
+              "correct": 2,
+              "total": 17
+            }
+          },
+          "preference_sensitive": {
+            "per_reward_context_majority": {
+              "accuracy": 1.0,
+              "correct": 1,
+              "total": 1
+            },
+            "per_utterance": {
+              "accuracy": 1.0,
+              "correct": 2,
+              "total": 2
+            }
+          },
+          "preference_sensitive_empty_hand_cooking": {
+            "per_reward_context_majority": {
+              "accuracy": 0.0,
+              "correct": 0,
+              "total": 0
+            },
+            "per_utterance": {
+              "accuracy": 0.0,
+              "correct": 0,
+              "total": 0
+            }
+          }
+        },
+        "nearest_reward_config": {
+          "accuracy": 0.0,
+          "correct": 0,
+          "distance_dimensions": 26,
+          "total": 17
+        },
+        "reward_metrics": {
+          "active_sign_accuracy": 0.4600301682949066,
+          "active_target_count": 663,
+          "dimensions": 53,
+          "examples": 17,
+          "mean_cosine_similarity": -0.047338660806417465,
+          "mse": 3.5378236770629883
+        },
+        "varying_dimension_reward_metrics": {
+          "active_sign_accuracy": 0.5,
+          "active_target_count": 442,
+          "dimensions": 26,
+          "examples": 17,
+          "mean_cosine_similarity": 0.1054057627916336,
+          "mse": 5.084289073944092
+        }
+      },
+      "test_examples": 17
+    },
+    {
+      "coverage": {
+        "corpus_examples": 1040,
+        "dev_examples": 17,
+        "excluded_axis_pairs": {
+          "teacher_dev__reward_test": 15,
+          "teacher_dev__reward_train": 92,
+          "teacher_test__reward_dev": 17,
+          "teacher_test__reward_train": 92,
+          "teacher_train__reward_dev": 102,
+          "teacher_train__reward_test": 90
+        },
+        "excluded_examples": 408,
+        "excluded_fraction": 0.3923076923076923,
+        "included_fraction": 0.6076923076923076,
+        "test_examples": 15,
+        "train_examples": 600
+      },
+      "fold": 4,
+      "heldout_overlap_audit": {
+        "test_exact_input_in_train": 0,
+        "test_exact_input_in_train_fraction": 0.0,
+        "test_exact_text_in_train": 0,
+        "test_exact_text_in_train_fraction": 0.0
+      },
+      "model": {
+        "behavior_metrics": {
+          "all": {
+            "per_reward_context_majority": {
+              "accuracy": 0.0,
+              "correct": 0,
+              "total": 7
+            },
+            "per_utterance": {
+              "accuracy": 0.0,
+              "correct": 0,
+              "total": 15
+            }
+          },
+          "preference_sensitive": {
+            "per_reward_context_majority": {
+              "accuracy": 0.0,
+              "correct": 0,
+              "total": 1
+            },
+            "per_utterance": {
+              "accuracy": 0.0,
+              "correct": 0,
+              "total": 2
+            }
+          },
+          "preference_sensitive_empty_hand_cooking": {
+            "per_reward_context_majority": {
+              "accuracy": 0.0,
+              "correct": 0,
+              "total": 0
+            },
+            "per_utterance": {
+              "accuracy": 0.0,
+              "correct": 0,
+              "total": 0
+            }
+          }
+        },
+        "nearest_reward_config": {
+          "accuracy": 0.0,
+          "correct": 0,
+          "distance_dimensions": 26,
+          "total": 15
+        },
+        "reward_metrics": {
+          "active_sign_accuracy": 0.45299145579338074,
+          "active_target_count": 585,
+          "dimensions": 53,
+          "examples": 15,
+          "mean_cosine_similarity": -0.11712492257356644,
+          "mse": 2.1038219928741455
+        },
+        "varying_dimension_reward_metrics": {
+          "active_sign_accuracy": 0.4128205180168152,
+          "active_target_count": 390,
+          "dimensions": 26,
+          "examples": 15,
+          "mean_cosine_similarity": -0.34263986349105835,
+          "mse": 2.223752021789551
+        }
+      },
+      "test_examples": 15
+    },
+    {
+      "coverage": {
+        "corpus_examples": 1040,
+        "dev_examples": 15,
+        "excluded_axis_pairs": {
+          "teacher_dev__reward_test": 15,
+          "teacher_dev__reward_train": 94,
+          "teacher_test__reward_dev": 15,
+          "teacher_test__reward_train": 94,
+          "teacher_train__reward_dev": 90,
+          "teacher_train__reward_test": 90
+        },
+        "excluded_examples": 398,
+        "excluded_fraction": 0.38269230769230766,
+        "included_fraction": 0.6173076923076923,
+        "test_examples": 15,
+        "train_examples": 612
+      },
+      "fold": 5,
+      "heldout_overlap_audit": {
+        "test_exact_input_in_train": 0,
+        "test_exact_input_in_train_fraction": 0.0,
+        "test_exact_text_in_train": 0,
+        "test_exact_text_in_train_fraction": 0.0
+      },
+      "model": {
+        "behavior_metrics": {
+          "all": {
+            "per_reward_context_majority": {
+              "accuracy": 0.14285714285714285,
+              "correct": 1,
+              "total": 7
+            },
+            "per_utterance": {
+              "accuracy": 0.13333333333333333,
+              "correct": 2,
+              "total": 15
+            }
+          },
+          "preference_sensitive": {
+            "per_reward_context_majority": {
+              "accuracy": 1.0,
+              "correct": 1,
+              "total": 1
+            },
+            "per_utterance": {
+              "accuracy": 1.0,
+              "correct": 2,
+              "total": 2
+            }
+          },
+          "preference_sensitive_empty_hand_cooking": {
+            "per_reward_context_majority": {
+              "accuracy": 0.0,
+              "correct": 0,
+              "total": 0
+            },
+            "per_utterance": {
+              "accuracy": 0.0,
+              "correct": 0,
+              "total": 0
+            }
+          }
+        },
+        "nearest_reward_config": {
+          "accuracy": 0.0,
+          "correct": 0,
+          "distance_dimensions": 26,
+          "total": 15
+        },
+        "reward_metrics": {
+          "active_sign_accuracy": 0.4888888895511627,
+          "active_target_count": 495,
+          "dimensions": 53,
+          "examples": 15,
+          "mean_cosine_similarity": -0.12065686285495758,
+          "mse": 3.2374987602233887
+        },
+        "varying_dimension_reward_metrics": {
+          "active_sign_accuracy": 0.5,
+          "active_target_count": 300,
+          "dimensions": 26,
+          "examples": 15,
+          "mean_cosine_similarity": -0.08920440822839737,
+          "mse": 4.501341819763184
+        }
+      },
+      "test_examples": 15
+    },
+    {
+      "coverage": {
+        "corpus_examples": 1040,
+        "dev_examples": 15,
+        "excluded_axis_pairs": {
+          "teacher_dev__reward_test": 15,
+          "teacher_dev__reward_train": 94,
+          "teacher_test__reward_dev": 15,
+          "teacher_test__reward_train": 94,
+          "teacher_train__reward_dev": 90,
+          "teacher_train__reward_test": 90
+        },
+        "excluded_examples": 398,
+        "excluded_fraction": 0.38269230769230766,
+        "included_fraction": 0.6173076923076923,
+        "test_examples": 15,
+        "train_examples": 612
+      },
+      "fold": 6,
+      "heldout_overlap_audit": {
+        "test_exact_input_in_train": 0,
+        "test_exact_input_in_train_fraction": 0.0,
+        "test_exact_text_in_train": 0,
+        "test_exact_text_in_train_fraction": 0.0
+      },
+      "model": {
+        "behavior_metrics": {
+          "all": {
+            "per_reward_context_majority": {
+              "accuracy": 0.42857142857142855,
+              "correct": 3,
+              "total": 7
+            },
+            "per_utterance": {
+              "accuracy": 0.26666666666666666,
+              "correct": 4,
+              "total": 15
+            }
+          },
+          "preference_sensitive": {
+            "per_reward_context_majority": {
+              "accuracy": 1.0,
+              "correct": 1,
+              "total": 1
+            },
+            "per_utterance": {
+              "accuracy": 1.0,
+              "correct": 2,
+              "total": 2
+            }
+          },
+          "preference_sensitive_empty_hand_cooking": {
+            "per_reward_context_majority": {
+              "accuracy": 0.0,
+              "correct": 0,
+              "total": 0
+            },
+            "per_utterance": {
+              "accuracy": 0.0,
+              "correct": 0,
+              "total": 0
+            }
+          }
+        },
+        "nearest_reward_config": {
+          "accuracy": 0.0,
+          "correct": 0,
+          "distance_dimensions": 26,
+          "total": 15
+        },
+        "reward_metrics": {
+          "active_sign_accuracy": 0.3333333432674408,
+          "active_target_count": 495,
+          "dimensions": 53,
+          "examples": 15,
+          "mean_cosine_similarity": -0.26323971152305603,
+          "mse": 4.577235698699951
+        },
+        "varying_dimension_reward_metrics": {
+          "active_sign_accuracy": 0.4166666567325592,
+          "active_target_count": 300,
+          "dimensions": 26,
+          "examples": 15,
+          "mean_cosine_similarity": -0.1897970288991928,
+          "mse": 7.182317733764648
+        }
+      },
+      "test_examples": 15
+    },
+    {
+      "coverage": {
+        "corpus_examples": 1040,
+        "dev_examples": 15,
+        "excluded_axis_pairs": {
+          "teacher_dev__reward_train": 109,
+          "teacher_test__reward_train": 6,
+          "teacher_train__reward_dev": 105,
+          "teacher_train__reward_test": 5
+        },
+        "excluded_examples": 225,
+        "excluded_fraction": 0.21634615384615385,
+        "included_fraction": 0.7836538461538461,
+        "test_examples": 5,
+        "train_examples": 795
+      },
+      "fold": 7,
+      "heldout_overlap_audit": {
+        "test_exact_input_in_train": 0,
+        "test_exact_input_in_train_fraction": 0.0,
+        "test_exact_text_in_train": 0,
+        "test_exact_text_in_train_fraction": 0.0
+      },
+      "model": {
+        "behavior_metrics": {
+          "all": {
+            "per_reward_context_majority": {
+              "accuracy": 0.0,
+              "correct": 0,
+              "total": 2
+            },
+            "per_utterance": {
+              "accuracy": 0.0,
+              "correct": 0,
+              "total": 5
+            }
+          },
+          "preference_sensitive": {
+            "per_reward_context_majority": {
+              "accuracy": 0.0,
+              "correct": 0,
+              "total": 0
+            },
+            "per_utterance": {
+              "accuracy": 0.0,
+              "correct": 0,
+              "total": 0
+            }
+          },
+          "preference_sensitive_empty_hand_cooking": {
+            "per_reward_context_majority": {
+              "accuracy": 0.0,
+              "correct": 0,
+              "total": 0
+            },
+            "per_utterance": {
+              "accuracy": 0.0,
+              "correct": 0,
+              "total": 0
+            }
+          }
+        },
+        "nearest_reward_config": {
+          "accuracy": 0.0,
+          "correct": 0,
+          "distance_dimensions": 26,
+          "total": 5
+        },
+        "reward_metrics": {
+          "active_sign_accuracy": 0.4205128252506256,
+          "active_target_count": 195,
+          "dimensions": 53,
+          "examples": 5,
+          "mean_cosine_similarity": -0.07428483664989471,
+          "mse": 3.5563337802886963
+        },
+        "varying_dimension_reward_metrics": {
+          "active_sign_accuracy": 0.4384615421295166,
+          "active_target_count": 130,
+          "dimensions": 26,
+          "examples": 5,
+          "mean_cosine_similarity": -0.07680267095565796,
+          "mse": 5.155651569366455
+        }
+      },
+      "test_examples": 5
+    },
+    {
+      "coverage": {
+        "corpus_examples": 1040,
+        "dev_examples": 5,
+        "excluded_axis_pairs": {
+          "teacher_dev__reward_test": 6,
+          "teacher_test__reward_dev": 5
+        },
+        "excluded_examples": 11,
+        "excluded_fraction": 0.010576923076923078,
+        "included_fraction": 0.989423076923077,
+        "test_examples": 6,
+        "train_examples": 1018
+      },
+      "fold": 8,
+      "heldout_overlap_audit": {
+        "test_exact_input_in_train": 0,
+        "test_exact_input_in_train_fraction": 0.0,
+        "test_exact_text_in_train": 0,
+        "test_exact_text_in_train_fraction": 0.0
+      },
+      "model": {
+        "behavior_metrics": {
+          "all": {
+            "per_reward_context_majority": {
+              "accuracy": 0.0,
+              "correct": 0,
+              "total": 2
+            },
+            "per_utterance": {
+              "accuracy": 0.0,
+              "correct": 0,
+              "total": 6
+            }
+          },
+          "preference_sensitive": {
+            "per_reward_context_majority": {
+              "accuracy": 0.0,
+              "correct": 0,
+              "total": 0
+            },
+            "per_utterance": {
+              "accuracy": 0.0,
+              "correct": 0,
+              "total": 0
+            }
+          },
+          "preference_sensitive_empty_hand_cooking": {
+            "per_reward_context_majority": {
+              "accuracy": 0.0,
+              "correct": 0,
+              "total": 0
+            },
+            "per_utterance": {
+              "accuracy": 0.0,
+              "correct": 0,
+              "total": 0
+            }
+          }
+        },
+        "nearest_reward_config": {
+          "accuracy": 0.0,
+          "correct": 0,
+          "distance_dimensions": 26,
+          "total": 6
+        },
+        "reward_metrics": {
+          "active_sign_accuracy": 0.41025641560554504,
+          "active_target_count": 234,
+          "dimensions": 53,
+          "examples": 6,
+          "mean_cosine_similarity": -0.22347550094127655,
+          "mse": 2.449078321456909
+        },
+        "varying_dimension_reward_metrics": {
+          "active_sign_accuracy": 0.43589743971824646,
+          "active_target_count": 156,
+          "dimensions": 26,
+          "examples": 6,
+          "mean_cosine_similarity": -0.19415710866451263,
+          "mse": 2.86832594871521
+        }
+      },
+      "test_examples": 6
+    },
+    {
+      "coverage": {
+        "corpus_examples": 1040,
+        "dev_examples": 6,
+        "excluded_axis_pairs": {
+          "teacher_dev__reward_train": 5,
+          "teacher_test__reward_train": 115,
+          "teacher_train__reward_dev": 6,
+          "teacher_train__reward_test": 112
+        },
+        "excluded_examples": 238,
+        "excluded_fraction": 0.22884615384615384,
+        "included_fraction": 0.7711538461538462,
+        "test_examples": 22,
+        "train_examples": 774
+      },
+      "fold": 9,
+      "heldout_overlap_audit": {
+        "test_exact_input_in_train": 0,
+        "test_exact_input_in_train_fraction": 0.0,
+        "test_exact_text_in_train": 0,
+        "test_exact_text_in_train_fraction": 0.0
+      },
+      "model": {
+        "behavior_metrics": {
+          "all": {
+            "per_reward_context_majority": {
+              "accuracy": 0.1,
+              "correct": 1,
+              "total": 10
+            },
+            "per_utterance": {
+              "accuracy": 0.09090909090909091,
+              "correct": 2,
+              "total": 22
+            }
+          },
+          "preference_sensitive": {
+            "per_reward_context_majority": {
+              "accuracy": 1.0,
+              "correct": 1,
+              "total": 1
+            },
+            "per_utterance": {
+              "accuracy": 1.0,
+              "correct": 2,
+              "total": 2
+            }
+          },
+          "preference_sensitive_empty_hand_cooking": {
+            "per_reward_context_majority": {
+              "accuracy": 0.0,
+              "correct": 0,
+              "total": 0
+            },
+            "per_utterance": {
+              "accuracy": 0.0,
+              "correct": 0,
+              "total": 0
+            }
+          }
+        },
+        "nearest_reward_config": {
+          "accuracy": 0.6818181818181818,
+          "correct": 15,
+          "distance_dimensions": 26,
+          "total": 22
+        },
+        "reward_metrics": {
+          "active_sign_accuracy": 0.5494791865348816,
+          "active_target_count": 768,
+          "dimensions": 53,
+          "examples": 22,
+          "mean_cosine_similarity": 0.1723417341709137,
+          "mse": 1.788040280342102
+        },
+        "varying_dimension_reward_metrics": {
+          "active_sign_accuracy": 0.6244813203811646,
+          "active_target_count": 482,
+          "dimensions": 26,
+          "examples": 22,
+          "mean_cosine_similarity": 0.35895371437072754,
+          "mse": 1.5787018537521362
+        }
+      },
+      "test_examples": 22
+    }
+  ],
+  "leakage_rule": "Each CV test example is scored only by its own fold model.",
+  "preference_sensitive_contexts": 1,
+  "protocol": "paper_teacher_and_reward_holdout",
+  "reward_dimensions": {
+    "constant": 27,
+    "total": 53,
+    "varying": 26
+  },
+  "target_scope": "synthetic reward-conditioned language -> complete teacher reward; not a human local-language estimate",
+  "validity_gate": {
+    "behavior_subset": "preference_sensitive",
+    "claim_allowed": false,
+    "constant_thresholds": {
+      "best_nearest_reward_config_accuracy": 0.04054054054054054,
+      "best_preference_sensitive_behavior_accuracy": 0.875,
+      "best_varying_dimension_mse": 1.1323400735855103
+    },
+    "required_checks": {
+      "nearest_reward_config_accuracy": true,
+      "preference_sensitive_behavior": false,
+      "varying_dimension_mse": false
+    },
+    "rule": "Do not claim successful complete-reward inference unless the model beats both constant baselines on every required preference metric.",
+    "status": "invalid_not_better_than_constant_baselines"
+  }
+}

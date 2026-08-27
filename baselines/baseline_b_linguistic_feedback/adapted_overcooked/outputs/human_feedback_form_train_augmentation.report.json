@@ -1,0 +1,72 @@
+{
+  "augmentation_label_counts": {
+    "Descriptive": 24,
+    "Evaluative": 24,
+    "Imperative": 37
+  },
+  "augmentation_rows": 85,
+  "augmentation_rule_counts": {
+    "descriptive_grammar:blocking": 1,
+    "descriptive_grammar:not_blocking": 1,
+    "descriptive_grammar:will_be_not": 1,
+    "entity_swap:dishware": 3,
+    "entity_swap:ingredient": 2,
+    "entity_swap:serving_location": 1,
+    "evaluative_scope:add_last": 10,
+    "evaluative_synonym:bad_to_poor": 2,
+    "evaluative_synonym:efficient_to_effective": 1,
+    "evaluative_synonym:fine_to_acceptable": 1,
+    "evaluative_synonym:good_to_helpful": 1,
+    "evaluative_synonym:helpful_to_useful": 3,
+    "imperative_politeness:add_please": 5,
+    "imperative_politeness:remove_please": 9,
+    "imperative_surface:go_to_grab_to_get": 1,
+    "imperative_synonym:fetch_to_grab": 3,
+    "imperative_synonym:grab_to_pick_up": 4,
+    "imperative_synonym:put_to_place": 3,
+    "imperative_synonym:take_to_bring": 1,
+    "spelling_correction": 8,
+    "spelling_correction+descriptive_grammar:gerund_grabbing": 6,
+    "spelling_correction+descriptive_surface:unnecessary_to_not_needed": 6,
+    "spelling_correction+entity_swap:dishware": 2,
+    "spelling_correction+entity_swap:ingredient": 3,
+    "spelling_correction+evaluative_scope:add_last": 2,
+    "spelling_correction+evaluative_surface:unnecessary_to_not_needed": 1,
+    "spelling_correction+evaluative_synonym:quite_impressive_to_excellent": 1,
+    "spelling_correction+imperative_politeness:remove_please": 2,
+    "spelling_correction+imperative_synonym:fetch_to_grab": 1
+  },
+  "generated_candidates": 100,
+  "holdout_guard": {
+    "checks": [
+      "exact_text",
+      "template_family",
+      "near_duplicate"
+    ],
+    "dev_and_test_loaded_only_for_leakage_rejection": true,
+    "holdout_content_in_report": false,
+    "holdout_row_or_label_counts_in_report": false,
+    "model_loaded": false,
+    "near_duplicate_threshold": 0.88,
+    "performance_metrics_computed": false
+  },
+  "input_train": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\data\\human_feedback_form_train.json",
+  "label_source": "deterministic_label_preserving_transform",
+  "max_variants_per_parent": 6,
+  "output_data": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\data\\human_feedback_form_train_augmentation.json",
+  "output_report": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\human_feedback_form_train_augmentation.report.json",
+  "policy_version": "human-feedback-form-train-augmentation-v1",
+  "raw_human_rows_modified": false,
+  "rejections": {
+    "global_cross_label_conflict": 0,
+    "global_same_label_duplicate": 9,
+    "holdout_exact": 0,
+    "holdout_near_duplicate": 0,
+    "holdout_template_family": 0,
+    "per_parent_cap": 0,
+    "train_exact_duplicate": 6
+  },
+  "schema_version": 1,
+  "source": "human_train_augmentation",
+  "train_parent_rows": 44
+}

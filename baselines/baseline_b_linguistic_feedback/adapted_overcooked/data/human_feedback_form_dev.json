@@ -1,0 +1,68 @@
+[
+  {
+    "classification_label": "Imperative",
+    "expected_feedback_type": "imperative",
+    "feedback_id": "human_feedback_form_01e040aaf1ec0d624116395d",
+    "label_source": "human_explicit",
+    "normalized_text": "please fetch a tomato next",
+    "source": "human",
+    "split": "dev",
+    "template_family": "please fetch <item> next",
+    "text": "Please fetch a tomato next."
+  },
+  {
+    "classification_label": "Imperative",
+    "expected_feedback_type": "imperative",
+    "feedback_id": "human_feedback_form_889ca0d9f8e0331f7e892afb",
+    "label_source": "human_explicit",
+    "normalized_text": "please fetch an onion next",
+    "source": "human",
+    "split": "dev",
+    "template_family": "please fetch <item> next",
+    "text": "Please fetch an onion next."
+  },
+  {
+    "classification_label": "Imperative",
+    "expected_feedback_type": "imperative",
+    "feedback_id": "human_feedback_form_f8a1554ac83e5f1cb63dc8c5",
+    "label_source": "human_explicit",
+    "normalized_text": "please fetch the plate next",
+    "source": "human",
+    "split": "dev",
+    "template_family": "please fetch <item> next",
+    "text": "Please fetch the plate next."
+  },
+  {
+    "classification_label": "Descriptive",
+    "expected_feedback_type": "descriptive",
+    "feedback_id": "human_feedback_form_d8e6b7e13ab994c45f01b168",
+    "label_source": "human_explicit",
+    "normalized_text": "this onion is unnecessary",
+    "source": "human",
+    "split": "dev",
+    "template_family": "this <item> is <quality>",
+    "text": "This onion is unnecessary."
+  },
+  {
+    "classification_label": "Descriptive",
+    "expected_feedback_type": "descriptive",
+    "feedback_id": "human_feedback_form_f3d0778b64b3c7796e1775e4",
+    "label_source": "human_explicit",
+    "normalized_text": "this plate is unnecessary",
+    "source": "human",
+    "split": "dev",
+    "template_family": "this <item> is <quality>",
+    "text": "This plate is unnecessary."
+  },
+  {
+    "classification_label": "Descriptive",
+    "expected_feedback_type": "descriptive",
+    "feedback_id": "human_feedback_form_3a5c15f9c29d6b4720e694bd",
+    "label_source": "human_explicit",
+    "normalized_text": "this tomato is unnecessary",
+    "source": "human",
+    "split": "dev",
+    "template_family": "this <item> is <quality>",
+    "text": "This tomato is unnecessary."
+  }
+]

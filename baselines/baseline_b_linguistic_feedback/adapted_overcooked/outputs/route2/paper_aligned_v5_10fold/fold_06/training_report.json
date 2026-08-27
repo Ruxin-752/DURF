@@ -1,0 +1,60 @@
+{
+  "fold": 6,
+  "seed": 48,
+  "checkpoint": "baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\route2\\paper_aligned_v5_10fold\\fold_06\\model.pt",
+  "vocab_size": 151,
+  "best_dev_mse": 0.8009042739868164,
+  "best_epoch": 19,
+  "epochs_run": 20,
+  "split_sizes": {
+    "train": 58020,
+    "dev": 582,
+    "test": 582
+  },
+  "test_metrics": {
+    "mse": 0.8879188895225525,
+    "mean_cosine_similarity": 0.9151806235313416,
+    "active_sign_accuracy": 0.8461538553237915,
+    "active_target_count": 22698,
+    "examples": 582
+  },
+  "dev_teachers": [
+    "synthetic_author_11"
+  ],
+  "test_teachers": [
+    "synthetic_author_03"
+  ],
+  "dev_rewards": [
+    "reward_06",
+    "reward_28",
+    "reward_30"
+  ],
+  "test_rewards": [
+    "reward_08",
+    "reward_17",
+    "reward_34"
+  ],
+  "coverage": {
+    "corpus_examples": 83592,
+    "train_examples": 58020,
+    "dev_examples": 582,
+    "test_examples": 582,
+    "excluded_examples": 24408,
+    "included_fraction": 0.7080103359173127,
+    "excluded_fraction": 0.29198966408268734,
+    "excluded_axis_pairs": {
+      "teacher_dev__reward_test": 582,
+      "teacher_dev__reward_train": 5820,
+      "teacher_test__reward_dev": 582,
+      "teacher_test__reward_train": 5820,
+      "teacher_train__reward_dev": 5802,
+      "teacher_train__reward_test": 5802
+    }
+  },
+  "heldout_overlap_audit": {
+    "test_exact_text_in_train": 0,
+    "test_exact_text_in_train_fraction": 0.0,
+    "test_exact_input_in_train": 0,
+    "test_exact_input_in_train_fraction": 0.0
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "feedback": "baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\data\\synthetic_feedback.deepseek_12k.validated.json",
+  "corpus_sha256": "4dafa02c4970e2343a4163693c53b4e712109ebd8343859c8362bd235c268a19",
+  "split_sha256": "971acea7100af55f92ab7ce3acd12e6e27e4ffbf478835f3085f55142d7a0904",
+  "search_sha256": "bfef46673a4542cc7444853f3e4bbf77aaa15362e694536d54f61c2474646ee6",
+  "candidates": [
+    {
+      "config": {
+        "lr": 0.003,
+        "weight_decay": 0.0001,
+        "batch_size": 64
+      },
+      "seeds": [
+        {
+          "seed": 0,
+          "best_val_loss": 0.002629380440339446,
+          "best_epoch": 11,
+          "epochs_run": 22
+        }
+      ],
+      "worst_seed_val_loss": 0.002629380440339446,
+      "mean_val_loss": 0.002629380440339446
+    }
+  ],
+  "selected_config": {
+    "lr": 0.003,
+    "weight_decay": 0.0001,
+    "batch_size": 64,
+    "seed": 0,
+    "epochs": 60,
+    "patience": 10,
+    "selection": "minimize worst-seed dev loss, then mean dev loss",
+    "grouping_policy": "scenario"
+  },
+  "selected_dev_loss": 0.002629380440339446,
+  "untouched_test_loss": 0.001737155020236969,
+  "checkpoint": "baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\route2\\scenario_benchmark\\model.pt"
+}

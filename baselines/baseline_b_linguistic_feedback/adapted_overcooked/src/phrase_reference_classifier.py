@@ -126,8 +126,14 @@ def predict_reference_type(
     artifact = _load_artifact(str(path.resolve()))
     vectorizer = artifact["vectorizer"]
     classifier = artifact["classifier"]
-    processed = _safe_preprocess(phrase)
-    matrix = vectorizer.transform([processed])
+    manifest = artifact.get("manifest") or {}
+    input_mode = (
+        artifact.get("input_mode")
+        or manifest.get("preprocessing")
+        or "paper_preprocess_phrase"
+    )
+    model_text = str(phrase or "") if input_mode == "raw_phrase" else _safe_preprocess(phrase)
+    matrix = vectorizer.transform([model_text])
     probabilities_raw = np.asarray(classifier.predict_proba(matrix)[0], dtype=float)
     temperature = max(float(artifact.get("temperature", 1.0)), 1e-3)
     logits = np.log(np.clip(probabilities_raw, 1e-12, 1.0)) / temperature
@@ -155,6 +161,7 @@ def predict_reference_type(
         "margin_threshold": margin_threshold,
         "abstained": bool(abstained),
         "classifier": "tfidf_logistic_regression",
+        "input_mode": input_mode,
         "model_path": str(path),
     }
 

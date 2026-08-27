@@ -1,29 +1,21 @@
-"""Route 2: neural feedback-to-reward inference network (structure only).
+"""Route 2 neural feedback-to-reward inference network.
 
-This mirrors the paper's ``TrajectoryFeedbackRewardPredictor`` /
-``aaai_inference_network_training.ipynb`` architecture:
-
-    EmbeddingBag(vocab, 30)  ->  concat 15-dim trajectory feature counts
-    -> Linear(30 + n_features, 128) -> ReLU -> Linear(128, n_features)
-
-with two Overcooked adaptations:
-
-- the trajectory feature-count input and the regression output use the shared
-  53-dim Overcooked feature schema (the paper used 15 inputs / 9 conjunction
-  reward outputs);
-- there is deliberately **no training loop here** -- this module only provides
-  the model and the (torch-free) dataset helpers used to assemble inputs. The
-  ``train_route2_inference_network.py`` script stops before any optimizer step.
-
-We provide this scaffold to reach the paper's "just before Model Training"
-state; actually fitting it needs a large human teacher-learner corpus we do not
-yet have (see DIFFERENCES_FROM_PAPER.md).
+The model mirrors the paper's ``TrajectoryFeedbackRewardPredictor``:
+``EmbeddingBag(vocab, 30)`` concatenated with trajectory feature counts,
+followed by a 128-unit ReLU layer and a linear reward-vector output. The paper
+used 15 trajectory inputs and 9 reward outputs; Overcooked uses the shared
+53-dimensional schema for both. Training lives in ``scripts/train_route2.py``;
+this module owns the common architecture, batching, prediction, and checkpoint
+format used by training and DURF runtime inference.
 """
 
 from __future__ import annotations
 
+import hashlib
+import json
 import random
 from collections import Counter
+from pathlib import Path
 
 import numpy as np
 import torch
@@ -34,6 +26,7 @@ PAD_TOKEN = "<pad>"
 UNK_TOKEN = "<unk>"
 EMBEDDING_DIM = 30
 HIDDEN_DIM = 128
+ENSEMBLE_SCHEMA_VERSION = "route2-ensemble-v1"
 
 
 class TrajectoryFeedbackRewardPredictor(nn.Module):
@@ -306,3 +299,135 @@ def predict_reward_vector(
     with torch.no_grad():
         prediction = model(tokens_tensor, offsets_tensor, counts_tensor)[0]
     return {feature: float(value) for feature, value in zip(features, prediction.tolist())}
+
+
+def _ensemble_manifest_path(path: str | Path) -> Path | None:
+    candidate = Path(path)
+    if candidate.is_dir():
+        candidate = candidate / "ensemble_manifest.json"
+    if candidate.suffix.lower() != ".json" or not candidate.exists():
+        return None
+    try:
+        payload = json.loads(candidate.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    if payload.get("schema_version") != ENSEMBLE_SCHEMA_VERSION:
+        return None
+    return candidate
+
+
+def load_predictor(path: str | Path) -> dict:
+    """Load one checkpoint or a paper-style cross-validation ensemble."""
+
+    candidate = Path(path)
+    manifest_path = _ensemble_manifest_path(candidate)
+    if manifest_path is None:
+        model, vocab, features, use_feature_counts = load_checkpoint(candidate)
+        return {
+            "kind": "single",
+            "path": candidate,
+            "members": [
+                {
+                    "fold": None,
+                    "checkpoint": candidate,
+                    "model": model,
+                    "vocab": vocab,
+                }
+            ],
+            "features": list(features),
+            "use_feature_counts": bool(use_feature_counts),
+        }
+
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    members = []
+    expected_features: list[str] | None = None
+    expected_counts: bool | None = None
+    for member in manifest.get("members") or []:
+        relative = member.get("checkpoint")
+        if not relative:
+            raise ValueError("Route 2 ensemble member is missing a checkpoint path")
+        checkpoint_path = Path(relative)
+        if not checkpoint_path.is_absolute():
+            checkpoint_path = manifest_path.parent / checkpoint_path
+        model, vocab, features, use_feature_counts = load_checkpoint(checkpoint_path)
+        feature_list = list(features)
+        if expected_features is None:
+            expected_features = feature_list
+            expected_counts = bool(use_feature_counts)
+        elif feature_list != expected_features or bool(use_feature_counts) != expected_counts:
+            raise ValueError("Route 2 ensemble members use incompatible feature schemas")
+        members.append(
+            {
+                "fold": member.get("fold"),
+                "checkpoint": checkpoint_path,
+                "model": model,
+                "vocab": vocab,
+            }
+        )
+    if not members:
+        raise ValueError("Route 2 ensemble manifest contains no members")
+    if manifest.get("features") is not None and list(manifest["features"]) != expected_features:
+        raise ValueError("Route 2 ensemble manifest feature schema is stale")
+    return {
+        "kind": "ensemble",
+        "path": manifest_path,
+        "manifest": manifest,
+        "members": members,
+        "features": expected_features,
+        "use_feature_counts": bool(expected_counts),
+    }
+
+
+def predict_reward_distribution(
+    predictor: dict,
+    text: str | None,
+    *,
+    feature_counts: list[float] | None = None,
+) -> dict:
+    """Return ensemble mean and disagreement for a full reward vector."""
+
+    features = list(predictor["features"])
+    use_feature_counts = bool(predictor.get("use_feature_counts", False))
+    predictions = []
+    for member in predictor["members"]:
+        weights = predict_reward_vector(
+            member["model"],
+            member["vocab"],
+            features,
+            text,
+            use_feature_counts=use_feature_counts,
+            feature_counts=feature_counts,
+        )
+        predictions.append([weights[feature] for feature in features])
+    matrix = np.asarray(predictions, dtype=np.float64)
+    mean_values = matrix.mean(axis=0)
+    std_values = matrix.std(axis=0)
+    return {
+        "weights": {
+            feature: float(value) for feature, value in zip(features, mean_values)
+        },
+        "uncertainty": {
+            feature: float(value) for feature, value in zip(features, std_values)
+        },
+        "ensemble_size": len(predictions),
+        "predictor_kind": predictor["kind"],
+    }
+
+
+def predictor_sha256(path: str | Path) -> str:
+    """Fingerprint a single checkpoint or an ensemble and every member file."""
+
+    candidate = Path(path)
+    manifest_path = _ensemble_manifest_path(candidate)
+    if manifest_path is None:
+        return hashlib.sha256(candidate.read_bytes()).hexdigest()
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    digest = hashlib.sha256()
+    digest.update(manifest_path.read_bytes())
+    for member in manifest.get("members") or []:
+        checkpoint = Path(member["checkpoint"])
+        if not checkpoint.is_absolute():
+            checkpoint = manifest_path.parent / checkpoint
+        digest.update(str(member.get("fold")).encode("utf-8"))
+        digest.update(checkpoint.read_bytes())
+    return digest.hexdigest()

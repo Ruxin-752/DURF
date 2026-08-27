@@ -1,0 +1,86 @@
+{
+  "benchmark_role": "frozen_feedback_form_holdout",
+  "claim_limit": "template-family-disjoint only; not teacher/session-held-out",
+  "claim_ready": true,
+  "dev_normalized_text_overlap": 0,
+  "dev_template_family_overlap": 0,
+  "human_language_claim_ready": false,
+  "label_counts": {
+    "Descriptive": 28,
+    "Evaluative": 30,
+    "Imperative": 31
+  },
+  "labels_below_family_quota": {},
+  "metric_scope": "human_verified_ai_candidate_language",
+  "metrics": {
+    "accuracy": 0.6404494382022472,
+    "balanced_accuracy": 0.6421658986175115,
+    "confusion_matrix": [
+      [
+        27,
+        1,
+        2
+      ],
+      [
+        4,
+        13,
+        14
+      ],
+      [
+        3,
+        8,
+        17
+      ]
+    ],
+    "label_order": [
+      "Evaluative",
+      "Imperative",
+      "Descriptive"
+    ],
+    "macro_f1": 0.6305643623053923,
+    "per_class": {
+      "Descriptive": {
+        "f1-score": 0.5573770491803278,
+        "precision": 0.5151515151515151,
+        "recall": 0.6071428571428571
+      },
+      "Evaluative": {
+        "f1-score": 0.84375,
+        "precision": 0.7941176470588235,
+        "recall": 0.9
+      },
+      "Imperative": {
+        "f1-score": 0.49056603773584906,
+        "precision": 0.5909090909090909,
+        "recall": 0.41935483870967744
+      }
+    },
+    "rows": 89
+  },
+  "minimum_families_per_label": 10,
+  "missing_labels": [],
+  "model": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\feedback_form_classifier\\model.joblib",
+  "model_sha256": "0f92f07f71ff03cc902693d8e613fc8af681d3ccee0d740322afb2a24c6ca4ab",
+  "provenance": {
+    "ai_candidate_is_not_claimed_as_human_authored": true,
+    "label_source": "human_confirmed",
+    "labels_confirmed_by_human": true,
+    "text_origin": "ai_candidate_human_confirmed"
+  },
+  "read_only_evaluator": true,
+  "sidecar": "outputs\\human_feedback_form_holdout.sidecar.json",
+  "sidecar_sha256": "b0d29a23a5e86d61c2fb304cb4534b4108ca45a11f6ac53670ef486ed5ea9835",
+  "status": "evaluated",
+  "teacher_session_identity_available": false,
+  "template_family_counts_by_label": {
+    "Descriptive": 28,
+    "Evaluative": 30,
+    "Imperative": 31
+  },
+  "test_data": "data\\human_feedback_form_holdout_test.json",
+  "test_data_sha256": "2c7b5494da2a9dc2f33fbd458b5c3297aea09f189c2b5c6dc85aa93f2a51ae74",
+  "test_rows": 89,
+  "train_normalized_text_overlap": 0,
+  "train_template_family_overlap": 0,
+  "used_for_training_or_hyperparameter_selection": false
+}

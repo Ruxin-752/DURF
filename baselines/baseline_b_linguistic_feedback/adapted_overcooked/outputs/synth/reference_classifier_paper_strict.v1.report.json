@@ -1,0 +1,61 @@
+{
+  "candidate_seeds": 4096,
+  "cross_split_normalized_texts_dropped": 26,
+  "cross_split_rows_dropped": 230,
+  "eligible_rows": 978,
+  "excluded_empty_text": 2,
+  "excluded_missing_task_uuid": 2,
+  "group_overlap_count": 0,
+  "normalized_text_overlap_count": 0,
+  "output": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\data\\reference_classifier_paper_strict.v1.json",
+  "output_sha256": "07fdb62b1ab404fd3d083122e33d77805ecf120142f56c4bdff0eb5713be328e",
+  "selected_score": {
+    "label_distribution_l1": 0.80064000836417,
+    "minimum_split_label_count": 7,
+    "split_fraction_error": 0.0262924667651403
+  },
+  "selected_seed": 186,
+  "selection_criterion": "all labels meet fixed floor, then label-distribution L1, split-size error, minimum label count, seed",
+  "selection_uses_model_predictions": false,
+  "source": {
+    "path": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\original_rewards_repo\\notebooks\\data\\pilot_chat_messages_labels.csv",
+    "sha256": "b80963abc737c088cb7ff45865a9a73532aa4d7953e9db9a9dad8d7912595fa4"
+  },
+  "source_rows": 982,
+  "split_group_counts": {
+    "dev": 12,
+    "test": 12,
+    "train": 57
+  },
+  "split_label_counts": {
+    "dev": {
+      "action_behavioral": 13,
+      "action_spatial": 15,
+      "feature": 33,
+      "other": 7,
+      "trajectory": 38
+    },
+    "test": {
+      "action_behavioral": 12,
+      "action_spatial": 13,
+      "feature": 32,
+      "other": 10,
+      "trajectory": 39
+    },
+    "train": {
+      "action_behavioral": 63,
+      "action_spatial": 88,
+      "feature": 187,
+      "other": 17,
+      "trajectory": 110
+    }
+  },
+  "split_sizes": {
+    "dev": 106,
+    "test": 106,
+    "train": 465
+  },
+  "version": "paper-task-text-disjoint-v1",
+  "within_split_conflicts_dropped": 0,
+  "within_split_duplicates_dropped": 71
+}

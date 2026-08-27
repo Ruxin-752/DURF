@@ -1,20 +1,31 @@
 # 与原论文/原实验的差异记录（Baseline B, Overcooked 适配）
 
+> **2026-08-10 current status:** Route 2 predicts the complete 53-dimensional
+> teacher reward from language plus trajectory features and uses the paper's
+> ten-fold teacher/reward holdout rotation with 12 stable synthetic authors and
+> 36 reward configurations. The frozen seed-137 synthetic test passes all
+> constant-baseline gates, but the separate local-language probe is only 1/4.
+> The reference classifier reproduces the paper's
+> 982-row benchmark at 87.16% accuracy and 75.25% macro-F1. See
+> [ROUTE2_PAPER_ALIGNMENT.md](ROUTE2_PAPER_ALIGNMENT.md) for the authoritative
+> protocol, metrics, and remaining human-data boundary. Older single-model
+> numbers later in this file are historical ablations.
 原文：*Learning Rewards from Linguistic Feedback* (Sumers et al., AAAI 2021)，
 原始仓库见 `../original_rewards_repo`。
 
 本文件逐条记录本适配实现与原始实验的**所有已知差异**，并标注每一项是
 "已严格对齐 / 有意近似 / 数据缺口 / 超出原文范围"。
 
-> **更新（迁移收尾）**：Route 2 神经推断网络现已**真正训练**，语料由 **DeepSeek
-> 合成**（rule teacher 出标签 + LLM 只出语言 + skill 门控，见 §7/§9 与
-> [`.cursor/skills/llm-feedback-corpus`](../../../.cursor/skills/llm-feedback-corpus/SKILL.md)）。
+> **更新（迁移收尾）**：Route 2 神经推断网络现已在 83,592 条
+> `paper_v5` 可识别合成完整奖励样本上训练；旧 DeepSeek/local-only 结果只保留为
+> 历史消融，不能作为当前完整奖励推断证据。见 §7/§9。
 > 收尾方式为 **subgoal-only**：学到的 comfort 奖励直接重排 H0 子目标来体现 agent
 > 行为提升，**不训练 PPO**（PPO 属 DURF 集成扩展、非论文复刻）。**保留 Baseline B
 > 核心方法不改造**：linguistic 反馈归类（`feedback_form_classifier.py` /
 > `overcooked_grounding.py`，规则版）与基本策略（`GaussianBelief` +
 > `BayesianRewardLearner` 共轭更新、`subgoal_reranker` 子目标重排）均按原样保留。
-> 短语分类器（TF-IDF+LR）、nested-logit、R 统计仍不执行。
+> 短语分类器（TF-IDF+LR）已经训练并复现原论文 accuracy；nested-logit 与 R
+> 统计不属于当前 Overcooked 标量奖励输出范围，仍不执行。
 
 ---
 
@@ -24,7 +35,7 @@
 
 | 训练步骤 | 原文位置 | 本实现处理 |
 | --- | --- | --- |
-| 神经奖励推断网络（Route 2） | `notebooks/aaai_inference_network_training.ipynb` 第 648 行 `loss.backward()` | **已训练**：`scripts/train_route2.py` 在 DeepSeek 合成语料上真正训练（text-only，分组 CV 早停）。严格对齐版 `scripts/train_route2_inference_network.py` 仍保留"训练前停止"边界仅作参考（见 §7） |
+| 神经奖励推断网络（Route 2） | `notebooks/aaai_inference_network_training.ipynb` 第 648 行 `loss.backward()` | **已训练**：`select_route2_candidate_on_dev.py` 对完整奖励语料做逐折 dev-only 选择，`finalize_route2_selection.py` 冻结 checkpoint，随后一次性测试。`train_route2_inference_network.py` 仅保留训练前 shape-check（见 §7） |
 | 短语引用类型分类器（LogisticRegression + TF-IDF） | `notebooks/aaai_phrase_classifier_training.ipynb` | 已按原文预处理与超参训练 Overcooked 五类模型；合成数据为主（见 §3） |
 | nested-logit 轨迹归因（SciPy Powell） | `science/observations/behavioral_analysis.py` | 不调用（原文主评估默认也走 feature counts，不走它） |
 | R 统计（`lm/lmer`） | `notebooks/aaai_statistics.Rmd` | 不做；属结果分析，非 reward learner |
@@ -66,32 +77,43 @@
 
 ---
 
-## 3. 短语指涉分类（结构对齐，数据仍近似）
+## 3. 三类反馈形式 + 类内指涉分类（层级对齐，数据仍近似）
 
-- 原文：TF-IDF + LogisticRegression 学习式短语引用类型分类器（5 类，
-  accuracy ≈ 0.87），发布运行时用 augmented pickle。
-- 本实现：`phrase_reference_classifier.py` / `train_phrase_reference_classifier.py`
-  复刻标点切句、lemmatization、TF-IDF 1–2 gram（`min_df=5`）与
-  LogisticRegression，输出 `trajectory / feature / action_spatial /
-  action_behavioral / other` 及概率。`feedback_form_classifier.py` 的三类
-  evaluative/imperative/descriptive 只保留为 speech-act 分析，不再控制 grounding。
-- 训练使用 validated DeepSeek/模板语料，并对 `feature`、`action_behavioral` 与
-  `other` 单独增强；完整场景 group-disjoint untouched test 为 accuracy **74.2%**、
-  macro-F1 **68.3%**、balanced accuracy **72.6%**。旧 83.0% 来自较宽松的
-  intent-family 拆分，现不再作为最终数字。当前 `action_behavioral` recall
-  **51.7%**，`other` recall **62.5%**（但 precision 仍低）。
-- 状态：**模型与推理结构对齐，训练域有意近似**。论文约 87% 来自真人原任务，
-  当前数字来自合成 Overcooked，不能直接宣称等价。
+- 原文正文：三类 `f_G`（Evaluative / Imperative / Descriptive）决定
+  trajectory / action / feature grounding。原作者发布代码进一步使用 TF-IDF +
+  LogisticRegression 五类短语引用分类器（accuracy ≈ 0.87）。
+- 本实现：`phrase_reference_classifier.py` / `train_phrase_reference_classifier.py`。
+  原论文复现实验保留 lemmatization、word TF-IDF 1–2 gram（`min_df=5`）与
+  LogisticRegression；部署的 Overcooked 模型仍用 LogisticRegression，但输入为
+  raw word 1–2 gram + char_wb 3–5 gram。输出 `trajectory / feature /
+  action_spatial / action_behavioral / other` 及概率。Route 1 先使用 UI 同源的
+  三类 `f_G` 选择粗 grounding；五类只在该分支内细化。跨类五类预测会记录
+  conflict 并投影回粗类，不能覆盖三类结果；`other` 保留安全拒绝。
+- 同一实现按论文的 982 条人工标签和随机 85/15 协议复现 accuracy **87.162%**、
+  macro-F1 **75.252%**，与论文约 87%/75% 对齐。
+- 原论文随机行协议存在 48/148 个测试行同句重叠和 66 个测试 task 重叠，因此
+  87.162% 只称为 **paper protocol reproduction**。v8 模型只用 train/dev
+  选择来源权重和超参数，在 601 条综合 dev 上为 accuracy **87.02%**、macro-F1
+  **87.08%**。
+- 固定的 task_uuid 与 normalized-text 双重隔离 paper-v1 回归为 accuracy
+  **77.36%**、macro-F1 **72.52%**，且 active 训练集与该分区的 ID/text/task
+  overlap 都是 0；但它已经被查看，不能再称为 sealed external test。
+- 861 条旧 Overcooked 合成回归集为 accuracy **92.68%**、macro-F1 **92.40%**。
+  它用于发现代码回归，不是外部真人测试。
+- 状态：**综合开发集达到约 87%，但真人封存泛化尚未证明达到 87%**；真人
+  Overcooked gold labels 仍是最终证据。完整审计见 `REFERENCE_CLASSIFIER_REPORT.md`。
 
 ---
 
 ## 4. 短语级 grounding 的取舍（有意近似）
 
-- 原文：逐短语分类引用类型（trajectory / feature / action_spatial /
-  action_behavioral），再分别用轨迹频率 / 字符串匹配 / 空间簇得到参考向量。
+- 原文：正文三类 `f_G` 选择参考向量来源；发布代码逐短语细化为 trajectory /
+  feature / action_spatial / action_behavioral，再用轨迹频率 / 字符串匹配 /
+  空间簇得到参考向量。
 - 本实现：
-  - 按 `limited_punc_tokenization` 逐短语分类 reference type、逐短语产观测并取
-    VADER valence；分类概率与 grounding confidence 一起缩放 observation precision；
+  - UI 与 learner 共享同一组逐短语三类预测；三类 confidence、类内 reference
+    confidence、grounding confidence 与 valence confidence 一起缩放 precision，
+    三类 abstention 会原子拒绝本条消息；
   - 但**显式 `target_features` / `trajectory_features` / `target_action`**
     （手工标注的参考向量）优先，此时整句作为**单一参考**（单观测），
     valence 取整句 VADER。
@@ -135,30 +157,29 @@
 
 ---
 
-## 7. Route 2 神经推断网络（已训练，用 DeepSeek 合成语料）
+## 7. Route 2 神经推断网络（已训练，完整奖励目标）
 
-本仓库有**两套** Route 2 入口，请勿混淆：
+请区分三类入口：
 
-1. `scripts/train_route2_inference_network.py`——**严格对齐版**，故意停在训练前
-   （前向校验后打印 `TRAINING BOUNDARY REACHED` 退出）。它保留论文"训练前
-   停止"边界，仅作结构/形状对齐参考。
-2. `scripts/train_route2.py`——**DURF 可训练版（现为主用）**，在 DeepSeek 合成
-   语料上真正训练 `语言 → 53 维 comfort 奖励向量`，导出冻结权重供 subgoal 重排。
+1. `train_route2_inference_network.py`：只做原论文网络 shape-check，故意停止在训练前；
+2. `train_route2.py`：通用训练函数及历史消融入口；
+3. `select_route2_candidate_on_dev.py` → `finalize_route2_selection.py` →
+   `evaluate_route2_paper_crossval.py`：当前严格完整奖励流程。
 
-- 结构、文本预处理、词表、按组 CV 折均按原文搭好（`EmbeddingBag(vocab,30)` +
-  `Linear(30+n,128)` + ReLU + `Linear(128,53)`）。
-- **已训练**（可训练版）：默认 **text-only**（`use_feature_counts=False`，运行时
-  只有人类文本，不泄露 grounding 参考向量，保证指标诚实）；按 `group_id`
-  分组 CV 早停在**未见场景**上。当前语料 2619 条（validated），vocab 408，
-  best val MSE ≈ 0.0015。
-- **数据来源**：不再是手工种子，而是 **DeepSeek 合成语料**（rule teacher 出
-  标签 + LLM 只出语言 + skill 门控，详见 §9 与
-  [`.cursor/skills/llm-feedback-corpus`](../../../.cursor/skills/llm-feedback-corpus/SKILL.md)）。
-- 目标向量近似：原文回归目标是 reward config 的真值奖励向量；本实现的真值来自
-  手写 gold 规则 `w*`（`data/gold_comfort_weights.json`）经 featurizer 得到的
-  comfort 奖励方向。因此**只验证 language generalization（自由文本→正确子目标），
-  不验证规则 `w*` 本身**。
-- 状态：**结构对齐 + 已训练（合成真值）**；真实人类语料仍是后续缺口（§9）。
+当前流程保留 `EmbeddingBag(vocab,30)` + `Linear(30+n,128)` + ReLU +
+`Linear(128,53)`。正式 `paper_v5` 语料有 83,592 条样本、12 个稳定 synthetic
+authors、36 个 reward configurations；每条基础反馈跨全部配置扩展。相同
+`(text, trajectory_features)` 指向多个完整 `w` 时数据构建直接失败。
+
+十折同时隔离 teacher 与 reward configuration。每折候选只使用 train/dev，且选择
+视图物理删除 test；最终 checkpoint 与 selection/CV/ensemble manifest 通过 SHA256
+绑定，test 在读取前创建一次性 receipt。seed 137 的 8,513 条 test 上，变化维 MSE
+为 `0.025101`、最近配置 accuracy 为 `99.9883%`、偏好敏感行为 majority 为
+`97.5490%`、空手烹饪 majority 为 `93.5185%`，三项预注册常数基线 gate 均通过。
+
+但 text-only 的最近配置 accuracy 仍为 `99.9178%`，trajectory-only 为 `0%`；独立
+局部语言探针仅 `1/4`。因此当前状态是**结构与合成完整奖励协议对齐**，不是已验证
+真人语言或真人 credit assignment。详见 `ROUTE2_AUDIT_REPORT.md`。
 
 ---
 
@@ -174,20 +195,19 @@
 
 ---
 
-## 9. 数据规模与真实性（DeepSeek 合成 + 数据缺口）
+## 9. 数据规模与真实性（多套合成语料 + 真人数据缺口）
 
 | 项 | 原文 | 本实现 |
 | --- | --- | --- |
-| 反馈来源 | 真实 human-human / human-agent 实验记录（约千条 dyad） | **DeepSeek 合成语料** 2693 条（validated 2619）：90 个决策场景 × rule teacher intent × 模板底线 + LLM 释义；另有手工种子 100 条 + 14 动作 probe + 5 子目标 probe 作对照 |
-| 语料生成方法 | 真人采集 | 遵循 [`.cursor/skills/llm-feedback-corpus`](../../../.cursor/skills/llm-feedback-corpus/SKILL.md)：**标签来自 rule teacher（gold `w*`），语言来自 LLM**（observer/critic 锚定 prompt），按语义 hash 缓存、不缓存空结果 |
-| 语料门控 | — | `validate_feedback_corpus.py`：非矛盾情感 + grounding 双门控（模板恒留、LLM 需通过）；当前 diversity 45.1%、valence 正 1410/负 1209、三类 speech-act 齐全、非矛盾率 99.9% |
-| 轨迹归因 | 真实游戏轨迹（对象采集序列） | 手工标注参考向量为主；`trajectory_featurizer.py` 仅覆盖部分 53 维 |
-| held-out 划分 | 真实 teacher / reward-config 双维度 held-out | 按 `group_id`（场景）分组 CV；另留 5 个手写 subgoal probe 作从不训练的真实 held-out |
+| 反馈来源 | 真实 human-human / human-agent 实验记录（约千条 dyad） | Route 1/分类器仍含 DeepSeek 与模板语料；正式 Route 2 使用 83,592 条 deterministic `paper_v5` 合成完整奖励样本 |
+| 语料生成方法 | 真人采集后跨 reward configs 切换 token/trajectory features | 12 个独立 synthetic authors；每条基础反馈跨 36 个 reward configs 扩展，语言使用 reward-conditioned 普通语义表达 |
+| 语料门控 | — | 完整奖励 schema、teacher/config ID、作者覆盖、teacher–reward 连通性及输入目标冲突均 fail closed |
+| 轨迹归因 | 真实游戏轨迹（对象采集序列） | 合成 Overcooked 上下文的 53 维特征计数；text-only 很强，尚未证明真人 temporal credit |
+| held-out 划分 | 真实 teacher / reward-config 双维度 held-out | 10 折 synthetic author + reward-config 双轴隔离；8,513 条一次性 test，真人 participant/game-disjoint test 尚缺 |
 
-> **诚实边界**：合成真值来自手写规则 `w*`，因此本收尾验证的是 **language
-> generalization（自由文本 → 正确子目标）**，**不是** comfort 规则本身正确。真实
-> 人类 Overcooked 语言反馈仍是后续缺口（`convert_session_feedback.py` 已就绪，
-> 但 ring session 目前零语言反馈）。
+> **诚实边界**：正式结果验证的是可识别的 synthetic full-reward 组合泛化，不是
+> 真人语言泛化。普通真人评论没有独立完整 `w`，必须保留为 unlabeled，不能把模型
+> prediction 或恢复 posterior 当监督 gold。
 
 ---
 
@@ -213,15 +233,16 @@
 - **Route 1（贝叶斯 learner，核心方法原样保留）**：pseudopragmatic learned probe
   accuracy **14/14 = 100%**（采样期望准确率 100%，tie=0）；在线学习曲线 final
   **100%**（literal & pseudopragmatic），随机基线 33.3%。
-- **Route 2（神经推断网络，DeepSeek 合成语料训练，text-only）**：专类增强语料
-  的严格 untouched test 为 **subgoal accuracy 17/18 = 94.4%**（多数投票；
-  逐条 89.8%），对照 gold 18/18、route1-global 17/18、zero 0/18。严格模型另存
-  为 `model_deepseek_strict.pt`；其导出均值权重在手写 probes 上仅 3/5，因此未
-  替换默认冻结权重。
-- **Agent 行为（20 seed 严格协议）**：在 dev seeds 0–9 选择 `lambda=0.75`，
+- **Route 2（当前主结果）**：冻结 seed-137 十折 teacher/reward holdout 的
+  8,513 条 test 上，完整 MSE **0.012748**、变化维 MSE **0.025101**、cosine
+  **0.997620**、最近配置 accuracy **99.9883%**、偏好敏感 behavior majority
+  **97.5490%**、空手烹饪 majority **93.5185%**。三项常数基线 gate 均通过；
+  但 local-language probe 只有 **1/4**，不能外推真人效果。
+- **旧 Agent 行为消融（20 seed，已不作为当前策略）**：曾在 dev seeds 0–9
+  选择 `lambda=0.75`，
   untouched test seeds 10–19 上平均 soup **76 → 88**、discomfort rate
   **16.6% → 14.7%**；comfort/step 因 seed 方差从 1.635 降到 0.941，不能宣称
-  comfort 分数稳定提升。结果见 `outputs/route2/comfort_multiseed_strict.json`。
+  comfort 分数稳定提升。当前论文对齐路径固定 `lambda=1`，语言只能修改权重。
 - **未做**：PPO（DURF 集成扩展，当前范围为 subgoal-only）；真人
   Overcooked 五类 reference 金标准采集与最终测试。
 
@@ -231,7 +252,8 @@
 明确且可对照的模式：
 
 - `frozen`：冻结权重控制组；
-- `route1-literal`：类型分类 → 类型化 grounding → Literal 高斯后验更新；
+- `route1-literal`：UI 同源三类 `f_G` → 受约束的类内 reference subtype →
+  类型化 grounding → Literal 高斯后验更新；
 - `route1-pseudopragmatic`：同上，并加入未提及特征的 inverse-reference 更新；
 - `route2`：神经网络逐句预测后按 α 混合。
 
@@ -244,7 +266,7 @@ trajectory features；若窗口中没有可检测事件，再回退到同期 sel
 features，避免只凭暂停瞬间的静态状态做错误归因。
 
 真人 live 评论使用来源感知 precision（默认是普通合成观测的 4 倍），但会再乘
-reference 分类概率与 grounding confidence；含糊评论会降权或拒绝，避免错误解释
+三类 form、类内 reference、grounding 与 valence confidence；含糊评论会降权或拒绝，避免错误解释
 被高权重放大。完整 mean/covariance 以版本化 JSON 原子保存，可显式跨进程恢复。
 DeepSeek 回复与本地学习解耦，API 延迟或失败不会阻塞下一条真人评论。
 
@@ -256,8 +278,9 @@ agent 都完成 80 soup；comfort/step `+0.829 → +2.030`，discomfort rate
 Route 1 Literal 的 oracle / inferred 分别为 **97.8% / 91.1%**，冻结 Route 2
 为 **95.6%**。专类 DeepSeek 增强后 inferred grounding coverage 为 **80.4%**
 （旧规则路径为 72.6%）；descriptive-only coverage 为 56.6%，说明剩余瓶颈
-主要在 referent/关键词解析。三类 speech-act 的 57.3%
-仅作为独立分析指标，不再用于选择 grounding 路径。
+主要在 referent/关键词解析。三类 `f_G` 现在实际选择 grounding 路径；当前
+AI-candidate、人工确认标签 holdout 为 64.04%，因此低置信预测必须拒绝，不能
+把 UI top label 当作确定事实。
 
 ---
 
@@ -275,10 +298,11 @@ python $B/scripts/validate_feedback_corpus.py
 # 4. Route 1：贝叶斯 learner + probe（literal / pseudopragmatic）+ 学习曲线
 python $B/scripts/run_baseline_b_pipeline.py --mode pseudopragmatic
 python $B/scripts/evaluate_learning_curve.py
-# 5. Route 2：训练语言->comfort 奖励（text-only）
-python $B/scripts/train_route2.py --feedback $B/data/synthetic_feedback.validated.json --epochs 120
-# 6. Route 2 held-out subgoal 评估 + 导出冻结 comfort 权重
-python $B/scripts/evaluate_route2_subgoal.py --feedback $B/data/synthetic_feedback.validated.json
+# 5. Route 2：新目录中逐折 dev-only 选择并冻结（正式 test 只能运行一次）
+python $B/scripts/select_route2_candidate_on_dev.py --split-seed 137 --output-dir <new_output_dir>
+python $B/scripts/finalize_route2_selection.py --model-dir <new_output_dir>
+# 6. Route 2 一次性 teacher/reward held-out 测试
+python $B/scripts/evaluate_route2_paper_crossval.py --model-dir <new_output_dir>
 # 7. 回合级 agent 行为对照（gold w* 裁判）
 python durf/baseline/evaluate_comfort_subgoal.py --horizon 400
 ```

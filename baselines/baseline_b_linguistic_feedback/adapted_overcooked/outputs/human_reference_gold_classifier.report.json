@@ -1,0 +1,153 @@
+{
+  "benchmark_role": "held_out_human_reference_type_gold",
+  "dev": {
+    "accuracy": null,
+    "accuracy_claim_allowed": false,
+    "confusion_matrix": [
+      [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    ],
+    "labels": [
+      "trajectory",
+      "feature",
+      "action_spatial",
+      "action_behavioral",
+      "other"
+    ],
+    "macro_f1": null,
+    "rows": 0,
+    "status": "unknown_no_rows",
+    "support_by_label": {
+      "action_behavioral": 0,
+      "action_spatial": 0,
+      "feature": 0,
+      "other": 0,
+      "trajectory": 0
+    }
+  },
+  "empty_gold_policy": "accuracy and macro_f1 are null/unknown; row count is zero",
+  "evaluation_status": "unknown_no_human_gold",
+  "final_human_accuracy_claim_allowed": false,
+  "gold": {
+    "exists": true,
+    "path": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\data\\human_reference_gold_benchmark.json",
+    "sha256": "a5338d955b09046ec0b16f3a9625b7955c763aae07dc722e474e6078745f932f"
+  },
+  "gold_acceptance_policy": "adjudicated dev/test only",
+  "gold_rows": 0,
+  "leakage_audit": {
+    "fail_closed": true,
+    "model_exposure_sources": [
+      {
+        "classifier_phrase_rows": 7330,
+        "path": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\data\\reference_classifier_feedback.v8.json",
+        "role": "input",
+        "rows": 7330,
+        "sha256": "7e65fe1ae8d5573dec457a2912703a99c15e9d91db62dc7074f09fc6a3ad465d",
+        "sha256_bound_in_model": true
+      }
+    ],
+    "normalized_text_overlap_count": 0,
+    "scope": "all labelled input/augment rows named by the model manifest, including declared dev exposure",
+    "teacher_session_overlap_count": 0
+  },
+  "model": {
+    "path": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\reference_classifier\\model.joblib",
+    "read_only_evaluation": true,
+    "sha256_after": "13ef612a860d94bdcdacfe11cb5f231a16a62bea62c9c5a2ee601b0e0628b65f",
+    "sha256_before": "13ef612a860d94bdcdacfe11cb5f231a16a62bea62c9c5a2ee601b0e0628b65f",
+    "unchanged": true
+  },
+  "schema_version": "human-reference-gold-evaluation-v1",
+  "test": {
+    "accuracy": null,
+    "accuracy_claim_allowed": false,
+    "confusion_matrix": [
+      [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    ],
+    "labels": [
+      "trajectory",
+      "feature",
+      "action_spatial",
+      "action_behavioral",
+      "other"
+    ],
+    "macro_f1": null,
+    "rows": 0,
+    "status": "unknown_no_rows",
+    "support_by_label": {
+      "action_behavioral": 0,
+      "action_spatial": 0,
+      "feature": 0,
+      "other": 0,
+      "trajectory": 0
+    }
+  }
+}

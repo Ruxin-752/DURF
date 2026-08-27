@@ -13,7 +13,7 @@ the classification/grounding stage cannot silently disappear at runtime.
 from __future__ import annotations
 
 from .overcooked_grounding import features_from_keywords, ground_feedback
-from .phrase_reference_classifier import classify_utterance
+from .phrase_reference_classifier import predict_reference_type
 from .sentiment_extractor import (
     desired_action_sentiment,
     extract_sentiment,
@@ -108,6 +108,8 @@ def build_feedback_observations(
     feedback_type: str,
     action_feature_library: dict[str, dict[str, float]],
     prefer_explicit_reference: bool = True,
+    live_feature_mask: set[str] | frozenset[str] | None = None,
+    feedback_form_predictions: list[dict] | None = None,
 ) -> list[dict]:
     """Decompose one utterance into grounded, valenced Route 1 observations."""
 
@@ -119,6 +121,7 @@ def build_feedback_observations(
             feedback,
             feedback_type=feedback_type,
             action_feature_library=action_feature_library,
+            live_feature_mask=live_feature_mask,
         )
         if grounding["grounding_source"] != "keyword_features":
             explicit_valence = feedback.get("attributed_sentiment_score")
@@ -158,6 +161,12 @@ def build_feedback_observations(
                     "grounding_abstained": grounding.get("abstained", False),
                     "reference_abstained": False,
                     "valence_confidence": 1.0 if explicit_valence is not None else 0.9,
+                    "temporal_credit_mode": grounding.get("temporal_credit_mode"),
+                    "masked_target_features": grounding.get("masked_target_features", []),
+                    "target_event_step": grounding.get("target_event_step"),
+                    "target_event_steps": grounding.get("target_event_steps"),
+                    "target_event_span": grounding.get("target_event_span"),
+                    "recent_event_count": grounding.get("recent_event_count", 0),
                 }
             ]
 
@@ -219,17 +228,43 @@ def build_feedback_observations(
             )
         return sub_observations
 
-    predictions = classify_utterance(text)
+    form_predictions = list(feedback_form_predictions or [])
+    if not form_predictions:
+        # Compatibility for non-live callers: the caller-supplied paper form
+        # remains authoritative for every punctuation-delimited phrase.
+        form_predictions = [
+            {
+                "text": phrase,
+                "feedback_type": feedback_type,
+                "confidence": 1.0,
+                "probabilities": {feedback_type: 1.0},
+                "classifier": "caller_supplied_feedback_form",
+                "abstained": False,
+            }
+            for phrase in limited_punc_tokenization(text)
+        ]
     sub_observations: list[dict] = []
-    for prediction in predictions:
-        phrase = prediction["phrase"]
+    for form_prediction in form_predictions:
+        phrase = str(
+            form_prediction.get("text")
+            or form_prediction.get("phrase")
+            or ""
+        ).strip()
+        if not phrase:
+            continue
+        phrase_feedback_type = str(
+            form_prediction.get("feedback_type") or feedback_type
+        ).lower()
+        prediction = predict_reference_type(phrase)
         phrase_feedback = dict(feedback)
         phrase_feedback["text"] = phrase
         grounding = ground_feedback(
             phrase_feedback,
-            feedback_type=feedback_type,
+            feedback_type=phrase_feedback_type,
             reference_type=prediction["reference_type"],
             action_feature_library=action_feature_library,
+            live_feature_mask=live_feature_mask,
+            enforce_feedback_form=True,
         )
         sentiment = {"sentiment_score": modified_vader_observation(phrase)}
         safe_valence, valence_confidence, valence_source = valence_with_safety_gate(
@@ -239,23 +274,58 @@ def build_feedback_observations(
             {
                 "target_features": grounding["target_features"],
                 "valence": effective_sentiment_score(
-                    feedback_type=feedback_type,
+                    feedback_type=phrase_feedback_type,
                     sentiment={"sentiment_score": safe_valence},
                     target_features=grounding["target_features"],
                     feedback=phrase_feedback,
                 ),
                 "phrase": phrase,
+                "feedback_type": phrase_feedback_type,
+                "feedback_form_confidence": form_prediction.get("confidence"),
+                "feedback_form_probabilities": dict(
+                    form_prediction.get("probabilities") or {}
+                ),
+                "feedback_form_classifier": form_prediction.get("classifier"),
+                "feedback_form_abstained": bool(
+                    form_prediction.get("abstained", False)
+                ),
+                "feedback_form_confidence_threshold": form_prediction.get(
+                    "confidence_threshold"
+                ),
                 "reference_type": prediction["reference_type"],
-                "reference_confidence": prediction["confidence"],
+                "effective_reference_type": grounding.get(
+                    "effective_reference_type", prediction["reference_type"]
+                ),
+                "reference_conflict": bool(grounding.get("reference_conflict")),
+                "reference_confidence": (
+                    1.0
+                    if grounding.get("reference_conflict")
+                    else prediction["confidence"]
+                ),
+                "reference_classifier_confidence": prediction["confidence"],
                 "reference_probabilities": prediction["probabilities"],
                 "reference_classifier": prediction.get("classifier"),
-                "reference_abstained": prediction.get("abstained", False),
+                "reference_abstained": (
+                    False
+                    if grounding.get("reference_conflict")
+                    else prediction.get("abstained", False)
+                ),
+                "reference_classifier_abstained": prediction.get(
+                    "abstained", False
+                ),
                 "reference_top2_margin": prediction.get("top2_margin"),
                 "grounding_source": grounding["grounding_source"],
                 "grounding_confidence": grounding.get("grounding_confidence", 1.0),
                 "grounding_abstained": grounding.get("abstained", False),
                 "valence_confidence": valence_confidence,
                 "valence_source": valence_source,
+                "temporal_credit_mode": grounding.get("temporal_credit_mode"),
+                "masked_target_features": grounding.get("masked_target_features", []),
+                "target_event_step": grounding.get("target_event_step"),
+                "target_event_steps": grounding.get("target_event_steps"),
+                "target_event_span": grounding.get("target_event_span"),
+                "recent_event_count": grounding.get("recent_event_count", 0),
+                "abstention_reason": grounding.get("abstention_reason"),
             }
         )
     return sub_observations

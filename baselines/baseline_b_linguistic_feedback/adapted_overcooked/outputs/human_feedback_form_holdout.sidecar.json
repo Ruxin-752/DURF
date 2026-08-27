@@ -1,0 +1,59 @@
+{
+  "all_rows_assigned_to": "test",
+  "benchmark_role": "frozen_feedback_form_holdout",
+  "blank_lines_ignored": 0,
+  "claim_limit": "template-family-disjoint only; not teacher/session-held-out",
+  "claim_ready": true,
+  "frozen_model": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\feedback_form_classifier\\model.joblib",
+  "frozen_model_sha256": "0f92f07f71ff03cc902693d8e613fc8af681d3ccee0d740322afb2a24c6ca4ab",
+  "human_language_claim_ready": false,
+  "label_counts": {
+    "Descriptive": 28,
+    "Evaluative": 30,
+    "Imperative": 31
+  },
+  "labels_below_family_quota": {},
+  "metric_scope": "human_verified_ai_candidate_language",
+  "minimum_families_per_label": 10,
+  "missing_labels": [],
+  "model_exposure_check": {
+    "dev_normalized_text": 0,
+    "human_dev_template_family": 0,
+    "human_train_template_family": 0,
+    "train_normalized_text": 0
+  },
+  "prepared_test": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\data\\human_feedback_form_holdout_test.json",
+  "prepared_test_sha256": "2c7b5494da2a9dc2f33fbd458b5c3297aea09f189c2b5c6dc85aa93f2a51ae74",
+  "protocol_version": "human-feedback-form-frozen-holdout-v1",
+  "provenance": {
+    "ai_candidate_is_not_claimed_as_human_authored": true,
+    "label_source": "human_confirmed",
+    "labels_confirmed_by_human": true,
+    "text_origin": "ai_candidate_human_confirmed"
+  },
+  "public_input": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\data\\feedback_form_candidates.blind_labeling.template.jsonl",
+  "public_input_schema": {
+    "additional_fields_allowed": false,
+    "allowed_fields": [
+      "language",
+      "classification_label"
+    ],
+    "canonical_labels": [
+      "Evaluative",
+      "Imperative",
+      "Descriptive"
+    ]
+  },
+  "public_input_sha256": "a604b80ab8d5bd8b3479d8c20ee693ce93eb7445a21b151fab58ee1aa07f2d68",
+  "schema_version": 1,
+  "sidecar": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\human_feedback_form_holdout.sidecar.json",
+  "status": "ready",
+  "teacher_session_identity_available": false,
+  "template_family_counts_by_label": {
+    "Descriptive": 28,
+    "Evaluative": 30,
+    "Imperative": 31
+  },
+  "test_rows": 89,
+  "used_for_training_or_hyperparameter_selection": false
+}

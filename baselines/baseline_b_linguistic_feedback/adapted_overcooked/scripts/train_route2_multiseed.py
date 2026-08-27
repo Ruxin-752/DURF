@@ -24,6 +24,17 @@ def main() -> int:
     parser.add_argument("--feedback", type=Path, required=True)
     parser.add_argument("--probe-states", type=Path, default=DEFAULT_PROBE_STATES_PATH)
     parser.add_argument("--split-manifest", type=Path)
+    parser.add_argument(
+        "--grouping-policy",
+        choices=("joint", "scenario", "template"),
+        default="joint",
+        help="Holdout axis used when no fixed manifest is supplied.",
+    )
+    parser.add_argument(
+        "--text-only-ablation",
+        action="store_true",
+        help="Zero trajectory counts while keeping the same network architecture.",
+    )
     parser.add_argument("--seeds", nargs="+", type=int, default=[0, 1, 2, 3, 4])
     parser.add_argument("--learning-rates", nargs="+", type=float, default=[0.003, 0.01])
     parser.add_argument("--weight-decays", nargs="+", type=float, default=[0.0, 1e-4])
@@ -44,9 +55,11 @@ def main() -> int:
         load_features(),
         seed=0,
         split_manifest=args.split_manifest,
+        grouping_policy=args.grouping_policy,
     )
+    use_feature_counts = bool(dataset["use_feature_counts"]) and not args.text_only_ablation
     configurations = [
-        {"lr": lr, "weight_decay": decay, "batch_size": batch}
+        {"optimizer": "adam", "lr": lr, "weight_decay": decay, "batch_size": batch}
         for lr in args.learning_rates
         for decay in args.weight_decays
         for batch in args.batch_sizes
@@ -55,14 +68,17 @@ def main() -> int:
     for config in configurations:
         seed_reports = []
         for seed in args.seeds:
+            print(f"Training config={config}, seed={seed}", flush=True)
             result = train(
                 dataset,
                 epochs=args.epochs,
+                optimizer_name=config["optimizer"],
                 lr=config["lr"],
                 weight_decay=config["weight_decay"],
                 batch_size=config["batch_size"],
                 patience=args.patience,
                 seed=seed,
+                use_feature_counts=use_feature_counts,
                 evaluate_test=False,
             )
             seed_reports.append(
@@ -72,6 +88,12 @@ def main() -> int:
                     "best_epoch": result["best_epoch"],
                     "epochs_run": result["epochs_run"],
                 }
+            )
+            print(
+                f"  dev MSE={result['best_val_loss']:.6f} "
+                f"at epoch {result['best_epoch']} "
+                f"({result['epochs_run']} epochs)",
+                flush=True,
             )
         candidate_reports.append(
             {
@@ -90,15 +112,18 @@ def main() -> int:
     selected_seed = min(
         selected["seeds"], key=lambda row: row["best_val_loss"]
     )["seed"]
+    print(f"Final fit with seed={selected_seed}, config={selected['config']}", flush=True)
     final = train(
         dataset,
         epochs=args.epochs,
+        optimizer_name=selected["config"]["optimizer"],
         lr=selected["config"]["lr"],
         weight_decay=selected["config"]["weight_decay"],
         batch_size=selected["config"]["batch_size"],
         patience=args.patience,
         seed=selected_seed,
         evaluate_test=True,
+        use_feature_counts=use_feature_counts,
     )
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
@@ -109,18 +134,24 @@ def main() -> int:
         "epochs": args.epochs,
         "patience": args.patience,
         "selection": "minimize worst-seed dev loss, then mean dev loss",
+        "grouping_policy": args.grouping_policy,
+        "use_feature_counts": use_feature_counts,
+        "target_mode": dataset["target_mode"],
+        "text_only_ablation": args.text_only_ablation,
     }
     save_checkpoint(
         checkpoint,
         final["model"],
         dataset["vocab"],
         dataset["features"],
-        use_feature_counts=False,
+        use_feature_counts=use_feature_counts,
         extra={
             "training_config": training_config,
             "corpus_sha256": dataset["corpus_sha256"],
             "split_sha256": dataset["split_sha256"],
             "dataset_config_sha256": dataset["dataset_config_sha256"],
+            "target_mode": dataset["target_mode"],
+            "untouched_test_metrics": final["untouched_test_metrics"],
         },
     )
     (args.output_dir / "vocab.json").write_text(
@@ -138,6 +169,7 @@ def main() -> int:
         "selected_dev_loss": final["best_val_loss"],
         "untouched_test_loss": final["untouched_test_loss"],
         "checkpoint": str(checkpoint),
+        "untouched_test_metrics": final["untouched_test_metrics"],
     }
     (args.output_dir / "training_report.json").write_text(
         json.dumps(report, ensure_ascii=False, indent=2) + "\n",

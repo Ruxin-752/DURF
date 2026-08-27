@@ -1,0 +1,35 @@
+{
+  "schema_version": 2,
+  "session_id": "c5ae5dbb1e74494d8a601ccd59e965bb",
+  "teacher_id": "submission_smoke_20260812",
+  "started_utc": "2026-08-12T11:59:44.885+00:00",
+  "build_id": "human-feedback-ui-v3",
+  "layout": "ring_tomato_onion_10x6_h0_full_task",
+  "seed": 42,
+  "horizon": 20,
+  "ai_mode": "comfort_subgoal",
+  "feedback_mode": "route2",
+  "score_formula": "w_dot_phi",
+  "route2_observation_precision": 2.0,
+  "supervision": {
+    "kind": "unlabeled_human_language",
+    "teacher_reward_weights": null,
+    "reward_config_id": null,
+    "note": "Natural language updates the online posterior, but is not a supervised full-reward target without an independent label."
+  },
+  "files": {
+    "trajectory": "trajectory.csv",
+    "chat_messages": "chat_messages.csv",
+    "feedback_updates": "feedback_updates.jsonl",
+    "initial_learner_state": "initial_learner_state.json",
+    "final_learner_state": "final_learner_state.json"
+  },
+  "learner_state_path": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\_submission_live_smoke\\20260812_195920_046753\\final_learner_state.json",
+  "model_path": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\route2\\paper_aligned_v5_seed137_selected\\ensemble_manifest.json",
+  "model_sha256": "7c621cfd6c0416b7cffd91ad80d88a1efc06ff87c0a1f69b852ac99dce882876",
+  "ended_utc": "2026-08-12T11:59:46.566+00:00",
+  "exit_reason": "max steps reached",
+  "episodes_started": 1,
+  "total_steps": 1,
+  "human_feedback_events": 0
+}

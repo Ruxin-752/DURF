@@ -1,33 +1,486 @@
 {
-  "input": "baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\data\\synthetic_feedback.deepseek_10k.validated.json",
+  "input": "baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\data\\synthetic_feedback.deepseek_12k.validated.json",
   "augment": [],
   "min_df": 2,
   "seed": 1,
   "split_policy": "generator_declared_split",
   "split_sizes": {
-    "train": 6328,
-    "dev": 514,
-    "test": 962
+    "train": 7880,
+    "dev": 611,
+    "test": 1222
   },
   "dev": {
-    "rows": 696,
-    "micro_precision": 0.8341423948220065,
-    "micro_recall": 0.9113140836770772,
-    "micro_f1": 0.8710222472542946,
-    "macro_precision": 0.5696494212148795,
-    "macro_recall": 0.612387444774305,
-    "macro_f1": 0.588348617293289
+    "rows": 823,
+    "micro_precision": 0.8890951276102088,
+    "micro_recall": 0.9328140214216164,
+    "micro_f1": 0.9104300308861962,
+    "macro_precision": 0.6220601610833967,
+    "macro_recall": 0.6247488933692509,
+    "macro_f1": 0.6220972251229977,
+    "prediction_coverage": 0.9890643985419199,
+    "label_coverage": {
+      "classes_in_model": 30,
+      "features_with_test_support": 21
+    },
+    "per_feature": {
+      "adds_needed_onion": {
+        "precision": 0.8541666666666666,
+        "recall": 0.8723404255319149,
+        "f1": 0.8631578947368421,
+        "support": 47,
+        "threshold": 0.7000000000000002
+      },
+      "adds_needed_tomato": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 0,
+        "threshold": 0.8
+      },
+      "avoids_duplicate_human_task": {
+        "precision": 0.9144893111638955,
+        "recall": 0.9299516908212561,
+        "f1": 0.9221556886227545,
+        "support": 414,
+        "threshold": 0.35000000000000003
+      },
+      "blocks_human_path": {
+        "precision": 0.9561128526645768,
+        "recall": 0.9744408945686901,
+        "f1": 0.9651898734177216,
+        "support": 313,
+        "threshold": 0.4750000000000001
+      },
+      "blocks_serving_route": {
+        "precision": 0.9561128526645768,
+        "recall": 0.9744408945686901,
+        "f1": 0.9651898734177216,
+        "support": 313,
+        "threshold": 0.4750000000000001
+      },
+      "clears_human_path": {
+        "precision": 0.8787061994609164,
+        "recall": 0.9673590504451038,
+        "f1": 0.9209039548022598,
+        "support": 337,
+        "threshold": 0.32500000000000007
+      },
+      "clears_serving_access": {
+        "precision": 0.7692307692307693,
+        "recall": 0.851063829787234,
+        "f1": 0.8080808080808081,
+        "support": 47,
+        "threshold": 0.675
+      },
+      "complementary_to_human": {
+        "precision": 0.8240740740740741,
+        "recall": 0.717741935483871,
+        "f1": 0.7672413793103449,
+        "support": 124,
+        "threshold": 0.675
+      },
+      "completes_recipe": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 0,
+        "threshold": 0.8
+      },
+      "crowds_human_target": {
+        "precision": 0.964968152866242,
+        "recall": 0.9680511182108626,
+        "f1": 0.9665071770334929,
+        "support": 313,
+        "threshold": 0.6000000000000001
+      },
+      "cuts_in_front_of_human": {
+        "precision": 0.9561128526645768,
+        "recall": 0.9744408945686901,
+        "f1": 0.9651898734177216,
+        "support": 313,
+        "threshold": 0.4750000000000001
+      },
+      "delays_serving": {
+        "precision": 0.9506172839506173,
+        "recall": 0.8020833333333334,
+        "f1": 0.8700564971751412,
+        "support": 96,
+        "threshold": 0.7750000000000001
+      },
+      "dish_needed_for_ready_soup": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 0,
+        "threshold": 0.8
+      },
+      "duplicate_human_task": {
+        "precision": 0.964968152866242,
+        "recall": 0.9680511182108626,
+        "f1": 0.9665071770334929,
+        "support": 313,
+        "threshold": 0.6000000000000001
+      },
+      "frustrates_human": {
+        "precision": 0.964968152866242,
+        "recall": 0.9680511182108626,
+        "f1": 0.9665071770334929,
+        "support": 313,
+        "threshold": 0.6000000000000001
+      },
+      "human_wait_cost": {
+        "precision": 0.9561128526645768,
+        "recall": 0.9744408945686901,
+        "f1": 0.9651898734177216,
+        "support": 313,
+        "threshold": 0.4750000000000001
+      },
+      "ingredient_onion": {
+        "precision": 0.8541666666666666,
+        "recall": 0.8723404255319149,
+        "f1": 0.8631578947368421,
+        "support": 47,
+        "threshold": 0.7000000000000002
+      },
+      "ingredient_tomato": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 0,
+        "threshold": 0.8
+      },
+      "matches_current_order": {
+        "precision": 0.86,
+        "recall": 0.9148936170212766,
+        "f1": 0.8865979381443299,
+        "support": 47,
+        "threshold": 0.8
+      },
+      "moves_toward_needed_object": {
+        "precision": 0.86,
+        "recall": 0.9148936170212766,
+        "f1": 0.8865979381443299,
+        "support": 47,
+        "threshold": 0.8
+      },
+      "pick_dish": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 0,
+        "threshold": 0.8
+      },
+      "pick_onion": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 0,
+        "threshold": 0.8
+      },
+      "pick_ready_soup": {
+        "precision": 0.8095238095238095,
+        "recall": 0.6623376623376623,
+        "f1": 0.7285714285714285,
+        "support": 77,
+        "threshold": 0.6250000000000001
+      },
+      "pick_tomato": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 0,
+        "threshold": 0.8
+      },
+      "recipe_needs_onion": {
+        "precision": 0.8541666666666666,
+        "recall": 0.8723404255319149,
+        "f1": 0.8631578947368421,
+        "support": 47,
+        "threshold": 0.7000000000000002
+      },
+      "respects_human_intent": {
+        "precision": 0.9144893111638955,
+        "recall": 0.9299516908212561,
+        "f1": 0.9221556886227545,
+        "support": 414,
+        "threshold": 0.35000000000000003
+      },
+      "serve_ready_soup": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 0,
+        "threshold": 0.8
+      },
+      "steals_human_target": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 0,
+        "threshold": 0.8
+      },
+      "supports_serving": {
+        "precision": 0.6597938144329897,
+        "recall": 0.8311688311688312,
+        "f1": 0.735632183908046,
+        "support": 77,
+        "threshold": 0.7000000000000002
+      },
+      "time_cost": {
+        "precision": 0.9390243902439024,
+        "recall": 0.8020833333333334,
+        "f1": 0.8651685393258427,
+        "support": 96,
+        "threshold": 0.7750000000000001
+      }
+    }
   },
   "untouched_test": {
-    "rows": 1340,
-    "micro_precision": 0.6633209062231145,
-    "micro_recall": 0.7842007119850822,
-    "micro_f1": 0.7187135865765556,
-    "macro_precision": 0.5484262007393446,
-    "macro_recall": 0.6115650261380904,
-    "macro_f1": 0.5375280597996838
+    "rows": 1696,
+    "micro_precision": 0.7180756986204457,
+    "micro_recall": 0.7979559748427673,
+    "micro_f1": 0.7559113759076522,
+    "macro_precision": 0.6035936493802577,
+    "macro_recall": 0.639550545674698,
+    "macro_f1": 0.589944441084976,
+    "prediction_coverage": 0.9787735849056604,
+    "label_coverage": {
+      "classes_in_model": 30,
+      "features_with_test_support": 25
+    },
+    "per_feature": {
+      "adds_needed_onion": {
+        "precision": 0.706989247311828,
+        "recall": 0.8193146417445483,
+        "f1": 0.759018759018759,
+        "support": 321,
+        "threshold": 0.7000000000000002
+      },
+      "adds_needed_tomato": {
+        "precision": 0.7634408602150538,
+        "recall": 0.6094420600858369,
+        "f1": 0.6778042959427207,
+        "support": 233,
+        "threshold": 0.8
+      },
+      "avoids_duplicate_human_task": {
+        "precision": 0.7542194092827004,
+        "recall": 0.929778933680104,
+        "f1": 0.8328479906814211,
+        "support": 769,
+        "threshold": 0.35000000000000003
+      },
+      "blocks_human_path": {
+        "precision": 0.4878048780487805,
+        "recall": 0.9523809523809523,
+        "f1": 0.6451612903225806,
+        "support": 42,
+        "threshold": 0.4750000000000001
+      },
+      "blocks_serving_route": {
+        "precision": 0.4878048780487805,
+        "recall": 0.9523809523809523,
+        "f1": 0.6451612903225806,
+        "support": 42,
+        "threshold": 0.4750000000000001
+      },
+      "clears_human_path": {
+        "precision": 0.44994499449944997,
+        "recall": 0.9623529411764706,
+        "f1": 0.6131934032983508,
+        "support": 425,
+        "threshold": 0.32500000000000007
+      },
+      "clears_serving_access": {
+        "precision": 0.3358395989974937,
+        "recall": 0.7282608695652174,
+        "f1": 0.45969125214408235,
+        "support": 184,
+        "threshold": 0.675
+      },
+      "complementary_to_human": {
+        "precision": 0.7313432835820896,
+        "recall": 0.6496212121212122,
+        "f1": 0.6880641925777332,
+        "support": 528,
+        "threshold": 0.675
+      },
+      "completes_recipe": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 0,
+        "threshold": 0.8
+      },
+      "crowds_human_target": {
+        "precision": 0.8863636363636364,
+        "recall": 0.8478260869565217,
+        "f1": 0.8666666666666667,
+        "support": 184,
+        "threshold": 0.6000000000000001
+      },
+      "cuts_in_front_of_human": {
+        "precision": 0.4878048780487805,
+        "recall": 0.9523809523809523,
+        "f1": 0.6451612903225806,
+        "support": 42,
+        "threshold": 0.4750000000000001
+      },
+      "delays_serving": {
+        "precision": 0.9893390191897654,
+        "recall": 0.8513761467889909,
+        "f1": 0.9151873767258383,
+        "support": 545,
+        "threshold": 0.7750000000000001
+      },
+      "dish_needed_for_ready_soup": {
+        "precision": 0.98,
+        "recall": 0.28488372093023256,
+        "f1": 0.44144144144144143,
+        "support": 172,
+        "threshold": 0.8
+      },
+      "duplicate_human_task": {
+        "precision": 0.8863636363636364,
+        "recall": 0.8478260869565217,
+        "f1": 0.8666666666666667,
+        "support": 184,
+        "threshold": 0.6000000000000001
+      },
+      "frustrates_human": {
+        "precision": 0.8863636363636364,
+        "recall": 0.8478260869565217,
+        "f1": 0.8666666666666667,
+        "support": 184,
+        "threshold": 0.6000000000000001
+      },
+      "human_wait_cost": {
+        "precision": 0.4878048780487805,
+        "recall": 0.9523809523809523,
+        "f1": 0.6451612903225806,
+        "support": 42,
+        "threshold": 0.4750000000000001
+      },
+      "ingredient_onion": {
+        "precision": 0.706989247311828,
+        "recall": 0.8193146417445483,
+        "f1": 0.759018759018759,
+        "support": 321,
+        "threshold": 0.7000000000000002
+      },
+      "ingredient_tomato": {
+        "precision": 0.7634408602150538,
+        "recall": 0.6094420600858369,
+        "f1": 0.6778042959427207,
+        "support": 233,
+        "threshold": 0.8
+      },
+      "matches_current_order": {
+        "precision": 0.9124236252545825,
+        "recall": 0.8086642599277978,
+        "f1": 0.8574162679425837,
+        "support": 554,
+        "threshold": 0.8
+      },
+      "moves_toward_needed_object": {
+        "precision": 0.9124236252545825,
+        "recall": 0.8086642599277978,
+        "f1": 0.8574162679425837,
+        "support": 554,
+        "threshold": 0.8
+      },
+      "pick_dish": {
+        "precision": 0.98,
+        "recall": 0.28488372093023256,
+        "f1": 0.44144144144144143,
+        "support": 172,
+        "threshold": 0.8
+      },
+      "pick_onion": {
+        "precision": 0.4573643410852713,
+        "recall": 0.6276595744680851,
+        "f1": 0.5291479820627802,
+        "support": 94,
+        "threshold": 0.8
+      },
+      "pick_ready_soup": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 0,
+        "threshold": 0.6250000000000001
+      },
+      "pick_tomato": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 0,
+        "threshold": 0.8
+      },
+      "recipe_needs_onion": {
+        "precision": 0.706989247311828,
+        "recall": 0.8193146417445483,
+        "f1": 0.759018759018759,
+        "support": 321,
+        "threshold": 0.7000000000000002
+      },
+      "respects_human_intent": {
+        "precision": 0.7542194092827004,
+        "recall": 0.929778933680104,
+        "f1": 0.8328479906814211,
+        "support": 769,
+        "threshold": 0.35000000000000003
+      },
+      "serve_ready_soup": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 0,
+        "threshold": 0.8
+      },
+      "steals_human_target": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 0,
+        "threshold": 0.8
+      },
+      "supports_serving": {
+        "precision": 0.6126126126126126,
+        "recall": 0.3953488372093023,
+        "f1": 0.48056537102473496,
+        "support": 172,
+        "threshold": 0.7000000000000002
+      },
+      "time_cost": {
+        "precision": 0.9799196787148594,
+        "recall": 0.8954128440366973,
+        "f1": 0.9357622243528284,
+        "support": 545,
+        "threshold": 0.7750000000000001
+      }
+    }
   },
   "annotation_sources": {
-    "utterance_target_features": 8649
+    "utterance_target_features": 10719
+  },
+  "input_mode": "raw_text",
+  "feature_config": {
+    "word_ngram_range": [
+      1,
+      2
+    ],
+    "char_wb_ngram_range": [
+      3,
+      5
+    ],
+    "min_df": 2,
+    "sublinear_tf": true,
+    "strip_accents": "unicode"
+  },
+  "selection_protocol": {
+    "partition": "dev_only_threshold_tuning",
+    "test_examples_evaluated_during_selection": 0,
+    "test_role": "exposed synthetic regression only"
   }
 }

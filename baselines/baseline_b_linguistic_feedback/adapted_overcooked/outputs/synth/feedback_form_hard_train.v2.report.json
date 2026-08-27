@@ -1,0 +1,50 @@
+{
+  "canonical_label_counts": {
+    "Descriptive": 96,
+    "Evaluative": 96,
+    "Imperative": 96
+  },
+  "contrast_groups": 96,
+  "cross_label_exact_conflict_count": 0,
+  "generation_is_deterministic": true,
+  "generation_uses_llm": false,
+  "holdout_leakage_gate": {
+    "exact_overlap_count": 0,
+    "group_overlap_count": 0,
+    "heldout_contents_output": false,
+    "heldout_labels_accessed": false,
+    "heldout_metrics_computed": false,
+    "partitions": [
+      "dev",
+      "test"
+    ],
+    "reference": "reference_classifier_feedback.v8.json",
+    "usage": "normalized_text_hash_and_group_gate_only"
+  },
+  "label_counts": {
+    "descriptive": 96,
+    "evaluative": 96,
+    "imperative": 96
+  },
+  "normalized_duplicate_count": 0,
+  "output": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\data\\feedback_form_hard_train.v2.json",
+  "output_sha256": "9ccec3cd8c15c1234f4f34cd0e4cee7c668fb84e150c5a818777cc9ae73bf35e",
+  "rows": 288,
+  "schema_fields": [
+    "classification_label",
+    "expected_feedback_type",
+    "group_id",
+    "label_source",
+    "normalized",
+    "source",
+    "split",
+    "template_family",
+    "text"
+  ],
+  "selection_uses_model_predictions": false,
+  "split": "train",
+  "template_families_per_class": 12,
+  "train_only": true,
+  "variants_per_template_family": 8,
+  "version": "feedback-form-hard-train-v2"
+}

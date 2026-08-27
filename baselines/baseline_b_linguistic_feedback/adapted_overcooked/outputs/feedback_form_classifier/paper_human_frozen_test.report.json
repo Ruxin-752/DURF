@@ -1,0 +1,133 @@
+{
+  "benchmark_manifest": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\feedback_form_classifier\\paper_human_benchmark.v1.manifest.json",
+  "benchmark_manifest_sha256": "0888653076a7fc74f9708ba34fce1991c9cf9a76d54c3ab41d8ecd9e35ecca48",
+  "benchmark_role": "previously_exposed_task_held_out_original_paper_human_reference_proxy",
+  "by_reference_type": {
+    "action_behavioral": {
+      "accuracy": 1.0,
+      "rows": 12
+    },
+    "action_spatial": {
+      "accuracy": 0.8461538461538461,
+      "rows": 13
+    },
+    "feature": {
+      "accuracy": 0.9375,
+      "rows": 32
+    },
+    "trajectory": {
+      "accuracy": 0.8974358974358975,
+      "rows": 39
+    }
+  },
+  "claim_limit": "the source test was previously exposed; labels are not independently annotated speech-form gold and are not current Overcooked-player language",
+  "claim_scope": "human-authored original-paper task language with reference labels collapsed by the paper main-experiment operational mapping",
+  "current_overcooked_player_accuracy_claim": false,
+  "development_normalized_text_overlap": 0,
+  "development_task_group_overlap": 0,
+  "diagnostic_accuracy_threshold": 0.87,
+  "diagnostic_threshold_met": true,
+  "frozen_test": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\data\\paper_feedback_form_human_frozen_test.v1.json",
+  "frozen_test_sha256_after": "6c428071a890934b334f30ff9b80781c17410c0e0b7ee1895da6aca8ff81798f",
+  "frozen_test_sha256_before": "6c428071a890934b334f30ff9b80781c17410c0e0b7ee1895da6aca8ff81798f",
+  "frozen_test_sha256_unchanged": true,
+  "independent_human_speech_form_gold": false,
+  "independent_sealed_test": false,
+  "label_counts": {
+    "descriptive": 32,
+    "evaluative": 51,
+    "imperative": 13
+  },
+  "local_receipt_is_external_immutable_ledger": false,
+  "mapping": {
+    "action_behavioral": "evaluative",
+    "action_spatial": "imperative",
+    "feature": "descriptive",
+    "trajectory": "evaluative"
+  },
+  "mapping_is_exact_original_notebook": false,
+  "mapping_is_exact_paper_main_experiment": true,
+  "metrics": {
+    "accuracy": 0.9166666666666666,
+    "all_labels_present": true,
+    "balanced_accuracy": 0.9017408245349422,
+    "calibration": {
+      "accuracy_from_probabilities": 0.9166666666666666,
+      "ece_10_bin": 0.058480483915941905,
+      "mean_confidence": 0.9261382044164156,
+      "multiclass_brier": 0.14612690038774243,
+      "negative_log_likelihood": 0.27328156674507414,
+      "rows": 96
+    },
+    "confusion_matrix": [
+      [
+        47,
+        3,
+        1
+      ],
+      [
+        2,
+        11,
+        0
+      ],
+      [
+        1,
+        1,
+        30
+      ]
+    ],
+    "label_order": [
+      "evaluative",
+      "imperative",
+      "descriptive"
+    ],
+    "label_support": {
+      "descriptive": 32,
+      "evaluative": 51,
+      "imperative": 13
+    },
+    "macro_f1": 0.8895961024673896,
+    "per_class": {
+      "descriptive": {
+        "f1-score": 0.9523809523809523,
+        "precision": 0.967741935483871,
+        "recall": 0.9375
+      },
+      "evaluative": {
+        "f1-score": 0.9306930693069307,
+        "precision": 0.94,
+        "recall": 0.9215686274509803
+      },
+      "imperative": {
+        "f1-score": 0.7857142857142857,
+        "precision": 0.7333333333333333,
+        "recall": 0.8461538461538461
+      }
+    },
+    "rows": 96
+  },
+  "model": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\feedback_form_classifier\\model.joblib",
+  "model_sha256_after": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+  "model_sha256_before": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+  "model_sha256_unchanged": true,
+  "natural_human_authored_text": true,
+  "previously_exposed_source_test": true,
+  "probability_status": "exposed_task_heldout_evaluation_of_dev_temperature",
+  "receipt": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\feedback_form_classifier\\paper_human_frozen_test.receipt.json",
+  "receipt_sha256": "d4f8ed3fba1500e3815194d6100f45c0eb80179f799630a902c4de4c78e8f770",
+  "reference_type_counts": {
+    "action_behavioral": 12,
+    "action_spatial": 13,
+    "feature": 32,
+    "trajectory": 39
+  },
+  "rows": 96,
+  "schema_version": "paper-human-feedback-form-exposed-regression-v1",
+  "test_file_mutated": false,
+  "training_pipeline_human_dev_used_in_late_tie_breakers": true,
+  "regression_rows_used_for_training_or_selection": false,
+  "training_report": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\feedback_form_classifier\\model.report.json",
+  "training_report_sha256": "ba00b110f8dfe4c56a97d921cae95911c70a7e2220ba577e2a0b5b80fe2b8e94",
+  "training_report_sha256_at_evaluation": "ea3647841a0c6a0840727b44e5eb87803c21191a5fb1ff8a7b6630d67cd08ae8",
+  "post_evaluation_metadata_correction": "human dev was used in late overall-dev tie-breakers; no model, prediction, or metric changed"
+}

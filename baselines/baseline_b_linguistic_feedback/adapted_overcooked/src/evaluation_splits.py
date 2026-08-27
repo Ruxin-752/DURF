@@ -13,7 +13,9 @@ from pathlib import Path
 from typing import Any, Iterator
 
 
-SPLIT_MANIFEST_VERSION = "route2-split-v1"
+SPLIT_MANIFEST_VERSION = "route2-split-v2"
+LEGACY_SPLIT_MANIFEST_VERSION = "route2-split-v1"
+GROUPING_POLICIES = frozenset({"joint", "scenario", "template"})
 _FAMILY_SUFFIX = re.compile(r"_(?:template|llm)\d+$", re.IGNORECASE)
 
 
@@ -94,10 +96,12 @@ def find_near_duplicates(
 
     pairs: list[dict] = []
     total = 0
+    pair_indices: list[list[float | int]] = []
     for left, right, score in _iter_near_duplicate_pairs(
         examples, threshold=threshold
     ):
         total += 1
+        pair_indices.append([left, right, round(score, 6)])
         if len(pairs) < max_examples:
             pairs.append(
                 {
@@ -108,7 +112,12 @@ def find_near_duplicates(
                     "right_text": examples[right].get("text"),
                 }
             )
-    return {"threshold": threshold, "count": total, "examples": pairs}
+    return {
+        "threshold": threshold,
+        "count": total,
+        "examples": pairs,
+        "pair_indices": pair_indices,
+    }
 
 
 def deduplicate_corpus(
@@ -211,10 +220,25 @@ def make_train_dev_test_split(
     }
 
 
-def _joint_group_ids(
-    examples: list[dict], *, near_duplicate_threshold: float
+def _component_group_ids(
+    examples: list[dict],
+    *,
+    policy: str,
+    near_duplicate_threshold: float,
+    near_duplicate_pairs: list[tuple[int, int, float]] | None = None,
 ) -> tuple[list[str], list[str], list[str]]:
-    """Build connected groups joined by either scenario or template family."""
+    """Build leakage-safe components for one declared holdout policy.
+
+    ``joint`` preserves the strict v1 behavior. ``scenario`` and ``template``
+    support larger, interpretable holdouts on corpora where reusable template
+    families connect most scenarios into a few giant joint components.
+    Near-duplicate utterances are always kept in the same component.
+    """
+
+    if policy not in GROUPING_POLICIES:
+        raise ValueError(
+            f"grouping policy must be one of {sorted(GROUPING_POLICIES)}, got {policy!r}"
+        )
 
     parents: dict[str, str] = {}
 
@@ -237,15 +261,21 @@ def _joint_group_ids(
         scenario = str(example.get("group_id") or example.get("probe_id") or f"record:{index}")
         family = template_family(example, index)
         row_node = f"row:{index}"
-        union(row_node, f"scenario:{scenario}")
-        union(row_node, f"family:{family}")
+        if policy in {"joint", "scenario"}:
+            union(row_node, f"scenario:{scenario}")
+        if policy in {"joint", "template"}:
+            union(row_node, f"family:{family}")
         scenarios.append(scenario)
         families.append(family)
         row_nodes.append(row_node)
-    for left, right, _score in _iter_near_duplicate_pairs(
-        examples, threshold=near_duplicate_threshold
-    ):
-        union(f"row:{left}", f"row:{right}")
+    if policy == "joint":
+        pairs = (
+            list(_iter_near_duplicate_pairs(examples, threshold=near_duplicate_threshold))
+            if near_duplicate_pairs is None
+            else near_duplicate_pairs
+        )
+        for left, right, _score in pairs:
+            union(f"row:{left}", f"row:{right}")
 
     members: dict[str, list[str]] = defaultdict(list)
     for node in parents:
@@ -262,9 +292,12 @@ def _split_conflicts(
     split_names: list[str],
     *,
     near_duplicate_threshold: float,
+    near_duplicate_pairs: list[tuple[int, int, float]] | None = None,
 ) -> dict:
     normalized_locations: dict[str, set[str]] = defaultdict(set)
     for example, split_name in zip(examples, split_names):
+        if split_name == "excluded":
+            continue
         text = normalize_text(example.get("text"))
         if text:
             normalized_locations[text].add(split_name)
@@ -275,12 +308,15 @@ def _split_conflicts(
     ]
     cross_near = []
     cross_near_count = 0
-    for left, right, score in _iter_near_duplicate_pairs(
-        examples, threshold=near_duplicate_threshold
-    ):
+    pairs = (
+        list(_iter_near_duplicate_pairs(examples, threshold=near_duplicate_threshold))
+        if near_duplicate_pairs is None
+        else near_duplicate_pairs
+    )
+    for left, right, score in pairs:
         left_split = split_names[left]
         right_split = split_names[right]
-        if left_split != right_split:
+        if "excluded" not in {left_split, right_split} and left_split != right_split:
             cross_near_count += 1
             if len(cross_near) < 100:
                 cross_near.append(
@@ -307,6 +343,36 @@ def _split_conflicts(
     }
 
 
+def _near_duplicate_exclusions(
+    split_names: list[str],
+    pairs: list[tuple[int, int, float]],
+) -> tuple[set[int], list[dict]]:
+    """Protect higher-priority evaluation rows by pruning similar lower splits."""
+
+    priority = {"train": 0, "dev": 1, "test": 2}
+    excluded: set[int] = set()
+    decisions: list[dict] = []
+    for left, right, score in pairs:
+        left_split, right_split = split_names[left], split_names[right]
+        if left_split == right_split:
+            continue
+        if priority[left_split] < priority[right_split]:
+            dropped, kept = left, right
+        else:
+            dropped, kept = right, left
+        excluded.add(dropped)
+        decisions.append(
+            {
+                "dropped_index": dropped,
+                "dropped_split": split_names[dropped],
+                "protected_index": kept,
+                "protected_split": split_names[kept],
+                "similarity": round(score, 6),
+            }
+        )
+    return excluded, decisions
+
+
 def make_split_manifest(
     examples: list[dict],
     *,
@@ -314,14 +380,24 @@ def make_split_manifest(
     dev_fraction: float = 0.2,
     test_fraction: float = 0.2,
     near_duplicate_threshold: float = 0.92,
+    grouping_policy: str = "joint",
+    near_duplicate_pairs: list[tuple[int, int, float]] | None = None,
 ) -> dict:
-    """Create a versioned split manifest grouped by scenario and template family."""
+    """Create a versioned split manifest for a declared holdout axis."""
 
-    joint_groups, scenarios, families = _joint_group_ids(
-        examples, near_duplicate_threshold=near_duplicate_threshold
+    pairs = (
+        list(_iter_near_duplicate_pairs(examples, threshold=near_duplicate_threshold))
+        if near_duplicate_pairs is None
+        else near_duplicate_pairs
+    )
+    component_groups, scenarios, families = _component_group_ids(
+        examples,
+        policy=grouping_policy,
+        near_duplicate_threshold=near_duplicate_threshold,
+        near_duplicate_pairs=pairs,
     )
     split = make_train_dev_test_split(
-        joint_groups,
+        component_groups,
         seed=seed,
         dev_fraction=dev_fraction,
         test_fraction=test_fraction,
@@ -332,12 +408,43 @@ def make_split_manifest(
         indices = list(split[f"{name}_indices"])
         for index in indices:
             index_to_split[index] = name
-        sections[name] = {
-            "indices": indices,
-            "groups": sorted({scenarios[index] for index in indices}),
-            "template_families": sorted({families[index] for index in indices}),
-            "components": list(split[f"{name}_groups"]),
-        }
+        sections[name] = {"indices": indices}
+
+    excluded_indices: set[int] = set()
+    exclusion_decisions: list[dict] = []
+    if grouping_policy != "joint":
+        excluded_indices, exclusion_decisions = _near_duplicate_exclusions(
+            index_to_split, pairs
+        )
+        for index in excluded_indices:
+            index_to_split[index] = "excluded"
+        for name in ("train", "dev", "test"):
+            sections[name]["indices"] = [
+                index
+                for index in sections[name]["indices"]
+                if index not in excluded_indices
+            ]
+
+    for name in ("train", "dev", "test"):
+        indices = sections[name]["indices"]
+        sections[name]["groups"] = sorted({scenarios[index] for index in indices})
+        sections[name]["template_families"] = sorted(
+            {families[index] for index in indices}
+        )
+        sections[name]["components"] = sorted(
+            {component_groups[index] for index in indices}
+        )
+
+    disjoint_fields = ["components"]
+    if grouping_policy in {"joint", "scenario"}:
+        disjoint_fields.append("groups")
+    if grouping_policy in {"joint", "template"}:
+        disjoint_fields.append("template_families")
+    policy_description = {
+        "joint": "connected_components_by_scenario_or_template_family",
+        "scenario": "scenario_holdout_with_cross_split_near_duplicates_pruned",
+        "template": "template_holdout_with_cross_split_near_duplicates_pruned",
+    }[grouping_policy]
     manifest = {
         "version": SPLIT_MANIFEST_VERSION,
         "corpus_sha256": canonical_sha256(examples),
@@ -349,13 +456,17 @@ def make_split_manifest(
                 "intent_id",
                 "feedback_id",
             ],
-            "policy": "connected_components_by_scenario_or_template_family",
+            "policy": policy_description,
+            "holdout_axis": grouping_policy,
+            "disjoint_fields": disjoint_fields,
             "near_duplicate_grouping_threshold": near_duplicate_threshold,
         },
         "seed": seed,
         "dev_fraction": dev_fraction,
         "test_fraction": test_fraction,
         "splits": sections,
+        "excluded_indices": sorted(excluded_indices),
+        "near_duplicate_exclusions": exclusion_decisions,
         # Flat keys preserve compatibility with existing split consumers.
         **{
             f"{name}_indices": sections[name]["indices"]
@@ -369,16 +480,111 @@ def make_split_manifest(
             examples,
             index_to_split,
             near_duplicate_threshold=near_duplicate_threshold,
+            near_duplicate_pairs=pairs,
         ),
     }
     manifest["split_sha256"] = canonical_sha256(manifest)
     return manifest
 
+def make_declared_split_manifest(
+    examples: list[dict],
+    *,
+    split_field: str = "split",
+) -> dict:
+    """Build a manifest from generator-declared reward/style-disjoint splits."""
+
+    split_names = [str(example.get(split_field) or "") for example in examples]
+    invalid = sorted(set(split_names) - {"train", "dev", "test"})
+    if invalid or not all(split_names):
+        raise ValueError(f"invalid declared split labels: {invalid}")
+    sections: dict[str, dict] = {}
+    for name in ("train", "dev", "test"):
+        indices = [index for index, value in enumerate(split_names) if value == name]
+        sections[name] = {
+            "indices": indices,
+            "groups": sorted(
+                {
+                    str(examples[index].get("group_id") or examples[index].get("probe_id"))
+                    for index in indices
+                }
+            ),
+            "template_families": sorted(
+                {template_family(examples[index], index) for index in indices}
+            ),
+            "reward_configs": sorted(
+                {str(examples[index].get("reward_config_id")) for index in indices}
+            ),
+            "teacher_ids": sorted(
+                {
+                    str(
+                        examples[index].get("teacher_id")
+                        or examples[index].get("synthetic_teacher_style_id")
+                    )
+                    for index in indices
+                }
+            ),
+            "components": sorted(
+                {
+                    "declared:"
+                    + canonical_sha256(
+                        [
+                            examples[index].get("reward_config_id"),
+                            examples[index].get("teacher_id")
+                            or examples[index].get("synthetic_teacher_style_id"),
+                        ]
+                    )[:16]
+                    for index in indices
+                }
+            ),
+        }
+    normalized_locations: dict[str, set[str]] = defaultdict(set)
+    for example, name in zip(examples, split_names):
+        normalized = normalize_text(example.get("text"))
+        if normalized:
+            normalized_locations[normalized].add(name)
+    exact_overlap = [
+        {"normalized_text": text, "splits": sorted(locations)}
+        for text, locations in normalized_locations.items()
+        if len(locations) > 1
+    ]
+    manifest = {
+        "version": SPLIT_MANIFEST_VERSION,
+        "corpus_sha256": canonical_sha256(examples),
+        "grouping": {
+            "policy": "generator_declared_context_reward_config_and_teacher",
+            "holdout_axis": "context_reward_config_and_teacher",
+            "disjoint_fields": ["groups", "reward_configs", "teacher_ids", "components"],
+            "split_field": split_field,
+            "near_duplicate_grouping_threshold": None,
+        },
+        "seed": None,
+        "dev_fraction": None,
+        "test_fraction": None,
+        "splits": sections,
+        "excluded_indices": [],
+        "near_duplicate_exclusions": [],
+        **{
+            f"{name}_indices": sections[name]["indices"]
+            for name in ("train", "dev", "test")
+        },
+        **{
+            f"{name}_groups": sections[name]["groups"]
+            for name in ("train", "dev", "test")
+        },
+        "conflict_audit": {
+            "exact_normalized_text_overlap_count": len(exact_overlap),
+            "exact_normalized_text_overlaps": exact_overlap[:100],
+            "near_duplicate_audit": "not computed for declared multi-reward corpus",
+        },
+    }
+    manifest["split_sha256"] = canonical_sha256(manifest)
+    return validate_split_manifest(manifest, examples)
 
 def validate_split_manifest(manifest: dict, examples: list[dict]) -> dict:
     """Validate hashes, coverage, and disjointness before reusing a manifest."""
 
-    if manifest.get("version") != SPLIT_MANIFEST_VERSION:
+    version = manifest.get("version")
+    if version not in {SPLIT_MANIFEST_VERSION, LEGACY_SPLIT_MANIFEST_VERSION}:
         raise ValueError(
             f"Unsupported split manifest version: {manifest.get('version')!r}"
         )
@@ -403,9 +609,16 @@ def validate_split_manifest(manifest: dict, examples: list[dict]) -> dict:
     flattened = [index for indices in split_indices for index in indices]
     if len(flattened) != len(set(flattened)):
         raise ValueError("Split manifest assigns an example to multiple splits")
-    if sorted(flattened) != list(range(len(examples))):
-        raise ValueError("Split manifest indices do not cover the corpus exactly")
-    for field in ("groups", "template_families", "components"):
+    excluded = list(manifest.get("excluded_indices", []))
+    if set(flattened) & set(excluded):
+        raise ValueError("Excluded examples also occur in a train/dev/test split")
+    if sorted([*flattened, *excluded]) != list(range(len(examples))):
+        raise ValueError("Split manifest indices and exclusions do not cover the corpus exactly")
+    disjoint_fields = manifest.get("grouping", {}).get("disjoint_fields")
+    if disjoint_fields is None:
+        # v1 manifests were strict joint-component splits.
+        disjoint_fields = ("groups", "template_families", "components")
+    for field in disjoint_fields:
         values = [
             set(manifest["splits"][name].get(field, []))
             for name in ("train", "dev", "test")

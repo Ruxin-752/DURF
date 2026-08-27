@@ -1,0 +1,610 @@
+{
+  "protocol": "paper_10fold_teacher_and_reward_holdout",
+  "feedback": "adapted_overcooked\\outputs\\_p0_route2_author_smoke\\feedback.json",
+  "corpus_sha256": "d4eac41271bdaa057759bcfa7b8d539b565d76e087fdef97dca9fba71edcec24",
+  "cross_validation_manifest_sha256": "c9fb54ab67164b4fdac0053bec38080b55bd30f00310bd05e9f24dfd7e3ef57a",
+  "training_config": {
+    "architecture": "paper_embeddingbag_30_plus_trajectory_relu_128",
+    "optimizer": "sgd",
+    "lr": 0.005,
+    "weight_decay": 0.0001,
+    "batch_size": 256,
+    "epochs": 1,
+    "patience": 1,
+    "min_freq": 3,
+    "split_seed": 17,
+    "model_seed": 17,
+    "n_folds": 10,
+    "rotation": "validation=i,test=(i+1)%n,train=remaining",
+    "holdout_axes": [
+      "teacher_id",
+      "reward_config_id"
+    ],
+    "use_feature_counts": true,
+    "target_mode": "full_teacher_reward",
+    "supervision_identifiability": "same_input_conflicts_rejected",
+    "config_sha256": "ffbe48c9ed1956ddb39582a96eef62e7b7a20315528917329f22c6ce048dde9e"
+  },
+  "cross_validation_coverage": {
+    "corpus_examples": 1776,
+    "unique_test_examples": 330,
+    "unique_test_fraction": 0.1858108108108108,
+    "never_test_examples": 1446,
+    "unique_dev_examples": 330,
+    "unique_dev_fraction": 0.1858108108108108,
+    "test_assignment_frequency_min": 0,
+    "test_assignment_frequency_max": 1,
+    "total_excluded_fold_assignments": 5313
+  },
+  "validity_requirement": "Run evaluate_route2_paper_crossval.py; do not claim reward inference unless its validity gate beats canonical and train-mean constants.",
+  "folds": [
+    {
+      "fold": 0,
+      "seed": 17,
+      "checkpoint": "adapted_overcooked\\outputs\\_p0_route2_author_smoke\\models\\fold_00\\model.pt",
+      "vocab_size": 128,
+      "best_dev_mse": 2.6515822410583496,
+      "best_epoch": 0,
+      "epochs_run": 1,
+      "split_sizes": {
+        "train": 1012,
+        "dev": 52,
+        "test": 58
+      },
+      "test_metrics": {
+        "mse": 2.6738216876983643,
+        "mean_cosine_similarity": 0.012737253680825233,
+        "active_sign_accuracy": 0.5088417530059814,
+        "active_target_count": 2262,
+        "examples": 58
+      },
+      "dev_teachers": [
+        "synthetic_author_06",
+        "synthetic_author_07"
+      ],
+      "test_teachers": [
+        "synthetic_author_03",
+        "synthetic_author_05"
+      ],
+      "dev_rewards": [
+        "reward_07",
+        "reward_10"
+      ],
+      "test_rewards": [
+        "reward_03",
+        "reward_05"
+      ],
+      "coverage": {
+        "corpus_examples": 1776,
+        "train_examples": 1012,
+        "dev_examples": 52,
+        "test_examples": 58,
+        "excluded_examples": 654,
+        "included_fraction": 0.6317567567567568,
+        "excluded_fraction": 0.36824324324324326,
+        "excluded_axis_pairs": {
+          "teacher_dev__reward_test": 58,
+          "teacher_dev__reward_train": 136,
+          "teacher_test__reward_dev": 52,
+          "teacher_test__reward_train": 136,
+          "teacher_train__reward_dev": 136,
+          "teacher_train__reward_test": 136
+        }
+      },
+      "heldout_overlap_audit": {
+        "test_exact_text_in_train": 0,
+        "test_exact_text_in_train_fraction": 0.0,
+        "test_exact_input_in_train": 0,
+        "test_exact_input_in_train_fraction": 0.0
+      }
+    },
+    {
+      "fold": 1,
+      "seed": 18,
+      "checkpoint": "adapted_overcooked\\outputs\\_p0_route2_author_smoke\\models\\fold_01\\model.pt",
+      "vocab_size": 131,
+      "best_dev_mse": 2.674030065536499,
+      "best_epoch": 0,
+      "epochs_run": 1,
+      "split_sizes": {
+        "train": 1022,
+        "dev": 58,
+        "test": 24
+      },
+      "test_metrics": {
+        "mse": 2.0780410766601562,
+        "mean_cosine_similarity": 0.02035893313586712,
+        "active_sign_accuracy": 0.4861111044883728,
+        "active_target_count": 936,
+        "examples": 24
+      },
+      "dev_teachers": [
+        "synthetic_author_03",
+        "synthetic_author_05"
+      ],
+      "test_teachers": [
+        "synthetic_author_00"
+      ],
+      "dev_rewards": [
+        "reward_03",
+        "reward_05"
+      ],
+      "test_rewards": [
+        "reward_08"
+      ],
+      "coverage": {
+        "corpus_examples": 1776,
+        "train_examples": 1022,
+        "dev_examples": 58,
+        "test_examples": 24,
+        "excluded_examples": 672,
+        "included_fraction": 0.6216216216216216,
+        "excluded_fraction": 0.3783783783783784,
+        "excluded_axis_pairs": {
+          "teacher_dev__reward_test": 24,
+          "teacher_dev__reward_train": 164,
+          "teacher_test__reward_dev": 22,
+          "teacher_test__reward_train": 134,
+          "teacher_train__reward_dev": 172,
+          "teacher_train__reward_test": 156
+        }
+      },
+      "heldout_overlap_audit": {
+        "test_exact_text_in_train": 0,
+        "test_exact_text_in_train_fraction": 0.0,
+        "test_exact_input_in_train": 0,
+        "test_exact_input_in_train_fraction": 0.0
+      }
+    },
+    {
+      "fold": 2,
+      "seed": 19,
+      "checkpoint": "adapted_overcooked\\outputs\\_p0_route2_author_smoke\\models\\fold_02\\model.pt",
+      "vocab_size": 133,
+      "best_dev_mse": 2.0933282375335693,
+      "best_epoch": 0,
+      "epochs_run": 1,
+      "split_sizes": {
+        "train": 1116,
+        "dev": 24,
+        "test": 23
+      },
+      "test_metrics": {
+        "mse": 4.417983055114746,
+        "mean_cosine_similarity": -0.04262376204133034,
+        "active_sign_accuracy": 0.5696766972541809,
+        "active_target_count": 897,
+        "examples": 23
+      },
+      "dev_teachers": [
+        "synthetic_author_00"
+      ],
+      "test_teachers": [
+        "synthetic_author_08"
+      ],
+      "dev_rewards": [
+        "reward_08"
+      ],
+      "test_rewards": [
+        "reward_06"
+      ],
+      "coverage": {
+        "corpus_examples": 1776,
+        "train_examples": 1116,
+        "dev_examples": 24,
+        "test_examples": 23,
+        "excluded_examples": 613,
+        "included_fraction": 0.6548423423423423,
+        "excluded_fraction": 0.34515765765765766,
+        "excluded_axis_pairs": {
+          "teacher_dev__reward_test": 22,
+          "teacher_dev__reward_train": 134,
+          "teacher_test__reward_dev": 27,
+          "teacher_test__reward_train": 142,
+          "teacher_train__reward_dev": 153,
+          "teacher_train__reward_test": 135
+        }
+      },
+      "heldout_overlap_audit": {
+        "test_exact_text_in_train": 0,
+        "test_exact_text_in_train_fraction": 0.0,
+        "test_exact_input_in_train": 0,
+        "test_exact_input_in_train_fraction": 0.0
+      }
+    },
+    {
+      "fold": 3,
+      "seed": 20,
+      "checkpoint": "adapted_overcooked\\outputs\\_p0_route2_author_smoke\\models\\fold_03\\model.pt",
+      "vocab_size": 128,
+      "best_dev_mse": 4.39668083190918,
+      "best_epoch": 0,
+      "epochs_run": 1,
+      "split_sizes": {
+        "train": 1108,
+        "dev": 23,
+        "test": 27
+      },
+      "test_metrics": {
+        "mse": 3.482974052429199,
+        "mean_cosine_similarity": 0.1849200278520584,
+        "active_sign_accuracy": 0.5109211802482605,
+        "active_target_count": 1053,
+        "examples": 27
+      },
+      "dev_teachers": [
+        "synthetic_author_08"
+      ],
+      "test_teachers": [
+        "synthetic_author_09"
+      ],
+      "dev_rewards": [
+        "reward_06"
+      ],
+      "test_rewards": [
+        "reward_04"
+      ],
+      "coverage": {
+        "corpus_examples": 1776,
+        "train_examples": 1108,
+        "dev_examples": 23,
+        "test_examples": 27,
+        "excluded_examples": 618,
+        "included_fraction": 0.652027027027027,
+        "excluded_fraction": 0.34797297297297297,
+        "excluded_axis_pairs": {
+          "teacher_dev__reward_test": 27,
+          "teacher_dev__reward_train": 142,
+          "teacher_test__reward_dev": 23,
+          "teacher_test__reward_train": 142,
+          "teacher_train__reward_dev": 134,
+          "teacher_train__reward_test": 150
+        }
+      },
+      "heldout_overlap_audit": {
+        "test_exact_text_in_train": 0,
+        "test_exact_text_in_train_fraction": 0.0,
+        "test_exact_input_in_train": 0,
+        "test_exact_input_in_train_fraction": 0.0
+      }
+    },
+    {
+      "fold": 4,
+      "seed": 21,
+      "checkpoint": "adapted_overcooked\\outputs\\_p0_route2_author_smoke\\models\\fold_04\\model.pt",
+      "vocab_size": 128,
+      "best_dev_mse": 3.4612395763397217,
+      "best_epoch": 0,
+      "epochs_run": 1,
+      "split_sizes": {
+        "train": 1116,
+        "dev": 27,
+        "test": 22
+      },
+      "test_metrics": {
+        "mse": 2.056972026824951,
+        "mean_cosine_similarity": 0.14055918157100677,
+        "active_sign_accuracy": 0.5477855205535889,
+        "active_target_count": 858,
+        "examples": 22
+      },
+      "dev_teachers": [
+        "synthetic_author_09"
+      ],
+      "test_teachers": [
+        "synthetic_author_04"
+      ],
+      "dev_rewards": [
+        "reward_04"
+      ],
+      "test_rewards": [
+        "reward_11"
+      ],
+      "coverage": {
+        "corpus_examples": 1776,
+        "train_examples": 1116,
+        "dev_examples": 27,
+        "test_examples": 22,
+        "excluded_examples": 611,
+        "included_fraction": 0.6559684684684685,
+        "excluded_fraction": 0.34403153153153154,
+        "excluded_axis_pairs": {
+          "teacher_dev__reward_test": 23,
+          "teacher_dev__reward_train": 142,
+          "teacher_test__reward_dev": 24,
+          "teacher_test__reward_train": 134,
+          "teacher_train__reward_dev": 153,
+          "teacher_train__reward_test": 135
+        }
+      },
+      "heldout_overlap_audit": {
+        "test_exact_text_in_train": 0,
+        "test_exact_text_in_train_fraction": 0.0,
+        "test_exact_input_in_train": 0,
+        "test_exact_input_in_train_fraction": 0.0
+      }
+    },
+    {
+      "fold": 5,
+      "seed": 22,
+      "checkpoint": "adapted_overcooked\\outputs\\_p0_route2_author_smoke\\models\\fold_05\\model.pt",
+      "vocab_size": 133,
+      "best_dev_mse": 2.0939760208129883,
+      "best_epoch": 0,
+      "epochs_run": 1,
+      "split_sizes": {
+        "train": 1134,
+        "dev": 22,
+        "test": 23
+      },
+      "test_metrics": {
+        "mse": 3.2116124629974365,
+        "mean_cosine_similarity": 0.015027817338705063,
+        "active_sign_accuracy": 0.4163372814655304,
+        "active_target_count": 759,
+        "examples": 23
+      },
+      "dev_teachers": [
+        "synthetic_author_04"
+      ],
+      "test_teachers": [
+        "synthetic_author_11"
+      ],
+      "dev_rewards": [
+        "reward_11"
+      ],
+      "test_rewards": [
+        "reward_01"
+      ],
+      "coverage": {
+        "corpus_examples": 1776,
+        "train_examples": 1134,
+        "dev_examples": 22,
+        "test_examples": 23,
+        "excluded_examples": 597,
+        "included_fraction": 0.6638513513513513,
+        "excluded_fraction": 0.33614864864864863,
+        "excluded_axis_pairs": {
+          "teacher_dev__reward_test": 22,
+          "teacher_dev__reward_train": 136,
+          "teacher_test__reward_dev": 23,
+          "teacher_test__reward_train": 146,
+          "teacher_train__reward_dev": 135,
+          "teacher_train__reward_test": 135
+        }
+      },
+      "heldout_overlap_audit": {
+        "test_exact_text_in_train": 0,
+        "test_exact_text_in_train_fraction": 0.0,
+        "test_exact_input_in_train": 0,
+        "test_exact_input_in_train_fraction": 0.0
+      }
+    },
+    {
+      "fold": 6,
+      "seed": 23,
+      "checkpoint": "adapted_overcooked\\outputs\\_p0_route2_author_smoke\\models\\fold_06\\model.pt",
+      "vocab_size": 135,
+      "best_dev_mse": 3.230605363845825,
+      "best_epoch": 0,
+      "epochs_run": 1,
+      "split_sizes": {
+        "train": 1124,
+        "dev": 23,
+        "test": 23
+      },
+      "test_metrics": {
+        "mse": 4.550115585327148,
+        "mean_cosine_similarity": -0.14426814019680023,
+        "active_sign_accuracy": 0.4202898442745209,
+        "active_target_count": 759,
+        "examples": 23
+      },
+      "dev_teachers": [
+        "synthetic_author_11"
+      ],
+      "test_teachers": [
+        "synthetic_author_10"
+      ],
+      "dev_rewards": [
+        "reward_01"
+      ],
+      "test_rewards": [
+        "reward_02"
+      ],
+      "coverage": {
+        "corpus_examples": 1776,
+        "train_examples": 1124,
+        "dev_examples": 23,
+        "test_examples": 23,
+        "excluded_examples": 606,
+        "included_fraction": 0.6587837837837838,
+        "excluded_fraction": 0.34121621621621623,
+        "excluded_axis_pairs": {
+          "teacher_dev__reward_test": 23,
+          "teacher_dev__reward_train": 146,
+          "teacher_test__reward_dev": 23,
+          "teacher_test__reward_train": 146,
+          "teacher_train__reward_dev": 134,
+          "teacher_train__reward_test": 134
+        }
+      },
+      "heldout_overlap_audit": {
+        "test_exact_text_in_train": 0,
+        "test_exact_text_in_train_fraction": 0.0,
+        "test_exact_input_in_train": 0,
+        "test_exact_input_in_train_fraction": 0.0
+      }
+    },
+    {
+      "fold": 7,
+      "seed": 24,
+      "checkpoint": "adapted_overcooked\\outputs\\_p0_route2_author_smoke\\models\\fold_07\\model.pt",
+      "vocab_size": 135,
+      "best_dev_mse": 4.436975479125977,
+      "best_epoch": 0,
+      "epochs_run": 1,
+      "split_sizes": {
+        "train": 1307,
+        "dev": 23,
+        "test": 42
+      },
+      "test_metrics": {
+        "mse": 2.5871143341064453,
+        "mean_cosine_similarity": 0.11309755593538284,
+        "active_sign_accuracy": 0.6068376302719116,
+        "active_target_count": 1638,
+        "examples": 42
+      },
+      "dev_teachers": [
+        "synthetic_author_10"
+      ],
+      "test_teachers": [
+        "synthetic_author_01"
+      ],
+      "dev_rewards": [
+        "reward_02"
+      ],
+      "test_rewards": [
+        "reward_09"
+      ],
+      "coverage": {
+        "corpus_examples": 1776,
+        "train_examples": 1307,
+        "dev_examples": 23,
+        "test_examples": 42,
+        "excluded_examples": 404,
+        "included_fraction": 0.7725225225225225,
+        "excluded_fraction": 0.22747747747747749,
+        "excluded_axis_pairs": {
+          "teacher_dev__reward_train": 169,
+          "teacher_test__reward_train": 36,
+          "teacher_train__reward_dev": 157,
+          "teacher_train__reward_test": 42
+        }
+      },
+      "heldout_overlap_audit": {
+        "test_exact_text_in_train": 0,
+        "test_exact_text_in_train_fraction": 0.0,
+        "test_exact_input_in_train": 0,
+        "test_exact_input_in_train_fraction": 0.0
+      }
+    },
+    {
+      "fold": 8,
+      "seed": 25,
+      "checkpoint": "adapted_overcooked\\outputs\\_p0_route2_author_smoke\\models\\fold_08\\model.pt",
+      "vocab_size": 133,
+      "best_dev_mse": 2.655247926712036,
+      "best_epoch": 0,
+      "epochs_run": 1,
+      "split_sizes": {
+        "train": 1620,
+        "dev": 42,
+        "test": 36
+      },
+      "test_metrics": {
+        "mse": 2.8681392669677734,
+        "mean_cosine_similarity": -0.1660519391298294,
+        "active_sign_accuracy": 0.39529913663864136,
+        "active_target_count": 1404,
+        "examples": 36
+      },
+      "dev_teachers": [
+        "synthetic_author_01"
+      ],
+      "test_teachers": [
+        "synthetic_author_02"
+      ],
+      "dev_rewards": [
+        "reward_09"
+      ],
+      "test_rewards": [
+        "reward_00_gold"
+      ],
+      "coverage": {
+        "corpus_examples": 1776,
+        "train_examples": 1620,
+        "dev_examples": 42,
+        "test_examples": 36,
+        "excluded_examples": 78,
+        "included_fraction": 0.956081081081081,
+        "excluded_fraction": 0.04391891891891892,
+        "excluded_axis_pairs": {
+          "teacher_dev__reward_test": 36,
+          "teacher_test__reward_dev": 42
+        }
+      },
+      "heldout_overlap_audit": {
+        "test_exact_text_in_train": 0,
+        "test_exact_text_in_train_fraction": 0.0,
+        "test_exact_input_in_train": 0,
+        "test_exact_input_in_train_fraction": 0.0
+      }
+    },
+    {
+      "fold": 9,
+      "seed": 26,
+      "checkpoint": "adapted_overcooked\\outputs\\_p0_route2_author_smoke\\models\\fold_09\\model.pt",
+      "vocab_size": 130,
+      "best_dev_mse": 2.7949697971343994,
+      "best_epoch": 0,
+      "epochs_run": 1,
+      "split_sizes": {
+        "train": 1228,
+        "dev": 36,
+        "test": 52
+      },
+      "test_metrics": {
+        "mse": 2.636650323867798,
+        "mean_cosine_similarity": 0.07856407761573792,
+        "active_sign_accuracy": 0.5917721390724182,
+        "active_target_count": 1896,
+        "examples": 52
+      },
+      "dev_teachers": [
+        "synthetic_author_02"
+      ],
+      "test_teachers": [
+        "synthetic_author_06",
+        "synthetic_author_07"
+      ],
+      "dev_rewards": [
+        "reward_00_gold"
+      ],
+      "test_rewards": [
+        "reward_07",
+        "reward_10"
+      ],
+      "coverage": {
+        "corpus_examples": 1776,
+        "train_examples": 1228,
+        "dev_examples": 36,
+        "test_examples": 52,
+        "excluded_examples": 460,
+        "included_fraction": 0.740990990990991,
+        "excluded_fraction": 0.25900900900900903,
+        "excluded_axis_pairs": {
+          "teacher_dev__reward_train": 42,
+          "teacher_test__reward_train": 194,
+          "teacher_train__reward_dev": 36,
+          "teacher_train__reward_test": 188
+        }
+      },
+      "heldout_overlap_audit": {
+        "test_exact_text_in_train": 0,
+        "test_exact_text_in_train_fraction": 0.0,
+        "test_exact_input_in_train": 0,
+        "test_exact_input_in_train_fraction": 0.0
+      }
+    }
+  ],
+  "aggregate_held_out_test_metrics": {
+    "mse": 2.9496948957443236,
+    "mean_cosine_similarity": 0.024900616603818808,
+    "active_sign_accuracy": 0.5160487888234707,
+    "active_target_count": 12462,
+    "examples": 330
+  },
+  "ensemble_manifest": "adapted_overcooked\\outputs\\_p0_route2_author_smoke\\models\\ensemble_manifest.json"
+}

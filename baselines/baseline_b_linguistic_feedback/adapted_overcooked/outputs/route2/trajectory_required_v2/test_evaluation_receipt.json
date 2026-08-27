@@ -1,0 +1,11 @@
+{
+  "benchmark_manifest_sha256": "42409c78311ed72c0e611d4592f27b249d527e3f8d9942eac33059b26631c23b",
+  "evaluation_report": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\route2\\trajectory_required_v2\\evaluation_report.json",
+  "evaluation_report_sha256": "e69e4f46d8b46eabaa7380b0bd07a63ea1111615b432e28721c10f5c83140d89",
+  "evaluator_version": "route2-trajectory-required-evaluator-v1",
+  "schema_version": 1,
+  "status": "completed",
+  "test_sha256": "5549320bce703f56bee874c55837b4de65257542e353a1dbea95f29396a38016",
+  "train_dev_sha256": "ca653bb7dec0663b96207ef366f8e7f7ab3b13aeac881d8781e04fa1aef686ae",
+  "validity_gate_status": "passed"
+}

@@ -1,5 +1,11 @@
 # Baseline B Overcooked Migration Notes
 
+> **Current status (2026-08-10):** Route 1 is implemented, and synthetic Route 2
+> passes the frozen complete-reward teacher/config holdout. This is not a human
+> language result: the separate local-language probe is only 1/4. Route 2 uses
+> 36 hidden configurations, the paper's ten-fold rotation, and a hash-frozen
+> ten-model deployment ensemble; see
+> [ROUTE2_AUDIT_REPORT.md](ROUTE2_AUDIT_REPORT.md).
 > Every deviation from the original paper/experiment, and the explicit
 > "stop-before-training" boundary, is catalogued in
 > [`DIFFERENCES_FROM_PAPER.md`](DIFFERENCES_FROM_PAPER.md). Sentiment is now
@@ -18,7 +24,11 @@ human linguistic feedback
 -> probe state evaluation (posterior mean + sampled policy)
 ```
 
-The adapted version is intentionally offline. It does not change PPO checkpoints or the pygame agent policy. It evaluates whether the learned reward-weight belief prefers the expected action in controlled probe states.
+The adaptation supports both offline evaluation and live Pygame feedback. It
+does not change PPO checkpoints: language updates reward weights, those weights
+rerank H0-valid subgoals by `w · phi`, and H0 still executes the selected
+subgoal. Controlled probes and paper-style held-out folds evaluate the same
+reward-to-choice path used at runtime.
 
 ## Key Migration Decisions
 

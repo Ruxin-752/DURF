@@ -1,0 +1,52 @@
+{
+  "active_feedback_ids": 0,
+  "blank_lines_ignored": 1,
+  "counts_by_annotation_status": {},
+  "counts_by_assigned_split": {},
+  "counts_by_reference_type": {},
+  "cross_label_exact_duplicate_conflicts": 0,
+  "empty_input_is_valid": true,
+  "gold_dev_rows": 0,
+  "gold_policy": "dev/test require adjudicated; single_annotated is never gold",
+  "gold_test_rows": 0,
+  "identical_revisions_dropped": 0,
+  "input_exists": true,
+  "input_path": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\data\\human_reference_annotations.jsonl",
+  "input_rows": 0,
+  "model_predictions_used_as_labels": false,
+  "normalized_rows": 0,
+  "outputs": {
+    "gold_benchmark": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\data\\human_reference_gold_benchmark.json",
+    "normalized": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\data\\human_reference_annotations.normalized.json",
+    "train_candidates": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\data\\human_reference_train_candidates.json"
+  },
+  "same_label_exact_duplicates_dropped": 0,
+  "schema_version": "human-reference-annotations-v1",
+  "split_policy": {
+    "append_stable": true,
+    "buckets": {
+      "dev": [
+        8000,
+        9000
+      ],
+      "test": [
+        9000,
+        10000
+      ],
+      "train": [
+        0,
+        8000
+      ]
+    },
+    "group_key": [
+      "teacher_id",
+      "session_id"
+    ],
+    "method": "sha256 fixed threshold"
+  },
+  "split_policy_version": "human-reference-teacher-session-hash-v1",
+  "superseded_revisions": 0,
+  "teacher_session_group_overlap_count": 0,
+  "train_candidate_rows": 0,
+  "withheld_single_annotated": {}
+}

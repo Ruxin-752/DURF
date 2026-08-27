@@ -5,6 +5,7 @@ import json
 import sys
 import tempfile
 import unittest
+from unittest import mock
 from pathlib import Path
 
 import numpy as np
@@ -34,7 +35,11 @@ from src.feedback_observations import (  # noqa: E402
     build_feedback_observations,
     valence_with_safety_gate,
 )
-from src.evaluation_splits import make_train_dev_test_split  # noqa: E402
+from src.evaluation_splits import (  # noqa: E402
+    make_split_manifest,
+    make_train_dev_test_split,
+    validate_split_manifest,
+)
 from src.neural_inference import (  # noqa: E402
     TrajectoryFeedbackRewardPredictor,
     build_vocab,
@@ -58,11 +63,17 @@ from src.phrase_reference_classifier import (  # noqa: E402
 )
 from scripts.train_phrase_reference_classifier import (  # noqa: E402
     build_phrase_rows,
+    reproduce_original_paper_benchmark,
     train_classifier,
 )
 from src.sentiment_extractor import modified_vader_observation  # noqa: E402
 from src.session_bridge import build_session_feedback_examples  # noqa: E402
-from src.subgoal_featurizer import SubgoalContext, featurize_subgoal  # noqa: E402
+from src.subgoal_featurizer import (  # noqa: E402
+    LIVE_DECISION_FEATURES,
+    SubgoalContext,
+    audit_live_feature_coverage,
+    featurize_subgoal,
+)
 from src.subgoal_reranker import (  # noqa: E402
     choose_subgoal,
     evaluate_subgoal_probes,
@@ -76,6 +87,7 @@ from src.human_intent import (  # noqa: E402
     infer_human_intent,
     with_inferred_intent,
 )
+from src import text_analysis  # noqa: E402
 from src.text_analysis import (  # noqa: E402
     limited_punc_tokenization,
     nn_tokenize,
@@ -99,6 +111,16 @@ from scripts.enumerate_subgoal_contexts import enumerate_contexts  # noqa: E402
 from scripts.generate_synthetic_feedback import (  # noqa: E402
     _parse_json_strings,
     build_corpus,
+)
+from scripts.generate_route2_teacher_corpus import (  # noqa: E402
+    REWARD_CONDITIONING_PHRASES,
+    build_teacher_corpus,
+)
+from src.reward_configurations import (  # noqa: E402
+    LEVELS,
+    PREFERENCE_GROUPS,
+    sample_reward_configurations,
+    validate_reward_configurations,
 )
 from scripts.train_route2 import train as train_route2  # noqa: E402
 
@@ -284,6 +306,25 @@ class OnlineRoute1Tests(unittest.TestCase):
             ],
         }
 
+    @staticmethod
+    def _form_prediction(
+        text: str,
+        feedback_type: str,
+        *,
+        confidence: float = 0.95,
+        abstained: bool = False,
+    ) -> dict:
+        return {
+            "feedback_type": feedback_type,
+            "label": feedback_type.title(),
+            "confidence": confidence,
+            "probabilities": {feedback_type: confidence},
+            "classifier": "test_feedback_form",
+            "confidence_threshold": 0.55,
+            "abstained": abstained,
+            "text": text,
+        }
+
     def test_inferred_prohibitive_command_updates_named_action_negative(self) -> None:
         learner = OnlineRoute1Learner(
             load_features(),
@@ -294,10 +335,16 @@ class OnlineRoute1Tests(unittest.TestCase):
             "Stop taking the onion.",
             decision=self.decision,
             interpretation="inferred",
+            feedback_form_prediction=self._form_prediction(
+                "Stop taking the onion.", "imperative"
+            ),
         )
 
         self.assertEqual(trace["status"], "updated")
-        self.assertEqual(trace["feedback_type"], "imperative")
+        # The paper's three-way f_G owns credit assignment. The compatible
+        # five-way subtype only refines action grounding.
+        self.assertEqual(trace["reference_types"], ["action_spatial"])
+        self.assertEqual(trace["effective_reference_types"], ["action_spatial"])
         self.assertEqual(trace["target_action"], "GET_ONION")
         self.assertTrue(all(obs["valence"] < 0 for obs in trace["observations"]))
         self.assertLess(learner.weights()["duplicate_human_task"], 0.0)
@@ -307,6 +354,125 @@ class OnlineRoute1Tests(unittest.TestCase):
             if change["feature"] == "duplicate_human_task"
         )
         self.assertLess(duplicate["variance_after"], duplicate["variance_before"])
+
+    def test_feedback_form_wins_cross_taxonomy_reference_conflict(self) -> None:
+        learner = OnlineRoute1Learner(
+            ["pick_onion", "blocks_human_path"],
+            mode="route1-literal",
+            max_update_kl=100.0,
+        )
+        conflicting_reference = {
+            "reference_type": "feature",
+            "confidence": 0.99,
+            "probabilities": {"feature": 0.99},
+            "classifier": "test_reference",
+            "abstained": False,
+            "top2_margin": 0.98,
+        }
+        with mock.patch(
+            "src.feedback_observations.predict_reference_type",
+            return_value=conflicting_reference,
+        ):
+            trace = learner.update(
+                "Great job.",
+                trajectory_features={"pick_onion": 1.0},
+                feedback_form_prediction=self._form_prediction(
+                    "Great job.", "evaluative"
+                ),
+            )
+
+        self.assertEqual(trace["status"], "updated")
+        self.assertEqual(trace["reference_types"], ["feature"])
+        self.assertEqual(trace["effective_reference_types"], ["trajectory"])
+        self.assertTrue(trace["observations"][0]["reference_conflict"])
+        self.assertEqual(
+            trace["observations"][0]["grounding_source"], "trajectory_features"
+        )
+        self.assertGreater(learner.weights()["pick_onion"], 0.0)
+        self.assertAlmostEqual(learner.weights()["blocks_human_path"], 0.0)
+
+    def test_low_confidence_feedback_form_rejects_before_weight_update(self) -> None:
+        learner = OnlineRoute1Learner(["pick_onion"], max_update_kl=100.0)
+        reference = {
+            "reference_type": "trajectory",
+            "confidence": 0.99,
+            "probabilities": {"trajectory": 0.99},
+            "classifier": "test_reference",
+            "abstained": False,
+            "top2_margin": 0.98,
+        }
+        with mock.patch(
+            "src.feedback_observations.predict_reference_type",
+            return_value=reference,
+        ):
+            trace = learner.update(
+                "That was useful.",
+                trajectory_features={"pick_onion": 1.0},
+                feedback_form_prediction=self._form_prediction(
+                    "That was useful.",
+                    "evaluative",
+                    confidence=0.4,
+                    abstained=True,
+                ),
+            )
+
+        self.assertEqual(trace["status"], "rejected_low_confidence")
+        self.assertIn("feedback_form", trace["trace_state"])
+        self.assertAlmostEqual(learner.weights()["pick_onion"], 0.0)
+
+    def test_mixed_feedback_uses_each_phrase_form_for_credit_assignment(self) -> None:
+        learner = OnlineRoute1Learner(
+            ["pick_onion", "pick_dish"],
+            mode="route1-literal",
+            max_update_kl=100.0,
+        )
+        decision = {
+            "chosen_subgoal": "GET_ONION",
+            "ranking": [
+                {"subgoal": "GET_ONION", "features": {"pick_onion": 1.0}},
+                {"subgoal": "GET_DISH", "features": {"pick_dish": 1.0}},
+            ],
+        }
+        mixed_prediction = {
+            "feedback_type": "mixed",
+            "label": "Mixed",
+            "phrases": [
+                self._form_prediction("Great job", "evaluative"),
+                self._form_prediction("Please take a dish", "imperative"),
+            ],
+        }
+
+        def reference_for_phrase(phrase: str) -> dict:
+            label = "trajectory" if phrase == "Great job" else "action_spatial"
+            return {
+                "reference_type": label,
+                "confidence": 0.95,
+                "probabilities": {label: 0.95},
+                "classifier": "test_reference",
+                "abstained": False,
+                "top2_margin": 0.9,
+            }
+
+        with mock.patch(
+            "src.feedback_observations.predict_reference_type",
+            side_effect=reference_for_phrase,
+        ):
+            trace = learner.update(
+                "Great job. Please take a dish.",
+                decision=decision,
+                trajectory_features={"pick_onion": 1.0},
+                feedback_form_prediction=mixed_prediction,
+            )
+
+        self.assertEqual(trace["status"], "updated")
+        self.assertEqual(trace["feedback_type"], "mixed")
+        self.assertEqual(trace["feedback_types"], ["evaluative", "imperative"])
+        self.assertEqual(
+            [row["grounding_source"] for row in trace["observations"]],
+            ["trajectory_features", "target_action:GET_DISH"],
+        )
+        self.assertGreater(learner.weights()["pick_onion"], 0.0)
+        self.assertGreater(learner.weights()["pick_dish"], 0.0)
 
     def test_oracle_trace_uses_annotations(self) -> None:
         learner = OnlineRoute1Learner(load_features(), mode="route1-pseudopragmatic")
@@ -340,7 +506,13 @@ class OnlineRoute1Tests(unittest.TestCase):
             semantic_dedup_threshold=0.6,
             minimum_reference_confidence=0.45,
         )
-        first = learner.update("Stop taking the onion.", decision=self.decision)
+        first = learner.update(
+            "Stop taking the onion.",
+            decision=self.decision,
+            feedback_form_prediction=self._form_prediction(
+                "Stop taking the onion.", "imperative"
+            ),
+        )
         second = learner.update("Please stop taking onion!", decision=self.decision)
         self.assertEqual(first["status"], "updated")
         self.assertEqual(second["status"], "rejected_duplicate")
@@ -377,6 +549,9 @@ class OnlineRoute1Tests(unittest.TestCase):
                     {"subgoal": "GET_ONION", "features": {"pick_onion": 1.0}}
                 ],
             },
+            feedback_form_prediction=self._form_prediction(
+                "Stop taking the onion.", "imperative"
+            ),
         )
         self.assertEqual(trace["status"], "updated")
         self.assertAlmostEqual(learner.weights()["unmentioned"], 0.0)
@@ -397,12 +572,71 @@ class SubgoalCompatTests(unittest.TestCase):
             human_intent="pick_dish_then_serve",
         )
         grab_dish = featurize_subgoal(context, "GET_DISH")
-        self.assertIn("blocks_serving_route", grab_dish)
         self.assertIn("duplicate_human_task", grab_dish)
+        self.assertNotIn("blocks_serving_route", grab_dish)
 
         wait = featurize_subgoal(context, "WAIT")
         self.assertIn("respects_human_intent", wait)
         self.assertNotIn("blocks_serving_route", wait)
+        self.assertNotIn("clears_human_path", wait)
+
+    def test_same_ingredient_is_not_duplicate_when_multiple_units_remain(self) -> None:
+        context = SubgoalContext(
+            recipe=["tomato", "tomato", "onion"],
+            pot_ingredients=["onion"],
+            pot_status="partial",
+            human_holding="tomato",
+            human_intent="get_tomato",
+            human_committed_units=1,
+        )
+        tomato = featurize_subgoal(context, "GET_TOMATO")
+        self.assertNotIn("duplicate_human_task", tomato)
+        self.assertNotIn("steals_human_target", tomato)
+        self.assertIn("complementary_to_human", tomato)
+
+    def test_serving_chain_roles_are_not_automatically_duplicate(self) -> None:
+        context = SubgoalContext(
+            recipe=["tomato", "tomato", "onion"],
+            pot_ingredients=["tomato", "tomato", "onion"],
+            pot_status="ready",
+            human_holding="dish",
+            human_intent="pick_dish_then_serve",
+            human_committed_units=1,
+        )
+        pickup = featurize_subgoal(context, "PICKUP_SOUP")
+        self.assertNotIn("duplicate_human_task", pickup)
+        self.assertIn("complementary_to_human", pickup)
+
+    def test_two_dishes_compete_for_the_same_ready_soup(self) -> None:
+        context = SubgoalContext(
+            recipe=["tomato", "tomato", "onion"],
+            pot_ingredients=["tomato", "tomato", "onion"],
+            pot_status="ready",
+            agent_holding="dish",
+            human_holding="dish",
+            human_intent="pick_dish_then_serve",
+            human_committed_units=1,
+            candidate_target_overlaps_human={"PICKUP_SOUP": True},
+        )
+        pickup = featurize_subgoal(context, "PICKUP_SOUP")
+        self.assertIn("duplicate_human_task", pickup)
+        self.assertIn("crowds_human_target", pickup)
+        self.assertNotIn("complementary_to_human", pickup)
+        self.assertNotIn("avoids_duplicate_human_task", pickup)
+
+    def test_two_held_soups_are_independent_serving_work(self) -> None:
+        context = SubgoalContext(
+            recipe=["tomato", "tomato", "onion"],
+            pot_ingredients=[],
+            pot_status="empty",
+            agent_holding="soup",
+            human_holding="soup",
+            human_intent="serve_soup",
+            human_committed_units=1,
+        )
+        serve = featurize_subgoal(context, "SERVE_SOUP")
+        self.assertNotIn("duplicate_human_task", serve)
+        self.assertIn("complementary_to_human", serve)
 
     def test_native_and_state_facts_context_agree(self) -> None:
         native = {
@@ -434,6 +668,44 @@ class SubgoalCompatTests(unittest.TestCase):
     def test_choose_subgoal_requires_feasible_options(self) -> None:
         with self.assertRaises(ValueError):
             choose_subgoal(load_weights(), {"human_intent": "get_onion"}, [])
+
+    def test_all_53_features_are_decision_relevant_or_explicitly_masked(self) -> None:
+        candidate_sets = []
+        for pot in ([], ["tomato"], ["tomato", "tomato"], ["tomato", "tomato", "onion"]):
+            for status in ("empty", "partial", "cooking", "ready"):
+                for held in (None, "tomato", "onion", "dish", "soup"):
+                    for intent in (None, "get tomato", "get onion", "pick dish", "serve soup"):
+                        context = SubgoalContext(
+                            pot_ingredients=list(pot),
+                            pot_status=status,
+                            agent_holding=held,
+                            human_intent=intent,
+                            candidate_path_effects={
+                                "GET_TOMATO": "clears",
+                                "PUT_TOMATO_IN_POT": "blocks",
+                                "GET_ONION": "blocks",
+                                "PUT_ONION_IN_POT": "enters",
+                                "GET_DISH": "enters",
+                                "PICKUP_SOUP": "clears",
+                                "SERVE_SOUP": "enters",
+                                "YIELD_PATH": "clears",
+                                "WAIT": "neutral",
+                            },
+                        )
+                        feasible = enumerate_feasible_subgoals(context)
+                        feasible.insert(-1, "YIELD_PATH")
+                        candidate_sets.append(
+                            [featurize_subgoal(context, subgoal) for subgoal in feasible]
+                        )
+        audit = audit_live_feature_coverage(
+            load_features(), candidate_sets=candidate_sets
+        )
+        self.assertEqual(audit["schema_size"], 53)
+        self.assertEqual(audit["decision_feature_count"], 33)
+        self.assertEqual(len(audit["decision_null_features"]), 20)
+        self.assertEqual(audit["missing_declared_decision_features"], [])
+        self.assertEqual(audit["undeclared_varying_features"], [])
+        self.assertTrue(audit["complete"])
 
 
 class SessionBridgeTests(unittest.TestCase):
@@ -557,6 +829,16 @@ class TokenizationTests(unittest.TestCase):
         self.assertIn("move", tokens)
         self.assertIn("aside", tokens)
 
+    def test_nn_tokenize_falls_back_without_nltk_runtime(self) -> None:
+        with mock.patch.object(
+            text_analysis,
+            "_word_tokenize",
+            return_value=["plates", "tomatoes", "onions"],
+        ), mock.patch.object(text_analysis, "_lemmatizer", side_effect=ImportError):
+            self.assertEqual(
+                nn_tokenize("ignored"),
+                ["plate", "tomato", "onion"],
+            )
     def test_reference_vector_normalized_to_sum_one(self) -> None:
         features = ["a", "b", "c"]
         vector = reference_vector({"a": 1, "b": 1}, features, normalize=True)
@@ -724,6 +1006,212 @@ class SubgoalPlannerTests(unittest.TestCase):
         self.assertIn("WAIT", candidates)
         self.assertNotIn("GET_ONION", candidates)
 
+    def test_duplicate_held_ingredient_offers_stash_without_forcing_it(self) -> None:
+        context = SubgoalContext(
+            recipe=["tomato", "tomato", "onion"],
+            pot_ingredients=["tomato", "tomato"],
+            pot_status="partial",
+            agent_holding="onion",
+            human_holding="onion",
+            human_intent="get_onion",
+            human_committed_units=1,
+        )
+
+        candidates = enumerate_feasible_subgoals(context)
+
+        self.assertEqual(
+            candidates,
+            ["PUT_ONION_IN_POT", "STASH_HELD_OBJECT", "WAIT"],
+        )
+        put_features = featurize_subgoal(context, "PUT_ONION_IN_POT")
+        stash_features = featurize_subgoal(context, "STASH_HELD_OBJECT")
+        self.assertIn("duplicate_human_task", put_features)
+        self.assertIn("avoids_duplicate_human_task", stash_features)
+        self.assertIn("respects_human_intent", stash_features)
+        self.assertNotIn("complementary_to_human", stash_features)
+
+        weights = empty_weights(self.features)
+        weights["duplicate_human_task"] = -2.0
+        weights["avoids_duplicate_human_task"] = 1.0
+        decision = plan_subgoal(weights, context, tie_fallback="PUT_ONION_IN_POT")
+        self.assertEqual(decision["chosen_subgoal"], "STASH_HELD_OBJECT")
+        self.assertEqual(decision["score_formula"], "w_dot_phi")
+
+    def test_unusable_held_ingredient_offers_stash_instead_of_wait_only(self) -> None:
+        context = SubgoalContext(
+            recipe=["tomato", "tomato", "onion"],
+            pot_ingredients=["tomato", "tomato", "onion"],
+            pot_status="cooking",
+            agent_holding="onion",
+        )
+        self.assertEqual(
+            enumerate_feasible_subgoals(context),
+            ["STASH_HELD_OBJECT", "WAIT"],
+        )
+        stash = featurize_subgoal(context, "STASH_HELD_OBJECT")
+        self.assertEqual(stash.get("time_cost"), 1.0)
+        self.assertNotIn("supports_serving", stash)
+        wait = featurize_subgoal(context, "WAIT")
+        self.assertEqual(wait.get("time_cost"), 1.0)
+        self.assertEqual(wait.get("delays_serving"), 1.0)
+
+    def test_stashing_unusable_object_supports_a_ready_soup(self) -> None:
+        context = SubgoalContext(
+            recipe=["tomato", "tomato", "onion"],
+            pot_ingredients=["tomato", "tomato", "onion"],
+            pot_status="ready",
+            agent_holding="onion",
+        )
+        candidates = enumerate_feasible_subgoals(context)
+        self.assertEqual(candidates, ["STASH_HELD_OBJECT", "WAIT"])
+        stash = featurize_subgoal(context, "STASH_HELD_OBJECT")
+        self.assertEqual(stash.get("supports_serving"), 1.0)
+        self.assertNotIn("time_cost", stash)
+
+    def test_ready_and_partial_pots_offer_both_serving_and_filling(self) -> None:
+        context = SubgoalContext(
+            recipe=["tomato", "tomato", "onion"],
+            pot_ingredients=["tomato", "tomato", "onion"],
+            pot_status="ready",
+            pot_snapshots=[
+                {
+                    "position": (1, 0),
+                    "ingredients": ["tomato", "tomato", "onion"],
+                    "status": "ready",
+                },
+                {
+                    "position": (4, 0),
+                    "ingredients": ["onion"],
+                    "status": "partial",
+                },
+            ],
+        )
+        self.assertEqual(
+            set(enumerate_feasible_subgoals(context)),
+            {"GET_DISH", "GET_TOMATO", "WAIT"},
+        )
+        tomato = featurize_subgoal(context, "GET_TOMATO")
+        self.assertIn("adds_needed_tomato", tomato)
+        self.assertIn("matches_current_order", tomato)
+        for invalid in ("adds_extra_tomato", "wrong_ingredient", "breaks_recipe"):
+            self.assertNotIn(invalid, tomato)
+
+    def test_cooking_and_partial_pots_do_not_hide_open_recipe_work(self) -> None:
+        context = SubgoalContext(
+            recipe=["tomato", "tomato", "onion"],
+            pot_ingredients=["tomato", "tomato", "onion"],
+            pot_status="cooking",
+            pot_snapshots=[
+                {
+                    "ingredients": ["tomato", "tomato", "onion"],
+                    "status": "cooking",
+                },
+                {
+                    "ingredients": ["tomato", "onion"],
+                    "status": "partial",
+                },
+            ],
+        )
+        self.assertEqual(
+            set(enumerate_feasible_subgoals(context)),
+            {"GET_TOMATO", "WAIT"},
+        )
+        wait = featurize_subgoal(context, "WAIT")
+        self.assertIn("time_cost", wait)
+        self.assertIn("delays_serving", wait)
+
+    def test_held_ingredient_can_fill_partial_beside_ready_pot(self) -> None:
+        context = SubgoalContext(
+            recipe=["tomato", "tomato", "onion"],
+            pot_ingredients=["tomato", "tomato", "onion"],
+            pot_status="ready",
+            agent_holding="tomato",
+            pot_snapshots=[
+                {
+                    "ingredients": ["tomato", "tomato", "onion"],
+                    "status": "ready",
+                },
+                {"ingredients": ["onion"], "status": "partial"},
+            ],
+        )
+        self.assertEqual(
+            set(enumerate_feasible_subgoals(context)),
+            {"PUT_TOMATO_IN_POT", "WAIT"},
+        )
+
+    def test_single_plural_snapshot_matches_legacy_context(self) -> None:
+        legacy = SubgoalContext(
+            recipe=["tomato", "tomato", "onion"],
+            pot_ingredients=["onion"],
+            pot_status="partial",
+            human_holding="tomato",
+            human_intent="get_tomato",
+            human_committed_units=1,
+        )
+        plural = SubgoalContext(
+            recipe=list(legacy.recipe),
+            pot_ingredients=list(legacy.pot_ingredients),
+            pot_status=legacy.pot_status,
+            human_holding=legacy.human_holding,
+            human_intent=legacy.human_intent,
+            human_committed_units=legacy.human_committed_units,
+            pot_snapshots=[
+                {"ingredients": ["onion"], "status": "partial"}
+            ],
+        )
+        self.assertEqual(
+            enumerate_feasible_subgoals(legacy),
+            enumerate_feasible_subgoals(plural),
+        )
+        for subgoal in enumerate_feasible_subgoals(legacy):
+            self.assertEqual(
+                featurize_subgoal(legacy, subgoal),
+                featurize_subgoal(plural, subgoal),
+            )
+
+    def test_multiple_pots_make_same_ingredient_work_complementary(self) -> None:
+        context = SubgoalContext(
+            recipe=["tomato", "tomato", "onion"],
+            pot_ingredients=["onion"],
+            pot_status="partial",
+            human_holding="tomato",
+            human_intent="get_tomato",
+            human_committed_units=1,
+            pot_snapshots=[
+                {"ingredients": ["onion"], "status": "partial"},
+                {"ingredients": ["tomato", "onion"], "status": "partial"},
+            ],
+        )
+        tomato = featurize_subgoal(context, "GET_TOMATO")
+        self.assertNotIn("duplicate_human_task", tomato)
+        self.assertNotIn("steals_human_target", tomato)
+        self.assertIn("complementary_to_human", tomato)
+
+    def test_two_ready_pots_leave_one_dish_task_for_each_agent(self) -> None:
+        context = SubgoalContext(
+            recipe=["tomato", "tomato", "onion"],
+            pot_ingredients=["tomato", "tomato", "onion"],
+            pot_status="ready",
+            agent_holding="dish",
+            human_holding="dish",
+            human_intent="pick_dish_then_serve",
+            human_committed_units=1,
+            candidate_target_overlaps_human={"PICKUP_SOUP": True},
+            pot_snapshots=[
+                {
+                    "ingredients": ["tomato", "tomato", "onion"],
+                    "status": "ready",
+                },
+                {
+                    "ingredients": ["tomato", "tomato", "onion"],
+                    "status": "ready",
+                },
+            ],
+        )
+        pickup = featurize_subgoal(context, "PICKUP_SOUP")
+        self.assertNotIn("duplicate_human_task", pickup)
+        self.assertIn("complementary_to_human", pickup)
+
     def test_empty_pot_enumerates_missing_ingredient_pickups(self) -> None:
         context = {
             "recipe": ["tomato", "tomato", "onion"],
@@ -735,6 +1223,194 @@ class SubgoalPlannerTests(unittest.TestCase):
         self.assertIn("GET_TOMATO", candidates)
         self.assertIn("GET_ONION", candidates)
 
+    def test_staged_prefetch_inventory_prevents_immediate_repickup(self) -> None:
+        context = SubgoalContext(
+            recipe=["tomato", "tomato", "onion"],
+            pot_ingredients=["tomato", "tomato", "onion"],
+            pot_status="cooking",
+            staged_inventory={"tomato": 1, "onion": 1, "dish": 1},
+        )
+
+        candidates = enumerate_feasible_subgoals(context)
+
+        # One more tomato is a genuine next-order deficit. The onion and dish
+        # already on counters are completed preparation, not new pickup work.
+        self.assertEqual(candidates, ["GET_TOMATO", "WAIT"])
+        context.staged_inventory["tomato"] = 2
+        self.assertEqual(enumerate_feasible_subgoals(context), ["WAIT"])
+
+    def test_staged_ingredient_is_pickable_again_when_a_pot_opens(self) -> None:
+        context = SubgoalContext(
+            recipe=["tomato", "tomato", "onion"],
+            pot_ingredients=["tomato", "tomato"],
+            pot_status="partial",
+            staged_inventory={"onion": 1},
+        )
+
+        self.assertEqual(
+            enumerate_feasible_subgoals(context),
+            ["GET_ONION", "WAIT"],
+        )
+
+    def test_human_held_unit_prevents_staged_open_pot_repickup(self) -> None:
+        context = SubgoalContext(
+            recipe=["tomato", "tomato", "onion"],
+            pot_ingredients=["tomato", "onion"],
+            pot_status="partial",
+            human_holding="tomato",
+            human_committed_units=1,
+            staged_inventory={"tomato": 1},
+        )
+
+        feasible = enumerate_feasible_subgoals(context)
+        self.assertNotIn("GET_TOMATO", feasible)
+        self.assertEqual(feasible, ["GET_DISH", "WAIT"])
+
+        context.staged_inventory["dish"] = 1
+        self.assertEqual(enumerate_feasible_subgoals(context), ["WAIT"])
+
+        two_units_missing = SubgoalContext(
+            recipe=["tomato", "tomato", "onion"],
+            pot_ingredients=["onion"],
+            pot_status="partial",
+            human_holding="tomato",
+            human_committed_units=1,
+            staged_inventory={"tomato": 1},
+        )
+        self.assertIn(
+            "GET_TOMATO", enumerate_feasible_subgoals(two_units_missing)
+        )
+
+    def test_dish_prefetch_is_bounded_by_all_active_soups(self) -> None:
+        context = SubgoalContext(
+            recipe=["tomato", "tomato", "onion"],
+            pot_ingredients=["tomato", "tomato", "onion"],
+            pot_status="ready",
+            pot_snapshots=[
+                {
+                    "ingredients": ["tomato", "tomato", "onion"],
+                    "status": "ready",
+                },
+                {
+                    "ingredients": ["tomato", "tomato", "onion"],
+                    "status": "cooking",
+                },
+            ],
+            staged_inventory={"dish": 1},
+        )
+
+        self.assertIn("GET_DISH", enumerate_feasible_subgoals(context))
+        context.staged_inventory["dish"] = 2
+        self.assertNotIn("GET_DISH", enumerate_feasible_subgoals(context))
+
+    def test_ready_soup_does_not_duplicate_a_human_held_dish(self) -> None:
+        context = SubgoalContext(
+            recipe=["tomato", "tomato", "onion"],
+            pot_ingredients=["tomato", "tomato", "onion"],
+            pot_status="ready",
+            human_holding="dish",
+            human_intent="pick_dish_then_serve",
+            human_committed_units=1,
+        )
+
+        self.assertEqual(enumerate_feasible_subgoals(context), ["WAIT"])
+
+    def test_cooking_state_offers_neutral_preparation_candidates(self) -> None:
+        context = {
+            "recipe": ["tomato", "tomato", "onion"],
+            "pot_ingredients": ["tomato", "tomato", "onion"],
+            "pot_status": "cooking",
+            "agent_holding": None,
+            "human_holding": "dish",
+            "human_intent": "pick_dish_then_serve",
+        }
+        candidates = enumerate_feasible_subgoals(context)
+        self.assertEqual(
+            set(candidates),
+            {"GET_TOMATO", "GET_ONION", "WAIT"},
+        )
+        wait_features = featurize_subgoal(context, "WAIT")
+        self.assertNotIn("time_cost", wait_features)
+        prefetch = featurize_subgoal(context, "GET_ONION")
+        self.assertEqual(prefetch["pot_cooking"], 1.0)
+        self.assertEqual(prefetch["ingredient_onion"], 1.0)
+        self.assertEqual(prefetch["pick_onion"], 1.0)
+        self.assertEqual(prefetch["moves_toward_needed_object"], 1.0)
+        for hard_coded_judgment in (
+            "adds_needed_onion",
+            "recipe_needs_onion",
+            "matches_current_order",
+            "wrong_ingredient",
+            "breaks_recipe",
+        ):
+            self.assertNotIn(hard_coded_judgment, prefetch)
+
+    def test_same_cooking_state_is_selected_only_by_reward_weights(self) -> None:
+        context = {
+            "recipe": ["tomato", "tomato", "onion"],
+            "pot_ingredients": ["tomato", "tomato", "onion"],
+            "pot_status": "cooking",
+            "agent_holding": None,
+        }
+        feasible = ["GET_DISH", "GET_TOMATO", "GET_ONION", "WAIT"]
+        cases = (
+            (
+                {"pick_dish": -1.0, "pick_tomato": -1.0, "pick_onion": -1.0},
+                "WAIT",
+            ),
+            (
+                {"pick_dish": 2.0, "pick_tomato": -1.0, "pick_onion": -1.0},
+                "GET_DISH",
+            ),
+            (
+                {"pick_dish": -1.0, "pick_tomato": -1.0, "pick_onion": 2.0},
+                "GET_ONION",
+            ),
+        )
+        for changes, expected in cases:
+            weights = empty_weights(self.features)
+            weights.update(changes)
+            decision = plan_subgoal(
+                weights,
+                context,
+                feasible_subgoals=feasible,
+                tie_fallback="WAIT",
+            )
+            self.assertEqual(decision["chosen_subgoal"], expected)
+            self.assertEqual(decision["score_formula"], "w_dot_phi")
+            for row in decision["ranking"]:
+                expected_score = sum(
+                    weights.get(feature, 0.0) * value
+                    for feature, value in row["features"].items()
+                )
+                self.assertAlmostEqual(row["total_score"], expected_score)
+
+    def test_zero_reward_tie_uses_h0_fallback_not_schema_order(self) -> None:
+        context = {
+            "recipe": ["tomato", "tomato", "onion"],
+            "pot_ingredients": ["tomato", "tomato", "onion"],
+            "pot_status": "cooking",
+            "agent_holding": None,
+        }
+        ordered = ["GET_DISH", "GET_TOMATO", "GET_ONION", "WAIT"]
+        for feasible in (ordered, list(reversed(ordered))):
+            decision = plan_subgoal(
+                empty_weights(self.features),
+                context,
+                feasible_subgoals=feasible,
+                tie_fallback="WAIT",
+            )
+            self.assertEqual(decision["chosen_subgoal"], "WAIT")
+            self.assertTrue(decision["is_tie"])
+            self.assertEqual(decision["decision_source"], "h0_tie_fallback")
+
+    def test_manual_comfort_rescaling_is_rejected(self) -> None:
+        with self.assertRaisesRegex(ValueError, "requires lambda_pref=1.0"):
+            plan_subgoal(
+                empty_weights(self.features),
+                self.subgoal_probes[0]["context"],
+                lambda_pref=0.75,
+            )
     def test_ready_soup_empty_handed_offers_dish(self) -> None:
         context = {
             "recipe": ["tomato", "tomato", "onion"],
@@ -930,6 +1606,145 @@ class SyntheticCorpusTests(unittest.TestCase):
         self.assertEqual(_parse_json_strings('["  ", "keep"]'), ["keep"])
 
 
+class PaperAlignedRoute2Tests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.features = load_features()
+        cls.configurations = sample_reward_configurations(n=36, features=cls.features)
+        cls.contexts = enumerate_contexts(load_gold_weights())[:6]
+        cls.corpus, cls.report = build_teacher_corpus(
+            contexts=cls.contexts,
+            configurations=cls.configurations,
+            seed=3,
+            gold_split="test",
+        )
+        cls.dataset = build_dataset(
+            cls.corpus,
+            load_probe_states(),
+            cls.features,
+        )
+
+    def test_reward_configurations_are_complete_unique_and_sign_safe(self) -> None:
+        validate_reward_configurations(self.configurations)
+        self.assertEqual(len(self.configurations), 36)
+        self.assertEqual(
+            set(self.configurations[0]["weights"]),
+            set(self.features),
+        )
+
+    def test_reward_strengths_are_balanced_and_compositional(self) -> None:
+        for group in PREFERENCE_GROUPS:
+            self.assertEqual(
+                {config["multipliers"][group] for config in self.configurations},
+                set(LEVELS),
+            )
+
+        example = self.corpus[0]
+        self.assertEqual(example["text"], example["local_text"])
+        self.assertNotEqual(example["text"], example["unconditioned_local_text"])
+        self.assertNotIn(example["reward_profile_text"], example["text"])
+        self.assertNotIn(example["reward_config_id"], example["text"])
+        conditioning_tokens = set(nn_tokenize(example["text"]))
+        semantic_tokens = {
+            token
+            for levels in REWARD_CONDITIONING_PHRASES.values()
+            for phrase in levels.values()
+            for token in nn_tokenize(phrase)
+        }
+        self.assertTrue(conditioning_tokens & semantic_tokens)
+
+    def test_generator_does_not_prepartition_teacher_reward_or_context_axes(self) -> None:
+        self.assertTrue(all("split" not in example for example in self.corpus))
+        self.assertTrue(self.report["teacher_reward_bipartite"]["complete"])
+        self.assertTrue(self.report["context_reward_augmentation"]["complete"])
+        self.assertEqual(
+            self.report["teacher_reward_bipartite"]["observed_edges"],
+            12 * len(self.configurations),
+        )
+        self.assertIn(
+            "reward_00_gold",
+            {example["reward_config_id"] for example in self.corpus},
+        )
+
+    def test_teacher_identity_is_an_independent_stable_author_not_a_form_label(self) -> None:
+        self.assertGreaterEqual(self.report["counts"]["synthetic_teachers"], 10)
+        self.assertTrue(all(example.get("teacher_id") for example in self.corpus))
+        self.assertTrue(all("cv_teacher_id" not in example for example in self.corpus))
+        self.assertTrue(
+            all(example.get("feedback_form_style_id") for example in self.corpus)
+        )
+        self.assertTrue(
+            all(
+                example["teacher_id"] != example["feedback_form_style_id"]
+                for example in self.corpus
+            )
+        )
+        for coverage in self.report["author_coverage"].values():
+            self.assertEqual(len(coverage["reward_configs"]), len(self.configurations))
+            self.assertGreaterEqual(len(coverage["reference_types"]), 2)
+            self.assertGreaterEqual(len(coverage["speech_acts"]), 2)
+        authors_by_base: dict[str, set[str]] = {}
+        rewards_by_base: dict[str, set[str]] = {}
+        for example in self.corpus:
+            base_id = example["base_feedback_id"]
+            authors_by_base.setdefault(base_id, set()).add(example["teacher_id"])
+            rewards_by_base.setdefault(base_id, set()).add(example["reward_config_id"])
+        self.assertTrue(all(len(authors) == 1 for authors in authors_by_base.values()))
+        self.assertTrue(
+            all(
+                len(reward_ids) == len(self.configurations)
+                for reward_ids in rewards_by_base.values()
+            )
+        )
+
+    def test_reward_conditioning_removes_same_input_different_target_conflicts(self) -> None:
+        self.assertEqual(self.report["corpus_audit"]["supervision_conflict_count"], 0)
+        signatures: dict[tuple, set[str]] = {}
+        for example in self.corpus:
+            key = (
+                example["unconditioned_local_text"],
+                tuple(sorted(example["route2_trajectory_features"].items())),
+            )
+            signatures.setdefault(key, set()).add(example["text"])
+        self.assertTrue(any(len(texts) > 1 for texts in signatures.values()))
+
+    def test_full_target_uses_complete_reward_and_nonzero_trajectory(self) -> None:
+        self.assertEqual(self.dataset["target_mode"], "full_teacher_reward")
+        self.assertTrue(self.dataset["use_feature_counts"])
+        example = self.dataset["examples"][0]
+        self.assertEqual(len(example["target_reward"]), len(self.features))
+        self.assertGreater(sum(abs(value) for value in example["feature_counts"]), 0.0)
+
+    def test_training_automatically_consumes_trajectory_features(self) -> None:
+        result = train_route2(
+            self.dataset,
+            epochs=2,
+            patience=2,
+            batch_size=64,
+            seed=2,
+        )
+        self.assertTrue(result["use_feature_counts"])
+        self.assertIsNotNone(result["untouched_test_metrics"])
+        self.assertIn("mean_cosine_similarity", result["untouched_test_metrics"])
+
+    def test_original_sgd_optimizer_uses_the_same_network(self) -> None:
+        result = train_route2(
+            self.dataset,
+            epochs=1,
+            patience=1,
+            batch_size=64,
+            optimizer_name="sgd",
+            lr=0.005,
+            weight_decay=1e-4,
+            seed=2,
+        )
+        self.assertIsInstance(result["model"], TrajectoryFeedbackRewardPredictor)
+        self.assertEqual(
+            result["model"].fc2.out_features,
+            len(self.features),
+        )
+
+
 class Route2TrainingTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
@@ -952,6 +1767,7 @@ class Route2TrainingTests(unittest.TestCase):
             patience=40,
             use_feature_counts=False,
             seed=0,
+            allow_local_feedback_ablation=True,
         )
         model = result["model"]
         fold = self.dataset["folds"][0]
@@ -971,7 +1787,13 @@ class Route2TrainingTests(unittest.TestCase):
         self.assertGreater(accuracy, 0.5)
 
     def test_checkpoint_roundtrip(self) -> None:
-        result = train_route2(self.dataset, epochs=3, patience=3, seed=0)
+        result = train_route2(
+            self.dataset,
+            epochs=3,
+            patience=3,
+            seed=0,
+            allow_local_feedback_ablation=True,
+        )
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "model.pt"
             save_checkpoint(
@@ -1080,6 +1902,39 @@ class OnlineHumanLearningTests(unittest.TestCase):
             )
         )
 
+    def test_route1_rejected_checkpoint_is_atomic(self) -> None:
+        features = load_features()
+        learner = OnlineRoute1Learner(features, mode="route1-literal")
+        learner.update_count = 2
+        learner.feedback_count = 3
+        learner._recent_feedback = [(3, "keep the lane clear")]
+        before = learner.state_dict()
+
+        damaged = copy.deepcopy(before)
+        damaged["mean"] = [value + 5.0 for value in damaged["mean"]]
+        damaged["covariance"] = (
+            np.asarray(damaged["covariance"], dtype=float) * 2.0
+        ).tolist()
+        # This field is validated late, after the posterior and counters have
+        # been parsed.  A failure must not partially install the candidate.
+        damaged["source_precision"]["human_live"] = float("nan")
+
+        with self.assertRaisesRegex(ValueError, "source precision"):
+            learner.load_state_dict(damaged)
+        after = learner.state_dict()
+        self.assertEqual(after, before)
+
+    def test_route1_resume_rejects_different_update_hyperparameters(self) -> None:
+        features = load_features()
+        source = OnlineRoute1Learner(features, mode="route1-literal")
+        incompatible = OnlineRoute1Learner(
+            features,
+            mode="route1-literal",
+            valence_scale=source.learner.valence_scale + 1.0,
+        )
+        with self.assertRaisesRegex(ValueError, "hyperparameters do not match"):
+            incompatible.load_state_dict(source.state_dict())
+
     def test_grouped_fixed_split_is_disjoint(self) -> None:
         groups = ["a", "a", "b", "c", "d", "e", None]
         split = make_train_dev_test_split(groups, seed=3)
@@ -1091,8 +1946,63 @@ class OnlineHumanLearningTests(unittest.TestCase):
         self.assertFalse(dev & test)
         self.assertIn(6, train)
 
+    def test_scenario_holdout_automatically_expands_test_scenarios(self) -> None:
+        rows = [
+            {
+                "text": f"unique wording {scenario} variant {variant}",
+                "group_id": f"scenario-{scenario}",
+                "template_family": f"shared-template-{variant}",
+            }
+            for scenario in range(30)
+            for variant in range(2)
+        ]
+        manifest = make_split_manifest(
+            rows,
+            seed=3,
+            grouping_policy="scenario",
+            near_duplicate_threshold=1.0,
+        )
+        validate_split_manifest(manifest, rows)
+
+        self.assertEqual(len(manifest["test_groups"]), 6)
+        self.assertEqual(len(manifest["dev_groups"]), 6)
+        self.assertEqual(len(manifest["train_groups"]), 18)
+        self.assertFalse(set(manifest["train_groups"]) & set(manifest["test_groups"]))
+        # Reused language templates are reported, not allowed to collapse the
+        # scenario holdout into one giant joint component.
+        self.assertTrue(
+            set(manifest["splits"]["train"]["template_families"])
+            & set(manifest["splits"]["test"]["template_families"])
+        )
+
+    def test_cross_split_near_duplicate_is_pruned_from_lower_priority_split(self) -> None:
+        rows = [
+            {"text": f"feedback {index}", "group_id": f"scenario-{index}"}
+            for index in range(8)
+        ]
+        manifest = None
+        for seed in range(20):
+            candidate = make_split_manifest(
+                rows,
+                seed=seed,
+                dev_fraction=0.25,
+                test_fraction=0.25,
+                grouping_policy="scenario",
+                near_duplicate_pairs=[(0, 1, 0.95)],
+            )
+            if candidate["excluded_indices"]:
+                manifest = candidate
+                break
+        self.assertIsNotNone(manifest)
 
 class ReferenceClassifierTests(unittest.TestCase):
+    def test_classifier_reproduces_original_paper_accuracy(self) -> None:
+        benchmark = reproduce_original_paper_benchmark()
+        self.assertEqual(benchmark["rows"], 982)
+        self.assertEqual(benchmark["test_rows"], 148)
+        self.assertGreaterEqual(benchmark["reproduced"]["accuracy"], 0.87)
+        self.assertGreaterEqual(benchmark["reproduced"]["macro_f1"], 0.75)
+
     def test_fallback_distinguishes_reference_types(self) -> None:
         self.assertEqual(
             fallback_prediction("Great job.")["reference_type"], "trajectory"
@@ -1147,6 +2057,28 @@ class ReferenceClassifierTests(unittest.TestCase):
         artifact, report = train_classifier(examples, min_df=1, seed=3)
         self.assertIn("temperature", artifact)
         self.assertIn("class_thresholds", artifact)
+        self.assertEqual(artifact["input_mode"], "raw_phrase")
+        self.assertEqual(
+            report["feature_config"]["version"],
+            "raw_word_char_tfidf_v3",
+        )
+        self.assertEqual(
+            report["selection_protocol"]["test_examples_evaluated_during_selection"],
+            0,
+        )
+        self.assertIn(
+            "paper_style_source_weight",
+            report["selected_hyperparameters"],
+        )
+        self.assertIn(
+            "hard_contrastive_source_weight",
+            report["selected_hyperparameters"],
+        )
+        transformers = dict(artifact["vectorizer"].transformer_list)
+        self.assertEqual(set(transformers), {"word", "char"})
+        # "you" is deliberately retained: it is a discourse cue that the
+        # paper preprocessing removed as an English stop word.
+        self.assertIn("you", transformers["word"].vocabulary_)
         self.assertIn("ece_10_bin", report["dev"]["calibration"])
         with tempfile.TemporaryDirectory() as directory:
             from joblib import dump
@@ -1156,6 +2088,7 @@ class ReferenceClassifierTests(unittest.TestCase):
             prediction = predict_reference_type("great job sample", model_path=path)
         self.assertIn("top2_margin", prediction)
         self.assertIn("abstained", prediction)
+        self.assertEqual(prediction["input_mode"], "raw_phrase")
 
 
 class PhraseGroundingTests(unittest.TestCase):
@@ -1205,7 +2138,7 @@ class PhraseGroundingTests(unittest.TestCase):
         self.assertNotIn("blocks_human_path", resolved)
         self.assertNotIn("clears_human_path", resolved)
 
-    def test_recent_event_wins_for_trajectory_reference(self) -> None:
+    def test_single_action_uses_nearest_causal_event(self) -> None:
         result = ground_feedback(
             {
                 "text": "That was bad.",
@@ -1214,12 +2147,43 @@ class PhraseGroundingTests(unittest.TestCase):
                 "recent_events": [
                     {"total_step": 4, "features": {"pick_tomato": 1}},
                     {"total_step": 9, "features": {"blocks_human_path": 1}},
+                    {"total_step": 11, "features": {"pick_onion": 1}},
                 ],
             },
-            reference_type="trajectory",
+            reference_type="action_spatial",
         )
         self.assertEqual(result["target_features"], {"blocks_human_path": 1.0})
         self.assertEqual(result["grounding_source"], "recent_event_features")
+        self.assertEqual(result["target_event_step"], 9)
+        self.assertEqual(result["event_distance"], 1)
+        self.assertEqual(result["temporal_credit_mode"], "single_recent_event")
+
+    def test_behavioral_reference_requires_repetition(self) -> None:
+        result = ground_feedback(
+            {
+                "text": "You keep blocking my way.",
+                "total_step": 8,
+                "recent_events": [
+                    {"total_step": 2, "features": {"blocks_human_path": 1}},
+                    {"total_step": 5, "features": {"pick_onion": 1}},
+                    {"total_step": 7, "features": {"blocks_human_path": 1}},
+                ],
+            },
+            reference_type="action_behavioral",
+        )
+        self.assertEqual(result["target_features"], {"blocks_human_path": 2.0})
+        self.assertEqual(result["target_event_steps"], [2, 7])
+        self.assertEqual(result["temporal_credit_mode"], "behavior_repetition")
+
+    def test_live_mask_rejects_decision_null_feature(self) -> None:
+        result = ground_feedback(
+            {"text": "The pot is cooking.", "target_features": {"pot_cooking": 1}},
+            reference_type="feature",
+            live_feature_mask=LIVE_DECISION_FEATURES,
+        )
+        self.assertTrue(result["abstained"])
+        self.assertEqual(result["target_features"], {})
+        self.assertEqual(result["masked_target_features"], ["pot_cooking"])
 
 
 def _overcooked_available() -> bool:

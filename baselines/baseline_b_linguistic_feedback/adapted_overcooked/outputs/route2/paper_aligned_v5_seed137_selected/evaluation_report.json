@@ -1,0 +1,4964 @@
+{
+  "aggregate_held_out": {
+    "ablations": {
+      "text_only_input": {
+        "behavior_metrics": {
+          "all": {
+            "majority_vote_ties": 7,
+            "per_reward_context_majority": {
+              "accuracy": 0.9916087962962963,
+              "correct": 3427,
+              "total": 3456
+            },
+            "per_utterance": {
+              "accuracy": 0.9911899447903206,
+              "correct": 8438,
+              "total": 8513
+            },
+            "unresolved_reward_tie_votes": 0
+          },
+          "preference_sensitive": {
+            "majority_vote_ties": 6,
+            "per_reward_context_majority": {
+              "accuracy": 0.9771241830065359,
+              "correct": 1196,
+              "total": 1224
+            },
+            "per_utterance": {
+              "accuracy": 0.974840657497484,
+              "correct": 2906,
+              "total": 2981
+            },
+            "unresolved_reward_tie_votes": 0
+          },
+          "preference_sensitive_empty_hand_cooking": {
+            "majority_vote_ties": 5,
+            "per_reward_context_majority": {
+              "accuracy": 0.9351851851851852,
+              "correct": 101,
+              "total": 108
+            },
+            "per_utterance": {
+              "accuracy": 0.9723320158102767,
+              "correct": 246,
+              "total": 253
+            },
+            "unresolved_reward_tie_votes": 0
+          }
+        },
+        "nearest_reward_config": {
+          "accuracy": 0.9991777281804299,
+          "correct": 8506,
+          "distance_dimensions": 26,
+          "total": 8513
+        },
+        "reward_metrics": {
+          "active_sign_accuracy": 0.9998433589935303,
+          "active_target_count": 319239,
+          "dimensions": 53,
+          "examples": 8513,
+          "mean_cosine_similarity": 0.9974952340126038,
+          "mse": 0.023427840322256088
+        },
+        "varying_dimension_reward_metrics": {
+          "active_sign_accuracy": 0.9997602701187134,
+          "active_target_count": 208570,
+          "dimensions": 26,
+          "examples": 8513,
+          "mean_cosine_similarity": 0.9934840202331543,
+          "mse": 0.037102337926626205
+        }
+      },
+      "trajectory_only_input": {
+        "behavior_metrics": {
+          "all": {
+            "majority_vote_ties": 19,
+            "per_reward_context_majority": {
+              "accuracy": 0.9276620370370371,
+              "correct": 3206,
+              "total": 3456
+            },
+            "per_utterance": {
+              "accuracy": 0.9210619053212733,
+              "correct": 7841,
+              "total": 8513
+            },
+            "unresolved_reward_tie_votes": 0
+          },
+          "preference_sensitive": {
+            "majority_vote_ties": 19,
+            "per_reward_context_majority": {
+              "accuracy": 0.795751633986928,
+              "correct": 974,
+              "total": 1224
+            },
+            "per_utterance": {
+              "accuracy": 0.7745722911774572,
+              "correct": 2309,
+              "total": 2981
+            },
+            "unresolved_reward_tie_votes": 0
+          },
+          "preference_sensitive_empty_hand_cooking": {
+            "majority_vote_ties": 7,
+            "per_reward_context_majority": {
+              "accuracy": 0.3333333333333333,
+              "correct": 36,
+              "total": 108
+            },
+            "per_utterance": {
+              "accuracy": 0.3438735177865613,
+              "correct": 87,
+              "total": 253
+            },
+            "unresolved_reward_tie_votes": 0
+          }
+        },
+        "nearest_reward_config": {
+          "accuracy": 0.0,
+          "correct": 0,
+          "distance_dimensions": 26,
+          "total": 8513
+        },
+        "reward_metrics": {
+          "active_sign_accuracy": 0.8861887454986572,
+          "active_target_count": 319239,
+          "dimensions": 53,
+          "examples": 8513,
+          "mean_cosine_similarity": 0.7996712923049927,
+          "mse": 4.052019119262695
+        },
+        "varying_dimension_reward_metrics": {
+          "active_sign_accuracy": 0.8257994651794434,
+          "active_target_count": 208570,
+          "dimensions": 26,
+          "examples": 8513,
+          "mean_cosine_similarity": 0.7536497712135315,
+          "mse": 8.108209609985352
+        }
+      }
+    },
+    "behavior_metrics": {
+      "majority_vote_ties": 8,
+      "per_reward_context_majority": {
+        "accuracy": 0.9910300925925926,
+        "correct": 3425,
+        "total": 3456
+      },
+      "per_utterance": {
+        "accuracy": 0.9895454011511805,
+        "correct": 8424,
+        "total": 8513
+      },
+      "unresolved_reward_tie_votes": 0
+    },
+    "constant_baselines": {
+      "canonical": {
+        "behavior_metrics": {
+          "all": {
+            "majority_vote_ties": 0,
+            "per_reward_context_majority": {
+              "accuracy": 0.9308449074074074,
+              "correct": 3217,
+              "total": 3456
+            },
+            "per_utterance": {
+              "accuracy": 0.9205920357100904,
+              "correct": 7837,
+              "total": 8513
+            },
+            "unresolved_reward_tie_votes": 351
+          },
+          "preference_sensitive": {
+            "majority_vote_ties": 0,
+            "per_reward_context_majority": {
+              "accuracy": 0.8929738562091504,
+              "correct": 1093,
+              "total": 1224
+            },
+            "per_utterance": {
+              "accuracy": 0.8725259979872526,
+              "correct": 2601,
+              "total": 2981
+            },
+            "unresolved_reward_tie_votes": 55
+          },
+          "preference_sensitive_empty_hand_cooking": {
+            "majority_vote_ties": 0,
+            "per_reward_context_majority": {
+              "accuracy": 0.35185185185185186,
+              "correct": 38,
+              "total": 108
+            },
+            "per_utterance": {
+              "accuracy": 0.4308300395256917,
+              "correct": 109,
+              "total": 253
+            },
+            "unresolved_reward_tie_votes": 55
+          }
+        },
+        "nearest_reward_config": {
+          "accuracy": 0.02278867614237049,
+          "correct": 194,
+          "distance_dimensions": 26,
+          "total": 8513
+        },
+        "reward_metrics": {
+          "active_sign_accuracy": 0.9527125358581543,
+          "active_target_count": 319239,
+          "dimensions": 53,
+          "examples": 8513,
+          "mean_cosine_similarity": 0.9006655216217041,
+          "mse": 0.6960648894309998
+        },
+        "varying_dimension_reward_metrics": {
+          "active_sign_accuracy": 0.9276214241981506,
+          "active_target_count": 208570,
+          "dimensions": 26,
+          "examples": 8513,
+          "mean_cosine_similarity": 0.8652880191802979,
+          "mse": 1.4189015626907349
+        }
+      },
+      "train_mean": {
+        "behavior_metrics": {
+          "all": {
+            "majority_vote_ties": 0,
+            "per_reward_context_majority": {
+              "accuracy": 0.9296875,
+              "correct": 3213,
+              "total": 3456
+            },
+            "per_utterance": {
+              "accuracy": 0.9194173616821332,
+              "correct": 7827,
+              "total": 8513
+            },
+            "unresolved_reward_tie_votes": 351
+          },
+          "preference_sensitive": {
+            "majority_vote_ties": 0,
+            "per_reward_context_majority": {
+              "accuracy": 0.8897058823529411,
+              "correct": 1089,
+              "total": 1224
+            },
+            "per_utterance": {
+              "accuracy": 0.8691714189869172,
+              "correct": 2591,
+              "total": 2981
+            },
+            "unresolved_reward_tie_votes": 55
+          },
+          "preference_sensitive_empty_hand_cooking": {
+            "majority_vote_ties": 0,
+            "per_reward_context_majority": {
+              "accuracy": 0.3148148148148148,
+              "correct": 34,
+              "total": 108
+            },
+            "per_utterance": {
+              "accuracy": 0.391304347826087,
+              "correct": 99,
+              "total": 253
+            },
+            "unresolved_reward_tie_votes": 55
+          }
+        },
+        "nearest_reward_config": {
+          "accuracy": 0.02278867614237049,
+          "correct": 194,
+          "distance_dimensions": 26,
+          "total": 8513
+        },
+        "reward_metrics": {
+          "active_sign_accuracy": 0.9527125358581543,
+          "active_target_count": 319239,
+          "dimensions": 53,
+          "examples": 8513,
+          "mean_cosine_similarity": 0.8985040783882141,
+          "mse": 0.7204445600509644
+        },
+        "varying_dimension_reward_metrics": {
+          "active_sign_accuracy": 0.9276214241981506,
+          "active_target_count": 208570,
+          "dimensions": 26,
+          "examples": 8513,
+          "mean_cosine_similarity": 0.8618736863136292,
+          "mse": 1.468598484992981
+        }
+      }
+    },
+    "fold_macro_unweighted": {
+      "canonical": {
+        "active_sign_accuracy": 0.9556282043457032,
+        "all_behavior_majority_accuracy": 0.9322048611111111,
+        "folds": 10,
+        "full_reward_mse": 0.6520640701055527,
+        "mean_cosine_similarity": 0.9086686372756958,
+        "nearest_reward_config_accuracy": 0.03333333333333333,
+        "preference_sensitive_behavior_majority_accuracy": 0.8968137254901963,
+        "preference_sensitive_cooking_majority_accuracy": 0.35000000000000003,
+        "varying_dimension_mse": 1.3292075544595718
+      },
+      "model": {
+        "active_sign_accuracy": 0.999958622455597,
+        "all_behavior_majority_accuracy": 0.99140625,
+        "folds": 10,
+        "full_reward_mse": 0.010833345609717071,
+        "mean_cosine_similarity": 0.9982871234416961,
+        "nearest_reward_config_accuracy": 0.9999352331606218,
+        "preference_sensitive_behavior_majority_accuracy": 0.976470588235294,
+        "preference_sensitive_cooking_majority_accuracy": 0.9361111111111111,
+        "varying_dimension_mse": 0.021358576300553978
+      },
+      "text_only": {
+        "active_sign_accuracy": 0.9997797191143036,
+        "all_behavior_majority_accuracy": 0.992013888888889,
+        "folds": 10,
+        "full_reward_mse": 0.02455288441851735,
+        "mean_cosine_similarity": 0.9980869174003602,
+        "nearest_reward_config_accuracy": 0.9991184142584976,
+        "preference_sensitive_behavior_majority_accuracy": 0.9781862745098039,
+        "preference_sensitive_cooking_majority_accuracy": 0.9361111111111111,
+        "varying_dimension_mse": 0.036888443306088446
+      },
+      "train_mean": {
+        "active_sign_accuracy": 0.9556282043457032,
+        "all_behavior_majority_accuracy": 0.9311631944444445,
+        "folds": 10,
+        "full_reward_mse": 0.6592055857181549,
+        "mean_cosine_similarity": 0.9092524468898773,
+        "nearest_reward_config_accuracy": 0.03333333333333333,
+        "preference_sensitive_behavior_majority_accuracy": 0.8938725490196079,
+        "preference_sensitive_cooking_majority_accuracy": 0.31666666666666676,
+        "varying_dimension_mse": 1.3437652170658112
+      },
+      "trajectory_only": {
+        "active_sign_accuracy": 0.8877348005771637,
+        "all_behavior_majority_accuracy": 0.9254340277777777,
+        "folds": 10,
+        "full_reward_mse": 2.7691864013671874,
+        "mean_cosine_similarity": 0.8159523963928222,
+        "nearest_reward_config_accuracy": 0.0,
+        "preference_sensitive_behavior_majority_accuracy": 0.7894607843137257,
+        "preference_sensitive_cooking_majority_accuracy": 0.33333333333333337,
+        "varying_dimension_mse": 5.550164806842804
+      }
+    },
+    "model": {
+      "behavior_metrics": {
+        "all": {
+          "majority_vote_ties": 8,
+          "per_reward_context_majority": {
+            "accuracy": 0.9910300925925926,
+            "correct": 3425,
+            "total": 3456
+          },
+          "per_utterance": {
+            "accuracy": 0.9895454011511805,
+            "correct": 8424,
+            "total": 8513
+          },
+          "unresolved_reward_tie_votes": 0
+        },
+        "preference_sensitive": {
+          "majority_vote_ties": 7,
+          "per_reward_context_majority": {
+            "accuracy": 0.9754901960784313,
+            "correct": 1194,
+            "total": 1224
+          },
+          "per_utterance": {
+            "accuracy": 0.9701442468970144,
+            "correct": 2892,
+            "total": 2981
+          },
+          "unresolved_reward_tie_votes": 0
+        },
+        "preference_sensitive_empty_hand_cooking": {
+          "majority_vote_ties": 5,
+          "per_reward_context_majority": {
+            "accuracy": 0.9351851851851852,
+            "correct": 101,
+            "total": 108
+          },
+          "per_utterance": {
+            "accuracy": 0.9723320158102767,
+            "correct": 246,
+            "total": 253
+          },
+          "unresolved_reward_tie_votes": 0
+        }
+      },
+      "nearest_reward_config": {
+        "accuracy": 0.9998825325972043,
+        "correct": 8512,
+        "distance_dimensions": 26,
+        "total": 8513
+      },
+      "reward_metrics": {
+        "active_sign_accuracy": 0.9999686479568481,
+        "active_target_count": 319239,
+        "dimensions": 53,
+        "examples": 8513,
+        "mean_cosine_similarity": 0.9976199269294739,
+        "mse": 0.012748152948915958
+      },
+      "varying_dimension_reward_metrics": {
+        "active_sign_accuracy": 0.9999520778656006,
+        "active_target_count": 208570,
+        "dimensions": 26,
+        "examples": 8513,
+        "mean_cosine_similarity": 0.9933150410652161,
+        "mse": 0.025100767612457275
+      }
+    },
+    "model_projected_to_nearest_reward_config": {
+      "behavior_metrics": {
+        "all": {
+          "majority_vote_ties": 0,
+          "per_reward_context_majority": {
+            "accuracy": 0.9577546296296297,
+            "correct": 3310,
+            "total": 3456
+          },
+          "per_utterance": {
+            "accuracy": 0.957006930576765,
+            "correct": 8147,
+            "total": 8513
+          },
+          "unresolved_reward_tie_votes": 366
+        },
+        "preference_sensitive": {
+          "majority_vote_ties": 0,
+          "per_reward_context_majority": {
+            "accuracy": 0.9689542483660131,
+            "correct": 1186,
+            "total": 1224
+          },
+          "per_utterance": {
+            "accuracy": 0.9765179469976518,
+            "correct": 2911,
+            "total": 2981
+          },
+          "unresolved_reward_tie_votes": 70
+        },
+        "preference_sensitive_empty_hand_cooking": {
+          "majority_vote_ties": 0,
+          "per_reward_context_majority": {
+            "accuracy": 0.6481481481481481,
+            "correct": 70,
+            "total": 108
+          },
+          "per_utterance": {
+            "accuracy": 0.7233201581027668,
+            "correct": 183,
+            "total": 253
+          },
+          "unresolved_reward_tie_votes": 70
+        }
+      },
+      "nearest_reward_config": {
+        "accuracy": 0.9998825325972043,
+        "correct": 8512,
+        "distance_dimensions": 26,
+        "total": 8513
+      },
+      "reward_metrics": {
+        "active_sign_accuracy": 0.9999812245368958,
+        "active_target_count": 319239,
+        "dimensions": 53,
+        "examples": 8513,
+        "mean_cosine_similarity": 0.9999961256980896,
+        "mse": 1.238533150171861e-05
+      },
+      "varying_dimension_reward_metrics": {
+        "active_sign_accuracy": 0.9999712109565735,
+        "active_target_count": 208570,
+        "dimensions": 26,
+        "examples": 8513,
+        "mean_cosine_similarity": 0.9999892115592957,
+        "mse": 2.5247021767427213e-05
+      }
+    },
+    "reward_metrics": {
+      "active_sign_accuracy": 0.9999686479568481,
+      "active_target_count": 319239,
+      "dimensions": 53,
+      "examples": 8513,
+      "mean_cosine_similarity": 0.9976199269294739,
+      "mse": 0.012748152948915958
+    }
+  },
+  "corpus_sha256": "336d92f2c9b575ee15c73520e7f0c35d3f351ed7b86ecacc62b673fd686c2d04",
+  "cross_validation_coverage": {
+    "corpus_examples": 83592,
+    "never_test_examples": 75079,
+    "test_assignment_frequency_max": 1,
+    "test_assignment_frequency_min": 0,
+    "total_excluded_fold_assignments": 283484,
+    "unique_dev_examples": 8513,
+    "unique_dev_fraction": 0.10183988898459183,
+    "unique_test_examples": 8513,
+    "unique_test_fraction": 0.10183988898459183
+  },
+  "ensemble_deployment_language_probe": {
+    "accuracy": 0.25,
+    "cases": [
+      {
+        "acceptable_subgoals": [
+          "GET_ONION"
+        ],
+        "case_id": "positive_specific",
+        "chosen_subgoal": "WAIT",
+        "correct": false,
+        "max_model_disagreement": 0.7545781906988291,
+        "mean_model_disagreement": 0.19581128565240438,
+        "reward_margin": 0.05710813375189901,
+        "text": "Please prepare an onion for the next round while this soup cooks."
+      },
+      {
+        "acceptable_subgoals": [
+          "GET_ONION",
+          "GET_TOMATO"
+        ],
+        "case_id": "positive_paraphrase",
+        "chosen_subgoal": "WAIT",
+        "correct": false,
+        "max_model_disagreement": 1.516873563236491,
+        "mean_model_disagreement": 0.29344636089960274,
+        "reward_margin": 0.15153398141264915,
+        "text": "Use the cooking time to get an ingredient ready for our next soup."
+      },
+      {
+        "acceptable_subgoals": [
+          "WAIT"
+        ],
+        "case_id": "negative_specific",
+        "chosen_subgoal": "GET_TOMATO",
+        "correct": false,
+        "max_model_disagreement": 0.8840551645728735,
+        "mean_model_disagreement": 0.2674283146369729,
+        "reward_margin": 0.0001508772373199907,
+        "text": "Do not grab an onion this early; keep your hands free while the soup cooks."
+      },
+      {
+        "acceptable_subgoals": [
+          "WAIT"
+        ],
+        "case_id": "negative_paraphrase",
+        "chosen_subgoal": "WAIT",
+        "correct": true,
+        "max_model_disagreement": 2.0387687310260065,
+        "mean_model_disagreement": 0.565359583706892,
+        "reward_margin": 0.47387049049139024,
+        "text": "Wait until this soup is done; do not fill your hands yet."
+      }
+    ],
+    "claim_scope": "behavioral response only; not complete-reward accuracy",
+    "correct": 1,
+    "status": "separate_handwritten_local_language_probe_not_cv_estimate",
+    "total": 4
+  },
+  "folds": [
+    {
+      "coverage": {
+        "corpus_examples": 83592,
+        "dev_examples": 1552,
+        "excluded_axis_pairs": {
+          "teacher_dev__reward_test": 1552,
+          "teacher_dev__reward_train": 10864,
+          "teacher_test__reward_dev": 1544,
+          "teacher_test__reward_train": 10808,
+          "teacher_train__reward_dev": 6192,
+          "teacher_train__reward_test": 6192
+        },
+        "excluded_examples": 37152,
+        "excluded_fraction": 0.4444444444444444,
+        "included_fraction": 0.5555555555555556,
+        "test_examples": 1544,
+        "train_examples": 43344
+      },
+      "fold": 0,
+      "heldout_overlap_audit": {
+        "test_exact_input_in_train": 0,
+        "test_exact_input_in_train_fraction": 0.0,
+        "test_exact_text_in_train": 0,
+        "test_exact_text_in_train_fraction": 0.0
+      },
+      "model": {
+        "behavior_metrics": {
+          "all": {
+            "majority_vote_ties": 3,
+            "per_reward_context_majority": {
+              "accuracy": 0.9453125,
+              "correct": 363,
+              "total": 384
+            },
+            "per_utterance": {
+              "accuracy": 0.9540155440414507,
+              "correct": 1473,
+              "total": 1544
+            },
+            "unresolved_reward_tie_votes": 0
+          },
+          "preference_sensitive": {
+            "majority_vote_ties": 2,
+            "per_reward_context_majority": {
+              "accuracy": 0.8529411764705882,
+              "correct": 116,
+              "total": 136
+            },
+            "per_utterance": {
+              "accuracy": 0.8685185185185185,
+              "correct": 469,
+              "total": 540
+            },
+            "unresolved_reward_tie_votes": 0
+          },
+          "preference_sensitive_empty_hand_cooking": {
+            "majority_vote_ties": 2,
+            "per_reward_context_majority": {
+              "accuracy": 0.8333333333333334,
+              "correct": 10,
+              "total": 12
+            },
+            "per_utterance": {
+              "accuracy": 1.0,
+              "correct": 44,
+              "total": 44
+            },
+            "unresolved_reward_tie_votes": 0
+          }
+        },
+        "nearest_reward_config": {
+          "accuracy": 0.9993523316062176,
+          "correct": 1543,
+          "distance_dimensions": 26,
+          "total": 1544
+        },
+        "reward_metrics": {
+          "active_sign_accuracy": 0.9999827146530151,
+          "active_target_count": 57900,
+          "dimensions": 53,
+          "examples": 1544,
+          "mean_cosine_similarity": 0.9910135865211487,
+          "mse": 0.03228956088423729
+        },
+        "varying_dimension_reward_metrics": {
+          "active_sign_accuracy": 0.9999735355377197,
+          "active_target_count": 37828,
+          "dimensions": 26,
+          "examples": 1544,
+          "mean_cosine_similarity": 0.9688900113105774,
+          "mse": 0.06322836130857468
+        }
+      },
+      "systems": {
+        "canonical": {
+          "behavior_metrics": {
+            "all": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.890625,
+                "correct": 342,
+                "total": 384
+              },
+              "per_utterance": {
+                "accuracy": 0.8931347150259067,
+                "correct": 1379,
+                "total": 1544
+              },
+              "unresolved_reward_tie_votes": 60
+            },
+            "preference_sensitive": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.7794117647058824,
+                "correct": 106,
+                "total": 136
+              },
+              "per_utterance": {
+                "accuracy": 0.7907407407407407,
+                "correct": 427,
+                "total": 540
+              },
+              "unresolved_reward_tie_votes": 8
+            },
+            "preference_sensitive_empty_hand_cooking": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.5,
+                "correct": 6,
+                "total": 12
+              },
+              "per_utterance": {
+                "accuracy": 0.6136363636363636,
+                "correct": 27,
+                "total": 44
+              },
+              "unresolved_reward_tie_votes": 8
+            }
+          },
+          "nearest_reward_config": {
+            "accuracy": 0.0,
+            "correct": 0,
+            "distance_dimensions": 26,
+            "total": 1544
+          },
+          "reward_metrics": {
+            "active_sign_accuracy": 0.9599999785423279,
+            "active_target_count": 57900,
+            "dimensions": 53,
+            "examples": 1544,
+            "mean_cosine_similarity": 0.8464936017990112,
+            "mse": 0.8568100929260254
+          },
+          "varying_dimension_reward_metrics": {
+            "active_sign_accuracy": 0.9387755393981934,
+            "active_target_count": 37828,
+            "dimensions": 26,
+            "examples": 1544,
+            "mean_cosine_similarity": 0.8159973621368408,
+            "mse": 1.7465744018554688
+          }
+        },
+        "model": {
+          "behavior_metrics": {
+            "all": {
+              "majority_vote_ties": 3,
+              "per_reward_context_majority": {
+                "accuracy": 0.9453125,
+                "correct": 363,
+                "total": 384
+              },
+              "per_utterance": {
+                "accuracy": 0.9540155440414507,
+                "correct": 1473,
+                "total": 1544
+              },
+              "unresolved_reward_tie_votes": 0
+            },
+            "preference_sensitive": {
+              "majority_vote_ties": 2,
+              "per_reward_context_majority": {
+                "accuracy": 0.8529411764705882,
+                "correct": 116,
+                "total": 136
+              },
+              "per_utterance": {
+                "accuracy": 0.8685185185185185,
+                "correct": 469,
+                "total": 540
+              },
+              "unresolved_reward_tie_votes": 0
+            },
+            "preference_sensitive_empty_hand_cooking": {
+              "majority_vote_ties": 2,
+              "per_reward_context_majority": {
+                "accuracy": 0.8333333333333334,
+                "correct": 10,
+                "total": 12
+              },
+              "per_utterance": {
+                "accuracy": 1.0,
+                "correct": 44,
+                "total": 44
+              },
+              "unresolved_reward_tie_votes": 0
+            }
+          },
+          "nearest_reward_config": {
+            "accuracy": 0.9993523316062176,
+            "correct": 1543,
+            "distance_dimensions": 26,
+            "total": 1544
+          },
+          "reward_metrics": {
+            "active_sign_accuracy": 0.9999827146530151,
+            "active_target_count": 57900,
+            "dimensions": 53,
+            "examples": 1544,
+            "mean_cosine_similarity": 0.9910135865211487,
+            "mse": 0.03228956088423729
+          },
+          "varying_dimension_reward_metrics": {
+            "active_sign_accuracy": 0.9999735355377197,
+            "active_target_count": 37828,
+            "dimensions": 26,
+            "examples": 1544,
+            "mean_cosine_similarity": 0.9688900113105774,
+            "mse": 0.06322836130857468
+          }
+        },
+        "text_only": {
+          "behavior_metrics": {
+            "all": {
+              "majority_vote_ties": 3,
+              "per_reward_context_majority": {
+                "accuracy": 0.9479166666666666,
+                "correct": 364,
+                "total": 384
+              },
+              "per_utterance": {
+                "accuracy": 0.9604922279792746,
+                "correct": 1483,
+                "total": 1544
+              },
+              "unresolved_reward_tie_votes": 0
+            },
+            "preference_sensitive": {
+              "majority_vote_ties": 2,
+              "per_reward_context_majority": {
+                "accuracy": 0.8602941176470589,
+                "correct": 117,
+                "total": 136
+              },
+              "per_utterance": {
+                "accuracy": 0.8870370370370371,
+                "correct": 479,
+                "total": 540
+              },
+              "unresolved_reward_tie_votes": 0
+            },
+            "preference_sensitive_empty_hand_cooking": {
+              "majority_vote_ties": 1,
+              "per_reward_context_majority": {
+                "accuracy": 0.9166666666666666,
+                "correct": 11,
+                "total": 12
+              },
+              "per_utterance": {
+                "accuracy": 1.0,
+                "correct": 44,
+                "total": 44
+              },
+              "unresolved_reward_tie_votes": 0
+            }
+          },
+          "nearest_reward_config": {
+            "accuracy": 0.9980569948186528,
+            "correct": 1541,
+            "distance_dimensions": 26,
+            "total": 1544
+          },
+          "reward_metrics": {
+            "active_sign_accuracy": 1.0,
+            "active_target_count": 57900,
+            "dimensions": 53,
+            "examples": 1544,
+            "mean_cosine_similarity": 0.9912626147270203,
+            "mse": 0.033894848078489304
+          },
+          "varying_dimension_reward_metrics": {
+            "active_sign_accuracy": 1.0,
+            "active_target_count": 37828,
+            "dimensions": 26,
+            "examples": 1544,
+            "mean_cosine_similarity": 0.970599889755249,
+            "mse": 0.06393509358167648
+          }
+        },
+        "train_mean": {
+          "behavior_metrics": {
+            "all": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.890625,
+                "correct": 342,
+                "total": 384
+              },
+              "per_utterance": {
+                "accuracy": 0.8931347150259067,
+                "correct": 1379,
+                "total": 1544
+              },
+              "unresolved_reward_tie_votes": 60
+            },
+            "preference_sensitive": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.7794117647058824,
+                "correct": 106,
+                "total": 136
+              },
+              "per_utterance": {
+                "accuracy": 0.7907407407407407,
+                "correct": 427,
+                "total": 540
+              },
+              "unresolved_reward_tie_votes": 8
+            },
+            "preference_sensitive_empty_hand_cooking": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.5,
+                "correct": 6,
+                "total": 12
+              },
+              "per_utterance": {
+                "accuracy": 0.6136363636363636,
+                "correct": 27,
+                "total": 44
+              },
+              "unresolved_reward_tie_votes": 8
+            }
+          },
+          "nearest_reward_config": {
+            "accuracy": 0.0,
+            "correct": 0,
+            "distance_dimensions": 26,
+            "total": 1544
+          },
+          "reward_metrics": {
+            "active_sign_accuracy": 0.9599999785423279,
+            "active_target_count": 57900,
+            "dimensions": 53,
+            "examples": 1544,
+            "mean_cosine_similarity": 0.8377701640129089,
+            "mse": 0.9294158816337585
+          },
+          "varying_dimension_reward_metrics": {
+            "active_sign_accuracy": 0.9387755393981934,
+            "active_target_count": 37828,
+            "dimensions": 26,
+            "examples": 1544,
+            "mean_cosine_similarity": 0.8030555844306946,
+            "mse": 1.8945783376693726
+          }
+        },
+        "trajectory_only": {
+          "behavior_metrics": {
+            "all": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.921875,
+                "correct": 354,
+                "total": 384
+              },
+              "per_utterance": {
+                "accuracy": 0.9235751295336787,
+                "correct": 1426,
+                "total": 1544
+              },
+              "unresolved_reward_tie_votes": 0
+            },
+            "preference_sensitive": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.7794117647058824,
+                "correct": 106,
+                "total": 136
+              },
+              "per_utterance": {
+                "accuracy": 0.7814814814814814,
+                "correct": 422,
+                "total": 540
+              },
+              "unresolved_reward_tie_votes": 0
+            },
+            "preference_sensitive_empty_hand_cooking": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.5,
+                "correct": 6,
+                "total": 12
+              },
+              "per_utterance": {
+                "accuracy": 0.5,
+                "correct": 22,
+                "total": 44
+              },
+              "unresolved_reward_tie_votes": 0
+            }
+          },
+          "nearest_reward_config": {
+            "accuracy": 0.0,
+            "correct": 0,
+            "distance_dimensions": 26,
+            "total": 1544
+          },
+          "reward_metrics": {
+            "active_sign_accuracy": 0.8133333325386047,
+            "active_target_count": 57900,
+            "dimensions": 53,
+            "examples": 1544,
+            "mean_cosine_similarity": 0.5832037925720215,
+            "mse": 16.776897430419922
+          },
+          "varying_dimension_reward_metrics": {
+            "active_sign_accuracy": 0.7142857313156128,
+            "active_target_count": 37828,
+            "dimensions": 26,
+            "examples": 1544,
+            "mean_cosine_similarity": 0.5612871050834656,
+            "mse": 33.47294616699219
+          }
+        }
+      },
+      "test_examples": 1544
+    },
+    {
+      "coverage": {
+        "corpus_examples": 83592,
+        "dev_examples": 1544,
+        "excluded_axis_pairs": {
+          "teacher_dev__reward_test": 1544,
+          "teacher_dev__reward_train": 10808,
+          "teacher_test__reward_dev": 772,
+          "teacher_test__reward_train": 5404,
+          "teacher_train__reward_dev": 6972,
+          "teacher_train__reward_test": 6972
+        },
+        "excluded_examples": 32472,
+        "excluded_fraction": 0.38845822566752797,
+        "included_fraction": 0.611541774332472,
+        "test_examples": 772,
+        "train_examples": 48804
+      },
+      "fold": 1,
+      "heldout_overlap_audit": {
+        "test_exact_input_in_train": 0,
+        "test_exact_input_in_train_fraction": 0.0,
+        "test_exact_text_in_train": 0,
+        "test_exact_text_in_train_fraction": 0.0
+      },
+      "model": {
+        "behavior_metrics": {
+          "all": {
+            "majority_vote_ties": 0,
+            "per_reward_context_majority": {
+              "accuracy": 0.9947916666666666,
+              "correct": 382,
+              "total": 384
+            },
+            "per_utterance": {
+              "accuracy": 0.9948186528497409,
+              "correct": 768,
+              "total": 772
+            },
+            "unresolved_reward_tie_votes": 0
+          },
+          "preference_sensitive": {
+            "majority_vote_ties": 0,
+            "per_reward_context_majority": {
+              "accuracy": 0.9852941176470589,
+              "correct": 134,
+              "total": 136
+            },
+            "per_utterance": {
+              "accuracy": 0.9850746268656716,
+              "correct": 264,
+              "total": 268
+            },
+            "unresolved_reward_tie_votes": 0
+          },
+          "preference_sensitive_empty_hand_cooking": {
+            "majority_vote_ties": 0,
+            "per_reward_context_majority": {
+              "accuracy": 0.8333333333333334,
+              "correct": 10,
+              "total": 12
+            },
+            "per_utterance": {
+              "accuracy": 0.8,
+              "correct": 16,
+              "total": 20
+            },
+            "unresolved_reward_tie_votes": 0
+          }
+        },
+        "nearest_reward_config": {
+          "accuracy": 1.0,
+          "correct": 772,
+          "distance_dimensions": 26,
+          "total": 772
+        },
+        "reward_metrics": {
+          "active_sign_accuracy": 1.0,
+          "active_target_count": 28950,
+          "dimensions": 53,
+          "examples": 772,
+          "mean_cosine_similarity": 0.9994047284126282,
+          "mse": 0.003352087689563632
+        },
+        "varying_dimension_reward_metrics": {
+          "active_sign_accuracy": 1.0,
+          "active_target_count": 18914,
+          "dimensions": 26,
+          "examples": 772,
+          "mean_cosine_similarity": 0.999051570892334,
+          "mse": 0.006815339904278517
+        }
+      },
+      "systems": {
+        "canonical": {
+          "behavior_metrics": {
+            "all": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.9427083333333334,
+                "correct": 362,
+                "total": 384
+              },
+              "per_utterance": {
+                "accuracy": 0.9430051813471503,
+                "correct": 728,
+                "total": 772
+              },
+              "unresolved_reward_tie_votes": 32
+            },
+            "preference_sensitive": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.9264705882352942,
+                "correct": 126,
+                "total": 136
+              },
+              "per_utterance": {
+                "accuracy": 0.9402985074626866,
+                "correct": 252,
+                "total": 268
+              },
+              "unresolved_reward_tie_votes": 4
+            },
+            "preference_sensitive_empty_hand_cooking": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.16666666666666666,
+                "correct": 2,
+                "total": 12
+              },
+              "per_utterance": {
+                "accuracy": 0.2,
+                "correct": 4,
+                "total": 20
+              },
+              "unresolved_reward_tie_votes": 4
+            }
+          },
+          "nearest_reward_config": {
+            "accuracy": 0.0,
+            "correct": 0,
+            "distance_dimensions": 26,
+            "total": 772
+          },
+          "reward_metrics": {
+            "active_sign_accuracy": 0.9200000166893005,
+            "active_target_count": 28950,
+            "dimensions": 53,
+            "examples": 772,
+            "mean_cosine_similarity": 0.9222409129142761,
+            "mse": 0.4614357650279999
+          },
+          "varying_dimension_reward_metrics": {
+            "active_sign_accuracy": 0.8775510191917419,
+            "active_target_count": 18914,
+            "dimensions": 26,
+            "examples": 772,
+            "mean_cosine_similarity": 0.8810737133026123,
+            "mse": 0.9406190514564514
+          }
+        },
+        "model": {
+          "behavior_metrics": {
+            "all": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.9947916666666666,
+                "correct": 382,
+                "total": 384
+              },
+              "per_utterance": {
+                "accuracy": 0.9948186528497409,
+                "correct": 768,
+                "total": 772
+              },
+              "unresolved_reward_tie_votes": 0
+            },
+            "preference_sensitive": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.9852941176470589,
+                "correct": 134,
+                "total": 136
+              },
+              "per_utterance": {
+                "accuracy": 0.9850746268656716,
+                "correct": 264,
+                "total": 268
+              },
+              "unresolved_reward_tie_votes": 0
+            },
+            "preference_sensitive_empty_hand_cooking": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.8333333333333334,
+                "correct": 10,
+                "total": 12
+              },
+              "per_utterance": {
+                "accuracy": 0.8,
+                "correct": 16,
+                "total": 20
+              },
+              "unresolved_reward_tie_votes": 0
+            }
+          },
+          "nearest_reward_config": {
+            "accuracy": 1.0,
+            "correct": 772,
+            "distance_dimensions": 26,
+            "total": 772
+          },
+          "reward_metrics": {
+            "active_sign_accuracy": 1.0,
+            "active_target_count": 28950,
+            "dimensions": 53,
+            "examples": 772,
+            "mean_cosine_similarity": 0.9994047284126282,
+            "mse": 0.003352087689563632
+          },
+          "varying_dimension_reward_metrics": {
+            "active_sign_accuracy": 1.0,
+            "active_target_count": 18914,
+            "dimensions": 26,
+            "examples": 772,
+            "mean_cosine_similarity": 0.999051570892334,
+            "mse": 0.006815339904278517
+          }
+        },
+        "text_only": {
+          "behavior_metrics": {
+            "all": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.9947916666666666,
+                "correct": 382,
+                "total": 384
+              },
+              "per_utterance": {
+                "accuracy": 0.9948186528497409,
+                "correct": 768,
+                "total": 772
+              },
+              "unresolved_reward_tie_votes": 0
+            },
+            "preference_sensitive": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.9852941176470589,
+                "correct": 134,
+                "total": 136
+              },
+              "per_utterance": {
+                "accuracy": 0.9850746268656716,
+                "correct": 264,
+                "total": 268
+              },
+              "unresolved_reward_tie_votes": 0
+            },
+            "preference_sensitive_empty_hand_cooking": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.8333333333333334,
+                "correct": 10,
+                "total": 12
+              },
+              "per_utterance": {
+                "accuracy": 0.8,
+                "correct": 16,
+                "total": 20
+              },
+              "unresolved_reward_tie_votes": 0
+            }
+          },
+          "nearest_reward_config": {
+            "accuracy": 1.0,
+            "correct": 772,
+            "distance_dimensions": 26,
+            "total": 772
+          },
+          "reward_metrics": {
+            "active_sign_accuracy": 1.0,
+            "active_target_count": 28950,
+            "dimensions": 53,
+            "examples": 772,
+            "mean_cosine_similarity": 0.9995850920677185,
+            "mse": 0.008596432395279408
+          },
+          "varying_dimension_reward_metrics": {
+            "active_sign_accuracy": 1.0,
+            "active_target_count": 18914,
+            "dimensions": 26,
+            "examples": 772,
+            "mean_cosine_similarity": 0.9993581771850586,
+            "mse": 0.01365063525736332
+          }
+        },
+        "train_mean": {
+          "behavior_metrics": {
+            "all": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.9427083333333334,
+                "correct": 362,
+                "total": 384
+              },
+              "per_utterance": {
+                "accuracy": 0.9430051813471503,
+                "correct": 728,
+                "total": 772
+              },
+              "unresolved_reward_tie_votes": 32
+            },
+            "preference_sensitive": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.9264705882352942,
+                "correct": 126,
+                "total": 136
+              },
+              "per_utterance": {
+                "accuracy": 0.9402985074626866,
+                "correct": 252,
+                "total": 268
+              },
+              "unresolved_reward_tie_votes": 4
+            },
+            "preference_sensitive_empty_hand_cooking": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.16666666666666666,
+                "correct": 2,
+                "total": 12
+              },
+              "per_utterance": {
+                "accuracy": 0.2,
+                "correct": 4,
+                "total": 20
+              },
+              "unresolved_reward_tie_votes": 4
+            }
+          },
+          "nearest_reward_config": {
+            "accuracy": 0.0,
+            "correct": 0,
+            "distance_dimensions": 26,
+            "total": 772
+          },
+          "reward_metrics": {
+            "active_sign_accuracy": 0.9200000166893005,
+            "active_target_count": 28950,
+            "dimensions": 53,
+            "examples": 772,
+            "mean_cosine_similarity": 0.9414252042770386,
+            "mse": 0.3667457103729248
+          },
+          "varying_dimension_reward_metrics": {
+            "active_sign_accuracy": 0.8775510191917419,
+            "active_target_count": 18914,
+            "dimensions": 26,
+            "examples": 772,
+            "mean_cosine_similarity": 0.9140258431434631,
+            "mse": 0.7475970983505249
+          }
+        },
+        "trajectory_only": {
+          "behavior_metrics": {
+            "all": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.9765625,
+                "correct": 375,
+                "total": 384
+              },
+              "per_utterance": {
+                "accuracy": 0.977979274611399,
+                "correct": 755,
+                "total": 772
+              },
+              "unresolved_reward_tie_votes": 0
+            },
+            "preference_sensitive": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.9338235294117647,
+                "correct": 127,
+                "total": 136
+              },
+              "per_utterance": {
+                "accuracy": 0.9365671641791045,
+                "correct": 251,
+                "total": 268
+              },
+              "unresolved_reward_tie_votes": 0
+            },
+            "preference_sensitive_empty_hand_cooking": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.25,
+                "correct": 3,
+                "total": 12
+              },
+              "per_utterance": {
+                "accuracy": 0.15,
+                "correct": 3,
+                "total": 20
+              },
+              "unresolved_reward_tie_votes": 0
+            }
+          },
+          "nearest_reward_config": {
+            "accuracy": 0.0,
+            "correct": 0,
+            "distance_dimensions": 26,
+            "total": 772
+          },
+          "reward_metrics": {
+            "active_sign_accuracy": 0.9599999785423279,
+            "active_target_count": 28950,
+            "dimensions": 53,
+            "examples": 772,
+            "mean_cosine_similarity": 0.892242431640625,
+            "mse": 0.6508995294570923
+          },
+          "varying_dimension_reward_metrics": {
+            "active_sign_accuracy": 0.9387755393981934,
+            "active_target_count": 18914,
+            "dimensions": 26,
+            "examples": 772,
+            "mean_cosine_similarity": 0.8371670842170715,
+            "mse": 1.3220714330673218
+          }
+        }
+      },
+      "test_examples": 772
+    },
+    {
+      "coverage": {
+        "corpus_examples": 83592,
+        "dev_examples": 772,
+        "excluded_axis_pairs": {
+          "teacher_dev__reward_test": 772,
+          "teacher_dev__reward_train": 5404,
+          "teacher_test__reward_dev": 776,
+          "teacher_test__reward_train": 5432,
+          "teacher_train__reward_dev": 7740,
+          "teacher_train__reward_test": 7740
+        },
+        "excluded_examples": 27864,
+        "excluded_fraction": 0.3333333333333333,
+        "included_fraction": 0.6666666666666666,
+        "test_examples": 776,
+        "train_examples": 54180
+      },
+      "fold": 2,
+      "heldout_overlap_audit": {
+        "test_exact_input_in_train": 0,
+        "test_exact_input_in_train_fraction": 0.0,
+        "test_exact_text_in_train": 0,
+        "test_exact_text_in_train_fraction": 0.0
+      },
+      "model": {
+        "behavior_metrics": {
+          "all": {
+            "majority_vote_ties": 1,
+            "per_reward_context_majority": {
+              "accuracy": 0.9973958333333334,
+              "correct": 383,
+              "total": 384
+            },
+            "per_utterance": {
+              "accuracy": 1.0,
+              "correct": 776,
+              "total": 776
+            },
+            "unresolved_reward_tie_votes": 0
+          },
+          "preference_sensitive": {
+            "majority_vote_ties": 1,
+            "per_reward_context_majority": {
+              "accuracy": 0.9926470588235294,
+              "correct": 135,
+              "total": 136
+            },
+            "per_utterance": {
+              "accuracy": 1.0,
+              "correct": 272,
+              "total": 272
+            },
+            "unresolved_reward_tie_votes": 0
+          },
+          "preference_sensitive_empty_hand_cooking": {
+            "majority_vote_ties": 1,
+            "per_reward_context_majority": {
+              "accuracy": 0.9166666666666666,
+              "correct": 11,
+              "total": 12
+            },
+            "per_utterance": {
+              "accuracy": 1.0,
+              "correct": 24,
+              "total": 24
+            },
+            "unresolved_reward_tie_votes": 0
+          }
+        },
+        "nearest_reward_config": {
+          "accuracy": 1.0,
+          "correct": 776,
+          "distance_dimensions": 26,
+          "total": 776
+        },
+        "reward_metrics": {
+          "active_sign_accuracy": 1.0,
+          "active_target_count": 27936,
+          "dimensions": 53,
+          "examples": 776,
+          "mean_cosine_similarity": 0.9996033310890198,
+          "mse": 0.0034331423230469227
+        },
+        "varying_dimension_reward_metrics": {
+          "active_sign_accuracy": 1.0,
+          "active_target_count": 17848,
+          "dimensions": 26,
+          "examples": 776,
+          "mean_cosine_similarity": 0.9994041323661804,
+          "mse": 0.006963130086660385
+        }
+      },
+      "systems": {
+        "canonical": {
+          "behavior_metrics": {
+            "all": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.9479166666666666,
+                "correct": 364,
+                "total": 384
+              },
+              "per_utterance": {
+                "accuracy": 0.9432989690721649,
+                "correct": 732,
+                "total": 776
+              },
+              "unresolved_reward_tie_votes": 36
+            },
+            "preference_sensitive": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.9411764705882353,
+                "correct": 128,
+                "total": 136
+              },
+              "per_utterance": {
+                "accuracy": 0.9411764705882353,
+                "correct": 256,
+                "total": 272
+              },
+              "unresolved_reward_tie_votes": 8
+            },
+            "preference_sensitive_empty_hand_cooking": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.3333333333333333,
+                "correct": 4,
+                "total": 12
+              },
+              "per_utterance": {
+                "accuracy": 0.3333333333333333,
+                "correct": 8,
+                "total": 24
+              },
+              "unresolved_reward_tie_votes": 8
+            }
+          },
+          "nearest_reward_config": {
+            "accuracy": 0.0,
+            "correct": 0,
+            "distance_dimensions": 26,
+            "total": 776
+          },
+          "reward_metrics": {
+            "active_sign_accuracy": 0.9583333134651184,
+            "active_target_count": 27936,
+            "dimensions": 53,
+            "examples": 776,
+            "mean_cosine_similarity": 0.9179280996322632,
+            "mse": 0.7299410700798035
+          },
+          "varying_dimension_reward_metrics": {
+            "active_sign_accuracy": 0.9347826242446899,
+            "active_target_count": 17848,
+            "dimensions": 26,
+            "examples": 776,
+            "mean_cosine_similarity": 0.8906698226928711,
+            "mse": 1.4879567623138428
+          }
+        },
+        "model": {
+          "behavior_metrics": {
+            "all": {
+              "majority_vote_ties": 1,
+              "per_reward_context_majority": {
+                "accuracy": 0.9973958333333334,
+                "correct": 383,
+                "total": 384
+              },
+              "per_utterance": {
+                "accuracy": 1.0,
+                "correct": 776,
+                "total": 776
+              },
+              "unresolved_reward_tie_votes": 0
+            },
+            "preference_sensitive": {
+              "majority_vote_ties": 1,
+              "per_reward_context_majority": {
+                "accuracy": 0.9926470588235294,
+                "correct": 135,
+                "total": 136
+              },
+              "per_utterance": {
+                "accuracy": 1.0,
+                "correct": 272,
+                "total": 272
+              },
+              "unresolved_reward_tie_votes": 0
+            },
+            "preference_sensitive_empty_hand_cooking": {
+              "majority_vote_ties": 1,
+              "per_reward_context_majority": {
+                "accuracy": 0.9166666666666666,
+                "correct": 11,
+                "total": 12
+              },
+              "per_utterance": {
+                "accuracy": 1.0,
+                "correct": 24,
+                "total": 24
+              },
+              "unresolved_reward_tie_votes": 0
+            }
+          },
+          "nearest_reward_config": {
+            "accuracy": 1.0,
+            "correct": 776,
+            "distance_dimensions": 26,
+            "total": 776
+          },
+          "reward_metrics": {
+            "active_sign_accuracy": 1.0,
+            "active_target_count": 27936,
+            "dimensions": 53,
+            "examples": 776,
+            "mean_cosine_similarity": 0.9996033310890198,
+            "mse": 0.0034331423230469227
+          },
+          "varying_dimension_reward_metrics": {
+            "active_sign_accuracy": 1.0,
+            "active_target_count": 17848,
+            "dimensions": 26,
+            "examples": 776,
+            "mean_cosine_similarity": 0.9994041323661804,
+            "mse": 0.006963130086660385
+          }
+        },
+        "text_only": {
+          "behavior_metrics": {
+            "all": {
+              "majority_vote_ties": 1,
+              "per_reward_context_majority": {
+                "accuracy": 0.9973958333333334,
+                "correct": 383,
+                "total": 384
+              },
+              "per_utterance": {
+                "accuracy": 1.0,
+                "correct": 776,
+                "total": 776
+              },
+              "unresolved_reward_tie_votes": 0
+            },
+            "preference_sensitive": {
+              "majority_vote_ties": 1,
+              "per_reward_context_majority": {
+                "accuracy": 0.9926470588235294,
+                "correct": 135,
+                "total": 136
+              },
+              "per_utterance": {
+                "accuracy": 1.0,
+                "correct": 272,
+                "total": 272
+              },
+              "unresolved_reward_tie_votes": 0
+            },
+            "preference_sensitive_empty_hand_cooking": {
+              "majority_vote_ties": 1,
+              "per_reward_context_majority": {
+                "accuracy": 0.9166666666666666,
+                "correct": 11,
+                "total": 12
+              },
+              "per_utterance": {
+                "accuracy": 1.0,
+                "correct": 24,
+                "total": 24
+              },
+              "unresolved_reward_tie_votes": 0
+            }
+          },
+          "nearest_reward_config": {
+            "accuracy": 1.0,
+            "correct": 776,
+            "distance_dimensions": 26,
+            "total": 776
+          },
+          "reward_metrics": {
+            "active_sign_accuracy": 1.0,
+            "active_target_count": 27936,
+            "dimensions": 53,
+            "examples": 776,
+            "mean_cosine_similarity": 0.9992421865463257,
+            "mse": 0.012901730835437775
+          },
+          "varying_dimension_reward_metrics": {
+            "active_sign_accuracy": 1.0,
+            "active_target_count": 17848,
+            "dimensions": 26,
+            "examples": 776,
+            "mean_cosine_similarity": 0.9988401532173157,
+            "mse": 0.022341759875416756
+          }
+        },
+        "train_mean": {
+          "behavior_metrics": {
+            "all": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.9479166666666666,
+                "correct": 364,
+                "total": 384
+              },
+              "per_utterance": {
+                "accuracy": 0.9432989690721649,
+                "correct": 732,
+                "total": 776
+              },
+              "unresolved_reward_tie_votes": 36
+            },
+            "preference_sensitive": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.9411764705882353,
+                "correct": 128,
+                "total": 136
+              },
+              "per_utterance": {
+                "accuracy": 0.9411764705882353,
+                "correct": 256,
+                "total": 272
+              },
+              "unresolved_reward_tie_votes": 8
+            },
+            "preference_sensitive_empty_hand_cooking": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.3333333333333333,
+                "correct": 4,
+                "total": 12
+              },
+              "per_utterance": {
+                "accuracy": 0.3333333333333333,
+                "correct": 8,
+                "total": 24
+              },
+              "unresolved_reward_tie_votes": 8
+            }
+          },
+          "nearest_reward_config": {
+            "accuracy": 0.0,
+            "correct": 0,
+            "distance_dimensions": 26,
+            "total": 776
+          },
+          "reward_metrics": {
+            "active_sign_accuracy": 0.9583333134651184,
+            "active_target_count": 27936,
+            "dimensions": 53,
+            "examples": 776,
+            "mean_cosine_similarity": 0.9194867610931396,
+            "mse": 0.7341298460960388
+          },
+          "varying_dimension_reward_metrics": {
+            "active_sign_accuracy": 0.9347826242446899,
+            "active_target_count": 17848,
+            "dimensions": 26,
+            "examples": 776,
+            "mean_cosine_similarity": 0.8942460417747498,
+            "mse": 1.4964957237243652
+          }
+        },
+        "trajectory_only": {
+          "behavior_metrics": {
+            "all": {
+              "majority_vote_ties": 17,
+              "per_reward_context_majority": {
+                "accuracy": 0.9479166666666666,
+                "correct": 364,
+                "total": 384
+              },
+              "per_utterance": {
+                "accuracy": 0.970360824742268,
+                "correct": 753,
+                "total": 776
+              },
+              "unresolved_reward_tie_votes": 0
+            },
+            "preference_sensitive": {
+              "majority_vote_ties": 17,
+              "per_reward_context_majority": {
+                "accuracy": 0.8529411764705882,
+                "correct": 116,
+                "total": 136
+              },
+              "per_utterance": {
+                "accuracy": 0.9154411764705882,
+                "correct": 249,
+                "total": 272
+              },
+              "unresolved_reward_tie_votes": 0
+            },
+            "preference_sensitive_empty_hand_cooking": {
+              "majority_vote_ties": 5,
+              "per_reward_context_majority": {
+                "accuracy": 0.3333333333333333,
+                "correct": 4,
+                "total": 12
+              },
+              "per_utterance": {
+                "accuracy": 0.5416666666666666,
+                "correct": 13,
+                "total": 24
+              },
+              "unresolved_reward_tie_votes": 0
+            }
+          },
+          "nearest_reward_config": {
+            "accuracy": 0.0,
+            "correct": 0,
+            "distance_dimensions": 26,
+            "total": 776
+          },
+          "reward_metrics": {
+            "active_sign_accuracy": 0.9591566324234009,
+            "active_target_count": 27936,
+            "dimensions": 53,
+            "examples": 776,
+            "mean_cosine_similarity": 0.8529296517372131,
+            "mse": 1.4697871208190918
+          },
+          "varying_dimension_reward_metrics": {
+            "active_sign_accuracy": 0.9360712766647339,
+            "active_target_count": 17848,
+            "dimensions": 26,
+            "examples": 776,
+            "mean_cosine_similarity": 0.8795408010482788,
+            "mse": 2.993727445602417
+          }
+        }
+      },
+      "test_examples": 776
+    },
+    {
+      "coverage": {
+        "corpus_examples": 83592,
+        "dev_examples": 776,
+        "excluded_axis_pairs": {
+          "teacher_dev__reward_test": 776,
+          "teacher_dev__reward_train": 5432,
+          "teacher_test__reward_dev": 772,
+          "teacher_test__reward_train": 5404,
+          "teacher_train__reward_dev": 7740,
+          "teacher_train__reward_test": 7740
+        },
+        "excluded_examples": 27864,
+        "excluded_fraction": 0.3333333333333333,
+        "included_fraction": 0.6666666666666666,
+        "test_examples": 772,
+        "train_examples": 54180
+      },
+      "fold": 3,
+      "heldout_overlap_audit": {
+        "test_exact_input_in_train": 0,
+        "test_exact_input_in_train_fraction": 0.0,
+        "test_exact_text_in_train": 0,
+        "test_exact_text_in_train_fraction": 0.0
+      },
+      "model": {
+        "behavior_metrics": {
+          "all": {
+            "majority_vote_ties": 0,
+            "per_reward_context_majority": {
+              "accuracy": 1.0,
+              "correct": 384,
+              "total": 384
+            },
+            "per_utterance": {
+              "accuracy": 1.0,
+              "correct": 772,
+              "total": 772
+            },
+            "unresolved_reward_tie_votes": 0
+          },
+          "preference_sensitive": {
+            "majority_vote_ties": 0,
+            "per_reward_context_majority": {
+              "accuracy": 1.0,
+              "correct": 136,
+              "total": 136
+            },
+            "per_utterance": {
+              "accuracy": 1.0,
+              "correct": 272,
+              "total": 272
+            },
+            "unresolved_reward_tie_votes": 0
+          },
+          "preference_sensitive_empty_hand_cooking": {
+            "majority_vote_ties": 0,
+            "per_reward_context_majority": {
+              "accuracy": 1.0,
+              "correct": 12,
+              "total": 12
+            },
+            "per_utterance": {
+              "accuracy": 1.0,
+              "correct": 24,
+              "total": 24
+            },
+            "unresolved_reward_tie_votes": 0
+          }
+        },
+        "nearest_reward_config": {
+          "accuracy": 1.0,
+          "correct": 772,
+          "distance_dimensions": 26,
+          "total": 772
+        },
+        "reward_metrics": {
+          "active_sign_accuracy": 1.0,
+          "active_target_count": 28950,
+          "dimensions": 53,
+          "examples": 772,
+          "mean_cosine_similarity": 0.9973729848861694,
+          "mse": 0.02245250903069973
+        },
+        "varying_dimension_reward_metrics": {
+          "active_sign_accuracy": 1.0,
+          "active_target_count": 18914,
+          "dimensions": 26,
+          "examples": 772,
+          "mean_cosine_similarity": 0.9977110028266907,
+          "mse": 0.04305768013000488
+        }
+      },
+      "systems": {
+        "canonical": {
+          "behavior_metrics": {
+            "all": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.9583333333333334,
+                "correct": 368,
+                "total": 384
+              },
+              "per_utterance": {
+                "accuracy": 0.9637305699481865,
+                "correct": 744,
+                "total": 772
+              },
+              "unresolved_reward_tie_votes": 28
+            },
+            "preference_sensitive": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.9705882352941176,
+                "correct": 132,
+                "total": 136
+              },
+              "per_utterance": {
+                "accuracy": 0.9852941176470589,
+                "correct": 268,
+                "total": 272
+              },
+              "unresolved_reward_tie_votes": 4
+            },
+            "preference_sensitive_empty_hand_cooking": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.6666666666666666,
+                "correct": 8,
+                "total": 12
+              },
+              "per_utterance": {
+                "accuracy": 0.8333333333333334,
+                "correct": 20,
+                "total": 24
+              },
+              "unresolved_reward_tie_votes": 4
+            }
+          },
+          "nearest_reward_config": {
+            "accuracy": 0.0,
+            "correct": 0,
+            "distance_dimensions": 26,
+            "total": 772
+          },
+          "reward_metrics": {
+            "active_sign_accuracy": 1.0,
+            "active_target_count": 28950,
+            "dimensions": 53,
+            "examples": 772,
+            "mean_cosine_similarity": 0.8909527659416199,
+            "mse": 0.8250029683113098
+          },
+          "varying_dimension_reward_metrics": {
+            "active_sign_accuracy": 1.0,
+            "active_target_count": 18914,
+            "dimensions": 26,
+            "examples": 772,
+            "mean_cosine_similarity": 0.8474079966545105,
+            "mse": 1.681736946105957
+          }
+        },
+        "model": {
+          "behavior_metrics": {
+            "all": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 1.0,
+                "correct": 384,
+                "total": 384
+              },
+              "per_utterance": {
+                "accuracy": 1.0,
+                "correct": 772,
+                "total": 772
+              },
+              "unresolved_reward_tie_votes": 0
+            },
+            "preference_sensitive": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 1.0,
+                "correct": 136,
+                "total": 136
+              },
+              "per_utterance": {
+                "accuracy": 1.0,
+                "correct": 272,
+                "total": 272
+              },
+              "unresolved_reward_tie_votes": 0
+            },
+            "preference_sensitive_empty_hand_cooking": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 1.0,
+                "correct": 12,
+                "total": 12
+              },
+              "per_utterance": {
+                "accuracy": 1.0,
+                "correct": 24,
+                "total": 24
+              },
+              "unresolved_reward_tie_votes": 0
+            }
+          },
+          "nearest_reward_config": {
+            "accuracy": 1.0,
+            "correct": 772,
+            "distance_dimensions": 26,
+            "total": 772
+          },
+          "reward_metrics": {
+            "active_sign_accuracy": 1.0,
+            "active_target_count": 28950,
+            "dimensions": 53,
+            "examples": 772,
+            "mean_cosine_similarity": 0.9973729848861694,
+            "mse": 0.02245250903069973
+          },
+          "varying_dimension_reward_metrics": {
+            "active_sign_accuracy": 1.0,
+            "active_target_count": 18914,
+            "dimensions": 26,
+            "examples": 772,
+            "mean_cosine_similarity": 0.9977110028266907,
+            "mse": 0.04305768013000488
+          }
+        },
+        "text_only": {
+          "behavior_metrics": {
+            "all": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 1.0,
+                "correct": 384,
+                "total": 384
+              },
+              "per_utterance": {
+                "accuracy": 1.0,
+                "correct": 772,
+                "total": 772
+              },
+              "unresolved_reward_tie_votes": 0
+            },
+            "preference_sensitive": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 1.0,
+                "correct": 136,
+                "total": 136
+              },
+              "per_utterance": {
+                "accuracy": 1.0,
+                "correct": 272,
+                "total": 272
+              },
+              "unresolved_reward_tie_votes": 0
+            },
+            "preference_sensitive_empty_hand_cooking": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 1.0,
+                "correct": 12,
+                "total": 12
+              },
+              "per_utterance": {
+                "accuracy": 1.0,
+                "correct": 24,
+                "total": 24
+              },
+              "unresolved_reward_tie_votes": 0
+            }
+          },
+          "nearest_reward_config": {
+            "accuracy": 1.0,
+            "correct": 772,
+            "distance_dimensions": 26,
+            "total": 772
+          },
+          "reward_metrics": {
+            "active_sign_accuracy": 1.0,
+            "active_target_count": 28950,
+            "dimensions": 53,
+            "examples": 772,
+            "mean_cosine_similarity": 0.9974532127380371,
+            "mse": 0.03188180923461914
+          },
+          "varying_dimension_reward_metrics": {
+            "active_sign_accuracy": 1.0,
+            "active_target_count": 18914,
+            "dimensions": 26,
+            "examples": 772,
+            "mean_cosine_similarity": 0.9978399872779846,
+            "mse": 0.06448248028755188
+          }
+        },
+        "train_mean": {
+          "behavior_metrics": {
+            "all": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.9375,
+                "correct": 360,
+                "total": 384
+              },
+              "per_utterance": {
+                "accuracy": 0.9378238341968912,
+                "correct": 724,
+                "total": 772
+              },
+              "unresolved_reward_tie_votes": 28
+            },
+            "preference_sensitive": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.9117647058823529,
+                "correct": 124,
+                "total": 136
+              },
+              "per_utterance": {
+                "accuracy": 0.9117647058823529,
+                "correct": 248,
+                "total": 272
+              },
+              "unresolved_reward_tie_votes": 4
+            },
+            "preference_sensitive_empty_hand_cooking": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.0,
+                "correct": 0,
+                "total": 12
+              },
+              "per_utterance": {
+                "accuracy": 0.0,
+                "correct": 0,
+                "total": 24
+              },
+              "unresolved_reward_tie_votes": 4
+            }
+          },
+          "nearest_reward_config": {
+            "accuracy": 0.0,
+            "correct": 0,
+            "distance_dimensions": 26,
+            "total": 772
+          },
+          "reward_metrics": {
+            "active_sign_accuracy": 1.0,
+            "active_target_count": 28950,
+            "dimensions": 53,
+            "examples": 772,
+            "mean_cosine_similarity": 0.8730705380439758,
+            "mse": 0.9555457234382629
+          },
+          "varying_dimension_reward_metrics": {
+            "active_sign_accuracy": 1.0,
+            "active_target_count": 18914,
+            "dimensions": 26,
+            "examples": 772,
+            "mean_cosine_similarity": 0.8221176266670227,
+            "mse": 1.9478431940078735
+          }
+        },
+        "trajectory_only": {
+          "behavior_metrics": {
+            "all": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.9765625,
+                "correct": 375,
+                "total": 384
+              },
+              "per_utterance": {
+                "accuracy": 0.9766839378238342,
+                "correct": 754,
+                "total": 772
+              },
+              "unresolved_reward_tie_votes": 0
+            },
+            "preference_sensitive": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.9338235294117647,
+                "correct": 127,
+                "total": 136
+              },
+              "per_utterance": {
+                "accuracy": 0.9338235294117647,
+                "correct": 254,
+                "total": 272
+              },
+              "unresolved_reward_tie_votes": 0
+            },
+            "preference_sensitive_empty_hand_cooking": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.25,
+                "correct": 3,
+                "total": 12
+              },
+              "per_utterance": {
+                "accuracy": 0.25,
+                "correct": 6,
+                "total": 24
+              },
+              "unresolved_reward_tie_votes": 0
+            }
+          },
+          "nearest_reward_config": {
+            "accuracy": 0.0,
+            "correct": 0,
+            "distance_dimensions": 26,
+            "total": 772
+          },
+          "reward_metrics": {
+            "active_sign_accuracy": 0.8806217908859253,
+            "active_target_count": 28950,
+            "dimensions": 53,
+            "examples": 772,
+            "mean_cosine_similarity": 0.8672785758972168,
+            "mse": 1.097758412361145
+          },
+          "varying_dimension_reward_metrics": {
+            "active_sign_accuracy": 0.8172782063484192,
+            "active_target_count": 18914,
+            "dimensions": 26,
+            "examples": 772,
+            "mean_cosine_similarity": 0.8362400531768799,
+            "mse": 2.2376348972320557
+          }
+        }
+      },
+      "test_examples": 772
+    },
+    {
+      "coverage": {
+        "corpus_examples": 83592,
+        "dev_examples": 772,
+        "excluded_axis_pairs": {
+          "teacher_dev__reward_test": 772,
+          "teacher_dev__reward_train": 5404,
+          "teacher_test__reward_dev": 772,
+          "teacher_test__reward_train": 5404,
+          "teacher_train__reward_dev": 7744,
+          "teacher_train__reward_test": 7744
+        },
+        "excluded_examples": 27840,
+        "excluded_fraction": 0.3330462245190927,
+        "included_fraction": 0.6669537754809073,
+        "test_examples": 772,
+        "train_examples": 54208
+      },
+      "fold": 4,
+      "heldout_overlap_audit": {
+        "test_exact_input_in_train": 0,
+        "test_exact_input_in_train_fraction": 0.0,
+        "test_exact_text_in_train": 0,
+        "test_exact_text_in_train_fraction": 0.0
+      },
+      "model": {
+        "behavior_metrics": {
+          "all": {
+            "majority_vote_ties": 0,
+            "per_reward_context_majority": {
+              "accuracy": 1.0,
+              "correct": 384,
+              "total": 384
+            },
+            "per_utterance": {
+              "accuracy": 1.0,
+              "correct": 772,
+              "total": 772
+            },
+            "unresolved_reward_tie_votes": 0
+          },
+          "preference_sensitive": {
+            "majority_vote_ties": 0,
+            "per_reward_context_majority": {
+              "accuracy": 1.0,
+              "correct": 136,
+              "total": 136
+            },
+            "per_utterance": {
+              "accuracy": 1.0,
+              "correct": 272,
+              "total": 272
+            },
+            "unresolved_reward_tie_votes": 0
+          },
+          "preference_sensitive_empty_hand_cooking": {
+            "majority_vote_ties": 0,
+            "per_reward_context_majority": {
+              "accuracy": 1.0,
+              "correct": 12,
+              "total": 12
+            },
+            "per_utterance": {
+              "accuracy": 1.0,
+              "correct": 24,
+              "total": 24
+            },
+            "unresolved_reward_tie_votes": 0
+          }
+        },
+        "nearest_reward_config": {
+          "accuracy": 1.0,
+          "correct": 772,
+          "distance_dimensions": 26,
+          "total": 772
+        },
+        "reward_metrics": {
+          "active_sign_accuracy": 1.0,
+          "active_target_count": 27792,
+          "dimensions": 53,
+          "examples": 772,
+          "mean_cosine_similarity": 0.9980863928794861,
+          "mse": 0.02554227225482464
+        },
+        "varying_dimension_reward_metrics": {
+          "active_sign_accuracy": 1.0,
+          "active_target_count": 17756,
+          "dimensions": 26,
+          "examples": 772,
+          "mean_cosine_similarity": 0.9972800016403198,
+          "mse": 0.051180023699998856
+        }
+      },
+      "systems": {
+        "canonical": {
+          "behavior_metrics": {
+            "all": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.9427083333333334,
+                "correct": 362,
+                "total": 384
+              },
+              "per_utterance": {
+                "accuracy": 0.944300518134715,
+                "correct": 729,
+                "total": 772
+              },
+              "unresolved_reward_tie_votes": 28
+            },
+            "preference_sensitive": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.9264705882352942,
+                "correct": 126,
+                "total": 136
+              },
+              "per_utterance": {
+                "accuracy": 0.9301470588235294,
+                "correct": 253,
+                "total": 272
+              },
+              "unresolved_reward_tie_votes": 4
+            },
+            "preference_sensitive_empty_hand_cooking": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.16666666666666666,
+                "correct": 2,
+                "total": 12
+              },
+              "per_utterance": {
+                "accuracy": 0.20833333333333334,
+                "correct": 5,
+                "total": 24
+              },
+              "unresolved_reward_tie_votes": 4
+            }
+          },
+          "nearest_reward_config": {
+            "accuracy": 0.0,
+            "correct": 0,
+            "distance_dimensions": 26,
+            "total": 772
+          },
+          "reward_metrics": {
+            "active_sign_accuracy": 1.0,
+            "active_target_count": 27792,
+            "dimensions": 53,
+            "examples": 772,
+            "mean_cosine_similarity": 0.8941028118133545,
+            "mse": 0.8838649392127991
+          },
+          "varying_dimension_reward_metrics": {
+            "active_sign_accuracy": 1.0,
+            "active_target_count": 17756,
+            "dimensions": 26,
+            "examples": 772,
+            "mean_cosine_similarity": 0.8525243401527405,
+            "mse": 1.801724910736084
+          }
+        },
+        "model": {
+          "behavior_metrics": {
+            "all": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 1.0,
+                "correct": 384,
+                "total": 384
+              },
+              "per_utterance": {
+                "accuracy": 1.0,
+                "correct": 772,
+                "total": 772
+              },
+              "unresolved_reward_tie_votes": 0
+            },
+            "preference_sensitive": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 1.0,
+                "correct": 136,
+                "total": 136
+              },
+              "per_utterance": {
+                "accuracy": 1.0,
+                "correct": 272,
+                "total": 272
+              },
+              "unresolved_reward_tie_votes": 0
+            },
+            "preference_sensitive_empty_hand_cooking": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 1.0,
+                "correct": 12,
+                "total": 12
+              },
+              "per_utterance": {
+                "accuracy": 1.0,
+                "correct": 24,
+                "total": 24
+              },
+              "unresolved_reward_tie_votes": 0
+            }
+          },
+          "nearest_reward_config": {
+            "accuracy": 1.0,
+            "correct": 772,
+            "distance_dimensions": 26,
+            "total": 772
+          },
+          "reward_metrics": {
+            "active_sign_accuracy": 1.0,
+            "active_target_count": 27792,
+            "dimensions": 53,
+            "examples": 772,
+            "mean_cosine_similarity": 0.9980863928794861,
+            "mse": 0.02554227225482464
+          },
+          "varying_dimension_reward_metrics": {
+            "active_sign_accuracy": 1.0,
+            "active_target_count": 17756,
+            "dimensions": 26,
+            "examples": 772,
+            "mean_cosine_similarity": 0.9972800016403198,
+            "mse": 0.051180023699998856
+          }
+        },
+        "text_only": {
+          "behavior_metrics": {
+            "all": {
+              "majority_vote_ties": 1,
+              "per_reward_context_majority": {
+                "accuracy": 0.9973958333333334,
+                "correct": 383,
+                "total": 384
+              },
+              "per_utterance": {
+                "accuracy": 1.0,
+                "correct": 772,
+                "total": 772
+              },
+              "unresolved_reward_tie_votes": 0
+            },
+            "preference_sensitive": {
+              "majority_vote_ties": 1,
+              "per_reward_context_majority": {
+                "accuracy": 0.9926470588235294,
+                "correct": 135,
+                "total": 136
+              },
+              "per_utterance": {
+                "accuracy": 1.0,
+                "correct": 272,
+                "total": 272
+              },
+              "unresolved_reward_tie_votes": 0
+            },
+            "preference_sensitive_empty_hand_cooking": {
+              "majority_vote_ties": 1,
+              "per_reward_context_majority": {
+                "accuracy": 0.9166666666666666,
+                "correct": 11,
+                "total": 12
+              },
+              "per_utterance": {
+                "accuracy": 1.0,
+                "correct": 24,
+                "total": 24
+              },
+              "unresolved_reward_tie_votes": 0
+            }
+          },
+          "nearest_reward_config": {
+            "accuracy": 1.0,
+            "correct": 772,
+            "distance_dimensions": 26,
+            "total": 772
+          },
+          "reward_metrics": {
+            "active_sign_accuracy": 1.0,
+            "active_target_count": 27792,
+            "dimensions": 53,
+            "examples": 772,
+            "mean_cosine_similarity": 0.9983936548233032,
+            "mse": 0.01640351675450802
+          },
+          "varying_dimension_reward_metrics": {
+            "active_sign_accuracy": 1.0,
+            "active_target_count": 17756,
+            "dimensions": 26,
+            "examples": 772,
+            "mean_cosine_similarity": 0.9980447292327881,
+            "mse": 0.030841907486319542
+          }
+        },
+        "train_mean": {
+          "behavior_metrics": {
+            "all": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.953125,
+                "correct": 366,
+                "total": 384
+              },
+              "per_utterance": {
+                "accuracy": 0.9572538860103627,
+                "correct": 739,
+                "total": 772
+              },
+              "unresolved_reward_tie_votes": 28
+            },
+            "preference_sensitive": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.9558823529411765,
+                "correct": 130,
+                "total": 136
+              },
+              "per_utterance": {
+                "accuracy": 0.9669117647058824,
+                "correct": 263,
+                "total": 272
+              },
+              "unresolved_reward_tie_votes": 4
+            },
+            "preference_sensitive_empty_hand_cooking": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.5,
+                "correct": 6,
+                "total": 12
+              },
+              "per_utterance": {
+                "accuracy": 0.625,
+                "correct": 15,
+                "total": 24
+              },
+              "unresolved_reward_tie_votes": 4
+            }
+          },
+          "nearest_reward_config": {
+            "accuracy": 0.0,
+            "correct": 0,
+            "distance_dimensions": 26,
+            "total": 772
+          },
+          "reward_metrics": {
+            "active_sign_accuracy": 1.0,
+            "active_target_count": 27792,
+            "dimensions": 53,
+            "examples": 772,
+            "mean_cosine_similarity": 0.8851877450942993,
+            "mse": 0.9429925680160522
+          },
+          "varying_dimension_reward_metrics": {
+            "active_sign_accuracy": 1.0,
+            "active_target_count": 17756,
+            "dimensions": 26,
+            "examples": 772,
+            "mean_cosine_similarity": 0.8369114398956299,
+            "mse": 1.9222540855407715
+          }
+        },
+        "trajectory_only": {
+          "behavior_metrics": {
+            "all": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.9791666666666666,
+                "correct": 376,
+                "total": 384
+              },
+              "per_utterance": {
+                "accuracy": 0.977979274611399,
+                "correct": 755,
+                "total": 772
+              },
+              "unresolved_reward_tie_votes": 0
+            },
+            "preference_sensitive": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.9411764705882353,
+                "correct": 128,
+                "total": 136
+              },
+              "per_utterance": {
+                "accuracy": 0.9375,
+                "correct": 255,
+                "total": 272
+              },
+              "unresolved_reward_tie_votes": 0
+            },
+            "preference_sensitive_empty_hand_cooking": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.3333333333333333,
+                "correct": 4,
+                "total": 12
+              },
+              "per_utterance": {
+                "accuracy": 0.2916666666666667,
+                "correct": 7,
+                "total": 24
+              },
+              "unresolved_reward_tie_votes": 0
+            }
+          },
+          "nearest_reward_config": {
+            "accuracy": 0.0,
+            "correct": 0,
+            "distance_dimensions": 26,
+            "total": 772
+          },
+          "reward_metrics": {
+            "active_sign_accuracy": 0.9166666865348816,
+            "active_target_count": 27792,
+            "dimensions": 53,
+            "examples": 772,
+            "mean_cosine_similarity": 0.8630461096763611,
+            "mse": 1.3094722032546997
+          },
+          "varying_dimension_reward_metrics": {
+            "active_sign_accuracy": 0.8695651888847351,
+            "active_target_count": 17756,
+            "dimensions": 26,
+            "examples": 772,
+            "mean_cosine_similarity": 0.8354630470275879,
+            "mse": 2.6685261726379395
+          }
+        }
+      },
+      "test_examples": 772
+    },
+    {
+      "coverage": {
+        "corpus_examples": 83592,
+        "dev_examples": 772,
+        "excluded_axis_pairs": {
+          "teacher_dev__reward_test": 579,
+          "teacher_dev__reward_train": 5597,
+          "teacher_test__reward_dev": 776,
+          "teacher_test__reward_train": 5626,
+          "teacher_train__reward_dev": 7740,
+          "teacher_train__reward_test": 5805
+        },
+        "excluded_examples": 26123,
+        "excluded_fraction": 0.31250598143363,
+        "included_fraction": 0.6874940185663699,
+        "test_examples": 582,
+        "train_examples": 56115
+      },
+      "fold": 5,
+      "heldout_overlap_audit": {
+        "test_exact_input_in_train": 0,
+        "test_exact_input_in_train_fraction": 0.0,
+        "test_exact_text_in_train": 0,
+        "test_exact_text_in_train_fraction": 0.0
+      },
+      "model": {
+        "behavior_metrics": {
+          "all": {
+            "majority_vote_ties": 0,
+            "per_reward_context_majority": {
+              "accuracy": 1.0,
+              "correct": 288,
+              "total": 288
+            },
+            "per_utterance": {
+              "accuracy": 1.0,
+              "correct": 582,
+              "total": 582
+            },
+            "unresolved_reward_tie_votes": 0
+          },
+          "preference_sensitive": {
+            "majority_vote_ties": 0,
+            "per_reward_context_majority": {
+              "accuracy": 1.0,
+              "correct": 102,
+              "total": 102
+            },
+            "per_utterance": {
+              "accuracy": 1.0,
+              "correct": 207,
+              "total": 207
+            },
+            "unresolved_reward_tie_votes": 0
+          },
+          "preference_sensitive_empty_hand_cooking": {
+            "majority_vote_ties": 0,
+            "per_reward_context_majority": {
+              "accuracy": 1.0,
+              "correct": 9,
+              "total": 9
+            },
+            "per_utterance": {
+              "accuracy": 1.0,
+              "correct": 21,
+              "total": 21
+            },
+            "unresolved_reward_tie_votes": 0
+          }
+        },
+        "nearest_reward_config": {
+          "accuracy": 1.0,
+          "correct": 582,
+          "distance_dimensions": 26,
+          "total": 582
+        },
+        "reward_metrics": {
+          "active_sign_accuracy": 0.9996035099029541,
+          "active_target_count": 22698,
+          "dimensions": 53,
+          "examples": 582,
+          "mean_cosine_similarity": 0.9990847110748291,
+          "mse": 0.005686128046363592
+        },
+        "varying_dimension_reward_metrics": {
+          "active_sign_accuracy": 0.9994052052497864,
+          "active_target_count": 15132,
+          "dimensions": 26,
+          "examples": 582,
+          "mean_cosine_similarity": 0.9985754489898682,
+          "mse": 0.010883503593504429
+        }
+      },
+      "systems": {
+        "canonical": {
+          "behavior_metrics": {
+            "all": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.9444444444444444,
+                "correct": 272,
+                "total": 288
+              },
+              "per_utterance": {
+                "accuracy": 0.9415807560137457,
+                "correct": 548,
+                "total": 582
+              },
+              "unresolved_reward_tie_votes": 24
+            },
+            "preference_sensitive": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.9313725490196079,
+                "correct": 95,
+                "total": 102
+              },
+              "per_utterance": {
+                "accuracy": 0.9227053140096618,
+                "correct": 191,
+                "total": 207
+              },
+              "unresolved_reward_tie_votes": 6
+            },
+            "preference_sensitive_empty_hand_cooking": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.2222222222222222,
+                "correct": 2,
+                "total": 9
+              },
+              "per_utterance": {
+                "accuracy": 0.23809523809523808,
+                "correct": 5,
+                "total": 21
+              },
+              "unresolved_reward_tie_votes": 6
+            }
+          },
+          "nearest_reward_config": {
+            "accuracy": 0.0,
+            "correct": 0,
+            "distance_dimensions": 26,
+            "total": 582
+          },
+          "reward_metrics": {
+            "active_sign_accuracy": 0.8974359035491943,
+            "active_target_count": 22698,
+            "dimensions": 53,
+            "examples": 582,
+            "mean_cosine_similarity": 0.9130117893218994,
+            "mse": 0.5252672433853149
+          },
+          "varying_dimension_reward_metrics": {
+            "active_sign_accuracy": 0.8461538553237915,
+            "active_target_count": 15132,
+            "dimensions": 26,
+            "examples": 582,
+            "mean_cosine_similarity": 0.8665359616279602,
+            "mse": 1.0707371234893799
+          }
+        },
+        "model": {
+          "behavior_metrics": {
+            "all": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 1.0,
+                "correct": 288,
+                "total": 288
+              },
+              "per_utterance": {
+                "accuracy": 1.0,
+                "correct": 582,
+                "total": 582
+              },
+              "unresolved_reward_tie_votes": 0
+            },
+            "preference_sensitive": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 1.0,
+                "correct": 102,
+                "total": 102
+              },
+              "per_utterance": {
+                "accuracy": 1.0,
+                "correct": 207,
+                "total": 207
+              },
+              "unresolved_reward_tie_votes": 0
+            },
+            "preference_sensitive_empty_hand_cooking": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 1.0,
+                "correct": 9,
+                "total": 9
+              },
+              "per_utterance": {
+                "accuracy": 1.0,
+                "correct": 21,
+                "total": 21
+              },
+              "unresolved_reward_tie_votes": 0
+            }
+          },
+          "nearest_reward_config": {
+            "accuracy": 1.0,
+            "correct": 582,
+            "distance_dimensions": 26,
+            "total": 582
+          },
+          "reward_metrics": {
+            "active_sign_accuracy": 0.9996035099029541,
+            "active_target_count": 22698,
+            "dimensions": 53,
+            "examples": 582,
+            "mean_cosine_similarity": 0.9990847110748291,
+            "mse": 0.005686128046363592
+          },
+          "varying_dimension_reward_metrics": {
+            "active_sign_accuracy": 0.9994052052497864,
+            "active_target_count": 15132,
+            "dimensions": 26,
+            "examples": 582,
+            "mean_cosine_similarity": 0.9985754489898682,
+            "mse": 0.010883503593504429
+          }
+        },
+        "text_only": {
+          "behavior_metrics": {
+            "all": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 1.0,
+                "correct": 288,
+                "total": 288
+              },
+              "per_utterance": {
+                "accuracy": 1.0,
+                "correct": 582,
+                "total": 582
+              },
+              "unresolved_reward_tie_votes": 0
+            },
+            "preference_sensitive": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 1.0,
+                "correct": 102,
+                "total": 102
+              },
+              "per_utterance": {
+                "accuracy": 1.0,
+                "correct": 207,
+                "total": 207
+              },
+              "unresolved_reward_tie_votes": 0
+            },
+            "preference_sensitive_empty_hand_cooking": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 1.0,
+                "correct": 9,
+                "total": 9
+              },
+              "per_utterance": {
+                "accuracy": 1.0,
+                "correct": 21,
+                "total": 21
+              },
+              "unresolved_reward_tie_votes": 0
+            }
+          },
+          "nearest_reward_config": {
+            "accuracy": 0.993127147766323,
+            "correct": 578,
+            "distance_dimensions": 26,
+            "total": 582
+          },
+          "reward_metrics": {
+            "active_sign_accuracy": 0.9977971911430359,
+            "active_target_count": 22698,
+            "dimensions": 53,
+            "examples": 582,
+            "mean_cosine_similarity": 0.9967972040176392,
+            "mse": 0.09095655381679535
+          },
+          "varying_dimension_reward_metrics": {
+            "active_sign_accuracy": 0.9966957569122314,
+            "active_target_count": 15132,
+            "dimensions": 26,
+            "examples": 582,
+            "mean_cosine_similarity": 0.9966309070587158,
+            "mse": 0.09232766926288605
+          }
+        },
+        "train_mean": {
+          "behavior_metrics": {
+            "all": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.9444444444444444,
+                "correct": 272,
+                "total": 288
+              },
+              "per_utterance": {
+                "accuracy": 0.9415807560137457,
+                "correct": 548,
+                "total": 582
+              },
+              "unresolved_reward_tie_votes": 24
+            },
+            "preference_sensitive": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.9313725490196079,
+                "correct": 95,
+                "total": 102
+              },
+              "per_utterance": {
+                "accuracy": 0.9227053140096618,
+                "correct": 191,
+                "total": 207
+              },
+              "unresolved_reward_tie_votes": 6
+            },
+            "preference_sensitive_empty_hand_cooking": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.2222222222222222,
+                "correct": 2,
+                "total": 9
+              },
+              "per_utterance": {
+                "accuracy": 0.23809523809523808,
+                "correct": 5,
+                "total": 21
+              },
+              "unresolved_reward_tie_votes": 6
+            }
+          },
+          "nearest_reward_config": {
+            "accuracy": 0.0,
+            "correct": 0,
+            "distance_dimensions": 26,
+            "total": 582
+          },
+          "reward_metrics": {
+            "active_sign_accuracy": 0.8974359035491943,
+            "active_target_count": 22698,
+            "dimensions": 53,
+            "examples": 582,
+            "mean_cosine_similarity": 0.9219885468482971,
+            "mse": 0.4688916504383087
+          },
+          "varying_dimension_reward_metrics": {
+            "active_sign_accuracy": 0.8461538553237915,
+            "active_target_count": 15132,
+            "dimensions": 26,
+            "examples": 582,
+            "mean_cosine_similarity": 0.8791444897651672,
+            "mse": 0.9558175802230835
+          }
+        },
+        "trajectory_only": {
+          "behavior_metrics": {
+            "all": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.6979166666666666,
+                "correct": 201,
+                "total": 288
+              },
+              "per_utterance": {
+                "accuracy": 0.697594501718213,
+                "correct": 406,
+                "total": 582
+              },
+              "unresolved_reward_tie_votes": 0
+            },
+            "preference_sensitive": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.14705882352941177,
+                "correct": 15,
+                "total": 102
+              },
+              "per_utterance": {
+                "accuracy": 0.1497584541062802,
+                "correct": 31,
+                "total": 207
+              },
+              "unresolved_reward_tie_votes": 0
+            },
+            "preference_sensitive_empty_hand_cooking": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.3333333333333333,
+                "correct": 3,
+                "total": 9
+              },
+              "per_utterance": {
+                "accuracy": 0.3333333333333333,
+                "correct": 7,
+                "total": 21
+              },
+              "unresolved_reward_tie_votes": 0
+            }
+          },
+          "nearest_reward_config": {
+            "accuracy": 0.0,
+            "correct": 0,
+            "distance_dimensions": 26,
+            "total": 582
+          },
+          "reward_metrics": {
+            "active_sign_accuracy": 0.6410256624221802,
+            "active_target_count": 22698,
+            "dimensions": 53,
+            "examples": 582,
+            "mean_cosine_similarity": 0.5890316963195801,
+            "mse": 2.1901872158050537
+          },
+          "varying_dimension_reward_metrics": {
+            "active_sign_accuracy": 0.4615384638309479,
+            "active_target_count": 15132,
+            "dimensions": 26,
+            "examples": 582,
+            "mean_cosine_similarity": 0.21666985750198364,
+            "mse": 4.314118385314941
+          }
+        }
+      },
+      "test_examples": 582
+    },
+    {
+      "coverage": {
+        "corpus_examples": 83592,
+        "dev_examples": 582,
+        "excluded_axis_pairs": {
+          "teacher_dev__reward_test": 582,
+          "teacher_dev__reward_train": 5820,
+          "teacher_test__reward_dev": 582,
+          "teacher_test__reward_train": 5820,
+          "teacher_train__reward_dev": 5802,
+          "teacher_train__reward_test": 5802
+        },
+        "excluded_examples": 24408,
+        "excluded_fraction": 0.29198966408268734,
+        "included_fraction": 0.7080103359173127,
+        "test_examples": 582,
+        "train_examples": 58020
+      },
+      "fold": 6,
+      "heldout_overlap_audit": {
+        "test_exact_input_in_train": 0,
+        "test_exact_input_in_train_fraction": 0.0,
+        "test_exact_text_in_train": 0,
+        "test_exact_text_in_train_fraction": 0.0
+      },
+      "model": {
+        "behavior_metrics": {
+          "all": {
+            "majority_vote_ties": 0,
+            "per_reward_context_majority": {
+              "accuracy": 1.0,
+              "correct": 288,
+              "total": 288
+            },
+            "per_utterance": {
+              "accuracy": 1.0,
+              "correct": 582,
+              "total": 582
+            },
+            "unresolved_reward_tie_votes": 0
+          },
+          "preference_sensitive": {
+            "majority_vote_ties": 0,
+            "per_reward_context_majority": {
+              "accuracy": 1.0,
+              "correct": 102,
+              "total": 102
+            },
+            "per_utterance": {
+              "accuracy": 1.0,
+              "correct": 204,
+              "total": 204
+            },
+            "unresolved_reward_tie_votes": 0
+          },
+          "preference_sensitive_empty_hand_cooking": {
+            "majority_vote_ties": 0,
+            "per_reward_context_majority": {
+              "accuracy": 1.0,
+              "correct": 9,
+              "total": 9
+            },
+            "per_utterance": {
+              "accuracy": 1.0,
+              "correct": 18,
+              "total": 18
+            },
+            "unresolved_reward_tie_votes": 0
+          }
+        },
+        "nearest_reward_config": {
+          "accuracy": 1.0,
+          "correct": 582,
+          "distance_dimensions": 26,
+          "total": 582
+        },
+        "reward_metrics": {
+          "active_sign_accuracy": 1.0,
+          "active_target_count": 21534,
+          "dimensions": 53,
+          "examples": 582,
+          "mean_cosine_similarity": 0.9997262954711914,
+          "mse": 0.0033694978337734938
+        },
+        "varying_dimension_reward_metrics": {
+          "active_sign_accuracy": 1.0,
+          "active_target_count": 13968,
+          "dimensions": 26,
+          "examples": 582,
+          "mean_cosine_similarity": 0.9997518658638,
+          "mse": 0.006835600361227989
+        }
+      },
+      "systems": {
+        "canonical": {
+          "behavior_metrics": {
+            "all": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.9513888888888888,
+                "correct": 274,
+                "total": 288
+              },
+              "per_utterance": {
+                "accuracy": 0.9501718213058419,
+                "correct": 553,
+                "total": 582
+              },
+              "unresolved_reward_tie_votes": 24
+            },
+            "preference_sensitive": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.9509803921568627,
+                "correct": 97,
+                "total": 102
+              },
+              "per_utterance": {
+                "accuracy": 0.9607843137254902,
+                "correct": 196,
+                "total": 204
+              },
+              "unresolved_reward_tie_votes": 3
+            },
+            "preference_sensitive_empty_hand_cooking": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.4444444444444444,
+                "correct": 4,
+                "total": 9
+              },
+              "per_utterance": {
+                "accuracy": 0.5555555555555556,
+                "correct": 10,
+                "total": 18
+              },
+              "unresolved_reward_tie_votes": 3
+            }
+          },
+          "nearest_reward_config": {
+            "accuracy": 0.3333333333333333,
+            "correct": 194,
+            "distance_dimensions": 26,
+            "total": 582
+          },
+          "reward_metrics": {
+            "active_sign_accuracy": 1.0,
+            "active_target_count": 21534,
+            "dimensions": 53,
+            "examples": 582,
+            "mean_cosine_similarity": 0.970570981502533,
+            "mse": 0.19699686765670776
+          },
+          "varying_dimension_reward_metrics": {
+            "active_sign_accuracy": 1.0,
+            "active_target_count": 13968,
+            "dimensions": 26,
+            "examples": 582,
+            "mean_cosine_similarity": 0.9578056335449219,
+            "mse": 0.40157052874565125
+          }
+        },
+        "model": {
+          "behavior_metrics": {
+            "all": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 1.0,
+                "correct": 288,
+                "total": 288
+              },
+              "per_utterance": {
+                "accuracy": 1.0,
+                "correct": 582,
+                "total": 582
+              },
+              "unresolved_reward_tie_votes": 0
+            },
+            "preference_sensitive": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 1.0,
+                "correct": 102,
+                "total": 102
+              },
+              "per_utterance": {
+                "accuracy": 1.0,
+                "correct": 204,
+                "total": 204
+              },
+              "unresolved_reward_tie_votes": 0
+            },
+            "preference_sensitive_empty_hand_cooking": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 1.0,
+                "correct": 9,
+                "total": 9
+              },
+              "per_utterance": {
+                "accuracy": 1.0,
+                "correct": 18,
+                "total": 18
+              },
+              "unresolved_reward_tie_votes": 0
+            }
+          },
+          "nearest_reward_config": {
+            "accuracy": 1.0,
+            "correct": 582,
+            "distance_dimensions": 26,
+            "total": 582
+          },
+          "reward_metrics": {
+            "active_sign_accuracy": 1.0,
+            "active_target_count": 21534,
+            "dimensions": 53,
+            "examples": 582,
+            "mean_cosine_similarity": 0.9997262954711914,
+            "mse": 0.0033694978337734938
+          },
+          "varying_dimension_reward_metrics": {
+            "active_sign_accuracy": 1.0,
+            "active_target_count": 13968,
+            "dimensions": 26,
+            "examples": 582,
+            "mean_cosine_similarity": 0.9997518658638,
+            "mse": 0.006835600361227989
+          }
+        },
+        "text_only": {
+          "behavior_metrics": {
+            "all": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 1.0,
+                "correct": 288,
+                "total": 288
+              },
+              "per_utterance": {
+                "accuracy": 1.0,
+                "correct": 582,
+                "total": 582
+              },
+              "unresolved_reward_tie_votes": 0
+            },
+            "preference_sensitive": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 1.0,
+                "correct": 102,
+                "total": 102
+              },
+              "per_utterance": {
+                "accuracy": 1.0,
+                "correct": 204,
+                "total": 204
+              },
+              "unresolved_reward_tie_votes": 0
+            },
+            "preference_sensitive_empty_hand_cooking": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 1.0,
+                "correct": 9,
+                "total": 9
+              },
+              "per_utterance": {
+                "accuracy": 1.0,
+                "correct": 18,
+                "total": 18
+              },
+              "unresolved_reward_tie_votes": 0
+            }
+          },
+          "nearest_reward_config": {
+            "accuracy": 1.0,
+            "correct": 582,
+            "distance_dimensions": 26,
+            "total": 582
+          },
+          "reward_metrics": {
+            "active_sign_accuracy": 1.0,
+            "active_target_count": 21534,
+            "dimensions": 53,
+            "examples": 582,
+            "mean_cosine_similarity": 0.9996912479400635,
+            "mse": 0.015060045756399632
+          },
+          "varying_dimension_reward_metrics": {
+            "active_sign_accuracy": 1.0,
+            "active_target_count": 13968,
+            "dimensions": 26,
+            "examples": 582,
+            "mean_cosine_similarity": 0.9996371269226074,
+            "mse": 0.024781817570328712
+          }
+        },
+        "train_mean": {
+          "behavior_metrics": {
+            "all": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.9513888888888888,
+                "correct": 274,
+                "total": 288
+              },
+              "per_utterance": {
+                "accuracy": 0.9501718213058419,
+                "correct": 553,
+                "total": 582
+              },
+              "unresolved_reward_tie_votes": 24
+            },
+            "preference_sensitive": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.9509803921568627,
+                "correct": 97,
+                "total": 102
+              },
+              "per_utterance": {
+                "accuracy": 0.9607843137254902,
+                "correct": 196,
+                "total": 204
+              },
+              "unresolved_reward_tie_votes": 3
+            },
+            "preference_sensitive_empty_hand_cooking": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.4444444444444444,
+                "correct": 4,
+                "total": 9
+              },
+              "per_utterance": {
+                "accuracy": 0.5555555555555556,
+                "correct": 10,
+                "total": 18
+              },
+              "unresolved_reward_tie_votes": 3
+            }
+          },
+          "nearest_reward_config": {
+            "accuracy": 0.3333333333333333,
+            "correct": 194,
+            "distance_dimensions": 26,
+            "total": 582
+          },
+          "reward_metrics": {
+            "active_sign_accuracy": 1.0,
+            "active_target_count": 21534,
+            "dimensions": 53,
+            "examples": 582,
+            "mean_cosine_similarity": 0.9766859412193298,
+            "mse": 0.16610422730445862
+          },
+          "varying_dimension_reward_metrics": {
+            "active_sign_accuracy": 1.0,
+            "active_target_count": 13968,
+            "dimensions": 26,
+            "examples": 582,
+            "mean_cosine_similarity": 0.9679027199745178,
+            "mse": 0.33859705924987793
+          }
+        },
+        "trajectory_only": {
+          "behavior_metrics": {
+            "all": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.9791666666666666,
+                "correct": 282,
+                "total": 288
+              },
+              "per_utterance": {
+                "accuracy": 0.979381443298969,
+                "correct": 570,
+                "total": 582
+              },
+              "unresolved_reward_tie_votes": 0
+            },
+            "preference_sensitive": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.9411764705882353,
+                "correct": 96,
+                "total": 102
+              },
+              "per_utterance": {
+                "accuracy": 0.9411764705882353,
+                "correct": 192,
+                "total": 204
+              },
+              "unresolved_reward_tie_votes": 0
+            },
+            "preference_sensitive_empty_hand_cooking": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.3333333333333333,
+                "correct": 3,
+                "total": 9
+              },
+              "per_utterance": {
+                "accuracy": 0.3333333333333333,
+                "correct": 6,
+                "total": 18
+              },
+              "unresolved_reward_tie_votes": 0
+            }
+          },
+          "nearest_reward_config": {
+            "accuracy": 0.0,
+            "correct": 0,
+            "distance_dimensions": 26,
+            "total": 582
+          },
+          "reward_metrics": {
+            "active_sign_accuracy": 0.8918918967247009,
+            "active_target_count": 21534,
+            "dimensions": 53,
+            "examples": 582,
+            "mean_cosine_similarity": 0.9143439531326294,
+            "mse": 0.7329668998718262
+          },
+          "varying_dimension_reward_metrics": {
+            "active_sign_accuracy": 0.8333333134651184,
+            "active_target_count": 13968,
+            "dimensions": 26,
+            "examples": 582,
+            "mean_cosine_similarity": 0.9204221963882446,
+            "mse": 1.4807897806167603
+          }
+        }
+      },
+      "test_examples": 582
+    },
+    {
+      "coverage": {
+        "corpus_examples": 83592,
+        "dev_examples": 582,
+        "excluded_axis_pairs": {
+          "teacher_dev__reward_test": 582,
+          "teacher_dev__reward_train": 5820,
+          "teacher_test__reward_dev": 582,
+          "teacher_test__reward_train": 5820,
+          "teacher_train__reward_dev": 5802,
+          "teacher_train__reward_test": 5802
+        },
+        "excluded_examples": 24408,
+        "excluded_fraction": 0.29198966408268734,
+        "included_fraction": 0.7080103359173127,
+        "test_examples": 582,
+        "train_examples": 58020
+      },
+      "fold": 7,
+      "heldout_overlap_audit": {
+        "test_exact_input_in_train": 0,
+        "test_exact_input_in_train_fraction": 0.0,
+        "test_exact_text_in_train": 0,
+        "test_exact_text_in_train_fraction": 0.0
+      },
+      "model": {
+        "behavior_metrics": {
+          "all": {
+            "majority_vote_ties": 2,
+            "per_reward_context_majority": {
+              "accuracy": 0.9930555555555556,
+              "correct": 286,
+              "total": 288
+            },
+            "per_utterance": {
+              "accuracy": 0.9982817869415808,
+              "correct": 581,
+              "total": 582
+            },
+            "unresolved_reward_tie_votes": 0
+          },
+          "preference_sensitive": {
+            "majority_vote_ties": 2,
+            "per_reward_context_majority": {
+              "accuracy": 0.9803921568627451,
+              "correct": 100,
+              "total": 102
+            },
+            "per_utterance": {
+              "accuracy": 0.9950248756218906,
+              "correct": 200,
+              "total": 201
+            },
+            "unresolved_reward_tie_votes": 0
+          },
+          "preference_sensitive_empty_hand_cooking": {
+            "majority_vote_ties": 2,
+            "per_reward_context_majority": {
+              "accuracy": 0.7777777777777778,
+              "correct": 7,
+              "total": 9
+            },
+            "per_utterance": {
+              "accuracy": 0.9333333333333333,
+              "correct": 14,
+              "total": 15
+            },
+            "unresolved_reward_tie_votes": 0
+          }
+        },
+        "nearest_reward_config": {
+          "accuracy": 1.0,
+          "correct": 582,
+          "distance_dimensions": 26,
+          "total": 582
+        },
+        "reward_metrics": {
+          "active_sign_accuracy": 1.0,
+          "active_target_count": 20370,
+          "dimensions": 53,
+          "examples": 582,
+          "mean_cosine_similarity": 0.9995700120925903,
+          "mse": 0.001881798030808568
+        },
+        "varying_dimension_reward_metrics": {
+          "active_sign_accuracy": 1.0,
+          "active_target_count": 12804,
+          "dimensions": 26,
+          "examples": 582,
+          "mean_cosine_similarity": 0.9989168047904968,
+          "mse": 0.003770605893805623
+        }
+      },
+      "systems": {
+        "canonical": {
+          "behavior_metrics": {
+            "all": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.9513888888888888,
+                "correct": 274,
+                "total": 288
+              },
+              "per_utterance": {
+                "accuracy": 0.9467353951890034,
+                "correct": 551,
+                "total": 582
+              },
+              "unresolved_reward_tie_votes": 27
+            },
+            "preference_sensitive": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.9509803921568627,
+                "correct": 97,
+                "total": 102
+              },
+              "per_utterance": {
+                "accuracy": 0.9651741293532339,
+                "correct": 194,
+                "total": 201
+              },
+              "unresolved_reward_tie_votes": 3
+            },
+            "preference_sensitive_empty_hand_cooking": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.4444444444444444,
+                "correct": 4,
+                "total": 9
+              },
+              "per_utterance": {
+                "accuracy": 0.5333333333333333,
+                "correct": 8,
+                "total": 15
+              },
+              "unresolved_reward_tie_votes": 3
+            }
+          },
+          "nearest_reward_config": {
+            "accuracy": 0.0,
+            "correct": 0,
+            "distance_dimensions": 26,
+            "total": 582
+          },
+          "reward_metrics": {
+            "active_sign_accuracy": 1.0,
+            "active_target_count": 20370,
+            "dimensions": 53,
+            "examples": 582,
+            "mean_cosine_similarity": 0.9161444306373596,
+            "mse": 0.4948192238807678
+          },
+          "varying_dimension_reward_metrics": {
+            "active_sign_accuracy": 1.0,
+            "active_target_count": 12804,
+            "dimensions": 26,
+            "examples": 582,
+            "mean_cosine_similarity": 0.8817007541656494,
+            "mse": 1.0086699724197388
+          }
+        },
+        "model": {
+          "behavior_metrics": {
+            "all": {
+              "majority_vote_ties": 2,
+              "per_reward_context_majority": {
+                "accuracy": 0.9930555555555556,
+                "correct": 286,
+                "total": 288
+              },
+              "per_utterance": {
+                "accuracy": 0.9982817869415808,
+                "correct": 581,
+                "total": 582
+              },
+              "unresolved_reward_tie_votes": 0
+            },
+            "preference_sensitive": {
+              "majority_vote_ties": 2,
+              "per_reward_context_majority": {
+                "accuracy": 0.9803921568627451,
+                "correct": 100,
+                "total": 102
+              },
+              "per_utterance": {
+                "accuracy": 0.9950248756218906,
+                "correct": 200,
+                "total": 201
+              },
+              "unresolved_reward_tie_votes": 0
+            },
+            "preference_sensitive_empty_hand_cooking": {
+              "majority_vote_ties": 2,
+              "per_reward_context_majority": {
+                "accuracy": 0.7777777777777778,
+                "correct": 7,
+                "total": 9
+              },
+              "per_utterance": {
+                "accuracy": 0.9333333333333333,
+                "correct": 14,
+                "total": 15
+              },
+              "unresolved_reward_tie_votes": 0
+            }
+          },
+          "nearest_reward_config": {
+            "accuracy": 1.0,
+            "correct": 582,
+            "distance_dimensions": 26,
+            "total": 582
+          },
+          "reward_metrics": {
+            "active_sign_accuracy": 1.0,
+            "active_target_count": 20370,
+            "dimensions": 53,
+            "examples": 582,
+            "mean_cosine_similarity": 0.9995700120925903,
+            "mse": 0.001881798030808568
+          },
+          "varying_dimension_reward_metrics": {
+            "active_sign_accuracy": 1.0,
+            "active_target_count": 12804,
+            "dimensions": 26,
+            "examples": 582,
+            "mean_cosine_similarity": 0.9989168047904968,
+            "mse": 0.003770605893805623
+          }
+        },
+        "text_only": {
+          "behavior_metrics": {
+            "all": {
+              "majority_vote_ties": 2,
+              "per_reward_context_majority": {
+                "accuracy": 0.9930555555555556,
+                "correct": 286,
+                "total": 288
+              },
+              "per_utterance": {
+                "accuracy": 0.9982817869415808,
+                "correct": 581,
+                "total": 582
+              },
+              "unresolved_reward_tie_votes": 0
+            },
+            "preference_sensitive": {
+              "majority_vote_ties": 2,
+              "per_reward_context_majority": {
+                "accuracy": 0.9803921568627451,
+                "correct": 100,
+                "total": 102
+              },
+              "per_utterance": {
+                "accuracy": 0.9950248756218906,
+                "correct": 200,
+                "total": 201
+              },
+              "unresolved_reward_tie_votes": 0
+            },
+            "preference_sensitive_empty_hand_cooking": {
+              "majority_vote_ties": 2,
+              "per_reward_context_majority": {
+                "accuracy": 0.7777777777777778,
+                "correct": 7,
+                "total": 9
+              },
+              "per_utterance": {
+                "accuracy": 0.9333333333333333,
+                "correct": 14,
+                "total": 15
+              },
+              "unresolved_reward_tie_votes": 0
+            }
+          },
+          "nearest_reward_config": {
+            "accuracy": 1.0,
+            "correct": 582,
+            "distance_dimensions": 26,
+            "total": 582
+          },
+          "reward_metrics": {
+            "active_sign_accuracy": 1.0,
+            "active_target_count": 20370,
+            "dimensions": 53,
+            "examples": 582,
+            "mean_cosine_similarity": 0.9995540976524353,
+            "mse": 0.009160715155303478
+          },
+          "varying_dimension_reward_metrics": {
+            "active_sign_accuracy": 1.0,
+            "active_target_count": 12804,
+            "dimensions": 26,
+            "examples": 582,
+            "mean_cosine_similarity": 0.9989347457885742,
+            "mse": 0.012651510536670685
+          }
+        },
+        "train_mean": {
+          "behavior_metrics": {
+            "all": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.9513888888888888,
+                "correct": 274,
+                "total": 288
+              },
+              "per_utterance": {
+                "accuracy": 0.9467353951890034,
+                "correct": 551,
+                "total": 582
+              },
+              "unresolved_reward_tie_votes": 27
+            },
+            "preference_sensitive": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.9509803921568627,
+                "correct": 97,
+                "total": 102
+              },
+              "per_utterance": {
+                "accuracy": 0.9651741293532339,
+                "correct": 194,
+                "total": 201
+              },
+              "unresolved_reward_tie_votes": 3
+            },
+            "preference_sensitive_empty_hand_cooking": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.4444444444444444,
+                "correct": 4,
+                "total": 9
+              },
+              "per_utterance": {
+                "accuracy": 0.5333333333333333,
+                "correct": 8,
+                "total": 15
+              },
+              "unresolved_reward_tie_votes": 3
+            }
+          },
+          "nearest_reward_config": {
+            "accuracy": 0.0,
+            "correct": 0,
+            "distance_dimensions": 26,
+            "total": 582
+          },
+          "reward_metrics": {
+            "active_sign_accuracy": 1.0,
+            "active_target_count": 20370,
+            "dimensions": 53,
+            "examples": 582,
+            "mean_cosine_similarity": 0.9292439818382263,
+            "mse": 0.42059171199798584
+          },
+          "varying_dimension_reward_metrics": {
+            "active_sign_accuracy": 1.0,
+            "active_target_count": 12804,
+            "dimensions": 26,
+            "examples": 582,
+            "mean_cosine_similarity": 0.9033377170562744,
+            "mse": 0.8573599457740784
+          }
+        },
+        "trajectory_only": {
+          "behavior_metrics": {
+            "all": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.9826388888888888,
+                "correct": 283,
+                "total": 288
+              },
+              "per_utterance": {
+                "accuracy": 0.9845360824742269,
+                "correct": 573,
+                "total": 582
+              },
+              "unresolved_reward_tie_votes": 0
+            },
+            "preference_sensitive": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.9509803921568627,
+                "correct": 97,
+                "total": 102
+              },
+              "per_utterance": {
+                "accuracy": 0.9552238805970149,
+                "correct": 192,
+                "total": 201
+              },
+              "unresolved_reward_tie_votes": 0
+            },
+            "preference_sensitive_empty_hand_cooking": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.4444444444444444,
+                "correct": 4,
+                "total": 9
+              },
+              "per_utterance": {
+                "accuracy": 0.4,
+                "correct": 6,
+                "total": 15
+              },
+              "unresolved_reward_tie_votes": 0
+            }
+          },
+          "nearest_reward_config": {
+            "accuracy": 0.0,
+            "correct": 0,
+            "distance_dimensions": 26,
+            "total": 582
+          },
+          "reward_metrics": {
+            "active_sign_accuracy": 0.9428571462631226,
+            "active_target_count": 20370,
+            "dimensions": 53,
+            "examples": 582,
+            "mean_cosine_similarity": 0.8992327451705933,
+            "mse": 0.5984973907470703
+          },
+          "varying_dimension_reward_metrics": {
+            "active_sign_accuracy": 0.9090909361839294,
+            "active_target_count": 12804,
+            "dimensions": 26,
+            "examples": 582,
+            "mean_cosine_similarity": 0.8319382667541504,
+            "mse": 1.2136398553848267
+          }
+        }
+      },
+      "test_examples": 582
+    },
+    {
+      "coverage": {
+        "corpus_examples": 83592,
+        "dev_examples": 582,
+        "excluded_axis_pairs": {
+          "teacher_dev__reward_test": 582,
+          "teacher_dev__reward_train": 5820,
+          "teacher_test__reward_dev": 579,
+          "teacher_test__reward_train": 5790,
+          "teacher_train__reward_dev": 5805,
+          "teacher_train__reward_test": 5805
+        },
+        "excluded_examples": 24381,
+        "excluded_fraction": 0.2916666666666667,
+        "included_fraction": 0.7083333333333334,
+        "test_examples": 579,
+        "train_examples": 58050
+      },
+      "fold": 8,
+      "heldout_overlap_audit": {
+        "test_exact_input_in_train": 0,
+        "test_exact_input_in_train_fraction": 0.0,
+        "test_exact_text_in_train": 0,
+        "test_exact_text_in_train_fraction": 0.0
+      },
+      "model": {
+        "behavior_metrics": {
+          "all": {
+            "majority_vote_ties": 1,
+            "per_reward_context_majority": {
+              "accuracy": 0.9861111111111112,
+              "correct": 284,
+              "total": 288
+            },
+            "per_utterance": {
+              "accuracy": 0.9879101899827288,
+              "correct": 572,
+              "total": 579
+            },
+            "unresolved_reward_tie_votes": 0
+          },
+          "preference_sensitive": {
+            "majority_vote_ties": 1,
+            "per_reward_context_majority": {
+              "accuracy": 0.9607843137254902,
+              "correct": 98,
+              "total": 102
+            },
+            "per_utterance": {
+              "accuracy": 0.9651741293532339,
+              "correct": 194,
+              "total": 201
+            },
+            "unresolved_reward_tie_votes": 0
+          },
+          "preference_sensitive_empty_hand_cooking": {
+            "majority_vote_ties": 0,
+            "per_reward_context_majority": {
+              "accuracy": 1.0,
+              "correct": 9,
+              "total": 9
+            },
+            "per_utterance": {
+              "accuracy": 1.0,
+              "correct": 15,
+              "total": 15
+            },
+            "unresolved_reward_tie_votes": 0
+          }
+        },
+        "nearest_reward_config": {
+          "accuracy": 1.0,
+          "correct": 579,
+          "distance_dimensions": 26,
+          "total": 579
+        },
+        "reward_metrics": {
+          "active_sign_accuracy": 1.0,
+          "active_target_count": 22581,
+          "dimensions": 53,
+          "examples": 579,
+          "mean_cosine_similarity": 0.9996236562728882,
+          "mse": 0.006193440407514572
+        },
+        "varying_dimension_reward_metrics": {
+          "active_sign_accuracy": 1.0,
+          "active_target_count": 15054,
+          "dimensions": 26,
+          "examples": 579,
+          "mean_cosine_similarity": 0.9996373653411865,
+          "mse": 0.01256592757999897
+        }
+      },
+      "systems": {
+        "canonical": {
+          "behavior_metrics": {
+            "all": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.9305555555555556,
+                "correct": 268,
+                "total": 288
+              },
+              "per_utterance": {
+                "accuracy": 0.9309153713298791,
+                "correct": 539,
+                "total": 579
+              },
+              "unresolved_reward_tie_votes": 24
+            },
+            "preference_sensitive": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.8921568627450981,
+                "correct": 91,
+                "total": 102
+              },
+              "per_utterance": {
+                "accuracy": 0.9054726368159204,
+                "correct": 182,
+                "total": 201
+              },
+              "unresolved_reward_tie_votes": 3
+            },
+            "preference_sensitive_empty_hand_cooking": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.2222222222222222,
+                "correct": 2,
+                "total": 9
+              },
+              "per_utterance": {
+                "accuracy": 0.26666666666666666,
+                "correct": 4,
+                "total": 15
+              },
+              "unresolved_reward_tie_votes": 3
+            }
+          },
+          "nearest_reward_config": {
+            "accuracy": 0.0,
+            "correct": 0,
+            "distance_dimensions": 26,
+            "total": 579
+          },
+          "reward_metrics": {
+            "active_sign_accuracy": 0.8974359035491943,
+            "active_target_count": 22581,
+            "dimensions": 53,
+            "examples": 579,
+            "mean_cosine_similarity": 0.9133203029632568,
+            "mse": 0.7684866189956665
+          },
+          "varying_dimension_reward_metrics": {
+            "active_sign_accuracy": 0.8461538553237915,
+            "active_target_count": 15054,
+            "dimensions": 26,
+            "examples": 579,
+            "mean_cosine_similarity": 0.886332094669342,
+            "mse": 1.566530466079712
+          }
+        },
+        "model": {
+          "behavior_metrics": {
+            "all": {
+              "majority_vote_ties": 1,
+              "per_reward_context_majority": {
+                "accuracy": 0.9861111111111112,
+                "correct": 284,
+                "total": 288
+              },
+              "per_utterance": {
+                "accuracy": 0.9879101899827288,
+                "correct": 572,
+                "total": 579
+              },
+              "unresolved_reward_tie_votes": 0
+            },
+            "preference_sensitive": {
+              "majority_vote_ties": 1,
+              "per_reward_context_majority": {
+                "accuracy": 0.9607843137254902,
+                "correct": 98,
+                "total": 102
+              },
+              "per_utterance": {
+                "accuracy": 0.9651741293532339,
+                "correct": 194,
+                "total": 201
+              },
+              "unresolved_reward_tie_votes": 0
+            },
+            "preference_sensitive_empty_hand_cooking": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 1.0,
+                "correct": 9,
+                "total": 9
+              },
+              "per_utterance": {
+                "accuracy": 1.0,
+                "correct": 15,
+                "total": 15
+              },
+              "unresolved_reward_tie_votes": 0
+            }
+          },
+          "nearest_reward_config": {
+            "accuracy": 1.0,
+            "correct": 579,
+            "distance_dimensions": 26,
+            "total": 579
+          },
+          "reward_metrics": {
+            "active_sign_accuracy": 1.0,
+            "active_target_count": 22581,
+            "dimensions": 53,
+            "examples": 579,
+            "mean_cosine_similarity": 0.9996236562728882,
+            "mse": 0.006193440407514572
+          },
+          "varying_dimension_reward_metrics": {
+            "active_sign_accuracy": 1.0,
+            "active_target_count": 15054,
+            "dimensions": 26,
+            "examples": 579,
+            "mean_cosine_similarity": 0.9996373653411865,
+            "mse": 0.01256592757999897
+          }
+        },
+        "text_only": {
+          "behavior_metrics": {
+            "all": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.9895833333333334,
+                "correct": 285,
+                "total": 288
+              },
+              "per_utterance": {
+                "accuracy": 0.9896373056994818,
+                "correct": 573,
+                "total": 579
+              },
+              "unresolved_reward_tie_votes": 0
+            },
+            "preference_sensitive": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.9705882352941176,
+                "correct": 99,
+                "total": 102
+              },
+              "per_utterance": {
+                "accuracy": 0.9701492537313433,
+                "correct": 195,
+                "total": 201
+              },
+              "unresolved_reward_tie_votes": 0
+            },
+            "preference_sensitive_empty_hand_cooking": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 1.0,
+                "correct": 9,
+                "total": 9
+              },
+              "per_utterance": {
+                "accuracy": 1.0,
+                "correct": 15,
+                "total": 15
+              },
+              "unresolved_reward_tie_votes": 0
+            }
+          },
+          "nearest_reward_config": {
+            "accuracy": 1.0,
+            "correct": 579,
+            "distance_dimensions": 26,
+            "total": 579
+          },
+          "reward_metrics": {
+            "active_sign_accuracy": 1.0,
+            "active_target_count": 22581,
+            "dimensions": 53,
+            "examples": 579,
+            "mean_cosine_similarity": 0.9996837377548218,
+            "mse": 0.015669982880353928
+          },
+          "varying_dimension_reward_metrics": {
+            "active_sign_accuracy": 1.0,
+            "active_target_count": 15054,
+            "dimensions": 26,
+            "examples": 579,
+            "mean_cosine_similarity": 0.9996447563171387,
+            "mse": 0.02871434949338436
+          }
+        },
+        "train_mean": {
+          "behavior_metrics": {
+            "all": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.9305555555555556,
+                "correct": 268,
+                "total": 288
+              },
+              "per_utterance": {
+                "accuracy": 0.9309153713298791,
+                "correct": 539,
+                "total": 579
+              },
+              "unresolved_reward_tie_votes": 24
+            },
+            "preference_sensitive": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.8921568627450981,
+                "correct": 91,
+                "total": 102
+              },
+              "per_utterance": {
+                "accuracy": 0.9054726368159204,
+                "correct": 182,
+                "total": 201
+              },
+              "unresolved_reward_tie_votes": 3
+            },
+            "preference_sensitive_empty_hand_cooking": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.2222222222222222,
+                "correct": 2,
+                "total": 9
+              },
+              "per_utterance": {
+                "accuracy": 0.26666666666666666,
+                "correct": 4,
+                "total": 15
+              },
+              "unresolved_reward_tie_votes": 3
+            }
+          },
+          "nearest_reward_config": {
+            "accuracy": 0.0,
+            "correct": 0,
+            "distance_dimensions": 26,
+            "total": 579
+          },
+          "reward_metrics": {
+            "active_sign_accuracy": 0.8974359035491943,
+            "active_target_count": 22581,
+            "dimensions": 53,
+            "examples": 579,
+            "mean_cosine_similarity": 0.9183707237243652,
+            "mse": 0.7500150203704834
+          },
+          "varying_dimension_reward_metrics": {
+            "active_sign_accuracy": 0.8461538553237915,
+            "active_target_count": 15054,
+            "dimensions": 26,
+            "examples": 579,
+            "mean_cosine_similarity": 0.8954399228096008,
+            "mse": 1.528876781463623
+          }
+        },
+        "trajectory_only": {
+          "behavior_metrics": {
+            "all": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.9618055555555556,
+                "correct": 277,
+                "total": 288
+              },
+              "per_utterance": {
+                "accuracy": 0.9637305699481865,
+                "correct": 558,
+                "total": 579
+              },
+              "unresolved_reward_tie_votes": 0
+            },
+            "preference_sensitive": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.8921568627450981,
+                "correct": 91,
+                "total": 102
+              },
+              "per_utterance": {
+                "accuracy": 0.8955223880597015,
+                "correct": 180,
+                "total": 201
+              },
+              "unresolved_reward_tie_votes": 0
+            },
+            "preference_sensitive_empty_hand_cooking": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.2222222222222222,
+                "correct": 2,
+                "total": 9
+              },
+              "per_utterance": {
+                "accuracy": 0.13333333333333333,
+                "correct": 2,
+                "total": 15
+              },
+              "unresolved_reward_tie_votes": 0
+            }
+          },
+          "nearest_reward_config": {
+            "accuracy": 0.0,
+            "correct": 0,
+            "distance_dimensions": 26,
+            "total": 579
+          },
+          "reward_metrics": {
+            "active_sign_accuracy": 0.9487179517745972,
+            "active_target_count": 22581,
+            "dimensions": 53,
+            "examples": 579,
+            "mean_cosine_similarity": 0.8358772993087769,
+            "mse": 1.445864200592041
+          },
+          "varying_dimension_reward_metrics": {
+            "active_sign_accuracy": 0.9230769276618958,
+            "active_target_count": 15054,
+            "dimensions": 26,
+            "examples": 579,
+            "mean_cosine_similarity": 0.8035255074501038,
+            "mse": 2.9456703662872314
+          }
+        }
+      },
+      "test_examples": 579
+    },
+    {
+      "coverage": {
+        "corpus_examples": 83592,
+        "dev_examples": 579,
+        "excluded_axis_pairs": {
+          "teacher_dev__reward_test": 772,
+          "teacher_dev__reward_train": 5597,
+          "teacher_test__reward_dev": 1164,
+          "teacher_test__reward_train": 11252,
+          "teacher_train__reward_dev": 5223,
+          "teacher_train__reward_test": 6964
+        },
+        "excluded_examples": 30972,
+        "excluded_fraction": 0.3705139247774907,
+        "included_fraction": 0.6294860752225093,
+        "test_examples": 1552,
+        "train_examples": 50489
+      },
+      "fold": 9,
+      "heldout_overlap_audit": {
+        "test_exact_input_in_train": 0,
+        "test_exact_input_in_train_fraction": 0.0,
+        "test_exact_text_in_train": 0,
+        "test_exact_text_in_train_fraction": 0.0
+      },
+      "model": {
+        "behavior_metrics": {
+          "all": {
+            "majority_vote_ties": 1,
+            "per_reward_context_majority": {
+              "accuracy": 0.9973958333333334,
+              "correct": 383,
+              "total": 384
+            },
+            "per_utterance": {
+              "accuracy": 0.9961340206185567,
+              "correct": 1546,
+              "total": 1552
+            },
+            "unresolved_reward_tie_votes": 0
+          },
+          "preference_sensitive": {
+            "majority_vote_ties": 1,
+            "per_reward_context_majority": {
+              "accuracy": 0.9926470588235294,
+              "correct": 135,
+              "total": 136
+            },
+            "per_utterance": {
+              "accuracy": 0.9889705882352942,
+              "correct": 538,
+              "total": 544
+            },
+            "unresolved_reward_tie_votes": 0
+          },
+          "preference_sensitive_empty_hand_cooking": {
+            "majority_vote_ties": 0,
+            "per_reward_context_majority": {
+              "accuracy": 1.0,
+              "correct": 12,
+              "total": 12
+            },
+            "per_utterance": {
+              "accuracy": 0.9583333333333334,
+              "correct": 46,
+              "total": 48
+            },
+            "unresolved_reward_tie_votes": 0
+          }
+        },
+        "nearest_reward_config": {
+          "accuracy": 1.0,
+          "correct": 1552,
+          "distance_dimensions": 26,
+          "total": 1552
+        },
+        "reward_metrics": {
+          "active_sign_accuracy": 1.0,
+          "active_target_count": 60528,
+          "dimensions": 53,
+          "examples": 1552,
+          "mean_cosine_similarity": 0.9993855357170105,
+          "mse": 0.004133019596338272
+        },
+        "varying_dimension_reward_metrics": {
+          "active_sign_accuracy": 1.0,
+          "active_target_count": 40352,
+          "dimensions": 26,
+          "examples": 1552,
+          "mean_cosine_similarity": 0.9987115263938904,
+          "mse": 0.008285590447485447
+        }
+      },
+      "systems": {
+        "canonical": {
+          "behavior_metrics": {
+            "all": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.8619791666666666,
+                "correct": 331,
+                "total": 384
+              },
+              "per_utterance": {
+                "accuracy": 0.8595360824742269,
+                "correct": 1334,
+                "total": 1552
+              },
+              "unresolved_reward_tie_votes": 68
+            },
+            "preference_sensitive": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.6985294117647058,
+                "correct": 95,
+                "total": 136
+              },
+              "per_utterance": {
+                "accuracy": 0.7022058823529411,
+                "correct": 382,
+                "total": 544
+              },
+              "unresolved_reward_tie_votes": 12
+            },
+            "preference_sensitive_empty_hand_cooking": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.3333333333333333,
+                "correct": 4,
+                "total": 12
+              },
+              "per_utterance": {
+                "accuracy": 0.375,
+                "correct": 18,
+                "total": 48
+              },
+              "unresolved_reward_tie_votes": 12
+            }
+          },
+          "nearest_reward_config": {
+            "accuracy": 0.0,
+            "correct": 0,
+            "distance_dimensions": 26,
+            "total": 1552
+          },
+          "reward_metrics": {
+            "active_sign_accuracy": 0.9230769276618958,
+            "active_target_count": 60528,
+            "dimensions": 53,
+            "examples": 1552,
+            "mean_cosine_similarity": 0.9019206762313843,
+            "mse": 0.7780159115791321
+          },
+          "varying_dimension_reward_metrics": {
+            "active_sign_accuracy": 0.8846153616905212,
+            "active_target_count": 40352,
+            "dimensions": 26,
+            "examples": 1552,
+            "mean_cosine_similarity": 0.8598566055297852,
+            "mse": 1.5859553813934326
+          }
+        },
+        "model": {
+          "behavior_metrics": {
+            "all": {
+              "majority_vote_ties": 1,
+              "per_reward_context_majority": {
+                "accuracy": 0.9973958333333334,
+                "correct": 383,
+                "total": 384
+              },
+              "per_utterance": {
+                "accuracy": 0.9961340206185567,
+                "correct": 1546,
+                "total": 1552
+              },
+              "unresolved_reward_tie_votes": 0
+            },
+            "preference_sensitive": {
+              "majority_vote_ties": 1,
+              "per_reward_context_majority": {
+                "accuracy": 0.9926470588235294,
+                "correct": 135,
+                "total": 136
+              },
+              "per_utterance": {
+                "accuracy": 0.9889705882352942,
+                "correct": 538,
+                "total": 544
+              },
+              "unresolved_reward_tie_votes": 0
+            },
+            "preference_sensitive_empty_hand_cooking": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 1.0,
+                "correct": 12,
+                "total": 12
+              },
+              "per_utterance": {
+                "accuracy": 0.9583333333333334,
+                "correct": 46,
+                "total": 48
+              },
+              "unresolved_reward_tie_votes": 0
+            }
+          },
+          "nearest_reward_config": {
+            "accuracy": 1.0,
+            "correct": 1552,
+            "distance_dimensions": 26,
+            "total": 1552
+          },
+          "reward_metrics": {
+            "active_sign_accuracy": 1.0,
+            "active_target_count": 60528,
+            "dimensions": 53,
+            "examples": 1552,
+            "mean_cosine_similarity": 0.9993855357170105,
+            "mse": 0.004133019596338272
+          },
+          "varying_dimension_reward_metrics": {
+            "active_sign_accuracy": 1.0,
+            "active_target_count": 40352,
+            "dimensions": 26,
+            "examples": 1552,
+            "mean_cosine_similarity": 0.9987115263938904,
+            "mse": 0.008285590447485447
+          }
+        },
+        "text_only": {
+          "behavior_metrics": {
+            "all": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 1.0,
+                "correct": 384,
+                "total": 384
+              },
+              "per_utterance": {
+                "accuracy": 0.9980670103092784,
+                "correct": 1549,
+                "total": 1552
+              },
+              "unresolved_reward_tie_votes": 0
+            },
+            "preference_sensitive": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 1.0,
+                "correct": 136,
+                "total": 136
+              },
+              "per_utterance": {
+                "accuracy": 0.9944852941176471,
+                "correct": 541,
+                "total": 544
+              },
+              "unresolved_reward_tie_votes": 0
+            },
+            "preference_sensitive_empty_hand_cooking": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 1.0,
+                "correct": 12,
+                "total": 12
+              },
+              "per_utterance": {
+                "accuracy": 0.9583333333333334,
+                "correct": 46,
+                "total": 48
+              },
+              "unresolved_reward_tie_votes": 0
+            }
+          },
+          "nearest_reward_config": {
+            "accuracy": 1.0,
+            "correct": 1552,
+            "distance_dimensions": 26,
+            "total": 1552
+          },
+          "reward_metrics": {
+            "active_sign_accuracy": 1.0,
+            "active_target_count": 60528,
+            "dimensions": 53,
+            "examples": 1552,
+            "mean_cosine_similarity": 0.9992061257362366,
+            "mse": 0.01100320927798748
+          },
+          "varying_dimension_reward_metrics": {
+            "active_sign_accuracy": 1.0,
+            "active_target_count": 40352,
+            "dimensions": 26,
+            "examples": 1552,
+            "mean_cosine_similarity": 0.9983854293823242,
+            "mse": 0.01515720970928669
+          }
+        },
+        "train_mean": {
+          "behavior_metrics": {
+            "all": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.8619791666666666,
+                "correct": 331,
+                "total": 384
+              },
+              "per_utterance": {
+                "accuracy": 0.8595360824742269,
+                "correct": 1334,
+                "total": 1552
+              },
+              "unresolved_reward_tie_votes": 68
+            },
+            "preference_sensitive": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.6985294117647058,
+                "correct": 95,
+                "total": 136
+              },
+              "per_utterance": {
+                "accuracy": 0.7022058823529411,
+                "correct": 382,
+                "total": 544
+              },
+              "unresolved_reward_tie_votes": 12
+            },
+            "preference_sensitive_empty_hand_cooking": {
+              "majority_vote_ties": 0,
+              "per_reward_context_majority": {
+                "accuracy": 0.3333333333333333,
+                "correct": 4,
+                "total": 12
+              },
+              "per_utterance": {
+                "accuracy": 0.375,
+                "correct": 18,
+                "total": 48
+              },
+              "unresolved_reward_tie_votes": 12
+            }
+          },
+          "nearest_reward_config": {
+            "accuracy": 0.0,
+            "correct": 0,
+            "distance_dimensions": 26,
+            "total": 1552
+          },
+          "reward_metrics": {
+            "active_sign_accuracy": 0.9230769276618958,
+            "active_target_count": 60528,
+            "dimensions": 53,
+            "examples": 1552,
+            "mean_cosine_similarity": 0.8892948627471924,
+            "mse": 0.8576235175132751
+          },
+          "varying_dimension_reward_metrics": {
+            "active_sign_accuracy": 0.8846153616905212,
+            "active_target_count": 40352,
+            "dimensions": 26,
+            "examples": 1552,
+            "mean_cosine_similarity": 0.8361436724662781,
+            "mse": 1.748232364654541
+          }
+        },
+        "trajectory_only": {
+          "behavior_metrics": {
+            "all": {
+              "majority_vote_ties": 2,
+              "per_reward_context_majority": {
+                "accuracy": 0.8307291666666666,
+                "correct": 319,
+                "total": 384
+              },
+              "per_utterance": {
+                "accuracy": 0.8318298969072165,
+                "correct": 1291,
+                "total": 1552
+              },
+              "unresolved_reward_tie_votes": 0
+            },
+            "preference_sensitive": {
+              "majority_vote_ties": 2,
+              "per_reward_context_majority": {
+                "accuracy": 0.5220588235294118,
+                "correct": 71,
+                "total": 136
+              },
+              "per_utterance": {
+                "accuracy": 0.5202205882352942,
+                "correct": 283,
+                "total": 544
+              },
+              "unresolved_reward_tie_votes": 0
+            },
+            "preference_sensitive_empty_hand_cooking": {
+              "majority_vote_ties": 2,
+              "per_reward_context_majority": {
+                "accuracy": 0.3333333333333333,
+                "correct": 4,
+                "total": 12
+              },
+              "per_utterance": {
+                "accuracy": 0.3125,
+                "correct": 15,
+                "total": 48
+              },
+              "unresolved_reward_tie_votes": 0
+            }
+          },
+          "nearest_reward_config": {
+            "accuracy": 0.0,
+            "correct": 0,
+            "distance_dimensions": 26,
+            "total": 1552
+          },
+          "reward_metrics": {
+            "active_sign_accuracy": 0.9230769276618958,
+            "active_target_count": 60528,
+            "dimensions": 53,
+            "examples": 1552,
+            "mean_cosine_similarity": 0.8623377084732056,
+            "mse": 1.419533610343933
+          },
+          "varying_dimension_reward_metrics": {
+            "active_sign_accuracy": 0.8846153616905212,
+            "active_target_count": 40352,
+            "dimensions": 26,
+            "examples": 1552,
+            "mean_cosine_similarity": 0.849616289138794,
+            "mse": 2.8525235652923584
+          }
+        }
+      },
+      "test_examples": 1552
+    }
+  ],
+  "leakage_rule": "Each CV test example is scored only by its own fold model.",
+  "partition": "test",
+  "preference_sensitive_contexts": 34,
+  "protocol": "paper_teacher_and_reward_holdout",
+  "reward_dimensions": {
+    "constant": 27,
+    "total": 53,
+    "varying": 26
+  },
+  "selection_manifest_sha256": "e40b684ebe5f99e1c53c52839c66f6e0a36771c921b815f96a54c5c59f07bc02",
+  "target_scope": "identifiable synthetic reward-conditioned language -> complete teacher reward; an upper-bound systems check, not a human local-language estimate",
+  "validity_gate": {
+    "behavior_subset": "preference_sensitive_empty_hand_cooking",
+    "claim_allowed": true,
+    "constant_thresholds": {
+      "best_nearest_reward_config_accuracy": 0.02278867614237049,
+      "best_preference_sensitive_behavior_accuracy": 0.35185185185185186,
+      "best_varying_dimension_mse": 1.4189015626907349
+    },
+    "required_checks": {
+      "nearest_reward_config_accuracy": true,
+      "preference_sensitive_behavior": true,
+      "varying_dimension_mse": true
+    },
+    "rule": "Do not claim successful complete-reward inference unless the model beats both constant baselines on every required preference metric.",
+    "status": "valid_better_than_constant_baselines"
+  }
+}

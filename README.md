@@ -45,25 +45,33 @@ Useful smoke-test option:
 python -m durf.baseline.watch_baseline --layout cramped_room --max-steps 10
 ```
 
-## Play With The PPO
+## Play And Collect Human Feedback
+
+Use the complete `durf310` environment and the Route 2 learner:
 
 ```powershell
 $env:PYTHONPATH="$PWD;$PWD\src"
-python -m durf.group_a.play_with_baseline --layout cramped_room
+& "E:\miniconda\envs\durf310\python.exe" -m durf.group_a.play_with_baseline `
+  --ai-mode comfort_subgoal `
+  --comfort-feedback-mode route2 `
+  --teacher-id player_001 `
+  --horizon 800
 ```
 
 Controls:
 
-```text
-WASD / Arrows = move
-Space         = interact
-Chat input    = natural-language feedback
-P / Tab / F1  = pause or resume
-R             = reset
-Q / Esc       = quit
-```
+- `WASD` / arrows: move
+- `Space`: interact
+- `暂停并反馈`: pause at the current trajectory step and focus the feedback editor
+- `Enter`: submit feedback; `Shift+Enter`: newline; `Ctrl+V`: paste
+- `继续游戏`: resume only after reviewing the semantic update
+- `R`: reset; `Esc`: quit
 
-Session logs are written under `outputs/human_ai_sessions/`.
+The feedback editor uses a Chinese-capable font and Windows IME composition. It
+occupies a dedicated right sidebar and never covers the game view. The current Route 2
+training corpus is English-first, so use English for reliable online updates; Chinese
+input is still recorded correctly. Session logs
+are written under `outputs/human_ai_sessions/`.
 
 The active research interface uses natural-language feedback for attribution.
 J/K scalar feedback belongs to the archived legacy path and should not be used

@@ -22,6 +22,17 @@ if TYPE_CHECKING:  # pragma: no cover - type hints only
 
 
 # Subgoal -> (imperative verb phrase, gerund phrase, short noun phrase).
+_PREPARATION_PREFERENCE_FEATURES = frozenset(
+    {
+        "ingredient_tomato",
+        "ingredient_onion",
+        "pick_tomato",
+        "pick_onion",
+        "pick_dish",
+        "moves_toward_needed_object",
+    }
+)
+
 SUBGOAL_PHRASES: dict[str, tuple[str, str, str]] = {
     "GET_TOMATO": ("grab a tomato", "grabbing a tomato", "the tomato"),
     "PUT_TOMATO_IN_POT": ("put the tomato in the pot", "putting the tomato in the pot", "the tomato"),
@@ -137,6 +148,67 @@ def theme_for_intent(intent: "FeedbackIntent") -> str:
     return _theme(intent.referenced_features, positive=intent.polarity > 0)
 
 
+def _cooking_preparation_template(
+    intent: "FeedbackIntent", context: "SubgoalContext"
+) -> str | None:
+    """Explicit language coverage for positive and negative early preparation."""
+
+    if not context.soup_cooking or not (
+        set(intent.referenced_features) & _PREPARATION_PREFERENCE_FEATURES
+    ):
+        return None
+
+    resource = {
+        "GET_TOMATO": ("a tomato", "it"),
+        "GET_ONION": ("an onion", "it"),
+        "GET_DISH": ("a dish", "the dish"),
+    }.get(intent.subgoal)
+    if resource is None:
+        return None
+
+    noun, pronoun = resource
+    positive = intent.polarity > 0
+    if intent.subgoal == "GET_DISH":
+        if intent.feedback_type == "imperative":
+            return (
+                "While the soup cooks, please have a dish ready for when it finishes."
+                if positive
+                else "While the soup cooks, please do not grab a dish too early."
+            )
+        if intent.feedback_type == "descriptive":
+            return (
+                "Grabbing a dish while the soup cooks prepares us to serve it."
+                if positive
+                else "Grabbing a dish too early while the soup cooks commits your hands."
+            )
+        return (
+            "Having a dish ready while the soup cooks is a good choice."
+            if positive
+            else "Grabbing a dish too early while the soup cooks is a bad choice."
+        )
+
+    if intent.feedback_type == "imperative":
+        return (
+            f"While the soup cooks, please prepare {noun} for the next round."
+            if positive
+            else f"While the soup cooks, please do not grab {noun} early and keep your hands free."
+        )
+    if intent.feedback_type == "descriptive":
+        return (
+            f"Grabbing {noun} while the soup cooks prepares the next round."
+            if positive
+            else (
+                f"Grabbing {noun} early while the soup cooks commits your hands "
+                f"before {pronoun} is needed."
+            )
+        )
+    return (
+        f"Preparing {noun} for the next round while the soup cooks is a good choice."
+        if positive
+        else f"Grabbing {noun} early while the soup cooks is a bad choice."
+    )
+
+
 def render_templates(intent: "FeedbackIntent", context: "SubgoalContext") -> list[str]:
     """Return a small, single-clause deterministic floor for one intent."""
 
@@ -176,12 +248,16 @@ def render_templates(intent: "FeedbackIntent", context: "SubgoalContext") -> lis
                 if positive
                 else f"avoid prioritizing {noun}"
             )
-        return [f"Please {action} because {theme}."]
-    if intent.feedback_type == "descriptive":
+        base = f"Please {action} because {theme}."
+    elif intent.feedback_type == "descriptive":
         effect = "helps our teamwork" if positive else "hurts our teamwork"
-        return [f"{subject.capitalize()} {effect} because {theme}."]
-    judgment = "is a good choice" if positive else "is a bad choice"
-    return [f"{subject.capitalize()} {judgment} because {theme}."]
+        base = f"{subject.capitalize()} {effect} because {theme}."
+    else:
+        judgment = "is a good choice" if positive else "is a bad choice"
+        base = f"{subject.capitalize()} {judgment} because {theme}."
+
+    cooking_preparation = _cooking_preparation_template(intent, context)
+    return list(dict.fromkeys([base, cooking_preparation] if cooking_preparation else [base]))
 
 
 def phrase_annotations(text: str, reference_type: str) -> list[dict]:

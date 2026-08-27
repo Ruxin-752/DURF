@@ -5,21 +5,19 @@ comfort. This module takes the feasible subgoals H0 proposes and re-ranks them
 by the reward learned from language feedback, so among task-valid options the
 agent prefers the human-comfortable one.
 
-Score decomposition:
+The paper-aligned decision score is exactly:
 
-    total(subgoal) = task_score + lambda_pref * comfort_score
+    total(subgoal) = w dot phi(state, subgoal)
 
-where both scores are `w . phi` restricted to the task / comfort feature
-partitions. Keeping `lambda_pref` separate lets us tune how much the learned
-comfort preference is allowed to bend H0's task behavior, and enforce a safety
-floor so comfort never blocks recipe progress entirely.
+Task and comfort subtotals are retained only for diagnostics. They never change
+the total score or break ties; otherwise a hand-authored partition would
+silently override the reward inferred from language.
 """
 
 from __future__ import annotations
 
 from .belief_model import score_action
 from .subgoal_featurizer import SubgoalContext, featurize_subgoal
-from .subgoal_schema import SUBGOAL_TO_INDEX
 
 
 # Coordination / human-comfort features. Everything else is treated as task.
@@ -61,6 +59,12 @@ def score_subgoals(
 ) -> list[dict]:
     """Score each feasible subgoal; returned list is sorted best-first."""
 
+    if abs(float(lambda_pref) - 1.0) > 1e-12:
+        raise ValueError(
+            "paper-aligned subgoal scoring requires lambda_pref=1.0; "
+            "change reward weights instead of rescaling a hand-authored partition"
+        )
+
     context = SubgoalContext.coerce(context)
 
     scored = []
@@ -69,23 +73,20 @@ def score_subgoals(
         task_features, comfort_features = _split_features(features)
         task_score = score_action(weights, task_features)
         comfort_score = score_action(weights, comfort_features)
+        total_score = score_action(weights, features)
         scored.append(
             {
                 "subgoal": subgoal,
-                "total_score": task_score + lambda_pref * comfort_score,
+                "total_score": total_score,
                 "task_score": task_score,
                 "comfort_score": comfort_score,
                 "features": features,
             }
         )
 
-    scored.sort(
-        key=lambda item: (
-            -item["total_score"],
-            -item["task_score"],
-            SUBGOAL_TO_INDEX.get(item["subgoal"], len(SUBGOAL_TO_INDEX)),
-        )
-    )
+    # Exact reward ties remain ties. Stable sorting preserves the candidate
+    # order for display only; a caller-provided H0 fallback makes the decision.
+    scored.sort(key=lambda item: -item["total_score"])
     return scored
 
 
@@ -96,11 +97,12 @@ def choose_subgoal(
     *,
     lambda_pref: float = 1.0,
     tie_tolerance: float = 1e-9,
+    tie_fallback: str | None = None,
 ) -> dict:
     """Pick the best feasible subgoal under the learned reward.
 
-    The choice is the argmax of `task_score + lambda_pref * comfort_score` over
-    the task-valid subgoals H0 proposed. Yielding to the human (choosing WAIT)
+    The choice is the argmax of `w dot phi(state, subgoal)` over the task-valid
+    subgoals H0 proposed. Yielding to the human (choosing WAIT)
     is a legitimate outcome here; preventing the agent from stalling *forever*
     is a multi-step concern left to the live caller (e.g. H0 can cap the number
     of consecutive WAITs, at which point the human is no longer contesting the
@@ -113,18 +115,31 @@ def choose_subgoal(
     scored = score_subgoals(
         weights, context, feasible_subgoals, lambda_pref=lambda_pref
     )
-    best = scored[0]
-
     top_score = scored[0]["total_score"]
-    tied = [
-        item["subgoal"]
-        for item in scored
-        if abs(item["total_score"] - top_score) <= tie_tolerance
+    tied_rows = [
+        item for item in scored if abs(item["total_score"] - top_score) <= tie_tolerance
     ]
+    tied = [item["subgoal"] for item in tied_rows]
+    is_tie = len(tied) > 1
+    best = scored[0]
+    decision_source = "reward_argmax"
+    if is_tie:
+        if tie_fallback in tied:
+            best = next(item for item in tied_rows if item["subgoal"] == tie_fallback)
+            decision_source = "h0_tie_fallback"
+        else:
+            decision_source = "unresolved_reward_tie"
+    reward_margin = (
+        float(top_score - scored[1]["total_score"]) if len(scored) > 1 else None
+    )
     return {
         "chosen_subgoal": best["subgoal"],
-        "is_tie": len(tied) > 1 and best["subgoal"] in tied,
+        "is_tie": is_tie,
         "tied_subgoals": tied,
+        "tie_fallback": tie_fallback,
+        "decision_source": decision_source,
+        "reward_margin": reward_margin,
+        "score_formula": "w_dot_phi",
         "ranking": scored,
     }
 

@@ -1,0 +1,1073 @@
+{
+  "adaptive_minus_frozen": {
+    "cumulative_regret_reduction": 19.0,
+    "cumulative_teacher_utility": 18.999999999999996,
+    "preference_satisfaction_rate": 0.675,
+    "safety_violation_count": -11,
+    "task_proxy_total": 5.0
+  },
+  "benchmark_manifest": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\route2\\trajectory_required_v1\\benchmark_manifest.json",
+  "benchmark_manifest_sha256": "9ef695028c68e4d06459a3bfaee6d9aa49025ff9a28330952a13b520c89ef922",
+  "claim_scope": "synthetic online adaptation systems diagnostic; not human preference evidence",
+  "conditions": {
+    "frozen_h0": {
+      "chosen_subgoals": {
+        "GET_DISH": 4,
+        "GET_ONION": 2,
+        "GET_TOMATO": 8,
+        "WAIT": 26
+      },
+      "cumulative_regret": 23.6,
+      "cumulative_teacher_utility": 16.400000000000002,
+      "episodes": 40,
+      "mean_regret": 0.5900000000000001,
+      "mean_teacher_utility": 0.41,
+      "preference_satisfaction_rate": 0.1,
+      "safety_violation_count": 14,
+      "safety_violation_rate": 0.35,
+      "task_proxy_mean": 0.2,
+      "task_proxy_total": 8.0
+    },
+    "online_adaptive": {
+      "chosen_subgoals": {
+        "GET_DISH": 6,
+        "GET_ONION": 4,
+        "GET_TOMATO": 20,
+        "SERVE_SOUP": 1,
+        "WAIT": 9
+      },
+      "cumulative_regret": 4.6,
+      "cumulative_teacher_utility": 35.4,
+      "episodes": 40,
+      "mean_regret": 0.11499999999999999,
+      "mean_teacher_utility": 0.8850000000000001,
+      "preference_satisfaction_rate": 0.775,
+      "safety_violation_count": 3,
+      "safety_violation_rate": 0.075,
+      "task_proxy_mean": 0.325,
+      "task_proxy_total": 13.0
+    }
+  },
+  "model_path": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\route2\\trajectory_required_v1\\models\\full_seed17\\model.pt",
+  "model_sha256": "b0fc72759409fc10ffbe94835e32951efb32e0d6a1e9067f631cf73714061b57",
+  "observation_precision": 2.0,
+  "rounds": 40,
+  "schema_version": 1,
+  "score_formula": "w_dot_phi",
+  "seed": 137,
+  "traces": {
+    "frozen_h0": [
+      {
+        "chosen_subgoal": "WAIT",
+        "context_id": "prefetch_tomato",
+        "regret": 0.8,
+        "round": 0,
+        "safety_violation": false,
+        "task_proxy": 0.0,
+        "teacher_utility": 0.0
+      },
+      {
+        "chosen_subgoal": "GET_DISH",
+        "context_id": "yield_human_serving",
+        "regret": 0.0,
+        "round": 1,
+        "safety_violation": true,
+        "task_proxy": 2.0,
+        "teacher_utility": 1.2000000000000002
+      },
+      {
+        "chosen_subgoal": "WAIT",
+        "context_id": "prefetch_dish",
+        "regret": 0.8,
+        "round": 2,
+        "safety_violation": false,
+        "task_proxy": 0.0,
+        "teacher_utility": 0.0
+      },
+      {
+        "chosen_subgoal": "WAIT",
+        "context_id": "prefetch_dish",
+        "regret": 0.8,
+        "round": 3,
+        "safety_violation": false,
+        "task_proxy": 0.0,
+        "teacher_utility": 0.0
+      },
+      {
+        "chosen_subgoal": "GET_DISH",
+        "context_id": "yield_human_serving",
+        "regret": 0.0,
+        "round": 4,
+        "safety_violation": true,
+        "task_proxy": 2.0,
+        "teacher_utility": 1.2000000000000002
+      },
+      {
+        "chosen_subgoal": "WAIT",
+        "context_id": "prefetch_tomato",
+        "regret": 0.8,
+        "round": 5,
+        "safety_violation": false,
+        "task_proxy": 0.0,
+        "teacher_utility": 0.0
+      },
+      {
+        "chosen_subgoal": "GET_TOMATO",
+        "context_id": "complement_human_tomato",
+        "regret": 0.3999999999999999,
+        "round": 6,
+        "safety_violation": true,
+        "task_proxy": 0.0,
+        "teacher_utility": 0.8
+      },
+      {
+        "chosen_subgoal": "WAIT",
+        "context_id": "ready_pickup_soup",
+        "regret": 0.4,
+        "round": 7,
+        "safety_violation": false,
+        "task_proxy": 0.0,
+        "teacher_utility": 0.4
+      },
+      {
+        "chosen_subgoal": "WAIT",
+        "context_id": "ready_get_dish",
+        "regret": 0.8000000000000002,
+        "round": 8,
+        "safety_violation": false,
+        "task_proxy": 0.0,
+        "teacher_utility": 0.4
+      },
+      {
+        "chosen_subgoal": "WAIT",
+        "context_id": "prefetch_tomato",
+        "regret": 0.8,
+        "round": 9,
+        "safety_violation": false,
+        "task_proxy": 0.0,
+        "teacher_utility": 0.0
+      },
+      {
+        "chosen_subgoal": "WAIT",
+        "context_id": "prefetch_onion",
+        "regret": 0.8,
+        "round": 10,
+        "safety_violation": false,
+        "task_proxy": 0.0,
+        "teacher_utility": 0.0
+      },
+      {
+        "chosen_subgoal": "WAIT",
+        "context_id": "prefetch_tomato",
+        "regret": 0.8,
+        "round": 11,
+        "safety_violation": false,
+        "task_proxy": 0.0,
+        "teacher_utility": 0.0
+      },
+      {
+        "chosen_subgoal": "WAIT",
+        "context_id": "prefetch_dish",
+        "regret": 0.8,
+        "round": 12,
+        "safety_violation": false,
+        "task_proxy": 0.0,
+        "teacher_utility": 0.0
+      },
+      {
+        "chosen_subgoal": "WAIT",
+        "context_id": "ready_get_dish",
+        "regret": 0.8000000000000002,
+        "round": 13,
+        "safety_violation": false,
+        "task_proxy": 0.0,
+        "teacher_utility": 0.4
+      },
+      {
+        "chosen_subgoal": "WAIT",
+        "context_id": "prefetch_dish",
+        "regret": 0.8,
+        "round": 14,
+        "safety_violation": false,
+        "task_proxy": 0.0,
+        "teacher_utility": 0.0
+      },
+      {
+        "chosen_subgoal": "WAIT",
+        "context_id": "prefetch_onion",
+        "regret": 0.8,
+        "round": 15,
+        "safety_violation": false,
+        "task_proxy": 0.0,
+        "teacher_utility": 0.0
+      },
+      {
+        "chosen_subgoal": "GET_TOMATO",
+        "context_id": "complement_human_tomato",
+        "regret": 0.3999999999999999,
+        "round": 16,
+        "safety_violation": true,
+        "task_proxy": 0.0,
+        "teacher_utility": 0.8
+      },
+      {
+        "chosen_subgoal": "GET_ONION",
+        "context_id": "complement_human_onion",
+        "regret": 0.3999999999999999,
+        "round": 17,
+        "safety_violation": true,
+        "task_proxy": 0.0,
+        "teacher_utility": 0.8
+      },
+      {
+        "chosen_subgoal": "GET_TOMATO",
+        "context_id": "yield_human_tomato",
+        "regret": 0.3999999999999999,
+        "round": 18,
+        "safety_violation": true,
+        "task_proxy": 0.0,
+        "teacher_utility": 0.8
+      },
+      {
+        "chosen_subgoal": "WAIT",
+        "context_id": "prefetch_tomato",
+        "regret": 0.8,
+        "round": 19,
+        "safety_violation": false,
+        "task_proxy": 0.0,
+        "teacher_utility": 0.0
+      },
+      {
+        "chosen_subgoal": "GET_TOMATO",
+        "context_id": "yield_human_tomato",
+        "regret": 0.3999999999999999,
+        "round": 20,
+        "safety_violation": true,
+        "task_proxy": 0.0,
+        "teacher_utility": 0.8
+      },
+      {
+        "chosen_subgoal": "GET_DISH",
+        "context_id": "yield_human_serving",
+        "regret": 0.0,
+        "round": 21,
+        "safety_violation": true,
+        "task_proxy": 2.0,
+        "teacher_utility": 1.2000000000000002
+      },
+      {
+        "chosen_subgoal": "GET_TOMATO",
+        "context_id": "yield_human_tomato",
+        "regret": 0.3999999999999999,
+        "round": 22,
+        "safety_violation": true,
+        "task_proxy": 0.0,
+        "teacher_utility": 0.8
+      },
+      {
+        "chosen_subgoal": "GET_DISH",
+        "context_id": "yield_human_serving",
+        "regret": 0.0,
+        "round": 23,
+        "safety_violation": true,
+        "task_proxy": 2.0,
+        "teacher_utility": 1.2000000000000002
+      },
+      {
+        "chosen_subgoal": "WAIT",
+        "context_id": "prefetch_tomato",
+        "regret": 0.8,
+        "round": 24,
+        "safety_violation": false,
+        "task_proxy": 0.0,
+        "teacher_utility": 0.0
+      },
+      {
+        "chosen_subgoal": "WAIT",
+        "context_id": "serve_held_soup",
+        "regret": 0.6,
+        "round": 25,
+        "safety_violation": false,
+        "task_proxy": 0.0,
+        "teacher_utility": 0.4
+      },
+      {
+        "chosen_subgoal": "WAIT",
+        "context_id": "prefetch_dish",
+        "regret": 0.8,
+        "round": 26,
+        "safety_violation": false,
+        "task_proxy": 0.0,
+        "teacher_utility": 0.0
+      },
+      {
+        "chosen_subgoal": "WAIT",
+        "context_id": "ready_get_dish",
+        "regret": 0.8000000000000002,
+        "round": 27,
+        "safety_violation": false,
+        "task_proxy": 0.0,
+        "teacher_utility": 0.4
+      },
+      {
+        "chosen_subgoal": "GET_TOMATO",
+        "context_id": "yield_human_tomato",
+        "regret": 0.3999999999999999,
+        "round": 28,
+        "safety_violation": true,
+        "task_proxy": 0.0,
+        "teacher_utility": 0.8
+      },
+      {
+        "chosen_subgoal": "GET_TOMATO",
+        "context_id": "complement_human_tomato",
+        "regret": 0.3999999999999999,
+        "round": 29,
+        "safety_violation": true,
+        "task_proxy": 0.0,
+        "teacher_utility": 0.8
+      },
+      {
+        "chosen_subgoal": "WAIT",
+        "context_id": "prefetch_tomato",
+        "regret": 0.8,
+        "round": 30,
+        "safety_violation": false,
+        "task_proxy": 0.0,
+        "teacher_utility": 0.0
+      },
+      {
+        "chosen_subgoal": "WAIT",
+        "context_id": "prefetch_tomato",
+        "regret": 0.8,
+        "round": 31,
+        "safety_violation": false,
+        "task_proxy": 0.0,
+        "teacher_utility": 0.0
+      },
+      {
+        "chosen_subgoal": "GET_ONION",
+        "context_id": "complement_human_onion",
+        "regret": 0.3999999999999999,
+        "round": 32,
+        "safety_violation": true,
+        "task_proxy": 0.0,
+        "teacher_utility": 0.8
+      },
+      {
+        "chosen_subgoal": "WAIT",
+        "context_id": "ready_pickup_soup",
+        "regret": 0.4,
+        "round": 33,
+        "safety_violation": false,
+        "task_proxy": 0.0,
+        "teacher_utility": 0.4
+      },
+      {
+        "chosen_subgoal": "WAIT",
+        "context_id": "serve_held_soup",
+        "regret": 0.6,
+        "round": 34,
+        "safety_violation": false,
+        "task_proxy": 0.0,
+        "teacher_utility": 0.4
+      },
+      {
+        "chosen_subgoal": "WAIT",
+        "context_id": "prefetch_dish",
+        "regret": 0.8,
+        "round": 35,
+        "safety_violation": false,
+        "task_proxy": 0.0,
+        "teacher_utility": 0.0
+      },
+      {
+        "chosen_subgoal": "WAIT",
+        "context_id": "ready_get_dish",
+        "regret": 0.8000000000000002,
+        "round": 36,
+        "safety_violation": false,
+        "task_proxy": 0.0,
+        "teacher_utility": 0.4
+      },
+      {
+        "chosen_subgoal": "GET_TOMATO",
+        "context_id": "yield_human_tomato",
+        "regret": 0.3999999999999999,
+        "round": 37,
+        "safety_violation": true,
+        "task_proxy": 0.0,
+        "teacher_utility": 0.8
+      },
+      {
+        "chosen_subgoal": "WAIT",
+        "context_id": "prefetch_dish",
+        "regret": 0.8,
+        "round": 38,
+        "safety_violation": false,
+        "task_proxy": 0.0,
+        "teacher_utility": 0.0
+      },
+      {
+        "chosen_subgoal": "WAIT",
+        "context_id": "ready_get_dish",
+        "regret": 0.8000000000000002,
+        "round": 39,
+        "safety_violation": false,
+        "task_proxy": 0.0,
+        "teacher_utility": 0.4
+      }
+    ],
+    "online_adaptive": [
+      {
+        "chosen_subgoal": "WAIT",
+        "context_id": "prefetch_tomato",
+        "regret": 0.8,
+        "round": 0,
+        "safety_violation": false,
+        "task_proxy": 0.0,
+        "teacher_utility": 0.0
+      },
+      {
+        "chosen_subgoal": "GET_DISH",
+        "context_id": "yield_human_serving",
+        "regret": 0.0,
+        "round": 1,
+        "safety_violation": true,
+        "task_proxy": 2.0,
+        "teacher_utility": 1.2000000000000002
+      },
+      {
+        "chosen_subgoal": "GET_TOMATO",
+        "context_id": "prefetch_dish",
+        "regret": 0.0,
+        "round": 2,
+        "safety_violation": false,
+        "task_proxy": 0.0,
+        "teacher_utility": 0.8
+      },
+      {
+        "chosen_subgoal": "GET_TOMATO",
+        "context_id": "prefetch_dish",
+        "regret": 0.0,
+        "round": 3,
+        "safety_violation": false,
+        "task_proxy": 0.0,
+        "teacher_utility": 0.8
+      },
+      {
+        "chosen_subgoal": "WAIT",
+        "context_id": "yield_human_serving",
+        "regret": 0.0,
+        "round": 4,
+        "safety_violation": false,
+        "task_proxy": 0.0,
+        "teacher_utility": 1.2000000000000002
+      },
+      {
+        "chosen_subgoal": "GET_TOMATO",
+        "context_id": "prefetch_tomato",
+        "regret": 0.0,
+        "round": 5,
+        "safety_violation": false,
+        "task_proxy": 0.0,
+        "teacher_utility": 0.8
+      },
+      {
+        "chosen_subgoal": "WAIT",
+        "context_id": "complement_human_tomato",
+        "regret": 0.3999999999999999,
+        "round": 6,
+        "safety_violation": false,
+        "task_proxy": 0.0,
+        "teacher_utility": 0.8
+      },
+      {
+        "chosen_subgoal": "WAIT",
+        "context_id": "ready_pickup_soup",
+        "regret": 0.4,
+        "round": 7,
+        "safety_violation": false,
+        "task_proxy": 0.0,
+        "teacher_utility": 0.4
+      },
+      {
+        "chosen_subgoal": "WAIT",
+        "context_id": "ready_get_dish",
+        "regret": 0.8000000000000002,
+        "round": 8,
+        "safety_violation": false,
+        "task_proxy": 0.0,
+        "teacher_utility": 0.4
+      },
+      {
+        "chosen_subgoal": "GET_TOMATO",
+        "context_id": "prefetch_tomato",
+        "regret": 0.0,
+        "round": 9,
+        "safety_violation": false,
+        "task_proxy": 0.0,
+        "teacher_utility": 0.8
+      },
+      {
+        "chosen_subgoal": "GET_TOMATO",
+        "context_id": "prefetch_onion",
+        "regret": 0.0,
+        "round": 10,
+        "safety_violation": false,
+        "task_proxy": 0.0,
+        "teacher_utility": 0.8
+      },
+      {
+        "chosen_subgoal": "GET_TOMATO",
+        "context_id": "prefetch_tomato",
+        "regret": 0.0,
+        "round": 11,
+        "safety_violation": false,
+        "task_proxy": 0.0,
+        "teacher_utility": 0.8
+      },
+      {
+        "chosen_subgoal": "GET_TOMATO",
+        "context_id": "prefetch_dish",
+        "regret": 0.0,
+        "round": 12,
+        "safety_violation": false,
+        "task_proxy": 0.0,
+        "teacher_utility": 0.8
+      },
+      {
+        "chosen_subgoal": "GET_DISH",
+        "context_id": "ready_get_dish",
+        "regret": 0.0,
+        "round": 13,
+        "safety_violation": false,
+        "task_proxy": 2.0,
+        "teacher_utility": 1.2000000000000002
+      },
+      {
+        "chosen_subgoal": "GET_TOMATO",
+        "context_id": "prefetch_dish",
+        "regret": 0.0,
+        "round": 14,
+        "safety_violation": false,
+        "task_proxy": 0.0,
+        "teacher_utility": 0.8
+      },
+      {
+        "chosen_subgoal": "GET_TOMATO",
+        "context_id": "prefetch_onion",
+        "regret": 0.0,
+        "round": 15,
+        "safety_violation": false,
+        "task_proxy": 0.0,
+        "teacher_utility": 0.8
+      },
+      {
+        "chosen_subgoal": "GET_ONION",
+        "context_id": "complement_human_tomato",
+        "regret": 0.0,
+        "round": 16,
+        "safety_violation": false,
+        "task_proxy": 0.0,
+        "teacher_utility": 1.2
+      },
+      {
+        "chosen_subgoal": "GET_TOMATO",
+        "context_id": "complement_human_onion",
+        "regret": 0.0,
+        "round": 17,
+        "safety_violation": false,
+        "task_proxy": 0.0,
+        "teacher_utility": 1.2
+      },
+      {
+        "chosen_subgoal": "GET_ONION",
+        "context_id": "yield_human_tomato",
+        "regret": 0.0,
+        "round": 18,
+        "safety_violation": false,
+        "task_proxy": 0.0,
+        "teacher_utility": 1.2
+      },
+      {
+        "chosen_subgoal": "GET_TOMATO",
+        "context_id": "prefetch_tomato",
+        "regret": 0.0,
+        "round": 19,
+        "safety_violation": false,
+        "task_proxy": 0.0,
+        "teacher_utility": 0.8
+      },
+      {
+        "chosen_subgoal": "GET_TOMATO",
+        "context_id": "yield_human_tomato",
+        "regret": 0.3999999999999999,
+        "round": 20,
+        "safety_violation": true,
+        "task_proxy": 0.0,
+        "teacher_utility": 0.8
+      },
+      {
+        "chosen_subgoal": "WAIT",
+        "context_id": "yield_human_serving",
+        "regret": 0.0,
+        "round": 21,
+        "safety_violation": false,
+        "task_proxy": 0.0,
+        "teacher_utility": 1.2000000000000002
+      },
+      {
+        "chosen_subgoal": "GET_ONION",
+        "context_id": "yield_human_tomato",
+        "regret": 0.0,
+        "round": 22,
+        "safety_violation": false,
+        "task_proxy": 0.0,
+        "teacher_utility": 1.2
+      },
+      {
+        "chosen_subgoal": "WAIT",
+        "context_id": "yield_human_serving",
+        "regret": 0.0,
+        "round": 23,
+        "safety_violation": false,
+        "task_proxy": 0.0,
+        "teacher_utility": 1.2000000000000002
+      },
+      {
+        "chosen_subgoal": "GET_TOMATO",
+        "context_id": "prefetch_tomato",
+        "regret": 0.0,
+        "round": 24,
+        "safety_violation": false,
+        "task_proxy": 0.0,
+        "teacher_utility": 0.8
+      },
+      {
+        "chosen_subgoal": "WAIT",
+        "context_id": "serve_held_soup",
+        "regret": 0.6,
+        "round": 25,
+        "safety_violation": false,
+        "task_proxy": 0.0,
+        "teacher_utility": 0.4
+      },
+      {
+        "chosen_subgoal": "GET_TOMATO",
+        "context_id": "prefetch_dish",
+        "regret": 0.0,
+        "round": 26,
+        "safety_violation": false,
+        "task_proxy": 0.0,
+        "teacher_utility": 0.8
+      },
+      {
+        "chosen_subgoal": "GET_DISH",
+        "context_id": "ready_get_dish",
+        "regret": 0.0,
+        "round": 27,
+        "safety_violation": false,
+        "task_proxy": 2.0,
+        "teacher_utility": 1.2000000000000002
+      },
+      {
+        "chosen_subgoal": "GET_ONION",
+        "context_id": "yield_human_tomato",
+        "regret": 0.0,
+        "round": 28,
+        "safety_violation": false,
+        "task_proxy": 0.0,
+        "teacher_utility": 1.2
+      },
+      {
+        "chosen_subgoal": "GET_DISH",
+        "context_id": "complement_human_tomato",
+        "regret": 0.3999999999999999,
+        "round": 29,
+        "safety_violation": false,
+        "task_proxy": 0.0,
+        "teacher_utility": 0.8
+      },
+      {
+        "chosen_subgoal": "GET_TOMATO",
+        "context_id": "prefetch_tomato",
+        "regret": 0.0,
+        "round": 30,
+        "safety_violation": false,
+        "task_proxy": 0.0,
+        "teacher_utility": 0.8
+      },
+      {
+        "chosen_subgoal": "GET_TOMATO",
+        "context_id": "prefetch_tomato",
+        "regret": 0.0,
+        "round": 31,
+        "safety_violation": false,
+        "task_proxy": 0.0,
+        "teacher_utility": 0.8
+      },
+      {
+        "chosen_subgoal": "GET_TOMATO",
+        "context_id": "complement_human_onion",
+        "regret": 0.0,
+        "round": 32,
+        "safety_violation": false,
+        "task_proxy": 0.0,
+        "teacher_utility": 1.2
+      },
+      {
+        "chosen_subgoal": "WAIT",
+        "context_id": "ready_pickup_soup",
+        "regret": 0.4,
+        "round": 33,
+        "safety_violation": false,
+        "task_proxy": 0.0,
+        "teacher_utility": 0.4
+      },
+      {
+        "chosen_subgoal": "SERVE_SOUP",
+        "context_id": "serve_held_soup",
+        "regret": 0.0,
+        "round": 34,
+        "safety_violation": false,
+        "task_proxy": 3.0,
+        "teacher_utility": 1.0
+      },
+      {
+        "chosen_subgoal": "GET_TOMATO",
+        "context_id": "prefetch_dish",
+        "regret": 0.0,
+        "round": 35,
+        "safety_violation": false,
+        "task_proxy": 0.0,
+        "teacher_utility": 0.8
+      },
+      {
+        "chosen_subgoal": "GET_DISH",
+        "context_id": "ready_get_dish",
+        "regret": 0.0,
+        "round": 36,
+        "safety_violation": false,
+        "task_proxy": 2.0,
+        "teacher_utility": 1.2000000000000002
+      },
+      {
+        "chosen_subgoal": "GET_TOMATO",
+        "context_id": "yield_human_tomato",
+        "regret": 0.3999999999999999,
+        "round": 37,
+        "safety_violation": true,
+        "task_proxy": 0.0,
+        "teacher_utility": 0.8
+      },
+      {
+        "chosen_subgoal": "GET_TOMATO",
+        "context_id": "prefetch_dish",
+        "regret": 0.0,
+        "round": 38,
+        "safety_violation": false,
+        "task_proxy": 0.0,
+        "teacher_utility": 0.8
+      },
+      {
+        "chosen_subgoal": "GET_DISH",
+        "context_id": "ready_get_dish",
+        "regret": 0.0,
+        "round": 39,
+        "safety_violation": false,
+        "task_proxy": 2.0,
+        "teacher_utility": 1.2000000000000002
+      }
+    ]
+  },
+  "update_rule": "paper_independent_gaussian",
+  "updates": [
+    {
+      "context_id": "prefetch_tomato",
+      "observation_precision": 2.0,
+      "round": 0,
+      "text": "I approve of that move.",
+      "update_rule": "paper_independent_gaussian"
+    },
+    {
+      "context_id": "yield_human_serving",
+      "observation_precision": 2.0,
+      "round": 1,
+      "text": "I approve of that move.",
+      "update_rule": "paper_independent_gaussian"
+    },
+    {
+      "context_id": "prefetch_dish",
+      "observation_precision": 2.0,
+      "round": 2,
+      "text": "I approve of that move.",
+      "update_rule": "paper_independent_gaussian"
+    },
+    {
+      "context_id": "prefetch_dish",
+      "observation_precision": 2.0,
+      "round": 3,
+      "text": "I approve of that move.",
+      "update_rule": "paper_independent_gaussian"
+    },
+    {
+      "context_id": "yield_human_serving",
+      "observation_precision": 2.0,
+      "round": 4,
+      "text": "I approve of that move.",
+      "update_rule": "paper_independent_gaussian"
+    },
+    {
+      "context_id": "prefetch_tomato",
+      "observation_precision": 2.0,
+      "round": 5,
+      "text": "I approve of that move.",
+      "update_rule": "paper_independent_gaussian"
+    },
+    {
+      "context_id": "complement_human_tomato",
+      "observation_precision": 2.0,
+      "round": 6,
+      "text": "I approve of that move.",
+      "update_rule": "paper_independent_gaussian"
+    },
+    {
+      "context_id": "ready_pickup_soup",
+      "observation_precision": 2.0,
+      "round": 7,
+      "text": "I approve of that move.",
+      "update_rule": "paper_independent_gaussian"
+    },
+    {
+      "context_id": "ready_get_dish",
+      "observation_precision": 2.0,
+      "round": 8,
+      "text": "I approve of that move.",
+      "update_rule": "paper_independent_gaussian"
+    },
+    {
+      "context_id": "prefetch_tomato",
+      "observation_precision": 2.0,
+      "round": 9,
+      "text": "I approve of that move.",
+      "update_rule": "paper_independent_gaussian"
+    },
+    {
+      "context_id": "prefetch_onion",
+      "observation_precision": 2.0,
+      "round": 10,
+      "text": "I approve of that move.",
+      "update_rule": "paper_independent_gaussian"
+    },
+    {
+      "context_id": "prefetch_tomato",
+      "observation_precision": 2.0,
+      "round": 11,
+      "text": "I approve of that move.",
+      "update_rule": "paper_independent_gaussian"
+    },
+    {
+      "context_id": "prefetch_dish",
+      "observation_precision": 2.0,
+      "round": 12,
+      "text": "I approve of that move.",
+      "update_rule": "paper_independent_gaussian"
+    },
+    {
+      "context_id": "ready_get_dish",
+      "observation_precision": 2.0,
+      "round": 13,
+      "text": "I approve of that move.",
+      "update_rule": "paper_independent_gaussian"
+    },
+    {
+      "context_id": "prefetch_dish",
+      "observation_precision": 2.0,
+      "round": 14,
+      "text": "I approve of that move.",
+      "update_rule": "paper_independent_gaussian"
+    },
+    {
+      "context_id": "prefetch_onion",
+      "observation_precision": 2.0,
+      "round": 15,
+      "text": "I approve of that move.",
+      "update_rule": "paper_independent_gaussian"
+    },
+    {
+      "context_id": "complement_human_tomato",
+      "observation_precision": 2.0,
+      "round": 16,
+      "text": "I approve of that move.",
+      "update_rule": "paper_independent_gaussian"
+    },
+    {
+      "context_id": "complement_human_onion",
+      "observation_precision": 2.0,
+      "round": 17,
+      "text": "I approve of that move.",
+      "update_rule": "paper_independent_gaussian"
+    },
+    {
+      "context_id": "yield_human_tomato",
+      "observation_precision": 2.0,
+      "round": 18,
+      "text": "I approve of that move.",
+      "update_rule": "paper_independent_gaussian"
+    },
+    {
+      "context_id": "prefetch_tomato",
+      "observation_precision": 2.0,
+      "round": 19,
+      "text": "I approve of that move.",
+      "update_rule": "paper_independent_gaussian"
+    },
+    {
+      "context_id": "yield_human_tomato",
+      "observation_precision": 2.0,
+      "round": 20,
+      "text": "I approve of that move.",
+      "update_rule": "paper_independent_gaussian"
+    },
+    {
+      "context_id": "yield_human_serving",
+      "observation_precision": 2.0,
+      "round": 21,
+      "text": "I approve of that move.",
+      "update_rule": "paper_independent_gaussian"
+    },
+    {
+      "context_id": "yield_human_tomato",
+      "observation_precision": 2.0,
+      "round": 22,
+      "text": "I approve of that move.",
+      "update_rule": "paper_independent_gaussian"
+    },
+    {
+      "context_id": "yield_human_serving",
+      "observation_precision": 2.0,
+      "round": 23,
+      "text": "I approve of that move.",
+      "update_rule": "paper_independent_gaussian"
+    },
+    {
+      "context_id": "prefetch_tomato",
+      "observation_precision": 2.0,
+      "round": 24,
+      "text": "I approve of that move.",
+      "update_rule": "paper_independent_gaussian"
+    },
+    {
+      "context_id": "serve_held_soup",
+      "observation_precision": 2.0,
+      "round": 25,
+      "text": "I approve of that move.",
+      "update_rule": "paper_independent_gaussian"
+    },
+    {
+      "context_id": "prefetch_dish",
+      "observation_precision": 2.0,
+      "round": 26,
+      "text": "I approve of that move.",
+      "update_rule": "paper_independent_gaussian"
+    },
+    {
+      "context_id": "ready_get_dish",
+      "observation_precision": 2.0,
+      "round": 27,
+      "text": "I approve of that move.",
+      "update_rule": "paper_independent_gaussian"
+    },
+    {
+      "context_id": "yield_human_tomato",
+      "observation_precision": 2.0,
+      "round": 28,
+      "text": "I approve of that move.",
+      "update_rule": "paper_independent_gaussian"
+    },
+    {
+      "context_id": "complement_human_tomato",
+      "observation_precision": 2.0,
+      "round": 29,
+      "text": "I approve of that move.",
+      "update_rule": "paper_independent_gaussian"
+    },
+    {
+      "context_id": "prefetch_tomato",
+      "observation_precision": 2.0,
+      "round": 30,
+      "text": "I approve of that move.",
+      "update_rule": "paper_independent_gaussian"
+    },
+    {
+      "context_id": "prefetch_tomato",
+      "observation_precision": 2.0,
+      "round": 31,
+      "text": "I approve of that move.",
+      "update_rule": "paper_independent_gaussian"
+    },
+    {
+      "context_id": "complement_human_onion",
+      "observation_precision": 2.0,
+      "round": 32,
+      "text": "I approve of that move.",
+      "update_rule": "paper_independent_gaussian"
+    },
+    {
+      "context_id": "ready_pickup_soup",
+      "observation_precision": 2.0,
+      "round": 33,
+      "text": "I approve of that move.",
+      "update_rule": "paper_independent_gaussian"
+    },
+    {
+      "context_id": "serve_held_soup",
+      "observation_precision": 2.0,
+      "round": 34,
+      "text": "I approve of that move.",
+      "update_rule": "paper_independent_gaussian"
+    },
+    {
+      "context_id": "prefetch_dish",
+      "observation_precision": 2.0,
+      "round": 35,
+      "text": "I approve of that move.",
+      "update_rule": "paper_independent_gaussian"
+    },
+    {
+      "context_id": "ready_get_dish",
+      "observation_precision": 2.0,
+      "round": 36,
+      "text": "I approve of that move.",
+      "update_rule": "paper_independent_gaussian"
+    },
+    {
+      "context_id": "yield_human_tomato",
+      "observation_precision": 2.0,
+      "round": 37,
+      "text": "I approve of that move.",
+      "update_rule": "paper_independent_gaussian"
+    },
+    {
+      "context_id": "prefetch_dish",
+      "observation_precision": 2.0,
+      "round": 38,
+      "text": "I approve of that move.",
+      "update_rule": "paper_independent_gaussian"
+    },
+    {
+      "context_id": "ready_get_dish",
+      "observation_precision": 2.0,
+      "round": 39,
+      "text": "I approve of that move.",
+      "update_rule": "paper_independent_gaussian"
+    }
+  ],
+  "validity_gate": {
+    "adaptive_regret_lower": true,
+    "adaptive_safety_not_worse": true,
+    "adaptive_utility_not_worse": true,
+    "status": "passed"
+  }
+}

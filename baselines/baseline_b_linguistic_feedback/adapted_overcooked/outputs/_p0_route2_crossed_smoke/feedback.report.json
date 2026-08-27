@@ -1,0 +1,403 @@
+{
+  "augmentation_protocol": "one_stable_author_per_base_feedback_crossed_with_every_reward_config",
+  "author_coverage": {
+    "synthetic_author_00": {
+      "examples": 312,
+      "reference_types": [
+        "action_behavioral",
+        "action_spatial",
+        "feature",
+        "trajectory"
+      ],
+      "reward_configs": [
+        "reward_00_gold",
+        "reward_01",
+        "reward_02",
+        "reward_03",
+        "reward_04",
+        "reward_05",
+        "reward_06",
+        "reward_07",
+        "reward_08",
+        "reward_09",
+        "reward_10",
+        "reward_11"
+      ],
+      "speech_acts": [
+        "descriptive",
+        "evaluative",
+        "imperative"
+      ]
+    },
+    "synthetic_author_01": {
+      "examples": 312,
+      "reference_types": [
+        "action_behavioral",
+        "action_spatial",
+        "feature",
+        "trajectory"
+      ],
+      "reward_configs": [
+        "reward_00_gold",
+        "reward_01",
+        "reward_02",
+        "reward_03",
+        "reward_04",
+        "reward_05",
+        "reward_06",
+        "reward_07",
+        "reward_08",
+        "reward_09",
+        "reward_10",
+        "reward_11"
+      ],
+      "speech_acts": [
+        "descriptive",
+        "evaluative",
+        "imperative"
+      ]
+    },
+    "synthetic_author_02": {
+      "examples": 312,
+      "reference_types": [
+        "action_behavioral",
+        "action_spatial",
+        "feature",
+        "trajectory"
+      ],
+      "reward_configs": [
+        "reward_00_gold",
+        "reward_01",
+        "reward_02",
+        "reward_03",
+        "reward_04",
+        "reward_05",
+        "reward_06",
+        "reward_07",
+        "reward_08",
+        "reward_09",
+        "reward_10",
+        "reward_11"
+      ],
+      "speech_acts": [
+        "descriptive",
+        "evaluative",
+        "imperative"
+      ]
+    },
+    "synthetic_author_03": {
+      "examples": 312,
+      "reference_types": [
+        "action_behavioral",
+        "action_spatial",
+        "feature",
+        "trajectory"
+      ],
+      "reward_configs": [
+        "reward_00_gold",
+        "reward_01",
+        "reward_02",
+        "reward_03",
+        "reward_04",
+        "reward_05",
+        "reward_06",
+        "reward_07",
+        "reward_08",
+        "reward_09",
+        "reward_10",
+        "reward_11"
+      ],
+      "speech_acts": [
+        "descriptive",
+        "evaluative",
+        "imperative"
+      ]
+    },
+    "synthetic_author_04": {
+      "examples": 312,
+      "reference_types": [
+        "action_behavioral",
+        "action_spatial",
+        "feature",
+        "trajectory"
+      ],
+      "reward_configs": [
+        "reward_00_gold",
+        "reward_01",
+        "reward_02",
+        "reward_03",
+        "reward_04",
+        "reward_05",
+        "reward_06",
+        "reward_07",
+        "reward_08",
+        "reward_09",
+        "reward_10",
+        "reward_11"
+      ],
+      "speech_acts": [
+        "descriptive",
+        "evaluative",
+        "imperative"
+      ]
+    },
+    "synthetic_author_05": {
+      "examples": 312,
+      "reference_types": [
+        "action_behavioral",
+        "action_spatial",
+        "feature",
+        "trajectory"
+      ],
+      "reward_configs": [
+        "reward_00_gold",
+        "reward_01",
+        "reward_02",
+        "reward_03",
+        "reward_04",
+        "reward_05",
+        "reward_06",
+        "reward_07",
+        "reward_08",
+        "reward_09",
+        "reward_10",
+        "reward_11"
+      ],
+      "speech_acts": [
+        "descriptive",
+        "evaluative",
+        "imperative"
+      ]
+    },
+    "synthetic_author_06": {
+      "examples": 312,
+      "reference_types": [
+        "action_behavioral",
+        "action_spatial",
+        "feature",
+        "trajectory"
+      ],
+      "reward_configs": [
+        "reward_00_gold",
+        "reward_01",
+        "reward_02",
+        "reward_03",
+        "reward_04",
+        "reward_05",
+        "reward_06",
+        "reward_07",
+        "reward_08",
+        "reward_09",
+        "reward_10",
+        "reward_11"
+      ],
+      "speech_acts": [
+        "descriptive",
+        "evaluative",
+        "imperative"
+      ]
+    },
+    "synthetic_author_07": {
+      "examples": 312,
+      "reference_types": [
+        "action_behavioral",
+        "action_spatial",
+        "feature",
+        "trajectory"
+      ],
+      "reward_configs": [
+        "reward_00_gold",
+        "reward_01",
+        "reward_02",
+        "reward_03",
+        "reward_04",
+        "reward_05",
+        "reward_06",
+        "reward_07",
+        "reward_08",
+        "reward_09",
+        "reward_10",
+        "reward_11"
+      ],
+      "speech_acts": [
+        "descriptive",
+        "evaluative",
+        "imperative"
+      ]
+    },
+    "synthetic_author_08": {
+      "examples": 312,
+      "reference_types": [
+        "action_behavioral",
+        "action_spatial",
+        "feature",
+        "trajectory"
+      ],
+      "reward_configs": [
+        "reward_00_gold",
+        "reward_01",
+        "reward_02",
+        "reward_03",
+        "reward_04",
+        "reward_05",
+        "reward_06",
+        "reward_07",
+        "reward_08",
+        "reward_09",
+        "reward_10",
+        "reward_11"
+      ],
+      "speech_acts": [
+        "descriptive",
+        "evaluative",
+        "imperative"
+      ]
+    },
+    "synthetic_author_09": {
+      "examples": 312,
+      "reference_types": [
+        "action_behavioral",
+        "action_spatial",
+        "feature",
+        "trajectory"
+      ],
+      "reward_configs": [
+        "reward_00_gold",
+        "reward_01",
+        "reward_02",
+        "reward_03",
+        "reward_04",
+        "reward_05",
+        "reward_06",
+        "reward_07",
+        "reward_08",
+        "reward_09",
+        "reward_10",
+        "reward_11"
+      ],
+      "speech_acts": [
+        "descriptive",
+        "evaluative",
+        "imperative"
+      ]
+    },
+    "synthetic_author_10": {
+      "examples": 312,
+      "reference_types": [
+        "action_behavioral",
+        "action_spatial",
+        "feature",
+        "trajectory"
+      ],
+      "reward_configs": [
+        "reward_00_gold",
+        "reward_01",
+        "reward_02",
+        "reward_03",
+        "reward_04",
+        "reward_05",
+        "reward_06",
+        "reward_07",
+        "reward_08",
+        "reward_09",
+        "reward_10",
+        "reward_11"
+      ],
+      "speech_acts": [
+        "descriptive",
+        "evaluative",
+        "imperative"
+      ]
+    },
+    "synthetic_author_11": {
+      "examples": 312,
+      "reference_types": [
+        "action_behavioral",
+        "action_spatial",
+        "feature",
+        "trajectory"
+      ],
+      "reward_configs": [
+        "reward_00_gold",
+        "reward_01",
+        "reward_02",
+        "reward_03",
+        "reward_04",
+        "reward_05",
+        "reward_06",
+        "reward_07",
+        "reward_08",
+        "reward_09",
+        "reward_10",
+        "reward_11"
+      ],
+      "speech_acts": [
+        "descriptive",
+        "evaluative",
+        "imperative"
+      ]
+    }
+  },
+  "base_feedback_augmentation": {
+    "base_rows": 312,
+    "complete": true,
+    "reward_configs_per_base_row_max": 12,
+    "reward_configs_per_base_row_min": 12,
+    "trajectory_varies_for_base_rows": 120,
+    "trajectory_varies_fraction": 0.38461538461538464
+  },
+  "context_reward_augmentation": {
+    "complete": true,
+    "contexts": 12,
+    "expected_edges": 144,
+    "observed_edges": 144,
+    "reward_configs": 12
+  },
+  "corpus_audit": {
+    "consistent_duplicate_inputs": 0,
+    "exact_duplicates_removed": 0,
+    "input_count": 3744,
+    "near_duplicates": {
+      "audit": "not computed for declared multi-reward corpus",
+      "count": null,
+      "pair_indices": []
+    },
+    "output_count": 3744,
+    "supervision_conflict_count": 0,
+    "unique_input_signatures": 3744
+  },
+  "counts": {
+    "contexts": 12,
+    "cooking_preparation_feedback": {
+      "examples": 0,
+      "negative": 0,
+      "positive": 0
+    },
+    "empty_hand_cooking_contexts": {
+      "total": 0
+    },
+    "examples": 3744,
+    "feedback_form_styles": 12,
+    "preparation_styles": {
+      "cautious": 1248,
+      "neutral": 936,
+      "proactive": 1560
+    },
+    "reward_configs": 12,
+    "synthetic_teachers": 12
+  },
+  "declared_split_policy": null,
+  "generator_version": "route2-multiteacher-v5-identifiable-local-feedback",
+  "gold_split": "test",
+  "gold_split_status": "deprecated_not_applied_cv_manifest_owns_splits",
+  "include_profile_language": false,
+  "seed": 17,
+  "teacher_identity": "stable_independent_synthetic_author",
+  "teacher_reward_bipartite": {
+    "complete": true,
+    "expected_edges": 144,
+    "observed_edges": 144,
+    "reward_configs": 12,
+    "teachers": 12
+  }
+}

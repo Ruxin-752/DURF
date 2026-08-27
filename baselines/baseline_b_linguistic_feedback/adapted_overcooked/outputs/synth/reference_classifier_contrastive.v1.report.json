@@ -1,0 +1,54 @@
+{
+  "contexts": 5,
+  "contrast_sets": 75,
+  "cross_label_near_duplicate_count": 0,
+  "explicit_cue_free_counts": {
+    "action_behavioral": 65,
+    "action_spatial": 75,
+    "trajectory": 75
+  },
+  "frames": 15,
+  "generation_uses_llm": false,
+  "group_overlap_count": 0,
+  "label_counts": {
+    "action_behavioral": 75,
+    "action_spatial": 75,
+    "feature": 75,
+    "other": 75,
+    "trajectory": 75
+  },
+  "normalized_duplicate_count": 0,
+  "output": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\data\\reference_classifier_contrastive.v1.json",
+  "output_sha256": "345aedd5c983d8eed238233f140d99464f953dd4cb7d71f7e9b82fb18d32ff9d",
+  "rows": 375,
+  "selection_uses_model_predictions": false,
+  "split_counts": {
+    "dev": 75,
+    "test": 75,
+    "train": 225
+  },
+  "split_label_counts": {
+    "dev": {
+      "action_behavioral": 15,
+      "action_spatial": 15,
+      "feature": 15,
+      "other": 15,
+      "trajectory": 15
+    },
+    "test": {
+      "action_behavioral": 15,
+      "action_spatial": 15,
+      "feature": 15,
+      "other": 15,
+      "trajectory": 15
+    },
+    "train": {
+      "action_behavioral": 45,
+      "action_spatial": 45,
+      "feature": 45,
+      "other": 45,
+      "trajectory": 45
+    }
+  },
+  "version": "reference-hard-contrastive-v1"
+}

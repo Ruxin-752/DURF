@@ -1,0 +1,239 @@
+{
+  "benchmark_role": "locked_synthetic_test_only",
+  "by_classifier_corpus_origin": {
+    "deepseek_reference_v7": {
+      "label_counts": {
+        "descriptive": 183,
+        "evaluative": 142,
+        "imperative": 180
+      },
+      "metrics": {
+        "accuracy": 0.9326732673267327,
+        "balanced_accuracy": 0.932041184569469,
+        "canonical_label_order": [
+          "Evaluative",
+          "Imperative",
+          "Descriptive"
+        ],
+        "confusion_matrix": [
+          [
+            131,
+            2,
+            9
+          ],
+          [
+            1,
+            172,
+            7
+          ],
+          [
+            4,
+            11,
+            168
+          ]
+        ],
+        "label_order": [
+          "evaluative",
+          "imperative",
+          "descriptive"
+        ],
+        "macro_f1": 0.9334810439133298,
+        "per_class": {
+          "descriptive": {
+            "canonical_label": "Descriptive",
+            "f1": 0.9155313351498637,
+            "precision": 0.9130434782608695,
+            "recall": 0.9180327868852459,
+            "support": 183
+          },
+          "evaluative": {
+            "canonical_label": "Evaluative",
+            "f1": 0.9424460431654677,
+            "precision": 0.9632352941176471,
+            "recall": 0.9225352112676056,
+            "support": 142
+          },
+          "imperative": {
+            "canonical_label": "Imperative",
+            "f1": 0.9424657534246575,
+            "precision": 0.9297297297297298,
+            "recall": 0.9555555555555556,
+            "support": 180
+          }
+        },
+        "rows": 505
+      }
+    },
+    "deterministic_contrastive_v1": {
+      "label_counts": {
+        "descriptive": 15,
+        "evaluative": 15,
+        "imperative": 15
+      },
+      "metrics": {
+        "accuracy": 0.6444444444444445,
+        "balanced_accuracy": 0.6444444444444444,
+        "canonical_label_order": [
+          "Evaluative",
+          "Imperative",
+          "Descriptive"
+        ],
+        "confusion_matrix": [
+          [
+            6,
+            4,
+            5
+          ],
+          [
+            5,
+            8,
+            2
+          ],
+          [
+            0,
+            0,
+            15
+          ]
+        ],
+        "label_order": [
+          "evaluative",
+          "imperative",
+          "descriptive"
+        ],
+        "macro_f1": 0.6216472883139551,
+        "per_class": {
+          "descriptive": {
+            "canonical_label": "Descriptive",
+            "f1": 0.8108108108108109,
+            "precision": 0.6818181818181818,
+            "recall": 1.0,
+            "support": 15
+          },
+          "evaluative": {
+            "canonical_label": "Evaluative",
+            "f1": 0.46153846153846156,
+            "precision": 0.5454545454545454,
+            "recall": 0.4,
+            "support": 15
+          },
+          "imperative": {
+            "canonical_label": "Imperative",
+            "f1": 0.5925925925925926,
+            "precision": 0.6666666666666666,
+            "recall": 0.5333333333333333,
+            "support": 15
+          }
+        },
+        "rows": 45
+      }
+    }
+  },
+  "corpus_audit": {
+    "eligible_counts": {
+      "dev": 302,
+      "test": 550,
+      "train": 2858
+    },
+    "excluded_test_reference_counts": {
+      "action_behavioral": 270,
+      "other": 116
+    }
+  },
+  "excluded_reference_types": [
+    "action_behavioral",
+    "behavioral",
+    "other"
+  ],
+  "generator_expected_feedback_type_used_as_target": false,
+  "membership_overlap_audit": {
+    "artifact_dev_normalized_text": 0,
+    "artifact_train_normalized_text": 0,
+    "corpus_dev_group": 0,
+    "corpus_dev_normalized_text": 0,
+    "corpus_train_group": 0,
+    "corpus_train_normalized_text": 0
+  },
+  "metrics": {
+    "accuracy": 0.9090909090909091,
+    "balanced_accuracy": 0.9066436040958333,
+    "canonical_label_order": [
+      "Evaluative",
+      "Imperative",
+      "Descriptive"
+    ],
+    "confusion_matrix": [
+      [
+        137,
+        6,
+        14
+      ],
+      [
+        6,
+        180,
+        9
+      ],
+      [
+        4,
+        11,
+        183
+      ]
+    ],
+    "label_order": [
+      "evaluative",
+      "imperative",
+      "descriptive"
+    ],
+    "macro_f1": 0.9085412434906219,
+    "per_class": {
+      "descriptive": {
+        "canonical_label": "Descriptive",
+        "f1": 0.905940594059406,
+        "precision": 0.8883495145631068,
+        "recall": 0.9242424242424242,
+        "support": 198
+      },
+      "evaluative": {
+        "canonical_label": "Evaluative",
+        "f1": 0.9013157894736842,
+        "precision": 0.9319727891156463,
+        "recall": 0.8726114649681529,
+        "support": 157
+      },
+      "imperative": {
+        "canonical_label": "Imperative",
+        "f1": 0.9183673469387755,
+        "precision": 0.9137055837563451,
+        "recall": 0.9230769230769231,
+        "support": 195
+      }
+    },
+    "rows": 550
+  },
+  "model": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\feedback_form_classifier\\model.joblib",
+  "model_sha256_after": "0f92f07f71ff03cc902693d8e613fc8af681d3ccee0d740322afb2a24c6ca4ab",
+  "model_sha256_before": "0f92f07f71ff03cc902693d8e613fc8af681d3ccee0d740322afb2a24c6ca4ab",
+  "model_sha256_unchanged": true,
+  "model_sha256_verified_against": "training_report_and_optional_expected_sha256",
+  "read_only_evaluator": true,
+  "reference_type_mapping": {
+    "action_spatial": "imperative",
+    "feature": "descriptive",
+    "trajectory": "evaluative"
+  },
+  "schema_version": "feedback-form-synthetic-three-class-test-v1",
+  "synthetic_input": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\data\\reference_classifier_feedback.v8.json",
+  "synthetic_input_sha256_after": "7e65fe1ae8d5573dec457a2912703a99c15e9d91db62dc7074f09fc6a3ad465d",
+  "synthetic_input_sha256_before": "7e65fe1ae8d5573dec457a2912703a99c15e9d91db62dc7074f09fc6a3ad465d",
+  "synthetic_input_sha256_expected": "7e65fe1ae8d5573dec457a2912703a99c15e9d91db62dc7074f09fc6a3ad465d",
+  "synthetic_input_sha256_unchanged": true,
+  "target_source": "reference_type_fixed_mapping",
+  "test_label_counts": {
+    "descriptive": 198,
+    "evaluative": 157,
+    "imperative": 195
+  },
+  "test_rows": 550,
+  "training_report": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\feedback_form_classifier\\model.report.json",
+  "training_report_sha256": "0530c636a576cfe46690f155c8123bf2fe91fcfe92e0ca436835f2e432562086",
+  "used_for_training_or_hyperparameter_selection": false
+}

@@ -1,0 +1,97 @@
+{
+  "accuracy_boundary": {
+    "reason": "assistant-curated labels are not an independent human gold test; accepted examples must be human-reviewed and a held-out subset must be frozen before evaluation",
+    "these_candidates_change_reported_human_accuracy": false
+  },
+  "blind_labeling_template": {
+    "automatically_importable_before_labeling": false,
+    "automatically_imported_or_trained": false,
+    "claim_after_blind_labeling": "human-adjudicated labels on assistant-authored utterances; not natural human-player language",
+    "classification_label_value": "",
+    "exact_fields": [
+      "language",
+      "classification_label"
+    ],
+    "intended_use_after_completion": "freeze the entire completed file as a holdout benchmark",
+    "must_not_be_merged_into": "human feedback training annotations or model-selection data",
+    "order": "deterministic_sha256_shuffle",
+    "order_version": "feedback-form-blind-review-order-v1",
+    "output": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\data\\feedback_form_candidates.blind_labeling.template.jsonl",
+    "output_sha256": "e28a7fe3ba8a065ee85c108a63737f976b79fc65e6178f1b6dd8b5aebd4234e2",
+    "review_protocol": "Annotate this file without opening the suggested-label file; freeze the completed file before running accuracy",
+    "row_count": 89,
+    "suggested_labels_visible": false
+  },
+  "candidate_count": 89,
+  "candidate_schema": {
+    "canonical_labels": [
+      "Evaluative",
+      "Imperative",
+      "Descriptive"
+    ],
+    "exact_fields": [
+      "language",
+      "classification_label",
+      "review_status"
+    ],
+    "required_review_status": "assistant_curated_pending_human_review"
+  },
+  "counts_by_label": {
+    "Descriptive": 30,
+    "Evaluative": 29,
+    "Imperative": 30
+  },
+  "distinct_surface_family_count": 89,
+  "evaluation_eligible": false,
+  "human_authorship_claimed": false,
+  "human_review_completed": false,
+  "minimum_distinct_families_per_label": 15,
+  "model_or_classifier_used_to_assign_labels": false,
+  "novelty_guard": {
+    "exact_collision_in_emitted_pool": 0,
+    "existing_unique_texts_compared": 7609,
+    "near_duplicate_in_emitted_pool": 0,
+    "sequence_similarity_threshold": 0.9,
+    "sources_compared": [
+      "feedback_form_hard_train",
+      "human_dev",
+      "human_raw",
+      "human_test",
+      "human_train",
+      "human_train_augmentation",
+      "reference_classifier_v8"
+    ],
+    "template_family_collision_in_emitted_pool": 0,
+    "token_jaccard_threshold": 0.78
+  },
+  "output": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\data\\assistant_curated_feedback_form_candidates.pending_review.jsonl",
+  "output_sha256": "de01899c409f6f54d6f9520c14072fc3a8102b6712ffaafbe61a3a0d1db73744",
+  "provenance": "assistant_curated_pending_human_review",
+  "rejected_family_ids": [
+    "eval_right_call"
+  ],
+  "rejections": {
+    "existing_near_duplicate": 1
+  },
+  "schema_version": 1,
+  "source_row_counts": {
+    "feedback_form_hard_train": 144,
+    "human_dev": 6,
+    "human_raw": 50,
+    "human_test": 0,
+    "human_train": 44,
+    "human_train_augmentation": 85,
+    "reference_classifier_v8": 7330
+  },
+  "suggested_label_boundary": {
+    "allowed_after_explicit_opt_in": "assistant-curated training or regression",
+    "automatically_imported_or_trained": false,
+    "never_valid_as": "human gold"
+  },
+  "taxonomy": {
+    "Descriptive": "task-relevant state, feature, relation, or consequence",
+    "Evaluative": "assessment of a completed action or trajectory",
+    "Imperative": "request or instruction for a future action"
+  },
+  "training_eligible": false
+}

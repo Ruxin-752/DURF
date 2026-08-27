@@ -1,0 +1,81 @@
+{
+  "candidate_rows": 8546,
+  "conflict_samples": [],
+  "cross_label_conflicting_texts": 0,
+  "cross_split_leaking_texts": 91,
+  "dropped_rows": {
+    "cross_split_exact_leakage": 1421,
+    "within_split_exact_duplicate": 170
+  },
+  "duplicate_rows": 170,
+  "forbidden_normalized_texts": 91,
+  "group_counts": {
+    "dev": 19,
+    "test": 13,
+    "train": 135
+  },
+  "inputs": {
+    "behavior": {
+      "path": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\data\\synthetic_feedback.deepseek_12k.validated.json",
+      "sha256": "5d11da47f392aa9d91e869e4ca96fb2e73e5e022e241cfff20310b5a5739ba61"
+    },
+    "other": {
+      "path": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\synth\\deepseek_other_reference_v2.json",
+      "sha256": "a2317c8b741373098463a0ac9cc70a0748b8796001fa1b68e8e98123ca5eef9c"
+    },
+    "paper_labels": {
+      "path": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\original_rewards_repo\\notebooks\\data\\pilot_chat_messages_labels.csv",
+      "sha256": "b80963abc737c088cb7ff45865a9a73532aa4d7953e9db9a9dad8d7912595fa4"
+    },
+    "v7": {
+      "path": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\synth\\synthetic_feedback.reference_v7.raw.json",
+      "sha256": "23bdafae6745328712610dbfb031e0591239cf93862d042a1409fb2541be9808"
+    }
+  },
+  "kept_rows": 6955,
+  "origin_counts": {
+    "deepseek_behavior_v6": 2457,
+    "deepseek_other_v2": 913,
+    "deepseek_reference_v7": 3014,
+    "original_paper_strict_development": 571
+  },
+  "output": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\data\\reference_classifier_feedback.v7.json",
+  "paper_strict_development_selection": {
+    "dev_rows": 106,
+    "reserved_test_rows": 106,
+    "selected_seed": 186,
+    "train_rows": 465,
+    "version": "paper-task-text-disjoint-v1"
+  },
+  "policy": "v7_scope_plus_v6_behavior_plus_hard_other",
+  "reserved_external_text_rows_dropped": 0,
+  "selection_uses_model_predictions": false,
+  "split_label_counts": {
+    "dev": {
+      "action_behavioral": 161,
+      "action_spatial": 74,
+      "feature": 108,
+      "other": 108,
+      "trajectory": 75
+    },
+    "test": {
+      "action_behavioral": 255,
+      "action_spatial": 180,
+      "feature": 183,
+      "other": 101,
+      "trajectory": 142
+    },
+    "train": {
+      "action_behavioral": 2117,
+      "action_spatial": 877,
+      "feature": 1045,
+      "other": 728,
+      "trajectory": 801
+    }
+  },
+  "split_sizes": {
+    "dev": 526,
+    "test": 861,
+    "train": 5568
+  }
+}

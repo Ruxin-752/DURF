@@ -1,0 +1,3 @@
+{"language":"That last move was helpful.","classification_label":"Evaluative"}
+{"language":"Please fetch an onion next.","classification_label":"Imperative"}
+{"language":"This onion is unnecessary.","classification_label":"Descriptive"}

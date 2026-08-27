@@ -38,6 +38,35 @@ _NUMBER_MAP = {
 }
 
 
+def _fallback_lemmatize(word: str) -> str:
+    """Small noun lemmatizer used only when the optional NLTK runtime is absent."""
+
+    irregular = {
+        "dishes": "dish",
+        "knives": "knife",
+        "potatoes": "potato",
+        "tomatoes": "tomato",
+    }
+    if word in irregular:
+        return irregular[word]
+    if len(word) > 4 and word.endswith("ies"):
+        return word[:-3] + "y"
+    if len(word) > 4 and word.endswith(("ches", "shes", "sses", "xes", "zes")):
+        return word[:-2]
+    if len(word) > 3 and word.endswith("oes"):
+        return word[:-2]
+    if len(word) > 3 and word.endswith("s") and not word.endswith(("ss", "us", "is")):
+        return word[:-1]
+    return word
+
+
+def _lemmatize_tokens(tokens: list[str]) -> list[str]:
+    try:
+        lemmatizer = _lemmatizer()
+        return [lemmatizer.lemmatize(word) for word in tokens]
+    except (ImportError, LookupError):
+        return [_fallback_lemmatize(word) for word in tokens]
+
 def limited_punc_tokenization(text: str | None) -> list[str]:
     """Segment an utterance on ``! . , ; |`` into non-empty phrases."""
 
@@ -62,18 +91,22 @@ def _english_stopwords() -> frozenset[str]:
 
 
 def _word_tokenize(text: str) -> list[str]:
-    from nltk import word_tokenize
+    try:
+        from nltk import word_tokenize
 
-    return word_tokenize(text)
-
+        return word_tokenize(text)
+    except (ImportError, LookupError):
+        # Route 2 inference also runs in the TensorFlow/Pygame environment,
+        # where the offline NLTK stack is intentionally not installed. Input
+        # punctuation has already been normalized by the callers.
+        return re.findall(r"[^\W_]+", text, flags=re.UNICODE)
 
 def preprocess_phrase(phrase: str | None) -> str:
     """Classifier-style preprocessing (``_preprocess_chat_phrase``)."""
 
     phrase = (phrase or "").translate(str.maketrans("", "", string.punctuation))
     tokens = _word_tokenize(phrase)
-    lemmatizer = _lemmatizer()
-    tokens = [lemmatizer.lemmatize(word) for word in tokens]
+    tokens = _lemmatize_tokens(tokens)
     stops = _english_stopwords()
     tokens = [token for token in tokens if token not in stops]
     tokens = [_NUMBER_MAP.get(token, token) for token in tokens]
@@ -88,8 +121,7 @@ def nn_tokenize(phrase: str | None) -> list[str]:
         str.maketrans(string.punctuation, " " * len(string.punctuation))
     ).lower()
     tokens = _word_tokenize(phrase)
-    lemmatizer = _lemmatizer()
-    tokens = [lemmatizer.lemmatize(word) for word in tokens]
+    tokens = _lemmatize_tokens(tokens)
     tokens = [_NUMBER_MAP.get(token, token) for token in tokens]
     if not tokens:
         tokens = [""]

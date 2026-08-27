@@ -1,0 +1,81 @@
+{
+  "blank_lines_ignored": 14,
+  "duplicate_same_label_rows_dropped": 0,
+  "input": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\data\\human_feedback_form_annotations.jsonl",
+  "input_rows": 50,
+  "label_provenance": "human_explicit_only",
+  "model_predictions_used_as_labels": false,
+  "outputs": {
+    "dev": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\data\\human_feedback_form_dev.json",
+    "report": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\human_feedback_form_annotations.report.json",
+    "test": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\data\\human_feedback_form_test.json",
+    "train": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\data\\human_feedback_form_train.json"
+  },
+  "public_input_schema": {
+    "additional_fields_allowed": false,
+    "allowed_fields": [
+      "language",
+      "classification_label"
+    ],
+    "canonical_label_case_sensitive": true,
+    "canonical_labels": [
+      "Evaluative",
+      "Imperative",
+      "Descriptive"
+    ]
+  },
+  "schema_version": 1,
+  "split_counts": {
+    "dev": 6,
+    "test": 0,
+    "train": 44
+  },
+  "split_label_counts": {
+    "dev": {
+      "Descriptive": 3,
+      "Imperative": 3
+    },
+    "test": {},
+    "train": {
+      "Descriptive": 13,
+      "Evaluative": 13,
+      "Imperative": 18
+    }
+  },
+  "split_policy": {
+    "buckets": "stable_sha256_80_10_10",
+    "invalid_claims": [
+      "teacher-held-out generalization",
+      "session-held-out generalization",
+      "independently adjudicated gold labels"
+    ],
+    "normalized_text_overlap": {
+      "dev_test": 0,
+      "train_dev": 0,
+      "train_test": 0
+    },
+    "teacher_session_identity_available": false,
+    "template_family_overlap": {
+      "dev_test": 0,
+      "train_dev": 0,
+      "train_test": 0
+    },
+    "template_family_uses_labels_or_model_predictions": false,
+    "unit": "automatically_derived_template_family",
+    "valid_claim": "template-family-disjoint evaluation only",
+    "version": "human-feedback-form-template-family-hash-v2"
+  },
+  "template_family_quality": {
+    "all_labels_have_at_least_three_families": false,
+    "cross_label_family_conflicts": 0,
+    "human_test_accuracy_claim_ready": false,
+    "independent_family_counts_by_label": {
+      "Descriptive": 10,
+      "Evaluative": 2,
+      "Imperative": 14
+    },
+    "minimum_collection_advice": "add independent surface families until every label can appear in train, dev, and test",
+    "test_has_all_three_labels": false
+  },
+  "unique_rows": 50
+}

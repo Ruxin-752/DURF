@@ -1,0 +1,76 @@
+{
+  "schema_version": "route2-one-time-test-receipt-v2",
+  "status": "completed",
+  "test_accessed": true,
+  "partition": "test",
+  "selection_manifest_sha256": "e40b684ebe5f99e1c53c52839c66f6e0a36771c921b815f96a54c5c59f07bc02",
+  "ensemble_manifest_sha256": "256c9551a738c53c723e00d09364ea1d15b6ab52daf3e515c98e772f9a29c180",
+  "cross_validation_manifest_sha256": "a3f556a4542b8d84cea4da07005308998335ef35b8a438d8aff0b7bcc464a3f6",
+  "corpus_sha256": "336d92f2c9b575ee15c73520e7f0c35d3f351ed7b86ecacc62b673fd686c2d04",
+  "verified_checkpoints": [
+    {
+      "fold": 0,
+      "checkpoint": "fold_00/model.pt",
+      "checkpoint_sha256": "487abd312dbb3ece24aab8bdc911b0c2dff518ffb13ec810ccf599fec1fdb699",
+      "selected_candidate": "sgd_paper_accumulated_varying_weight_2"
+    },
+    {
+      "fold": 1,
+      "checkpoint": "fold_01/model.pt",
+      "checkpoint_sha256": "8dca5dfd61d956a8445f16a7b75358db14c8cd436f7a5d77fac7a2b73959aff4",
+      "selected_candidate": "adam_fixed_budget_mse"
+    },
+    {
+      "fold": 2,
+      "checkpoint": "fold_02/model.pt",
+      "checkpoint_sha256": "caf774d524ca44b261a700f34c37b62928573928ea0871e7dce7b4500d602c8e",
+      "selected_candidate": "adam_fixed_budget_mse"
+    },
+    {
+      "fold": 3,
+      "checkpoint": "fold_03/model.pt",
+      "checkpoint_sha256": "9d0686a75615ba1fe73c862bff93e1aa9ae5f3c508afa904c481a4ba2e42afc6",
+      "selected_candidate": "adam_fixed_budget_mse"
+    },
+    {
+      "fold": 4,
+      "checkpoint": "fold_04/model.pt",
+      "checkpoint_sha256": "d33c155f17041875dce52a53845022ef2eb839afd069cca32747136070fee240",
+      "selected_candidate": "adam_fixed_budget_mse"
+    },
+    {
+      "fold": 5,
+      "checkpoint": "fold_05/model.pt",
+      "checkpoint_sha256": "726128142e05c95fde4d522a8dcd32bf91a301cd26e4c195b7c1846ac8181e49",
+      "selected_candidate": "adam_fixed_budget_mse"
+    },
+    {
+      "fold": 6,
+      "checkpoint": "fold_06/model.pt",
+      "checkpoint_sha256": "90b9ca4cb27f768ce92508fc6b5244122d52b5fbe2968ea871a8e2e89cfc501b",
+      "selected_candidate": "adam_fixed_budget_mse"
+    },
+    {
+      "fold": 7,
+      "checkpoint": "fold_07/model.pt",
+      "checkpoint_sha256": "821f64611ac36062ed820e32dc5ecea0e4f0bfb4ded3b9b920f3c5b9e0a73ea4",
+      "selected_candidate": "adam_fixed_budget_mse"
+    },
+    {
+      "fold": 8,
+      "checkpoint": "fold_08/model.pt",
+      "checkpoint_sha256": "14878fbbb55714722a61e01526dda10d1edb30d6f935463847c1dcd5cc74979c",
+      "selected_candidate": "adam_fixed_budget_mse"
+    },
+    {
+      "fold": 9,
+      "checkpoint": "fold_09/model.pt",
+      "checkpoint_sha256": "a089b7c6b21c4490e13c7f6be40e3cee2de0a2ba199b2e09baf5bb66285ce197",
+      "selected_candidate": "adam_fixed_budget_mse"
+    }
+  ],
+  "evaluation_report": "baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\route2\\paper_aligned_v5_seed137_selected\\evaluation_report.json",
+  "evaluation_report_sha256": "f0840d3f5c7cc563ce7537958a07d08a4830233cc9daa4acd61bb427d55da571",
+  "evaluation_report_file_sha256": "fb4355c2b6c3348d3a4c228e7615ade8c55cc20b1fec4bdb4a8ea00f322356a4",
+  "receipt_sha256": "77b7ee98b8c2023c4ac08f7432a84da50ffd4afde6455cddf813c378b1852055"
+}

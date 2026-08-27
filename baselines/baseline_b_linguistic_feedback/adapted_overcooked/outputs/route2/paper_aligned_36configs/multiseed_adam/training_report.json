@@ -1,0 +1,62 @@
+{
+  "feedback": "data\\route2_teacher_feedback.synthetic.json",
+  "corpus_sha256": "bcc5a38cfd7370479c8b5128491a836d56f1b5a81e7c527c4c14ef77989c0bc6",
+  "split_sha256": "54f9f069b70a1a1930aabc252e0d2ec800998ea491210b1cde68bf8a32641c88",
+  "search_sha256": "7113a93bed3ec99a56928ac2802d18877547c5b7f19bdef8fb6c405c3687408d",
+  "candidates": [
+    {
+      "config": {
+        "optimizer": "adam",
+        "lr": 0.003,
+        "weight_decay": 0.0001,
+        "batch_size": 256
+      },
+      "seeds": [
+        {
+          "seed": 0,
+          "best_val_loss": 0.005626443773508072,
+          "best_epoch": 59,
+          "epochs_run": 60
+        },
+        {
+          "seed": 1,
+          "best_val_loss": 0.004146146588027477,
+          "best_epoch": 57,
+          "epochs_run": 60
+        },
+        {
+          "seed": 2,
+          "best_val_loss": 0.008273868821561337,
+          "best_epoch": 57,
+          "epochs_run": 60
+        }
+      ],
+      "worst_seed_val_loss": 0.008273868821561337,
+      "mean_val_loss": 0.006015486394365628
+    }
+  ],
+  "selected_config": {
+    "optimizer": "adam",
+    "lr": 0.003,
+    "weight_decay": 0.0001,
+    "batch_size": 256,
+    "seed": 1,
+    "epochs": 60,
+    "patience": 10,
+    "selection": "minimize worst-seed dev loss, then mean dev loss",
+    "grouping_policy": "joint",
+    "use_feature_counts": true,
+    "target_mode": "full_teacher_reward",
+    "text_only_ablation": false
+  },
+  "selected_dev_loss": 0.004146146588027477,
+  "untouched_test_loss": 0.002412025583907962,
+  "checkpoint": "outputs\\route2\\paper_aligned_36configs\\multiseed_adam\\model.pt",
+  "untouched_test_metrics": {
+    "mse": 0.002412025583907962,
+    "mean_cosine_similarity": 0.9996327757835388,
+    "active_sign_accuracy": 1.0,
+    "active_target_count": 16848,
+    "examples": 432
+  }
+}

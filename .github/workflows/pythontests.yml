@@ -21,6 +21,17 @@ jobs:
       run: |
         source .venv/bin/activate
         uv pip install -e .
+    - name: Install Baseline B reward-learning dependencies
+      run: |
+        source .venv/bin/activate
+        uv pip install -r baselines/baseline_b_linguistic_feedback/adapted_overcooked/requirements.txt
+        python -m nltk.downloader vader_lexicon punkt punkt_tab wordnet omw-1.4 stopwords
+    - name: Run Baseline B and DURF bridge tests
+      run: |
+        source .venv/bin/activate
+        python -m unittest discover -s baselines/baseline_b_linguistic_feedback/adapted_overcooked/tests -p "test_*.py"
+        python -m unittest discover -s durf/baseline -p "test_*.py"
+        python -m unittest discover -s durf/group_a -p "test_*.py"
     - name: Run tests and generate coverage report
       run: |
         source .venv/bin/activate

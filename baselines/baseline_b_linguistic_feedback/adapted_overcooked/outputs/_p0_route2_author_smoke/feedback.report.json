@@ -1,0 +1,384 @@
+{
+  "author_coverage": {
+    "synthetic_author_00": {
+      "examples": 180,
+      "reference_types": [
+        "action_spatial",
+        "feature",
+        "trajectory"
+      ],
+      "reward_configs": [
+        "reward_01",
+        "reward_02",
+        "reward_03",
+        "reward_04",
+        "reward_06",
+        "reward_08",
+        "reward_10",
+        "reward_11"
+      ],
+      "speech_acts": [
+        "descriptive",
+        "evaluative",
+        "imperative"
+      ]
+    },
+    "synthetic_author_01": {
+      "examples": 78,
+      "reference_types": [
+        "action_behavioral",
+        "action_spatial",
+        "feature",
+        "trajectory"
+      ],
+      "reward_configs": [
+        "reward_00_gold",
+        "reward_09"
+      ],
+      "speech_acts": [
+        "descriptive",
+        "evaluative",
+        "imperative"
+      ]
+    },
+    "synthetic_author_02": {
+      "examples": 78,
+      "reference_types": [
+        "action_behavioral",
+        "action_spatial",
+        "feature",
+        "trajectory"
+      ],
+      "reward_configs": [
+        "reward_00_gold",
+        "reward_09"
+      ],
+      "speech_acts": [
+        "descriptive",
+        "evaluative",
+        "imperative"
+      ]
+    },
+    "synthetic_author_03": {
+      "examples": 180,
+      "reference_types": [
+        "action_behavioral",
+        "feature",
+        "trajectory"
+      ],
+      "reward_configs": [
+        "reward_01",
+        "reward_02",
+        "reward_03",
+        "reward_04",
+        "reward_06",
+        "reward_08",
+        "reward_10",
+        "reward_11"
+      ],
+      "speech_acts": [
+        "descriptive",
+        "evaluative",
+        "imperative"
+      ]
+    },
+    "synthetic_author_04": {
+      "examples": 180,
+      "reference_types": [
+        "action_behavioral",
+        "action_spatial",
+        "trajectory"
+      ],
+      "reward_configs": [
+        "reward_01",
+        "reward_02",
+        "reward_03",
+        "reward_04",
+        "reward_06",
+        "reward_08",
+        "reward_10",
+        "reward_11"
+      ],
+      "speech_acts": [
+        "descriptive",
+        "evaluative",
+        "imperative"
+      ]
+    },
+    "synthetic_author_05": {
+      "examples": 66,
+      "reference_types": [
+        "action_behavioral",
+        "action_spatial",
+        "feature",
+        "trajectory"
+      ],
+      "reward_configs": [
+        "reward_05",
+        "reward_07"
+      ],
+      "speech_acts": [
+        "descriptive",
+        "evaluative",
+        "imperative"
+      ]
+    },
+    "synthetic_author_06": {
+      "examples": 180,
+      "reference_types": [
+        "action_behavioral",
+        "action_spatial",
+        "feature"
+      ],
+      "reward_configs": [
+        "reward_01",
+        "reward_02",
+        "reward_03",
+        "reward_04",
+        "reward_06",
+        "reward_08",
+        "reward_10",
+        "reward_11"
+      ],
+      "speech_acts": [
+        "descriptive",
+        "evaluative",
+        "imperative"
+      ]
+    },
+    "synthetic_author_07": {
+      "examples": 66,
+      "reference_types": [
+        "action_behavioral",
+        "action_spatial",
+        "feature",
+        "trajectory"
+      ],
+      "reward_configs": [
+        "reward_05",
+        "reward_07"
+      ],
+      "speech_acts": [
+        "descriptive",
+        "evaluative",
+        "imperative"
+      ]
+    },
+    "synthetic_author_08": {
+      "examples": 192,
+      "reference_types": [
+        "action_spatial",
+        "feature",
+        "trajectory"
+      ],
+      "reward_configs": [
+        "reward_01",
+        "reward_02",
+        "reward_03",
+        "reward_04",
+        "reward_06",
+        "reward_08",
+        "reward_10",
+        "reward_11"
+      ],
+      "speech_acts": [
+        "descriptive",
+        "evaluative",
+        "imperative"
+      ]
+    },
+    "synthetic_author_09": {
+      "examples": 192,
+      "reference_types": [
+        "action_behavioral",
+        "feature",
+        "trajectory"
+      ],
+      "reward_configs": [
+        "reward_01",
+        "reward_02",
+        "reward_03",
+        "reward_04",
+        "reward_06",
+        "reward_08",
+        "reward_10",
+        "reward_11"
+      ],
+      "speech_acts": [
+        "descriptive",
+        "evaluative",
+        "imperative"
+      ]
+    },
+    "synthetic_author_10": {
+      "examples": 192,
+      "reference_types": [
+        "action_behavioral",
+        "action_spatial",
+        "trajectory"
+      ],
+      "reward_configs": [
+        "reward_01",
+        "reward_02",
+        "reward_03",
+        "reward_04",
+        "reward_06",
+        "reward_08",
+        "reward_10",
+        "reward_11"
+      ],
+      "speech_acts": [
+        "descriptive",
+        "evaluative",
+        "imperative"
+      ]
+    },
+    "synthetic_author_11": {
+      "examples": 192,
+      "reference_types": [
+        "action_behavioral",
+        "action_spatial",
+        "feature"
+      ],
+      "reward_configs": [
+        "reward_01",
+        "reward_02",
+        "reward_03",
+        "reward_04",
+        "reward_06",
+        "reward_08",
+        "reward_10",
+        "reward_11"
+      ],
+      "speech_acts": [
+        "descriptive",
+        "evaluative",
+        "imperative"
+      ]
+    }
+  },
+  "context_splits": {
+    "ctx_0000_pot[empty]_empty_hold[empty]_human[idle]": "test",
+    "ctx_0001_pot[empty]_empty_hold[empty]_human[get_tomato]": "dev",
+    "ctx_0002_pot[empty]_empty_hold[empty]_human[get_onion]": "train",
+    "ctx_0003_pot[empty]_empty_hold[empty]_human[pick_dish_then_serve]": "dev",
+    "ctx_0004_pot[empty]_empty_hold[empty]_human[pickup_soup]": "train",
+    "ctx_0005_pot[empty]_empty_hold[empty]_human[serve_soup]": "train",
+    "ctx_0006_pot[empty]_empty_hold[tomato]_human[idle]": "train",
+    "ctx_0007_pot[empty]_empty_hold[tomato]_human[get_tomato]": "train",
+    "ctx_0008_pot[empty]_empty_hold[tomato]_human[get_onion]": "test",
+    "ctx_0009_pot[empty]_empty_hold[tomato]_human[pick_dish_then_serve]": "train",
+    "ctx_0010_pot[empty]_empty_hold[tomato]_human[pickup_soup]": "test",
+    "ctx_0011_pot[empty]_empty_hold[tomato]_human[serve_soup]": "train"
+  },
+  "corpus_audit": {
+    "consistent_duplicate_inputs": 660,
+    "exact_duplicates_removed": 0,
+    "input_count": 1776,
+    "near_duplicates": {
+      "audit": "not computed for declared multi-reward corpus",
+      "count": null,
+      "pair_indices": []
+    },
+    "output_count": 1776,
+    "supervision_conflict_count": 0,
+    "unique_input_signatures": 1116
+  },
+  "counts": {
+    "by_split": {
+      "dev": 132,
+      "test": 156,
+      "train": 1488
+    },
+    "contexts_by_split": {
+      "dev": 2,
+      "test": 3,
+      "train": 7
+    },
+    "cooking_preparation_feedback": {
+      "by_split": {
+        "dev": {
+          "negative": 0,
+          "positive": 0
+        },
+        "test": {
+          "negative": 0,
+          "positive": 0
+        },
+        "train": {
+          "negative": 0,
+          "positive": 0
+        }
+      },
+      "examples": 0
+    },
+    "empty_hand_cooking_contexts": {
+      "by_split": {
+        "dev": 0,
+        "test": 0,
+        "train": 0
+      },
+      "total": 0
+    },
+    "examples": 1776,
+    "preparation_styles_by_split": {
+      "dev": {
+        "cautious": 72,
+        "proactive": 60
+      },
+      "test": {
+        "cautious": 84,
+        "proactive": 72
+      },
+      "train": {
+        "cautious": 408,
+        "neutral": 540,
+        "proactive": 540
+      }
+    },
+    "reward_configs_by_split": {
+      "dev": 2,
+      "test": 2,
+      "train": 8
+    },
+    "synthetic_authors_by_split": {
+      "dev": 2,
+      "test": 2,
+      "train": 8
+    },
+    "synthetic_teachers": 12
+  },
+  "generator_version": "route2-multiteacher-v5-identifiable-local-feedback",
+  "gold_split": "test",
+  "include_profile_language": false,
+  "reward_config_splits": {
+    "reward_00_gold": "test",
+    "reward_01": "train",
+    "reward_02": "train",
+    "reward_03": "train",
+    "reward_04": "train",
+    "reward_05": "dev",
+    "reward_06": "train",
+    "reward_07": "dev",
+    "reward_08": "train",
+    "reward_09": "test",
+    "reward_10": "train",
+    "reward_11": "train"
+  },
+  "seed": 17,
+  "synthetic_author_splits": {
+    "synthetic_author_00": "train",
+    "synthetic_author_01": "test",
+    "synthetic_author_02": "test",
+    "synthetic_author_03": "train",
+    "synthetic_author_04": "train",
+    "synthetic_author_05": "dev",
+    "synthetic_author_06": "train",
+    "synthetic_author_07": "dev",
+    "synthetic_author_08": "train",
+    "synthetic_author_09": "train",
+    "synthetic_author_10": "train",
+    "synthetic_author_11": "train"
+  },
+  "teacher_identity": "stable_independent_synthetic_author"
+}

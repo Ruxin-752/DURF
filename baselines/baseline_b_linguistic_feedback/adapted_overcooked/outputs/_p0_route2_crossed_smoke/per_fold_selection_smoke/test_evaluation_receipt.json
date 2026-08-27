@@ -1,0 +1,8 @@
+{
+  "corpus_sha256": "d0ad62dd026ebac0adb611483a7f92b137e021dbeff0b1c6ab3ab4e0af900c9d",
+  "evaluation_report_sha256": "0a4c8413ecea1be9c28fa615dc0470edfd16e587e07837255a21f1241f3d2385",
+  "partition": "test",
+  "schema_version": "route2-one-time-test-receipt-v1",
+  "selection_manifest_sha256": "ccced673d4c0029aea48ad20d709610dbfae2bfee37b2bb15bd111ed07a2c173",
+  "test_accessed": true
+}

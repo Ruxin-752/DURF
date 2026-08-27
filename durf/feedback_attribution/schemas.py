@@ -68,6 +68,7 @@ def trajectory_step(
 
 def feedback_event(
     *,
+    feedback_event_id: str | None = None,
     source: str,
     timestamp_utc: str,
     episode: int,
@@ -78,7 +79,7 @@ def feedback_event(
     role: str | None,
     extra: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    return {
+    record = {
         "record_type": "feedback_event",
         "source": source,
         "timestamp_utc": timestamp_utc,
@@ -90,6 +91,9 @@ def feedback_event(
         "role": role,
         "extra": extra or {},
     }
+    if feedback_event_id:
+        record["feedback_event_id"] = feedback_event_id
+    return record
 
 
 def candidate_event(

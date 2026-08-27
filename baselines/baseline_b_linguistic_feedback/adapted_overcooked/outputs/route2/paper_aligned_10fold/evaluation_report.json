@@ -1,0 +1,295 @@
+{
+  "aggregate_held_out": {
+    "behavior_metrics": {
+      "per_reward_context_majority": {
+        "accuracy": 0.9797979797979798,
+        "correct": 1164,
+        "total": 1188
+      },
+      "per_utterance": {
+        "accuracy": 0.9775467775467775,
+        "correct": 2351,
+        "total": 2405
+      }
+    },
+    "reward_metrics": {
+      "active_sign_accuracy": 0.9399993419647217,
+      "active_target_count": 89199,
+      "examples": 2405,
+      "mean_cosine_similarity": 0.9032957553863525,
+      "mse": 0.7057458758354187
+    }
+  },
+  "ensemble_deployment_language_probe": {
+    "accuracy": 1.0,
+    "cases": [
+      {
+        "case_id": "positive_specific",
+        "chosen_subgoal": "GET_ONION",
+        "correct": true,
+        "expected": "prefetch",
+        "max_model_disagreement": 0.27325432240762015,
+        "mean_model_disagreement": 0.11866684758109232,
+        "reward_margin": 0.010357224335893978,
+        "text": "Please prepare an onion for the next round while this soup cooks."
+      },
+      {
+        "case_id": "positive_paraphrase",
+        "chosen_subgoal": "GET_ONION",
+        "correct": true,
+        "expected": "prefetch",
+        "max_model_disagreement": 0.3379115597301952,
+        "mean_model_disagreement": 0.14622776175210225,
+        "reward_margin": 0.012774135917425156,
+        "text": "Use the cooking time to get an ingredient ready for our next soup."
+      },
+      {
+        "case_id": "negative_specific",
+        "chosen_subgoal": "WAIT",
+        "correct": true,
+        "expected": "wait",
+        "max_model_disagreement": 0.391652476743504,
+        "mean_model_disagreement": 0.14696486146815693,
+        "reward_margin": 0.1245144922286272,
+        "text": "Do not grab an onion this early; keep your hands free while the soup cooks."
+      },
+      {
+        "case_id": "negative_paraphrase",
+        "chosen_subgoal": "WAIT",
+        "correct": true,
+        "expected": "wait",
+        "max_model_disagreement": 0.36589606407367964,
+        "mean_model_disagreement": 0.15499775291056375,
+        "reward_margin": 0.10580146349966527,
+        "text": "Wait until this soup is done; do not fill your hands yet."
+      }
+    ],
+    "correct": 4,
+    "status": "deployment_probe_not_cv_estimate",
+    "total": 4
+  },
+  "folds": [
+    {
+      "behavior_metrics": {
+        "per_reward_context_majority": {
+          "accuracy": 0.98989898989899,
+          "correct": 98,
+          "total": 99
+        },
+        "per_utterance": {
+          "accuracy": 0.9813953488372092,
+          "correct": 211,
+          "total": 215
+        }
+      },
+      "fold": 0,
+      "reward_metrics": {
+        "active_sign_accuracy": 0.9187588691711426,
+        "active_target_count": 7767,
+        "examples": 215,
+        "mean_cosine_similarity": 0.8626788258552551,
+        "mse": 1.020586609840393
+      }
+    },
+    {
+      "behavior_metrics": {
+        "per_reward_context_majority": {
+          "accuracy": 0.9083333333333333,
+          "correct": 109,
+          "total": 120
+        },
+        "per_utterance": {
+          "accuracy": 0.9102040816326531,
+          "correct": 223,
+          "total": 245
+        }
+      },
+      "fold": 1,
+      "reward_metrics": {
+        "active_sign_accuracy": 0.9252747297286987,
+        "active_target_count": 9555,
+        "examples": 245,
+        "mean_cosine_similarity": 0.8873640298843384,
+        "mse": 0.9419231414794922
+      }
+    },
+    {
+      "behavior_metrics": {
+        "per_reward_context_majority": {
+          "accuracy": 1.0,
+          "correct": 145,
+          "total": 145
+        },
+        "per_utterance": {
+          "accuracy": 1.0,
+          "correct": 283,
+          "total": 283
+        }
+      },
+      "fold": 2,
+      "reward_metrics": {
+        "active_sign_accuracy": 0.9790596961975098,
+        "active_target_count": 9933,
+        "examples": 283,
+        "mean_cosine_similarity": 0.9332528710365295,
+        "mse": 0.41355669498443604
+      }
+    },
+    {
+      "behavior_metrics": {
+        "per_reward_context_majority": {
+          "accuracy": 0.9915966386554622,
+          "correct": 118,
+          "total": 119
+        },
+        "per_utterance": {
+          "accuracy": 0.9916317991631799,
+          "correct": 237,
+          "total": 239
+        }
+      },
+      "fold": 3,
+      "reward_metrics": {
+        "active_sign_accuracy": 0.9515172839164734,
+        "active_target_count": 8601,
+        "examples": 239,
+        "mean_cosine_similarity": 0.8825070261955261,
+        "mse": 0.7942731976509094
+      }
+    },
+    {
+      "behavior_metrics": {
+        "per_reward_context_majority": {
+          "accuracy": 0.9825581395348837,
+          "correct": 169,
+          "total": 172
+        },
+        "per_utterance": {
+          "accuracy": 0.975,
+          "correct": 390,
+          "total": 400
+        }
+      },
+      "fold": 4,
+      "reward_metrics": {
+        "active_sign_accuracy": 0.9225904941558838,
+        "active_target_count": 15024,
+        "examples": 400,
+        "mean_cosine_similarity": 0.9372220635414124,
+        "mse": 0.3565727174282074
+      }
+    },
+    {
+      "behavior_metrics": {
+        "per_reward_context_majority": {
+          "accuracy": 0.9861111111111112,
+          "correct": 142,
+          "total": 144
+        },
+        "per_utterance": {
+          "accuracy": 0.9891304347826086,
+          "correct": 273,
+          "total": 276
+        }
+      },
+      "fold": 5,
+      "reward_metrics": {
+        "active_sign_accuracy": 0.9520624279975891,
+        "active_target_count": 10764,
+        "examples": 276,
+        "mean_cosine_similarity": 0.915088951587677,
+        "mse": 0.609622597694397
+      }
+    },
+    {
+      "behavior_metrics": {
+        "per_reward_context_majority": {
+          "accuracy": 0.9772727272727273,
+          "correct": 86,
+          "total": 88
+        },
+        "per_utterance": {
+          "accuracy": 0.9828571428571429,
+          "correct": 172,
+          "total": 175
+        }
+      },
+      "fold": 6,
+      "reward_metrics": {
+        "active_sign_accuracy": 0.8852747082710266,
+        "active_target_count": 6825,
+        "examples": 175,
+        "mean_cosine_similarity": 0.9294280409812927,
+        "mse": 0.7476745843887329
+      }
+    },
+    {
+      "behavior_metrics": {
+        "per_reward_context_majority": {
+          "accuracy": 0.9777777777777777,
+          "correct": 88,
+          "total": 90
+        },
+        "per_utterance": {
+          "accuracy": 0.9732620320855615,
+          "correct": 182,
+          "total": 187
+        }
+      },
+      "fold": 7,
+      "reward_metrics": {
+        "active_sign_accuracy": 0.9623870849609375,
+        "active_target_count": 6753,
+        "examples": 187,
+        "mean_cosine_similarity": 0.8150827288627625,
+        "mse": 1.162359595298767
+      }
+    },
+    {
+      "behavior_metrics": {
+        "per_reward_context_majority": {
+          "accuracy": 0.9896907216494846,
+          "correct": 96,
+          "total": 97
+        },
+        "per_utterance": {
+          "accuracy": 0.9943181818181818,
+          "correct": 175,
+          "total": 176
+        }
+      },
+      "fold": 8,
+      "reward_metrics": {
+        "active_sign_accuracy": 0.9795404672622681,
+        "active_target_count": 6354,
+        "examples": 176,
+        "mean_cosine_similarity": 0.8822785019874573,
+        "mse": 0.9311183094978333
+      }
+    },
+    {
+      "behavior_metrics": {
+        "per_reward_context_majority": {
+          "accuracy": 0.9912280701754386,
+          "correct": 113,
+          "total": 114
+        },
+        "per_utterance": {
+          "accuracy": 0.9808612440191388,
+          "correct": 205,
+          "total": 209
+        }
+      },
+      "fold": 9,
+      "reward_metrics": {
+        "active_sign_accuracy": 0.9296864867210388,
+        "active_target_count": 7623,
+        "examples": 209,
+        "mean_cosine_similarity": 0.9412040710449219,
+        "mse": 0.5611845850944519
+      }
+    }
+  ],
+  "leakage_rule": "Each CV test example is scored only by its own fold model.",
+  "protocol": "paper_10fold_teacher_and_reward_holdout"
+}

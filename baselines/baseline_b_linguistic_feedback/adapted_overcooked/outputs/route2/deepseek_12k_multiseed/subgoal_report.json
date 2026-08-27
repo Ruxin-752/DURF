@@ -1,0 +1,866 @@
+{
+  "checkpoint": "baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\route2\\deepseek_12k_multiseed\\model.pt",
+  "checkpoint_training_config": {
+    "batch_size": 64,
+    "epochs": 80,
+    "lr": 0.003,
+    "patience": 12,
+    "seed": 3,
+    "selection": "minimize worst-seed dev loss, then mean dev loss",
+    "weight_decay": 0.0
+  },
+  "corpus_audit": {
+    "exact_duplicate_examples": [
+      {
+        "dropped_source_index": 623,
+        "kept_source_index": 282,
+        "normalized_text": "every time you serve the soup you cut right in front of me and block my path"
+      },
+      {
+        "dropped_source_index": 5520,
+        "kept_source_index": 3662,
+        "normalized_text": "go ahead and serve that soup now"
+      },
+      {
+        "dropped_source_index": 7098,
+        "kept_source_index": 3343,
+        "normalized_text": "hold off on serving the soup you re blocking the route i need"
+      },
+      {
+        "dropped_source_index": 7196,
+        "kept_source_index": 3403,
+        "normalized_text": "quit serving the soup you re cutting me off"
+      },
+      {
+        "dropped_source_index": 7224,
+        "kept_source_index": 3267,
+        "normalized_text": "stop serving the soup you re blocking my path"
+      },
+      {
+        "dropped_source_index": 7256,
+        "kept_source_index": 5313,
+        "normalized_text": "stop plating the soup because you re blocking my path"
+      },
+      {
+        "dropped_source_index": 7263,
+        "kept_source_index": 3488,
+        "normalized_text": "don t serve that soup now because you re blocking my path"
+      },
+      {
+        "dropped_source_index": 7450,
+        "kept_source_index": 5656,
+        "normalized_text": "serve the soup now to complement my tomato run"
+      },
+      {
+        "dropped_source_index": 7487,
+        "kept_source_index": 3662,
+        "normalized_text": "go ahead and serve that soup now"
+      }
+    ],
+    "exact_duplicates_removed": 9,
+    "input_count": 9713,
+    "near_duplicates": {
+      "count": 222,
+      "examples": [
+        {
+          "left_index": 15,
+          "left_text": "Your habit of serving the soup hurts our teamwork because you're blocking my way.",
+          "right_index": 46,
+          "right_text": "Your habit of plating the soup hurts our teamwork because you're blocking my way.",
+          "similarity": 0.95
+        },
+        {
+          "left_index": 61,
+          "left_text": "Your habit of grabbing an onion hurts our teamwork because you took the thing I needed.",
+          "right_index": 136,
+          "right_text": "Your habit of grabbing a tomato hurts our teamwork because you took the thing I needed.",
+          "similarity": 0.953488
+        },
+        {
+          "left_index": 90,
+          "left_text": "Every time you just stand there holding soup while the pot is cooking, you waste time we could use to prepare the next order.",
+          "right_index": 318,
+          "right_text": "Every time you just stand there holding soup while the pot is cooking, you waste time I could use to prep the next order.",
+          "similarity": 0.975207
+        },
+        {
+          "left_index": 368,
+          "left_text": "Your habit of serving the soup helps our teamwork because that splits the work nicely.",
+          "right_index": 377,
+          "right_text": "Your habit of plating the soup helps our teamwork because that splits the work nicely.",
+          "similarity": 0.952941
+        },
+        {
+          "left_index": 372,
+          "left_text": "Your habit of putting the tomato in the pot helps our teamwork because that's exactly the ingredient we need.",
+          "right_index": 384,
+          "right_text": "Your habit of putting the onion in the pot helps our teamwork because that's exactly the ingredient we need.",
+          "similarity": 0.967442
+        },
+        {
+          "left_index": 359,
+          "left_text": "Your habit of putting the onion in the pot helps our teamwork because that splits the work nicely.",
+          "right_index": 414,
+          "right_text": "Your habit of putting the tomato in the pot helps our teamwork because that splits the work nicely.",
+          "similarity": 0.964103
+        },
+        {
+          "left_index": 411,
+          "left_text": "Your habit of grabbing an onion helps our teamwork because that splits the work nicely.",
+          "right_index": 542,
+          "right_text": "Your habit of grabbing a tomato helps our teamwork because that splits the work nicely.",
+          "similarity": 0.953488
+        },
+        {
+          "left_index": 443,
+          "left_text": "Your habit of serving the soup helps our teamwork because that gets the order out.",
+          "right_index": 577,
+          "right_text": "Your habit of plating the soup helps our teamwork because that gets the order out.",
+          "similarity": 0.950617
+        },
+        {
+          "left_index": 668,
+          "left_text": "Your habit of grabbing a tomato is a bad choice because you took the thing I needed.",
+          "right_index": 691,
+          "right_text": "Your habit of grabbing an onion is a bad choice because you took the thing I needed.",
+          "similarity": 0.951807
+        },
+        {
+          "left_index": 704,
+          "left_text": "Your habit of putting the onion in the pot is a bad choice because we're both doing the same task.",
+          "right_index": 739,
+          "right_text": "Your habit of putting the tomato in the pot is a bad choice because we're both doing the same task.",
+          "similarity": 0.964103
+        },
+        {
+          "left_index": 627,
+          "left_text": "Your habit of serving the soup is a bad choice because you're blocking my way.",
+          "right_index": 763,
+          "right_text": "Your habit of plating the soup is a bad choice because you're blocking my way.",
+          "similarity": 0.948052
+        },
+        {
+          "left_index": 857,
+          "left_text": "Every time you just stay put like that you're wasting time we don't have.",
+          "right_index": 884,
+          "right_text": "Every time you stay put like that you're wasting time we don't have.",
+          "similarity": 0.964029
+        },
+        {
+          "left_index": 975,
+          "left_text": "Your habit of putting the tomato in the pot is a good choice because that splits the work nicely.",
+          "right_index": 995,
+          "right_text": "Your habit of putting the onion in the pot is a good choice because that splits the work nicely.",
+          "similarity": 0.963351
+        },
+        {
+          "left_index": 952,
+          "left_text": "Your habit of grabbing an onion is a good choice because that splits the work nicely.",
+          "right_index": 1091,
+          "right_text": "Your habit of grabbing a tomato is a good choice because that splits the work nicely.",
+          "similarity": 0.952381
+        },
+        {
+          "left_index": 1097,
+          "left_text": "Your habit of serving the soup is a good choice because that splits the work nicely.",
+          "right_index": 1155,
+          "right_text": "Your habit of plating the soup is a good choice because that splits the work nicely.",
+          "similarity": 0.951807
+        },
+        {
+          "left_index": 997,
+          "left_text": "Your habit of serving the soup is a good choice because that gets the order out.",
+          "right_index": 1268,
+          "right_text": "Your habit of plating the soup is a good choice because that gets the order out.",
+          "similarity": 0.949367
+        },
+        {
+          "left_index": 751,
+          "left_text": "Every time you just stand there holding soup, you're wasting time we don't have.",
+          "right_index": 1317,
+          "right_text": "Every time you just stand there holding back, you're wasting time we don't have.",
+          "similarity": 0.948718
+        },
+        {
+          "left_index": 1320,
+          "left_text": "Please stop your habit of serving the soup because you're blocking my way.",
+          "right_index": 1365,
+          "right_text": "Please stop your habit of plating the soup because you're blocking my way.",
+          "similarity": 0.945205
+        },
+        {
+          "left_index": 751,
+          "left_text": "Every time you just stand there holding soup, you're wasting time we don't have.",
+          "right_index": 1455,
+          "right_text": "Every time you just stand there holding soup, you waste time we don't have.",
+          "similarity": 0.953642
+        },
+        {
+          "left_index": 1368,
+          "left_text": "Please stop your habit of grabbing an onion because you took the thing I needed.",
+          "right_index": 1483,
+          "right_text": "Please stop your habit of grabbing a tomato because you took the thing I needed.",
+          "similarity": 0.949367
+        },
+        {
+          "left_index": 1492,
+          "left_text": "Please stop your habit of putting the onion in the pot because we're both doing the same task.",
+          "right_index": 1548,
+          "right_text": "Please stop your habit of putting the tomato in the pot because we're both doing the same task.",
+          "similarity": 0.962567
+        },
+        {
+          "left_index": 1639,
+          "left_text": "Please keep up your habit of putting the tomato in the pot because that splits the work nicely.",
+          "right_index": 1646,
+          "right_text": "Please keep up your habit of putting the onion in the pot because that splits the work nicely.",
+          "similarity": 0.962567
+        },
+        {
+          "left_index": 1623,
+          "left_text": "Please keep up your habit of plating the soup because that gets the order out.",
+          "right_index": 1668,
+          "right_text": "Please keep up your habit of serving the soup because that gets the order out.",
+          "similarity": 0.948052
+        },
+        {
+          "left_index": 1608,
+          "left_text": "Please keep up your habit of grabbing an onion because that splits the work nicely.",
+          "right_index": 1706,
+          "right_text": "Please keep up your habit of grabbing a tomato because that splits the work nicely.",
+          "similarity": 0.95122
+        },
+        {
+          "left_index": 1743,
+          "left_text": "Every time the recipe calls for onion, you grabbing it is perfect.",
+          "right_index": 1838,
+          "right_text": "Every time the order calls for onion, you grabbing it is perfect.",
+          "similarity": 0.944882
+        },
+        {
+          "left_index": 1779,
+          "left_text": "Keep grabbing that onion every time we need it for the recipe.",
+          "right_index": 1842,
+          "right_text": "Keep grabbing the onion every time we need it for the recipe.",
+          "similarity": 0.975207
+        },
+        {
+          "left_index": 1745,
+          "left_text": "Please keep up your habit of putting the onion in the pot because that's exactly the ingredient we need.",
+          "right_index": 1866,
+          "right_text": "Please keep up your habit of putting the tomato in the pot because that's exactly the ingredient we need.",
+          "similarity": 0.966184
+        },
+        {
+          "left_index": 1900,
+          "left_text": "Keep putting the tomato in the pot every time it's needed like that.",
+          "right_index": 1907,
+          "right_text": "Keep dropping the tomato in the pot every time it's needed like that.",
+          "similarity": 0.948148
+        },
+        {
+          "left_index": 1589,
+          "left_text": "Please keep up your habit of serving the soup because that splits the work nicely.",
+          "right_index": 1915,
+          "right_text": "Please keep up your habit of plating the soup because that splits the work nicely.",
+          "similarity": 0.950617
+        },
+        {
+          "left_index": 1925,
+          "left_text": "Putting the tomato in the pot right there hurts our teamwork because we're both doing the same task.",
+          "right_index": 1929,
+          "right_text": "Putting the onion in the pot right there hurts our teamwork because we're both doing the same task.",
+          "similarity": 0.964467
+        },
+        {
+          "left_index": 1919,
+          "left_text": "Serving the soup right there hurts our teamwork because you're blocking my way.",
+          "right_index": 1948,
+          "right_text": "Plating the soup right there hurts our teamwork because you're blocking my way.",
+          "similarity": 0.948718
+        },
+        {
+          "left_index": 2006,
+          "left_text": "Grabbing a tomato right there hurts our teamwork because you took the thing I needed.",
+          "right_index": 2029,
+          "right_text": "Grabbing an onion right there hurts our teamwork because you took the thing I needed.",
+          "similarity": 0.952381
+        },
+        {
+          "left_index": 2263,
+          "left_text": "Grabbing a tomato right there helps our teamwork because that splits the work nicely.",
+          "right_index": 2278,
+          "right_text": "Grabbing an onion right there helps our teamwork because that splits the work nicely.",
+          "similarity": 0.952381
+        },
+        {
+          "left_index": 2295,
+          "left_text": "Putting the tomato in the pot right there helps our teamwork because that splits the work nicely.",
+          "right_index": 2300,
+          "right_text": "Putting the onion in the pot right there helps our teamwork because that splits the work nicely.",
+          "similarity": 0.963351
+        },
+        {
+          "left_index": 2362,
+          "left_text": "Serving the soup right there helps our teamwork because that gets the order out.",
+          "right_index": 2430,
+          "right_text": "Plating the soup right there helps our teamwork because that gets the order out.",
+          "similarity": 0.949367
+        },
+        {
+          "left_index": 2330,
+          "left_text": "Serving the soup right there helps our teamwork because that splits the work nicely.",
+          "right_index": 2505,
+          "right_text": "Plating the soup right there helps our teamwork because that splits the work nicely.",
+          "similarity": 0.951807
+        },
+        {
+          "left_index": 2317,
+          "left_text": "Putting the onion in the pot right there helps our teamwork because that's exactly the ingredient we need.",
+          "right_index": 2509,
+          "right_text": "Putting the tomato in the pot right there helps our teamwork because that's exactly the ingredient we need.",
+          "similarity": 0.966825
+        },
+        {
+          "left_index": 2636,
+          "left_text": "Grabbing a tomato right there is a bad choice because you took the thing I needed.",
+          "right_index": 2707,
+          "right_text": "Grabbing an onion right there is a bad choice because you took the thing I needed.",
+          "similarity": 0.950617
+        },
+        {
+          "left_index": 2614,
+          "left_text": "Serving the soup right there is a bad choice because you're blocking my way.",
+          "right_index": 2716,
+          "right_text": "Plating the soup right there is a bad choice because you're blocking my way.",
+          "similarity": 0.946667
+        },
+        {
+          "left_index": 2779,
+          "left_text": "Putting the onion in the pot right there is a bad choice because we're both doing the same task.",
+          "right_index": 2834,
+          "right_text": "Putting the tomato in the pot right there is a bad choice because we're both doing the same task.",
+          "similarity": 0.963351
+        },
+        {
+          "left_index": 2908,
+          "left_text": "Serving the soup right there is a good choice because that splits the work nicely.",
+          "right_index": 2966,
+          "right_text": "Plating the soup right there is a good choice because that splits the work nicely.",
+          "similarity": 0.950617
+        },
+        {
+          "left_index": 2892,
+          "left_text": "Putting the onion in the pot right there is a good choice because that splits the work nicely.",
+          "right_index": 3047,
+          "right_text": "Putting the tomato in the pot right there is a good choice because that splits the work nicely.",
+          "similarity": 0.962567
+        },
+        {
+          "left_index": 3042,
+          "left_text": "Plating the soup right there is a good choice because that gets the order out.",
+          "right_index": 3068,
+          "right_text": "Serving the soup right there is a good choice because that gets the order out.",
+          "similarity": 0.948052
+        },
+        {
+          "left_index": 2902,
+          "left_text": "Grabbing an onion right there is a good choice because that splits the work nicely.",
+          "right_index": 3094,
+          "right_text": "Grabbing a tomato right there is a good choice because that splits the work nicely.",
+          "similarity": 0.95122
+        },
+        {
+          "left_index": 2962,
+          "left_text": "Putting the onion in the pot right there is a good choice because that's exactly the ingredient we need.",
+          "right_index": 3140,
+          "right_text": "Putting the tomato in the pot right there is a good choice because that's exactly the ingredient we need.",
+          "similarity": 0.966184
+        },
+        {
+          "left_index": 3233,
+          "left_text": "Don't serve that soup, you're blocking the serving route.",
+          "right_index": 3271,
+          "right_text": "Don't move the soup, you're blocking the serving route.",
+          "similarity": 0.925926
+        },
+        {
+          "left_index": 3265,
+          "left_text": "Don't stay put, go over to the pot.",
+          "right_index": 3318,
+          "right_text": "Don't stay put, get over to the pot.",
+          "similarity": 0.955224
+        },
+        {
+          "left_index": 3295,
+          "left_text": "Don't just stand there holding the onion, get to the pot.",
+          "right_index": 3343,
+          "right_text": "Don't just stand there holding the onion, move to the pot.",
+          "similarity": 0.954955
+        },
+        {
+          "left_index": 3287,
+          "left_text": "Please do not put the onion in the pot right there now because we're both doing the same task.",
+          "right_index": 3361,
+          "right_text": "Please do not put the tomato in the pot right there now because we're both doing the same task.",
+          "similarity": 0.962567
+        },
+        {
+          "left_index": 3242,
+          "left_text": "Please do not serve the soup right there now because you're blocking my way.",
+          "right_index": 3410,
+          "right_text": "Please do not plate the soup right there now because you're blocking my way.",
+          "similarity": 0.946667
+        },
+        {
+          "left_index": 3271,
+          "left_text": "Don't move the soup, you're blocking the serving route.",
+          "right_index": 3471,
+          "right_text": "Don't grab the soup, you're blocking the serving route.",
+          "similarity": 0.924528
+        },
+        {
+          "left_index": 3254,
+          "left_text": "Don't just stand there, get to the pot.",
+          "right_index": 3475,
+          "right_text": "Don't just stand there, go to the pot.",
+          "similarity": 0.958904
+        },
+        {
+          "left_index": 3325,
+          "left_text": "Please do not grab an onion right there now because you took the thing I needed.",
+          "right_index": 3515,
+          "right_text": "Please do not grab a tomato right there now because you took the thing I needed.",
+          "similarity": 0.949367
+        },
+        {
+          "left_index": 3392,
+          "left_text": "Don't take that tomato, I'm already going for it.",
+          "right_index": 3516,
+          "right_text": "Don't take that tomato, I was already going for it.",
+          "similarity": 0.958333
+        },
+        {
+          "left_index": 3557,
+          "left_text": "Please put the tomato in the pot right there now because that splits the work nicely.",
+          "right_index": 3573,
+          "right_text": "Please put the onion in the pot right there now because that splits the work nicely.",
+          "similarity": 0.958084
+        },
+        {
+          "left_index": 3587,
+          "left_text": "Please grab a tomato right there now because that splits the work nicely.",
+          "right_index": 3591,
+          "right_text": "Please grab an onion right there now because that splits the work nicely.",
+          "similarity": 0.944444
+        },
+        {
+          "left_index": 3568,
+          "left_text": "Stay where you are and let me handle the soup.",
+          "right_index": 3652,
+          "right_text": "Stay where you are and let me handle the onion.",
+          "similarity": 0.923077
+        },
+        {
+          "left_index": 3578,
+          "left_text": "Please serve the soup right there now because that splits the work nicely.",
+          "right_index": 3706,
+          "right_text": "Please plate the soup right there now because that splits the work nicely.",
+          "similarity": 0.945205
+        },
+        {
+          "left_index": 3685,
+          "left_text": "Please put the onion in the pot right there now because that's exactly the ingredient we need.",
+          "right_index": 3723,
+          "right_text": "Please put the tomato in the pot right there now because that's exactly the ingredient we need.",
+          "similarity": 0.962567
+        },
+        {
+          "left_index": 3605,
+          "left_text": "Stay right where you are so I can grab that soup.",
+          "right_index": 3725,
+          "right_text": "Stay right where you are so I can grab the soup.",
+          "similarity": 0.968421
+        },
+        {
+          "left_index": 3547,
+          "left_text": "Go ahead and drop that onion into the pot.",
+          "right_index": 3786,
+          "right_text": "Go ahead and drop that onion in the pot.",
+          "similarity": 0.975
+        },
+        {
+          "left_index": 3575,
+          "left_text": "Please serve the soup right there now because that gets the order out.",
+          "right_index": 3817,
+          "right_text": "Please plate the soup right there now because that gets the order out.",
+          "similarity": 0.942029
+        },
+        {
+          "left_index": 3920,
+          "left_text": "The onion hurts our teamwork because you took the thing I needed.",
+          "right_index": 3947,
+          "right_text": "The tomato hurts our teamwork because you took the thing I needed.",
+          "similarity": 0.945736
+        },
+        {
+          "left_index": 3921,
+          "left_text": "The dish hurts our teamwork because you're blocking my way.",
+          "right_index": 3971,
+          "right_text": "The soup hurts our teamwork because you're blocking my way.",
+          "similarity": 0.948276
+        },
+        {
+          "left_index": 3918,
+          "left_text": "You're blocking my path to the serving station with that soup.",
+          "right_index": 3976,
+          "right_text": "You're blocking my path to the onion station with that soup.",
+          "similarity": 0.933333
+        },
+        {
+          "left_index": 3918,
+          "left_text": "You're blocking my path to the serving station with that soup.",
+          "right_index": 3981,
+          "right_text": "You're blocking my path to the dish station with that soup.",
+          "similarity": 0.92437
+        },
+        {
+          "left_index": 3976,
+          "left_text": "You're blocking my path to the onion station with that soup.",
+          "right_index": 3981,
+          "right_text": "You're blocking my path to the dish station with that soup.",
+          "similarity": 0.940171
+        },
+        {
+          "left_index": 3941,
+          "left_text": "The onion hurts our teamwork because we're both doing the same task.",
+          "right_index": 3998,
+          "right_text": "The tomato hurts our teamwork because we're both doing the same task.",
+          "similarity": 0.948148
+        },
+        {
+          "left_index": 928,
+          "left_text": "You keep serving the soup and blocking the serving route I need to use.",
+          "right_index": 4106,
+          "right_text": "You are serving the soup and blocking the serving route I need to use.",
+          "similarity": 0.964029
+        },
+        {
+          "left_index": 4048,
+          "left_text": "By serving that soup now, you're cutting in front of me and wasting my time.",
+          "right_index": 4150,
+          "right_text": "By serving the soup, you're cutting in front of me and wasting my time.",
+          "similarity": 0.951049
+        },
+        {
+          "left_index": 3967,
+          "left_text": "By serving the soup, you're blocking the serving route I need.",
+          "right_index": 4162,
+          "right_text": "By serving the soup you are blocking the serving route I need.",
+          "similarity": 0.991736
+        },
+        {
+          "left_index": 4189,
+          "left_text": "The soup helps our teamwork because that splits the work nicely.",
+          "right_index": 4191,
+          "right_text": "The onion helps our teamwork because that splits the work nicely.",
+          "similarity": 0.944882
+        },
+        {
+          "left_index": 4189,
+          "left_text": "The soup helps our teamwork because that splits the work nicely.",
+          "right_index": 4195,
+          "right_text": "The tomato helps our teamwork because that splits the work nicely.",
+          "similarity": 0.9375
+        },
+        {
+          "left_index": 4191,
+          "left_text": "The onion helps our teamwork because that splits the work nicely.",
+          "right_index": 4195,
+          "right_text": "The tomato helps our teamwork because that splits the work nicely.",
+          "similarity": 0.945736
+        },
+        {
+          "left_index": 2341,
+          "left_text": "Serving that soup now completes the recipe and gets the order out.",
+          "right_index": 4251,
+          "right_text": "Serving that soup completes the recipe and gets an order out.",
+          "similarity": 0.928
+        },
+        {
+          "left_index": 4332,
+          "left_text": "Putting the onion in the pot adds a needed ingredient to match the current order.",
+          "right_index": 4423,
+          "right_text": "Putting that onion in the pot adds the needed ingredient to match the current order.",
+          "similarity": 0.957055
+        },
+        {
+          "left_index": 4456,
+          "left_text": "Completing the recipe by serving the soup moves us forward.",
+          "right_index": 4473,
+          "right_text": "You completing the recipe by serving the soup moves us forward.",
+          "similarity": 0.966667
+        },
+        {
+          "left_index": 4301,
+          "left_text": "The soup helps our teamwork because that gets the order out.",
+          "right_index": 4477,
+          "right_text": "The dish helps our teamwork because that gets the order out.",
+          "similarity": 0.949153
+        },
+        {
+          "left_index": 4254,
+          "left_text": "The onion helps our teamwork because that's exactly the ingredient we need.",
+          "right_index": 4479,
+          "right_text": "The tomato helps our teamwork because that's exactly the ingredient we need.",
+          "similarity": 0.95302
+        },
+        {
+          "left_index": 4493,
+          "left_text": "The soup is a bad choice because you're blocking my way.",
+          "right_index": 4515,
+          "right_text": "The dish is a bad choice because you're blocking my way.",
+          "similarity": 0.945455
+        },
+        {
+          "left_index": 4543,
+          "left_text": "The onion is a bad choice because we're both doing the same task.",
+          "right_index": 4599,
+          "right_text": "The tomato is a bad choice because we're both doing the same task.",
+          "similarity": 0.945736
+        },
+        {
+          "left_index": 4551,
+          "left_text": "The onion is a bad choice because you took the thing I needed.",
+          "right_index": 4627,
+          "right_text": "The tomato is a bad choice because you took the thing I needed.",
+          "similarity": 0.943089
+        },
+        {
+          "left_index": 4532,
+          "left_text": "Holding back like that is bad because it slows down the whole process.",
+          "right_index": 4629,
+          "right_text": "Holding back there is bad because it slows down the whole process.",
+          "similarity": 0.925373
+        },
+        {
+          "left_index": 4550,
+          "left_text": "Staying put when the soup is done just wastes time.",
+          "right_index": 4681,
+          "right_text": "Staying put when the soup is ready just wastes time.",
+          "similarity": 0.930693
+        },
+        {
+          "left_index": 2677,
+          "left_text": "Grabbing that tomato is bad because I was already heading for it.",
+          "right_index": 4727,
+          "right_text": "You grabbing that tomato is bad because I was already heading for it.",
+          "similarity": 0.969697
+        },
+        {
+          "left_index": 4767,
+          "left_text": "Your decision to stay put is bad because it adds unnecessary time cost to the recipe.",
+          "right_index": 4776,
+          "right_text": "Your decision to stay put is bad because it adds unnecessary time to the recipe.",
+          "similarity": 0.969325
+        },
+        {
+          "left_index": 4784,
+          "left_text": "The soup is a good choice because that splits the work nicely.",
+          "right_index": 4811,
+          "right_text": "The onion is a good choice because that splits the work nicely.",
+          "similarity": 0.943089
+        },
+        {
+          "left_index": 4791,
+          "left_text": "The tomato is a good choice because that's exactly the ingredient we need.",
+          "right_index": 4845,
+          "right_text": "The onion is a good choice because that's exactly the ingredient we need.",
+          "similarity": 0.951724
+        },
+        {
+          "left_index": 4784,
+          "left_text": "The soup is a good choice because that splits the work nicely.",
+          "right_index": 4847,
+          "right_text": "The tomato is a good choice because that splits the work nicely.",
+          "similarity": 0.935484
+        },
+        {
+          "left_index": 4811,
+          "left_text": "The onion is a good choice because that splits the work nicely.",
+          "right_index": 4847,
+          "right_text": "The tomato is a good choice because that splits the work nicely.",
+          "similarity": 0.944
+        },
+        {
+          "left_index": 4831,
+          "left_text": "The soup is a good choice because that gets the order out.",
+          "right_index": 4917,
+          "right_text": "The dish is a good choice because that gets the order out.",
+          "similarity": 0.947368
+        },
+        {
+          "left_index": 4818,
+          "left_text": "Grabbing the onion is perfect because it matches the current order.",
+          "right_index": 4926,
+          "right_text": "Grabbing the onion is spot-on because it matches the current order.",
+          "similarity": 0.924242
+        },
+        {
+          "left_index": 3520,
+          "left_text": "Don't serve that soup right now, you're blocking my path.",
+          "right_index": 5091,
+          "right_text": "Don't serve the soup right now, you're blocking my path.",
+          "similarity": 0.972477
+        },
+        {
+          "left_index": 5108,
+          "left_text": "Please avoid prioritizing the soup because you're blocking my way.",
+          "right_index": 5116,
+          "right_text": "Please avoid prioritizing the dish because you're blocking my way.",
+          "similarity": 0.953846
+        },
+        {
+          "left_index": 3271,
+          "left_text": "Don't move the soup, you're blocking the serving route.",
+          "right_index": 5118,
+          "right_text": "Don't plate the soup, you're blocking the serving route.",
+          "similarity": 0.934579
+        },
+        {
+          "left_index": 3471,
+          "left_text": "Don't grab the soup, you're blocking the serving route.",
+          "right_index": 5118,
+          "right_text": "Don't plate the soup, you're blocking the serving route.",
+          "similarity": 0.934579
+        },
+        {
+          "left_index": 3392,
+          "left_text": "Don't take that tomato, I'm already going for it.",
+          "right_index": 5135,
+          "right_text": "Don't grab that tomato, I'm already going for it.",
+          "similarity": 0.93617
+        },
+        {
+          "left_index": 3392,
+          "left_text": "Don't take that tomato, I'm already going for it.",
+          "right_index": 5163,
+          "right_text": "Don't take that tomato, I'm already heading for it.",
+          "similarity": 0.9375
+        },
+        {
+          "left_index": 5175,
+          "left_text": "Stop serving that soup, you're cutting in front of me.",
+          "right_index": 5214,
+          "right_text": "Quit serving that soup, you're cutting in front of me.",
+          "similarity": 0.942308
+        },
+        {
+          "left_index": 5199,
+          "left_text": "Quit serving the soup, you're cutting in front of me.",
+          "right_index": 5214,
+          "right_text": "Quit serving that soup, you're cutting in front of me.",
+          "similarity": 0.970874
+        }
+      ],
+      "threshold": 0.92
+    },
+    "output_count": 9704,
+    "supervision_conflict_count": 9,
+    "supervision_conflicts": [
+      {
+        "dropped_source_index": 623,
+        "kept_source_index": 282,
+        "normalized_text": "every time you serve the soup you cut right in front of me and block my path"
+      },
+      {
+        "dropped_source_index": 5520,
+        "kept_source_index": 3662,
+        "normalized_text": "go ahead and serve that soup now"
+      },
+      {
+        "dropped_source_index": 7098,
+        "kept_source_index": 3343,
+        "normalized_text": "hold off on serving the soup you re blocking the route i need"
+      },
+      {
+        "dropped_source_index": 7196,
+        "kept_source_index": 3403,
+        "normalized_text": "quit serving the soup you re cutting me off"
+      },
+      {
+        "dropped_source_index": 7224,
+        "kept_source_index": 3267,
+        "normalized_text": "stop serving the soup you re blocking my path"
+      },
+      {
+        "dropped_source_index": 7256,
+        "kept_source_index": 5313,
+        "normalized_text": "stop plating the soup because you re blocking my path"
+      },
+      {
+        "dropped_source_index": 7263,
+        "kept_source_index": 3488,
+        "normalized_text": "don t serve that soup now because you re blocking my path"
+      },
+      {
+        "dropped_source_index": 7450,
+        "kept_source_index": 5656,
+        "normalized_text": "serve the soup now to complement my tomato run"
+      },
+      {
+        "dropped_source_index": 7487,
+        "kept_source_index": 3662,
+        "normalized_text": "go ahead and serve that soup now"
+      }
+    ]
+  },
+  "corpus_sha256": "4dafa02c4970e2343a4163693c53b4e712109ebd8343859c8362bd235c268a19",
+  "evaluation_config": {
+    "config_sha256": "91ea7b1ed83dc825cbd68da250e7405f2c2d329f58d047ef4001c653d7de936f",
+    "lambda_pref": 1.0,
+    "near_duplicate_threshold": 0.92,
+    "seed": 0,
+    "use_feature_counts": false
+  },
+  "export_aggregation": "scenario_balanced_mean",
+  "metrics": {
+    "export_all_scenarios": {
+      "accuracy": 0.8,
+      "correct": 72,
+      "total": 90
+    },
+    "export_probes": {
+      "accuracy": 0.8,
+      "correct": 4,
+      "total": 5
+    },
+    "gold": {
+      "accuracy": 1.0,
+      "correct": 2,
+      "total": 2
+    },
+    "route1": {
+      "accuracy": 1.0,
+      "correct": 2,
+      "total": 2
+    },
+    "route2_example_accuracy": 1.0,
+    "route2_scenario_accuracy": 1.0,
+    "zero": {
+      "accuracy": 0.0,
+      "correct": 0,
+      "total": 2
+    }
+  },
+  "split_manifest": "baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\route2\\deepseek_12k_multiseed\\split_manifest.json",
+  "split_sha256": "f5f08ab07dc910f4721fa8ae5f92897820389c6d8dd664f7925971e9ede8071a",
+  "test_split": {
+    "groups": [
+      "ctx_0038_pot[tomato]_partial_hold[onion]_human[get_onion]",
+      "ctx_0062_pot[tomato-tomato]_partial_hold[soup]_human[get_onion]"
+    ],
+    "scenarios": 2,
+    "utterances": 177
+  }
+}

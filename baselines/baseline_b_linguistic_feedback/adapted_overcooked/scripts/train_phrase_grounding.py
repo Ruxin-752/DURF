@@ -27,7 +27,8 @@ def _evaluate_and_tune(artifact: dict, rows: list[dict], *, tune: bool) -> dict:
 
     if not rows:
         return {}
-    matrix = artifact["vectorizer"].transform([row["processed"] for row in rows])
+    input_field = "text" if artifact.get("input_mode") == "raw_text" else "processed"
+    matrix = artifact["vectorizer"].transform([row[input_field] for row in rows])
     probabilities = np.asarray(artifact["classifier"].predict_proba(matrix))
     classes = [str(label) for label in artifact["label_binarizer"].classes_]
     label_index = {label: index for index, label in enumerate(classes)}
@@ -65,6 +66,9 @@ def _evaluate_and_tune(artifact: dict, rows: list[dict], *, tune: bool) -> dict:
     macro = precision_recall_fscore_support(
         targets, predicted, average="macro", zero_division=0
     )
+    per_feature = precision_recall_fscore_support(
+        targets, predicted, average=None, zero_division=0
+    )
     return {
         "rows": len(rows),
         "micro_precision": float(micro[0]),
@@ -73,6 +77,21 @@ def _evaluate_and_tune(artifact: dict, rows: list[dict], *, tune: bool) -> dict:
         "macro_precision": float(macro[0]),
         "macro_recall": float(macro[1]),
         "macro_f1": float(macro[2]),
+        "prediction_coverage": float((predicted.sum(axis=1) > 0).mean()),
+        "label_coverage": {
+            "classes_in_model": len(classes),
+            "features_with_test_support": int((targets.sum(axis=0) > 0).sum()),
+        },
+        "per_feature": {
+            label: {
+                "precision": float(per_feature[0][index]),
+                "recall": float(per_feature[1][index]),
+                "f1": float(per_feature[2][index]),
+                "support": int(per_feature[3][index]),
+                "threshold": float(thresholds.get(label, 0.5)),
+            }
+            for index, label in enumerate(classes)
+        },
     }
 
 
@@ -140,6 +159,13 @@ def main() -> int:
         "annotation_sources": {
             source: sum(row["annotation_source"] == source for row in rows)
             for source in sorted({row["annotation_source"] for row in rows})
+        },
+        "input_mode": artifact.get("input_mode", "processed_text"),
+        "feature_config": artifact.get("feature_config"),
+        "selection_protocol": {
+            "partition": "dev_only_threshold_tuning",
+            "test_examples_evaluated_during_selection": 0,
+            "test_role": "exposed synthetic regression only",
         },
     }
     args.output.parent.mkdir(parents=True, exist_ok=True)

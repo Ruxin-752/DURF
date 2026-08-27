@@ -1,0 +1,118 @@
+{
+  "by_reward_config": {
+    "reward_00_gold": {
+      "correct": 19,
+      "reward_metrics": {
+        "active_sign_accuracy": 1.0,
+        "active_target_count": 3120,
+        "examples": 80,
+        "mean_cosine_similarity": 0.9947174191474915,
+        "mse": 0.03522155433893204
+      },
+      "subgoal_accuracy": 1.0,
+      "total": 19
+    },
+    "reward_01": {
+      "correct": 18,
+      "reward_metrics": {
+        "active_sign_accuracy": 1.0,
+        "active_target_count": 2574,
+        "examples": 78,
+        "mean_cosine_similarity": 0.9582463502883911,
+        "mse": 0.275598406791687
+      },
+      "subgoal_accuracy": 0.9473684210526315,
+      "total": 19
+    },
+    "reward_09": {
+      "correct": 18,
+      "reward_metrics": {
+        "active_sign_accuracy": 0.8534798622131348,
+        "active_target_count": 3276,
+        "examples": 84,
+        "mean_cosine_similarity": 0.8501354455947876,
+        "mse": 0.7836184501647949
+      },
+      "subgoal_accuracy": 0.9473684210526315,
+      "total": 19
+    },
+    "reward_21": {
+      "correct": 19,
+      "reward_metrics": {
+        "active_sign_accuracy": 1.0,
+        "active_target_count": 3120,
+        "examples": 80,
+        "mean_cosine_similarity": 0.8136041760444641,
+        "mse": 1.0853312015533447
+      },
+      "subgoal_accuracy": 1.0,
+      "total": 19
+    },
+    "reward_24": {
+      "correct": 19,
+      "reward_metrics": {
+        "active_sign_accuracy": 1.0,
+        "active_target_count": 3120,
+        "examples": 80,
+        "mean_cosine_similarity": 0.9698126912117004,
+        "mse": 0.3103773891925812
+      },
+      "subgoal_accuracy": 1.0,
+      "total": 19
+    },
+    "reward_31": {
+      "correct": 18,
+      "reward_metrics": {
+        "active_sign_accuracy": 1.0,
+        "active_target_count": 3042,
+        "examples": 78,
+        "mean_cosine_similarity": 0.9406539797782898,
+        "mse": 0.6869721412658691
+      },
+      "subgoal_accuracy": 0.9473684210526315,
+      "total": 19
+    }
+  },
+  "checkpoint": "baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\route2\\paper_aligned_proactivity_v3\\local_only_multiseed\\model.pt",
+  "corpus_sha256": "15d74e9ca4de1a09578131f64dd913c1b6286224c50b0509aef86d1e621943fd",
+  "feedback": "baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\data\\route2_teacher_feedback.proactivity_v3.local_only.synthetic.json",
+  "gold_config": {
+    "correct": 19,
+    "reward_metrics": {
+      "active_sign_accuracy": 1.0,
+      "active_target_count": 3120,
+      "examples": 80,
+      "mean_cosine_similarity": 0.9947174191474915,
+      "mse": 0.03522155433893204
+    },
+    "subgoal_accuracy": 1.0,
+    "total": 19
+  },
+  "reward_metrics": {
+    "active_sign_accuracy": 0.973701536655426,
+    "active_target_count": 18252,
+    "examples": 480,
+    "mean_cosine_similarity": 0.920367419719696,
+    "mse": 0.5320393443107605
+  },
+  "split_sha256": "27e25954244ef1de6595af2c3956e7c5124a2132b0d3a4f1ed102a5736ff7612",
+  "subgoal_metrics": {
+    "accuracy": 0.9736842105263158,
+    "correct": 111,
+    "total": 114
+  },
+  "target_mode": "full_teacher_reward",
+  "test_reward_configs": [
+    "reward_00_gold",
+    "reward_01",
+    "reward_09",
+    "reward_21",
+    "reward_24",
+    "reward_31"
+  ],
+  "test_teacher_styles": [
+    "style_feature_evaluative",
+    "style_feature_imperative"
+  ],
+  "use_feature_counts": true
+}

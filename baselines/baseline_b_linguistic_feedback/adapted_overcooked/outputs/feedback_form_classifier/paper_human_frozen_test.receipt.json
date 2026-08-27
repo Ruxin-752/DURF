@@ -1,0 +1,15 @@
+{
+  "benchmark_manifest": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\feedback_form_classifier\\paper_human_benchmark.v1.manifest.json",
+  "benchmark_manifest_sha256": "0888653076a7fc74f9708ba34fce1991c9cf9a76d54c3ab41d8ecd9e35ecca48",
+  "claimed_at_utc": "2026-08-20T05:27:27.906294+00:00",
+  "diagnostic_accuracy_threshold": 0.87,
+  "expected_frozen_test_sha256": "6c428071a890934b334f30ff9b80781c17410c0e0b7ee1895da6aca8ff81798f",
+  "frozen_test": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\data\\paper_feedback_form_human_frozen_test.v1.json",
+  "model": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\feedback_form_classifier\\model.joblib",
+  "model_sha256": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+  "policy": "local_path_guard_before_test_hash_or_parse; not_external_ledger",
+  "report": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\feedback_form_classifier\\paper_human_frozen_test.report.json",
+  "schema_version": "paper-human-feedback-form-frozen-receipt-v1",
+  "training_report": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\feedback_form_classifier\\model.report.json",
+  "training_report_sha256": "ea3647841a0c6a0840727b44e5eb87803c21191a5fb1ff8a7b6630d67cd08ae8"
+}

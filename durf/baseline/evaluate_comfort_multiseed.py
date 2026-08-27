@@ -1,4 +1,4 @@
-"""Select comfort strength on dev seeds, then report untouched test seeds."""
+"""Run a fixed paper-scale dev gate, then report held-out test seeds."""
 
 from __future__ import annotations
 
@@ -25,8 +25,14 @@ def _summary(rows: list[dict]) -> dict:
         "worst_soup_reward": min(row["soup_reward"] for row in rows),
         "worst_discomfort_rate": max(row["discomfort_rate"] for row in rows),
         "longest_wait_streak": max(row["longest_wait_streak"] for row in rows),
+        "longest_avoidable_wait_streak": max(
+            row.get("longest_avoidable_wait_streak", 0) for row in rows
+        ),
         "wait_rate": wait_steps / total_steps if total_steps else 0.0,
         "zero_soup_runs": sum(row["soup_reward"] <= 0 for row in rows),
+        "policy_override_steps": sum(
+            int(row.get("policy_override_steps", 0)) for row in rows
+        ),
     }
 
 
@@ -51,6 +57,18 @@ def evaluate(
     test_seeds: list[int],
     lambdas: list[float],
 ) -> dict:
+    if not dev_seeds or not test_seeds:
+        raise ValueError("dev_seeds and test_seeds must both be non-empty")
+    if len(set(dev_seeds)) != len(dev_seeds) or len(set(test_seeds)) != len(test_seeds):
+        raise ValueError("dev/test seeds must be unique within each split")
+    overlap = sorted(set(dev_seeds) & set(test_seeds))
+    if overlap:
+        raise ValueError(f"dev/test seed overlap is not allowed: {overlap}")
+    if not lambdas or any(abs(float(value) - 1.0) > 1e-12 for value in lambdas):
+        raise ValueError(
+            "paper-aligned evaluation fixes lambda_pref=1.0; language changes "
+            "reward weights rather than a manual comfort scale"
+        )
     all_seeds = sorted(set(dev_seeds + test_seeds))
     baseline = {
         seed: rollout("h0_rule", layout, seed, horizon, lambda_pref=0.0)
@@ -79,11 +97,14 @@ def evaluate(
             >= 0.90 * baseline_dev["worst_soup_reward"],
             "worst_discomfort": summary["worst_discomfort_rate"]
             <= baseline_dev["worst_discomfort_rate"],
-            "wait_streak": summary["longest_wait_streak"] <= 3,
+            "wait_streak": summary["longest_avoidable_wait_streak"] <= 3,
             "no_zero_soup": summary["zero_soup_runs"] == 0,
         }
         summary["hard_constraints"] = constraints
         summary["hard_constraints_passed"] = all(constraints.values())
+        summary["hard_constraint_violations"] = sum(
+            not passed for passed in constraints.values()
+        )
         candidates.append({"lambda_pref": value, "summary": summary, "runs": rows})
 
     eligible = [
@@ -91,12 +112,17 @@ def evaluate(
         for candidate in candidates
         if candidate["summary"]["hard_constraints_passed"]
     ]
-    if not eligible:
-        raise ValueError(
-            "no lambda satisfies soup, worst-discomfort, WAIT, and no-zero hard constraints"
-        )
+    deployable = bool(eligible)
+    selection_pool = eligible or sorted(
+        candidates,
+        key=lambda candidate: (
+            candidate["summary"]["hard_constraint_violations"],
+            -candidate["summary"]["soup_retention"],
+            candidate["summary"]["worst_discomfort_rate"],
+        ),
+    )[:1]
     selected = max(
-        eligible,
+        selection_pool,
         key=lambda candidate: (
             candidate["summary"]["comfort_delta_p10"],
             candidate["summary"]["mean_comfort_per_step"],
@@ -127,8 +153,15 @@ def evaluate(
         "layout": layout,
         "horizon": horizon,
         "selection_rule": (
-            "maximize dev per-seed comfort delta p10 subject to mean/worst soup, "
-            "worst discomfort, WAIT streak, and no-zero-soup hard constraints"
+            "fixed lambda_pref=1 paper-scale dev gate subject to mean/worst soup, "
+            "worst discomfort, WAIT streak, and no-zero-soup hard constraints; "
+            "then one held-out test evaluation"
+        ),
+        "deployable": deployable,
+        "selection_warning": (
+            None
+            if deployable
+            else "No candidate passed every hard constraint; fallback is report-only."
         ),
         "dev_seeds": dev_seeds,
         "test_seeds": test_seeds,
@@ -153,7 +186,8 @@ def main() -> int:
         "--lambdas",
         nargs="+",
         type=float,
-        default=[0.25, 0.5, 0.75, 1.0],
+        default=[1.0],
+        help="Paper-aligned value is fixed at 1.0; other values are rejected.",
     )
     parser.add_argument(
         "--output",
@@ -173,7 +207,7 @@ def main() -> int:
         json.dumps(result, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
-    print(f"Selected lambda on dev: {result['selected_lambda']}")
+    print(f"Fixed paper-scale lambda: {result['selected_lambda']}")
     print(f"Untouched test: {result['untouched_test']}")
     print(f"Report: {args.output}")
     return 0

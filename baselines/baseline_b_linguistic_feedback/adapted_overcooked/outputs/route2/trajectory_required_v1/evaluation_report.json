@@ -1,0 +1,402 @@
+{
+  "aggregate": {
+    "full": {
+      "active_sign_accuracy": {
+        "mean": 1.0,
+        "std": 0.0,
+        "values": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "examples_per_seed": 60,
+      "full_vector_mse": {
+        "mean": 0.015521006054953192,
+        "std": 0.0036511232209891988,
+        "values": [
+          0.016577208804245486,
+          0.019370047352937257,
+          0.010615762007676832
+        ]
+      },
+      "mean_cosine_similarity": {
+        "mean": 0.9589369980239025,
+        "std": 0.010498509629947025,
+        "values": [
+          0.9642178159318032,
+          0.9442794022800736,
+          0.9683137758598307
+        ]
+      },
+      "nearest_target_vector_accuracy": {
+        "mean": 1.0,
+        "std": 0.0,
+        "values": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "seeds": [
+        17,
+        31,
+        47
+      ],
+      "varying_dimension_mse": {
+        "mean": 0.05484088603868162,
+        "std": 0.01290063325370984,
+        "values": [
+          0.0585728044410382,
+          0.06844082792016581,
+          0.03750902575484086
+        ]
+      }
+    },
+    "text_only": {
+      "active_sign_accuracy": {
+        "mean": 1.0,
+        "std": 0.0,
+        "values": [
+          1.0,
+          1.0,
+          1.0
+        ]
+      },
+      "examples_per_seed": 60,
+      "full_vector_mse": {
+        "mean": 0.1450530755498052,
+        "std": 0.0002765998218014989,
+        "values": [
+          0.14544368276430455,
+          0.14487595696707384,
+          0.14483958691803725
+        ]
+      },
+      "mean_cosine_similarity": {
+        "mean": 0.42447374886537315,
+        "std": 0.00018638947298535265,
+        "values": [
+          0.4246576437851451,
+          0.42454535123679626,
+          0.42421825157417825
+        ]
+      },
+      "nearest_target_vector_accuracy": {
+        "mean": 0.10000000000000002,
+        "std": 1.3877787807814457e-17,
+        "values": [
+          0.1,
+          0.1,
+          0.1
+        ]
+      },
+      "seeds": [
+        17,
+        31,
+        47
+      ],
+      "varying_dimension_mse": {
+        "mean": 0.5125208669421152,
+        "std": 0.0009773193707741993,
+        "values": [
+          0.5139010124338761,
+          0.5118950479503267,
+          0.511766540442143
+        ]
+      }
+    },
+    "trajectory_only": {
+      "active_sign_accuracy": {
+        "mean": 0.5,
+        "std": 0.0,
+        "values": [
+          0.5,
+          0.5,
+          0.5
+        ]
+      },
+      "examples_per_seed": 60,
+      "full_vector_mse": {
+        "mean": 0.173589085637904,
+        "std": 6.609939528931425e-07,
+        "values": [
+          0.17358944822333777,
+          0.1735881581760635,
+          0.17358965051431074
+        ]
+      },
+      "mean_cosine_similarity": {
+        "mean": -1.0793834961633467e-18,
+        "std": 7.862567870838439e-19,
+        "values": [
+          -1.3877787807814458e-18,
+          0.0,
+          -1.8503717077085942e-18
+        ]
+      },
+      "nearest_target_vector_accuracy": {
+        "mean": 0.05000000000000001,
+        "std": 6.938893903907228e-18,
+        "values": [
+          0.05,
+          0.05,
+          0.05
+        ]
+      },
+      "seeds": [
+        17,
+        31,
+        47
+      ],
+      "varying_dimension_mse": {
+        "mean": 0.6133481025619968,
+        "std": 2.3354981716229904e-06,
+        "values": [
+          0.6133493836467667,
+          0.6133448255553273,
+          0.6133500984838964
+        ]
+      }
+    }
+  },
+  "benchmark_manifest": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\route2\\trajectory_required_v1\\benchmark_manifest.json",
+  "benchmark_manifest_sha256": "9ef695028c68e4d06459a3bfaee6d9aa49025ff9a28330952a13b520c89ef922",
+  "claim_scope": "synthetic trajectory-input identifiability diagnostic; not human-language accuracy",
+  "evaluator_version": "route2-trajectory-required-evaluator-v1",
+  "examples": 60,
+  "feature_count": 53,
+  "formal_seed137_test_touched": false,
+  "partition": "test",
+  "schema_version": 1,
+  "systems": {
+    "full": [
+      {
+        "best_dev_loss": 0.04541218280792236,
+        "best_epoch": 74,
+        "checkpoint": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\route2\\trajectory_required_v1\\models\\full_seed17\\model.pt",
+        "checkpoint_sha256": "b0fc72759409fc10ffbe94835e32951efb32e0d6a1e9067f631cf73714061b57",
+        "epochs_run": 110,
+        "metrics": {
+          "active_sign_accuracy": 1.0,
+          "active_target_count": 138,
+          "examples": 60,
+          "full_vector_mse": 0.016577208804245486,
+          "mean_cosine_similarity": 0.9642178159318032,
+          "nearest_target_vector_accuracy": 1.0,
+          "nearest_target_vector_correct": 60,
+          "nearest_target_vector_ties": 0,
+          "varying_dimension_mse": 0.0585728044410382,
+          "varying_dimensions": 15
+        },
+        "seed": 17
+      },
+      {
+        "best_dev_loss": 0.057729803025722504,
+        "best_epoch": 45,
+        "checkpoint": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\route2\\trajectory_required_v1\\models\\full_seed31\\model.pt",
+        "checkpoint_sha256": "1a3d13e09306bffc046bff2971a8a6d252b57d710572a4db50deb57a0fb29aaf",
+        "epochs_run": 81,
+        "metrics": {
+          "active_sign_accuracy": 1.0,
+          "active_target_count": 138,
+          "examples": 60,
+          "full_vector_mse": 0.019370047352937257,
+          "mean_cosine_similarity": 0.9442794022800736,
+          "nearest_target_vector_accuracy": 1.0,
+          "nearest_target_vector_correct": 60,
+          "nearest_target_vector_ties": 0,
+          "varying_dimension_mse": 0.06844082792016581,
+          "varying_dimensions": 15
+        },
+        "seed": 31
+      },
+      {
+        "best_dev_loss": 0.04898207634687424,
+        "best_epoch": 68,
+        "checkpoint": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\route2\\trajectory_required_v1\\models\\full_seed47\\model.pt",
+        "checkpoint_sha256": "c43a9d41f85efeeae66bf1c75cb2d052271440f42553b83ef4ef8fda7b43361b",
+        "epochs_run": 104,
+        "metrics": {
+          "active_sign_accuracy": 1.0,
+          "active_target_count": 138,
+          "examples": 60,
+          "full_vector_mse": 0.010615762007676832,
+          "mean_cosine_similarity": 0.9683137758598307,
+          "nearest_target_vector_accuracy": 1.0,
+          "nearest_target_vector_correct": 60,
+          "nearest_target_vector_ties": 0,
+          "varying_dimension_mse": 0.03750902575484086,
+          "varying_dimensions": 15
+        },
+        "seed": 47
+      }
+    ],
+    "text_only": [
+      {
+        "best_dev_loss": 0.5120062828063965,
+        "best_epoch": 117,
+        "checkpoint": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\route2\\trajectory_required_v1\\models\\text_only_seed17\\model.pt",
+        "checkpoint_sha256": "ae7342f133fae2560987e26f3e4366186ca045bd7d4c8e042193bb2560a72d01",
+        "epochs_run": 153,
+        "metrics": {
+          "active_sign_accuracy": 1.0,
+          "active_target_count": 138,
+          "examples": 60,
+          "full_vector_mse": 0.14544368276430455,
+          "mean_cosine_similarity": 0.4246576437851451,
+          "nearest_target_vector_accuracy": 0.1,
+          "nearest_target_vector_correct": 6,
+          "nearest_target_vector_ties": 0,
+          "varying_dimension_mse": 0.5139010124338761,
+          "varying_dimensions": 15
+        },
+        "seed": 17
+      },
+      {
+        "best_dev_loss": 0.5125278234481812,
+        "best_epoch": 92,
+        "checkpoint": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\route2\\trajectory_required_v1\\models\\text_only_seed31\\model.pt",
+        "checkpoint_sha256": "f3488e75d4e91f47dceabe020e98a4b639c7fff5f5dd8edb9fc62559b1649504",
+        "epochs_run": 128,
+        "metrics": {
+          "active_sign_accuracy": 1.0,
+          "active_target_count": 138,
+          "examples": 60,
+          "full_vector_mse": 0.14487595696707384,
+          "mean_cosine_similarity": 0.42454535123679626,
+          "nearest_target_vector_accuracy": 0.1,
+          "nearest_target_vector_correct": 6,
+          "nearest_target_vector_ties": 0,
+          "varying_dimension_mse": 0.5118950479503267,
+          "varying_dimensions": 15
+        },
+        "seed": 31
+      },
+      {
+        "best_dev_loss": 0.5116446614265442,
+        "best_epoch": 69,
+        "checkpoint": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\route2\\trajectory_required_v1\\models\\text_only_seed47\\model.pt",
+        "checkpoint_sha256": "904f8845082d867420b38d64d2ee27073d6f413b4623306d616751118df9ec43",
+        "epochs_run": 105,
+        "metrics": {
+          "active_sign_accuracy": 1.0,
+          "active_target_count": 138,
+          "examples": 60,
+          "full_vector_mse": 0.14483958691803725,
+          "mean_cosine_similarity": 0.42421825157417825,
+          "nearest_target_vector_accuracy": 0.1,
+          "nearest_target_vector_correct": 6,
+          "nearest_target_vector_ties": 0,
+          "varying_dimension_mse": 0.511766540442143,
+          "varying_dimensions": 15
+        },
+        "seed": 47
+      }
+    ],
+    "trajectory_only": [
+      {
+        "best_dev_loss": 0.6133493185043335,
+        "best_epoch": 55,
+        "checkpoint": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\route2\\trajectory_required_v1\\models\\trajectory_only_seed17\\model.pt",
+        "checkpoint_sha256": "8a0c72cd38766593544c2f17e8911a577ba6366a005b59f940b6caa74559dcf3",
+        "epochs_run": 91,
+        "metrics": {
+          "active_sign_accuracy": 0.5,
+          "active_target_count": 138,
+          "examples": 60,
+          "full_vector_mse": 0.17358944822333777,
+          "mean_cosine_similarity": -1.3877787807814458e-18,
+          "nearest_target_vector_accuracy": 0.05,
+          "nearest_target_vector_correct": 3,
+          "nearest_target_vector_ties": 0,
+          "varying_dimension_mse": 0.6133493836467667,
+          "varying_dimensions": 15
+        },
+        "seed": 17
+      },
+      {
+        "best_dev_loss": 0.6133447885513306,
+        "best_epoch": 74,
+        "checkpoint": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\route2\\trajectory_required_v1\\models\\trajectory_only_seed31\\model.pt",
+        "checkpoint_sha256": "48eb63a4ac26bc9f642125bdd5b692a62798a3fd9ad22727b09f90ee5a2b4cec",
+        "epochs_run": 110,
+        "metrics": {
+          "active_sign_accuracy": 0.5,
+          "active_target_count": 138,
+          "examples": 60,
+          "full_vector_mse": 0.1735881581760635,
+          "mean_cosine_similarity": 0.0,
+          "nearest_target_vector_accuracy": 0.05,
+          "nearest_target_vector_correct": 3,
+          "nearest_target_vector_ties": 0,
+          "varying_dimension_mse": 0.6133448255553273,
+          "varying_dimensions": 15
+        },
+        "seed": 31
+      },
+      {
+        "best_dev_loss": 0.6133500933647156,
+        "best_epoch": 89,
+        "checkpoint": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\route2\\trajectory_required_v1\\models\\trajectory_only_seed47\\model.pt",
+        "checkpoint_sha256": "af3601f771fb49ac2e1cae6bd58a4dd5019190710dbc58fbe3f49c0bf949bad9",
+        "epochs_run": 125,
+        "metrics": {
+          "active_sign_accuracy": 0.5,
+          "active_target_count": 138,
+          "examples": 60,
+          "full_vector_mse": 0.17358965051431074,
+          "mean_cosine_similarity": -1.8503717077085942e-18,
+          "nearest_target_vector_accuracy": 0.05,
+          "nearest_target_vector_correct": 3,
+          "nearest_target_vector_ties": 0,
+          "varying_dimension_mse": 0.6133500984838964,
+          "varying_dimensions": 15
+        },
+        "seed": 47
+      }
+    ]
+  },
+  "test_sha256": "0b9984efde820f3eaf995b800c5074855ca36ec080f923f2a120fe647299b16a",
+  "train_dev_sha256": "28633417c73a120495e21d637434aae828ae662cb4339983cae39a1f1282ea47",
+  "training_config": {
+    "batch_size": 64,
+    "dimension_weighting": "varying_only",
+    "epochs": 240,
+    "learning_rate": 0.01,
+    "optimizer": "adam",
+    "patience": 35,
+    "seeds": [
+      17,
+      31,
+      47
+    ],
+    "weight_decay": 0.0001
+  },
+  "unique_target_vectors": 16,
+  "validity_gate": {
+    "checks": {
+      "config_gain_over_text_only": true,
+      "config_gain_over_trajectory_only": true,
+      "full_active_sign_accuracy": true,
+      "full_nearest_target_accuracy": true,
+      "full_relative_gain_over_text_only": true,
+      "full_relative_gain_over_trajectory_only": true
+    },
+    "claim_allowed": true,
+    "claim_scope": "synthetic two-input identifiability only",
+    "full_relative_mse_gain_over_text_only": 0.8929977497972283,
+    "full_relative_mse_gain_over_trajectory_only": 0.9105876649660976,
+    "nearest_target_accuracy_gain_over_text_only": 0.9,
+    "nearest_target_accuracy_gain_over_trajectory_only": 0.95,
+    "status": "passed",
+    "thresholds": {
+      "minimum_config_accuracy_gain_over_each_ablation": 0.25,
+      "minimum_full_active_sign_accuracy": 0.9,
+      "minimum_full_nearest_config_accuracy": 0.85,
+      "minimum_full_relative_gain_over_text_only": 0.3,
+      "minimum_full_relative_gain_over_trajectory_only": 0.3
+    }
+  },
+  "varying_feature_count": 15
+}
