@@ -1,0 +1,35 @@
+{
+  "class_order": [
+    "descriptive",
+    "evaluative",
+    "imperative"
+  ],
+  "expected_train_canonical_sha256": "5a7181dbd67d8aeb9dc1dfe941daf07c454140cc803f93a493ccb7bdf2609db5",
+  "feature_contract": {
+    "field": "text",
+    "input_type": "raw_string_only",
+    "metadata_features": []
+  },
+  "final_selection_splits": 5,
+  "group_key": "surface_bundle_id",
+  "inner_splits": 5,
+  "outer_splits": 5,
+  "promotion_eligible": false,
+  "seed": 752,
+  "selected_hyperparameters": {
+    "C": 4.0,
+    "char_ngram_range": [
+      3,
+      5
+    ],
+    "char_weight": 0.7,
+    "config_id": "C=4;min_df=2",
+    "min_df": 2,
+    "word_ngram_range": [
+      1,
+      2
+    ]
+  },
+  "temperature": 0.0823618560384671,
+  "version": "direct-fg-boundary-shadow-model-v1"
+}

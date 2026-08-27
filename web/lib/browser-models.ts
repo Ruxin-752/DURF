@@ -1,4 +1,5 @@
 export type FeedbackLabel = "evaluative" | "imperative" | "descriptive";
+export type FeedbackClassifierVariant = "production" | "boundary-shadow-v1";
 
 export interface FeedbackFormPrediction {
   label: FeedbackLabel;
@@ -7,9 +8,14 @@ export interface FeedbackFormPrediction {
   threshold: number;
   abstained: boolean;
   calibrated: boolean;
+  temperatureScaled: boolean;
+  independentlyCalibrated: boolean;
   calibrationVersion: string | null;
   modelHash: string;
-  scoreKind: "temperature_scaled_selection_dev_probability" | "raw_probability";
+  scoreKind:
+    | "temperature_scaled_selection_dev_probability"
+    | "temperature_scaled_train_oof_probability"
+    | "raw_probability";
 }
 
 interface TfidfTransformerArtifact {
@@ -22,22 +28,152 @@ interface TfidfTransformerArtifact {
   norm: "l2" | null;
   token_pattern: string | null;
   feature_offset: number;
+  weight?: number;
   vocabulary: Record<string, number>;
   idf: number[];
 }
 
 interface FeedbackArtifact {
   schema_version: "durf-feedback-form-browser-v1";
-  source: { model_sha256: string; report_sha256: string };
+  source: {
+    model_sha256: string;
+    report_sha256: string;
+    frozen_config_sha256?: string;
+    predictor_sha256?: string;
+    candidate_manifest_sha256?: string;
+  };
   classes: FeedbackLabel[];
+  model_type?: string;
+  model_version?: string | number;
   minimum_confidence: number;
-  calibration?: { method?: string; temperature?: number; version?: string };
+  calibration?: {
+    method?: string;
+    temperature?: number;
+    version?: string;
+    scope?: "train_oof" | string;
+    independently_validated?: boolean;
+  };
   transformers: TfidfTransformerArtifact[];
   classifier: {
     kind: string;
     coefficients: number[][];
     intercept: number[];
   };
+  claim_scope?: {
+    diagnostic_shadow_preview?: boolean;
+    calibration_independently_validated?: boolean;
+  };
+}
+
+const FEEDBACK_CLASS_ORDER: FeedbackLabel[] = [
+  "descriptive",
+  "evaluative",
+  "imperative",
+];
+const SHADOW_SOURCE = {
+  model_sha256: "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+  report_sha256: "4b23b8ca052e11c530929d640f1a6c15bbf24db7ae8e20c78b13b99e66ef9019",
+  frozen_config_sha256:
+    "cb0e4ccf00c96030167428ee057dbdcf134f3f075d6af77c2616445483191327",
+  predictor_sha256: "d76fe50fe2e7d079c2709d37c020c88227c5708d087595347f483d6b63c8c507",
+  candidate_manifest_sha256:
+    "60258ce84ed959aa75f91c6bb43cd02975c3377300b8b0426fd2aeb223db5bee",
+} as const;
+const SHADOW_TEMPERATURE = 0.0823618560384671;
+
+function assertFeedbackArtifactShape(artifact: FeedbackArtifact): void {
+  if (artifact.schema_version !== "durf-feedback-form-browser-v1") {
+    throw new Error("unsupported feedback-form browser artifact");
+  }
+  if (
+    artifact.classes.length !== FEEDBACK_CLASS_ORDER.length ||
+    artifact.classes.some((label, index) => label !== FEEDBACK_CLASS_ORDER[index])
+  ) {
+    throw new Error("feedback classifier class order changed");
+  }
+  if (
+    !Number.isFinite(artifact.minimum_confidence) ||
+    artifact.minimum_confidence < 0 ||
+    artifact.minimum_confidence > 1
+  ) {
+    throw new Error("feedback classifier threshold is invalid");
+  }
+  let expectedOffset = 0;
+  for (const transformer of artifact.transformers) {
+    const vocabularySize = Object.keys(transformer.vocabulary).length;
+    const vocabularyIndices = Object.values(transformer.vocabulary).sort(
+      (left, right) => left - right,
+    );
+    if (
+      transformer.feature_offset !== expectedOffset ||
+      transformer.idf.length !== vocabularySize ||
+      vocabularyIndices.some((value, index) => value !== index) ||
+      transformer.idf.some((value) => !Number.isFinite(value)) ||
+      !Number.isFinite(transformer.weight ?? 1) ||
+      (transformer.weight ?? 1) <= 0
+    ) {
+      throw new Error(`feedback transformer is invalid: ${transformer.name}`);
+    }
+    expectedOffset += vocabularySize;
+  }
+  if (
+    artifact.classifier.kind !== "multinomial_logistic_regression" ||
+    artifact.classifier.intercept.length !== FEEDBACK_CLASS_ORDER.length ||
+    artifact.classifier.intercept.some((value) => !Number.isFinite(value)) ||
+    artifact.classifier.coefficients.length !== FEEDBACK_CLASS_ORDER.length ||
+    artifact.classifier.coefficients.some(
+      (row) =>
+        row.length !== expectedOffset || row.some((value) => !Number.isFinite(value)),
+    )
+  ) {
+    throw new Error("feedback classifier parameters are invalid");
+  }
+  if (
+    artifact.calibration?.method === "temperature_scaling" &&
+    (!Number.isFinite(Number(artifact.calibration.temperature)) ||
+      !(Number(artifact.calibration.temperature) > 0))
+  ) {
+    throw new Error("feedback classifier temperature is invalid");
+  }
+}
+
+function assertShadowArtifactIdentity(artifact: FeedbackArtifact): void {
+  for (const [field, expected] of Object.entries(SHADOW_SOURCE)) {
+    if (artifact.source[field as keyof typeof artifact.source] !== expected) {
+      throw new Error(`shadow classifier source identity changed: ${field}`);
+    }
+  }
+  const [word, char] = artifact.transformers;
+  if (
+    artifact.model_version !== "direct-fg-boundary-shadow-model-v1" ||
+    artifact.model_type !== "direct_fg_tfidf_logistic_regression_shadow" ||
+    artifact.minimum_confidence !== 0.55 ||
+    artifact.calibration?.method !== "temperature_scaling" ||
+    artifact.calibration?.temperature !== SHADOW_TEMPERATURE ||
+    artifact.calibration?.scope !== "train_oof" ||
+    artifact.calibration?.independently_validated !== false ||
+    artifact.claim_scope?.diagnostic_shadow_preview !== true ||
+    artifact.claim_scope?.calibration_independently_validated !== false ||
+    artifact.transformers.length !== 2 ||
+    word?.name !== "word" ||
+    word?.analyzer !== "word" ||
+    word?.ngram_range[0] !== 1 ||
+    word?.ngram_range[1] !== 2 ||
+    word?.lowercase !== true ||
+    word?.sublinear_tf !== true ||
+    word?.norm !== "l2" ||
+    (word?.weight ?? 1) !== 1 ||
+    char?.name !== "char" ||
+    char?.analyzer !== "char_wb" ||
+    char?.ngram_range[0] !== 3 ||
+    char?.ngram_range[1] !== 5 ||
+    char?.lowercase !== true ||
+    char?.sublinear_tf !== true ||
+    char?.norm !== "l2" ||
+    char?.weight !== 0.7
+  ) {
+    throw new Error("shadow classifier release contract changed");
+  }
 }
 
 interface EncodedFloat32 {
@@ -136,6 +272,10 @@ export interface Route1PaperResult {
 
 export interface BrowserModels {
   features: string[];
+  classifierMode: "production" | "experimental-shadow-preview";
+  classifierVariant: FeedbackClassifierVariant;
+  classifierManifestPath: string | null;
+  classifierArtifactPath: string | null;
   classify(text: string): FeedbackFormPrediction;
   route2(text: string, featureCounts?: number[] | Record<string, number>): Route2Prediction;
 }
@@ -243,9 +383,15 @@ function tfidfEntries(
     squaredNorm += value * value;
     return [index + transformer.feature_offset, value] as [number, number];
   });
-  if (transformer.norm !== "l2" || squaredNorm === 0) return weighted;
+  const transformerWeight = transformer.weight ?? 1;
+  if (transformer.norm !== "l2" || squaredNorm === 0) {
+    return weighted.map(([index, value]) => [index, value * transformerWeight]);
+  }
   const norm = Math.sqrt(squaredNorm);
-  return weighted.map(([index, value]) => [index, value / norm]);
+  return weighted.map(([index, value]) => [
+    index,
+    (value / norm) * transformerWeight,
+  ]);
 }
 
 function classifyWithArtifact(
@@ -264,15 +410,18 @@ function classifyWithArtifact(
     }
     return assertFinite(value, "feedback-form logit");
   });
-  let probabilities = softmax(logits);
   const temperature = Number(artifact.calibration?.temperature);
-  const calibrated =
+  const temperatureScaled =
     artifact.calibration?.method === "temperature_scaling" && temperature > 0;
-  if (calibrated) {
-    const scaledLogProbabilities = probabilities.map(
-      (value) => Math.log(Math.max(value, 1e-12)) / temperature,
-    );
-    probabilities = softmax(scaledLogProbabilities);
+  let probabilities = softmax(logits);
+  if (temperatureScaled) {
+    probabilities = artifact.claim_scope?.diagnostic_shadow_preview
+      ? softmax(logits.map((value) => value / temperature))
+      : softmax(
+          probabilities.map(
+            (value) => Math.log(Math.max(value, 1e-12)) / temperature,
+          ),
+        );
   }
   let bestIndex = 0;
   for (let index = 1; index < probabilities.length; index += 1) {
@@ -289,11 +438,17 @@ function classifyWithArtifact(
     probabilities: probabilityMap,
     threshold: artifact.minimum_confidence,
     abstained: confidence < artifact.minimum_confidence,
-    calibrated,
+    calibrated:
+      temperatureScaled && !artifact.claim_scope?.diagnostic_shadow_preview,
+    temperatureScaled,
+    independentlyCalibrated:
+      temperatureScaled && artifact.calibration?.independently_validated === true,
     calibrationVersion: artifact.calibration?.version ?? null,
     modelHash: artifact.source.model_sha256,
-    scoreKind: calibrated
-      ? "temperature_scaled_selection_dev_probability"
+    scoreKind: temperatureScaled
+      ? artifact.calibration?.scope === "train_oof"
+        ? "temperature_scaled_train_oof_probability"
+        : "temperature_scaled_selection_dev_probability"
       : "raw_probability",
   };
 }
@@ -465,21 +620,48 @@ export function createBrowserModels(
   feedbackArtifact: FeedbackArtifact,
   route2Artifact: Route2Artifact,
 ): BrowserModels {
-  if (feedbackArtifact.schema_version !== "durf-feedback-form-browser-v1") {
-    throw new Error("unsupported feedback-form browser artifact");
-  }
+  assertFeedbackArtifactShape(feedbackArtifact);
   if (route2Artifact.schema_version !== "durf-route2-browser-v1") {
     throw new Error("unsupported Route2 browser artifact");
   }
   const route2 = createRoute2Predictor(route2Artifact);
   return {
     features: [...route2Artifact.features],
+    classifierMode: feedbackArtifact.claim_scope?.diagnostic_shadow_preview
+      ? "experimental-shadow-preview"
+      : "production",
+    classifierVariant: feedbackArtifact.claim_scope?.diagnostic_shadow_preview
+      ? "boundary-shadow-v1"
+      : "production",
+    classifierManifestPath: null,
+    classifierArtifactPath: null,
     classify: (text) => classifyWithArtifact(feedbackArtifact, text),
     route2,
   };
 }
 
-let modelPromise: Promise<BrowserModels> | null = null;
+const modelPromises = new Map<string, Promise<BrowserModels>>();
+
+const CLASSIFIER_RELEASES: Record<
+  FeedbackClassifierVariant,
+  { manifestPath: string; feedbackPath: string; feedbackSha256: string }
+> = {
+  production: {
+    manifestPath: "/models/manifest.json",
+    feedbackPath: "/models/feedback-form-v3.json",
+    feedbackSha256: "db5da937ef483a25e92940e8195c7352b6c9f09d0ea3c2e358470cbb6721cc9d",
+  },
+  "boundary-shadow-v1": {
+    manifestPath: "/models/manifest-boundary-shadow-v1.json",
+    feedbackPath:
+      "/models/feedback-form-boundary-shadow-v1-580ab91c21d988d4ea7e146b70e810b68d0e454372b5cf3cb0ea32abb7f81dc3.json",
+    feedbackSha256: "580ab91c21d988d4ea7e146b70e810b68d0e454372b5cf3cb0ea32abb7f81dc3",
+  },
+};
+const ROUTE2_RELEASE = {
+  path: "/models/route2-v5.json",
+  sha256: "fa9ddb2aff1a451713e62417fcd3bca56a9e06987fbc6d7dbec2cf1651b80177",
+} as const;
 
 const MODEL_PATH_PATTERN = /^\/models\/[A-Za-z0-9._-]+\.json$/u;
 const SHA256_PATTERN = /^[0-9a-f]{64}$/u;
@@ -519,8 +701,10 @@ async function fetchJsonWithHash<T>(
 export async function loadBrowserModelsFromManifest(
   baseUrl = "",
   fetcher: FetchLike = (input, init) => fetch(input, init),
+  classifierVariant: FeedbackClassifierVariant = "production",
 ): Promise<BrowserModels> {
-  const response = await fetcher(`${baseUrl.replace(/\/$/u, "")}/models/manifest.json`, {
+  const release = CLASSIFIER_RELEASES[classifierVariant];
+  const response = await fetcher(`${baseUrl.replace(/\/$/u, "")}${release.manifestPath}`, {
     cache: "no-store",
   });
   if (!response.ok) throw new Error("failed to load browser model manifest");
@@ -531,6 +715,14 @@ export async function loadBrowserModelsFromManifest(
     !manifest.models?.route2
   ) {
     throw new Error("unsupported browser model manifest");
+  }
+  if (
+    manifest.models.feedback_form.path !== release.feedbackPath ||
+    manifest.models.feedback_form.sha256 !== release.feedbackSha256 ||
+    manifest.models.route2.path !== ROUTE2_RELEASE.path ||
+    manifest.models.route2.sha256 !== ROUTE2_RELEASE.sha256
+  ) {
+    throw new Error("browser model manifest release identity changed");
   }
   const [feedback, route2] = await Promise.all([
     fetchJsonWithHash<FeedbackArtifact>(
@@ -546,12 +738,50 @@ export async function loadBrowserModelsFromManifest(
       fetcher,
     ),
   ]);
-  return createBrowserModels(feedback, route2);
+  if (classifierVariant === "boundary-shadow-v1") {
+    assertShadowArtifactIdentity(feedback);
+  }
+  const models = createBrowserModels(feedback, route2);
+  if (
+    (classifierVariant === "production" && models.classifierMode !== "production") ||
+    (classifierVariant !== "production" &&
+      models.classifierMode !== "experimental-shadow-preview")
+  ) {
+    throw new Error("feedback classifier release channel mismatch");
+  }
+  return {
+    ...models,
+    classifierVariant,
+    classifierManifestPath: release.manifestPath,
+    classifierArtifactPath: manifest.models.feedback_form.path,
+  };
 }
 
-export function loadBrowserModels(baseUrl = ""): Promise<BrowserModels> {
+export function classifierVariantFromSearch(search: string): FeedbackClassifierVariant {
+  const requested = new URLSearchParams(search).getAll("classifier");
+  if (requested.length === 0) return "production";
+  if (requested.length !== 1) {
+    throw new Error("classifier query parameter must appear exactly once");
+  }
+  if (requested[0] !== "boundary-shadow-v1") {
+    throw new Error(`unsupported classifier query parameter: ${requested[0]}`);
+  }
+  return "boundary-shadow-v1";
+}
+
+export function loadBrowserModels(
+  baseUrl = "",
+  classifierVariant: FeedbackClassifierVariant = "production",
+): Promise<BrowserModels> {
+  const key = `${baseUrl}\n${classifierVariant}`;
+  let modelPromise = modelPromises.get(key);
   if (!modelPromise) {
-    modelPromise = loadBrowserModelsFromManifest(baseUrl);
+    modelPromise = loadBrowserModelsFromManifest(
+      baseUrl,
+      undefined,
+      classifierVariant,
+    );
+    modelPromises.set(key, modelPromise);
   }
   return modelPromise;
 }

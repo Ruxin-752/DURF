@@ -1,0 +1,70 @@
+{
+  "artifacts": {
+    "frozen_config": {
+      "canonical_sha256": "5a1858fbf40d0e94db40fd0d35a661aeb3e83f9be940919273b5e95746cdf4a7",
+      "path": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\feedback_form_classifier_candidates\\direct_fg_boundary_shadow_v1_model\\frozen_config.json",
+      "sha256": "cb0e4ccf00c96030167428ee057dbdcf134f3f075d6af77c2616445483191327"
+    },
+    "generator": {
+      "path": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\scripts\\generate_direct_fg_boundary_shadow_v1.py",
+      "sha256": "e247cf010e6f330c56622215fe4d7986271adaa8feadd519fbbb6f5cd22c1c87"
+    },
+    "locked_train_copy": {
+      "canonical_sha256": "5a7181dbd67d8aeb9dc1dfe941daf07c454140cc803f93a493ccb7bdf2609db5",
+      "path": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\feedback_form_classifier_candidates\\direct_fg_boundary_shadow_v1_model\\train.locked.json",
+      "sha256": "ab1179a593a6661b925dfa2db0d2272a7fe69c54dda67cd6859cfd6611a88edc"
+    },
+    "model": {
+      "path": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\feedback_form_classifier_candidates\\direct_fg_boundary_shadow_v1_model\\model.joblib",
+      "sha256": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55"
+    },
+    "predictor": {
+      "path": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\scripts\\predict_direct_fg_boundary_shadow_v1.py",
+      "sha256": "d76fe50fe2e7d079c2709d37c020c88227c5708d087595347f483d6b63c8c507"
+    },
+    "trainer": {
+      "path": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\scripts\\train_direct_fg_boundary_shadow_v1.py",
+      "sha256": "eed8bbbe91828a1e3209317dd74381870284253f48017ae24a22e56537db6bd5"
+    },
+    "training_report": {
+      "path": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\feedback_form_classifier_candidates\\direct_fg_boundary_shadow_v1_model\\training_report.json",
+      "sha256": "4b23b8ca052e11c530929d640f1a6c15bbf24db7ae8e20c78b13b99e66ef9019"
+    }
+  },
+  "dependencies": {
+    "joblib": "1.5.3",
+    "numpy": "1.26.4",
+    "python": "3.10.20",
+    "scikit_learn": "1.7.2"
+  },
+  "known_or_mixed_opened_by_trainer": false,
+  "model_input": "raw text string only",
+  "private_diagnostic_opened": false,
+  "promotion_eligible": false,
+  "seed": 752,
+  "selected_hyperparameters": {
+    "C": 4.0,
+    "char_ngram_range": [
+      3,
+      5
+    ],
+    "char_weight": 0.7,
+    "config_id": "C=4;min_df=2",
+    "min_df": 2,
+    "word_ngram_range": [
+      1,
+      2
+    ]
+  },
+  "status": "shadow_diagnostic_only",
+  "temperature": 0.0823618560384671,
+  "train_input": {
+    "canonical_sha256": "5a7181dbd67d8aeb9dc1dfe941daf07c454140cc803f93a493ccb7bdf2609db5",
+    "data_files_opened": [
+      "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\feedback_form_classifier_candidates\\direct_fg_boundary_shadow_v1\\train.json"
+    ],
+    "directory_glob_used": false,
+    "path": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\feedback_form_classifier_candidates\\direct_fg_boundary_shadow_v1\\train.json"
+  },
+  "version": "direct-fg-boundary-shadow-model-v1"
+}

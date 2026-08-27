@@ -1,0 +1,242 @@
+[
+  {
+    "expected_behavior": "reject_mixed_speech_act",
+    "probe_id": "mixed-reject-00",
+    "role": "synthetic_rule_rejection_diagnostic",
+    "speech_acts": [
+      "evaluative",
+      "imperative"
+    ],
+    "text": "Good move: you picked up a tomato from the tomato dispenser; pick up a tomato from the tomato dispenser."
+  },
+  {
+    "expected_behavior": "reject_mixed_speech_act",
+    "probe_id": "mixed-reject-01",
+    "role": "synthetic_rule_rejection_diagnostic",
+    "speech_acts": [
+      "evaluative",
+      "descriptive"
+    ],
+    "text": "Your completed action was effective because you picked up a tomato from the tomato dispenser; as things stand, the AI chef holds a tomato from the tomato dispenser."
+  },
+  {
+    "expected_behavior": "reject_mixed_speech_act",
+    "probe_id": "mixed-reject-02",
+    "role": "synthetic_rule_rejection_diagnostic",
+    "speech_acts": [
+      "imperative",
+      "descriptive"
+    ],
+    "text": "Go ahead and pick up a tomato from the tomato dispenser; the status now is that the AI chef holds a tomato from the tomato dispenser."
+  },
+  {
+    "expected_behavior": "reject_mixed_speech_act",
+    "probe_id": "mixed-reject-03",
+    "role": "synthetic_rule_rejection_diagnostic",
+    "speech_acts": [
+      "evaluative",
+      "imperative"
+    ],
+    "text": "Your recent action was ineffective because you picked up a tomato from the tomato dispenser; could you please pick up a tomato from the tomato dispenser?"
+  },
+  {
+    "expected_behavior": "reject_mixed_speech_act",
+    "probe_id": "mixed-reject-04",
+    "role": "synthetic_rule_rejection_diagnostic",
+    "speech_acts": [
+      "evaluative",
+      "descriptive"
+    ],
+    "text": "That recent step was well timed because you collected an onion at the onion dispenser; currently, the AI chef holds an onion from the onion dispenser."
+  },
+  {
+    "expected_behavior": "reject_mixed_speech_act",
+    "probe_id": "mixed-reject-05",
+    "role": "synthetic_rule_rejection_diagnostic",
+    "speech_acts": [
+      "imperative",
+      "descriptive"
+    ],
+    "text": "Would you collect an onion at the onion dispenser now; at present, the AI chef holds an onion from the onion dispenser."
+  },
+  {
+    "expected_behavior": "reject_mixed_speech_act",
+    "probe_id": "mixed-reject-06",
+    "role": "synthetic_rule_rejection_diagnostic",
+    "speech_acts": [
+      "evaluative",
+      "imperative"
+    ],
+    "text": "That recent step was poorly timed because you collected an onion at the onion dispenser; make this your next move: collect an onion at the onion dispenser."
+  },
+  {
+    "expected_behavior": "reject_mixed_speech_act",
+    "probe_id": "mixed-reject-07",
+    "role": "synthetic_rule_rejection_diagnostic",
+    "speech_acts": [
+      "evaluative",
+      "descriptive"
+    ],
+    "text": "You handled that well when you collected an onion at the onion dispenser; the current state is that the AI chef holds an onion from the onion dispenser."
+  },
+  {
+    "expected_behavior": "reject_mixed_speech_act",
+    "probe_id": "mixed-reject-08",
+    "role": "synthetic_rule_rejection_diagnostic",
+    "speech_acts": [
+      "imperative",
+      "descriptive"
+    ],
+    "text": "Right now, take a dish from the dish dispenser; for this order, the AI chef is holding a dish from the dish dispenser."
+  },
+  {
+    "expected_behavior": "reject_mixed_speech_act",
+    "probe_id": "mixed-reject-09",
+    "role": "synthetic_rule_rejection_diagnostic",
+    "speech_acts": [
+      "evaluative",
+      "imperative"
+    ],
+    "text": "What you just did was unhelpful: you took a dish from the dish dispenser; be sure to take a dish from the dish dispenser."
+  },
+  {
+    "expected_behavior": "reject_mixed_speech_act",
+    "probe_id": "mixed-reject-10",
+    "role": "synthetic_rule_rejection_diagnostic",
+    "speech_acts": [
+      "evaluative",
+      "descriptive"
+    ],
+    "text": "That was the right move; you took a dish from the dish dispenser; the kitchen shows that the AI chef is holding a dish from the dish dispenser."
+  },
+  {
+    "expected_behavior": "reject_mixed_speech_act",
+    "probe_id": "mixed-reject-11",
+    "role": "synthetic_rule_rejection_diagnostic",
+    "speech_acts": [
+      "imperative",
+      "descriptive"
+    ],
+    "text": "The next thing to do is take a dish from the dish dispenser; in the kitchen, the AI chef is holding a dish from the dish dispenser."
+  },
+  {
+    "expected_behavior": "reject_mixed_speech_act",
+    "probe_id": "mixed-reject-12",
+    "role": "synthetic_rule_rejection_diagnostic",
+    "speech_acts": [
+      "evaluative",
+      "imperative"
+    ],
+    "text": "That last step was helpful because you retrieved a tomato from an accessible counter; please retrieve a tomato from an accessible counter."
+  },
+  {
+    "expected_behavior": "reject_mixed_speech_act",
+    "probe_id": "mixed-reject-13",
+    "role": "synthetic_rule_rejection_diagnostic",
+    "speech_acts": [
+      "evaluative",
+      "descriptive"
+    ],
+    "text": "The last move was useful: you retrieved a tomato from an accessible counter; the visible state is that the AI chef carries a tomato taken from an accessible counter."
+  },
+  {
+    "expected_behavior": "reject_mixed_speech_act",
+    "probe_id": "mixed-reject-14",
+    "role": "synthetic_rule_rejection_diagnostic",
+    "speech_acts": [
+      "imperative",
+      "descriptive"
+    ],
+    "text": "For this step, please retrieve a tomato from an accessible counter; the current layout shows that the AI chef carries a tomato taken from an accessible counter."
+  },
+  {
+    "expected_behavior": "reject_mixed_speech_act",
+    "probe_id": "mixed-reject-15",
+    "role": "synthetic_rule_rejection_diagnostic",
+    "speech_acts": [
+      "evaluative",
+      "imperative"
+    ],
+    "text": "The last move was harmful: you retrieved a tomato from an accessible counter; i would like you to retrieve a tomato from an accessible counter."
+  },
+  {
+    "expected_behavior": "reject_mixed_speech_act",
+    "probe_id": "mixed-reject-16",
+    "role": "synthetic_rule_rejection_diagnostic",
+    "speech_acts": [
+      "evaluative",
+      "descriptive"
+    ],
+    "text": "Good decision a moment ago: you got an onion from an accessible counter; the present fact is that an onion from an accessible counter is with the AI chef."
+  },
+  {
+    "expected_behavior": "reject_mixed_speech_act",
+    "probe_id": "mixed-reject-17",
+    "role": "synthetic_rule_rejection_diagnostic",
+    "speech_acts": [
+      "imperative",
+      "descriptive"
+    ],
+    "text": "Your next task is to get an onion from an accessible counter; the game state shows that an onion from an accessible counter is with the AI chef."
+  },
+  {
+    "expected_behavior": "reject_mixed_speech_act",
+    "probe_id": "mixed-reject-18",
+    "role": "synthetic_rule_rejection_diagnostic",
+    "speech_acts": [
+      "evaluative",
+      "imperative"
+    ],
+    "text": "Poor decision a moment ago: you got an onion from an accessible counter; why not get an onion from an accessible counter now?"
+  },
+  {
+    "expected_behavior": "reject_mixed_speech_act",
+    "probe_id": "mixed-reject-19",
+    "role": "synthetic_rule_rejection_diagnostic",
+    "speech_acts": [
+      "evaluative",
+      "descriptive"
+    ],
+    "text": "Nice work just now: you got an onion from an accessible counter; at the moment, an onion from an accessible counter is with the AI chef."
+  },
+  {
+    "expected_behavior": "reject_mixed_speech_act",
+    "probe_id": "mixed-reject-20",
+    "role": "synthetic_rule_rejection_diagnostic",
+    "speech_acts": [
+      "imperative",
+      "descriptive"
+    ],
+    "text": "Could you please add the held tomato to the empty pot; the situation right now is that the pot contains one tomato."
+  },
+  {
+    "expected_behavior": "reject_mixed_speech_act",
+    "probe_id": "mixed-reject-21",
+    "role": "synthetic_rule_rejection_diagnostic",
+    "speech_acts": [
+      "evaluative",
+      "imperative"
+    ],
+    "text": "Good move: you added the held tomato to the empty pot; add the held tomato to the empty pot."
+  },
+  {
+    "expected_behavior": "reject_mixed_speech_act",
+    "probe_id": "mixed-reject-22",
+    "role": "synthetic_rule_rejection_diagnostic",
+    "speech_acts": [
+      "evaluative",
+      "descriptive"
+    ],
+    "text": "Your completed action was effective because you added the held tomato to the empty pot; as things stand, the pot contains one tomato."
+  },
+  {
+    "expected_behavior": "reject_mixed_speech_act",
+    "probe_id": "mixed-reject-23",
+    "role": "synthetic_rule_rejection_diagnostic",
+    "speech_acts": [
+      "imperative",
+      "descriptive"
+    ],
+    "text": "Go ahead and add the held tomato to the empty pot; the status now is that the pot contains one tomato."
+  }
+]

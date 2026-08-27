@@ -1,11 +1,13 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { createHash } from "node:crypto";
 
 import { describe, expect, it } from "vitest";
 
 import {
   applyRoute1PaperUpdate,
   applyRoute2Gaussian,
+  classifierVariantFromSearch,
   createBrowserModels,
   createFullGaussianPrior,
   createIndependentGaussianPrior,
@@ -14,21 +16,45 @@ import {
 } from "../lib/browser-models";
 
 const root = join(import.meta.dirname, "..");
-const feedbackArtifact = JSON.parse(
+const legacyFeedbackArtifact = JSON.parse(
   readFileSync(join(root, "public", "models", "feedback-form-v3.json"), "utf8"),
+);
+const shadowFeedbackArtifact = JSON.parse(
+  readFileSync(
+    join(
+      root,
+      "public",
+      "models",
+      "feedback-form-boundary-shadow-v1-580ab91c21d988d4ea7e146b70e810b68d0e454372b5cf3cb0ea32abb7f81dc3.json",
+    ),
+    "utf8",
+  ),
 );
 const route2Artifact = JSON.parse(
   readFileSync(join(root, "public", "models", "route2-v5.json"), "utf8"),
 );
-const models = createBrowserModels(feedbackArtifact, route2Artifact);
+const legacyModels = createBrowserModels(legacyFeedbackArtifact, route2Artifact);
+const models = createBrowserModels(shadowFeedbackArtifact, route2Artifact);
 
 describe("browser model release manifest", () => {
   const manifestText = readFileSync(
     join(root, "public", "models", "manifest.json"),
     "utf8",
   );
-  const feedbackBytes = readFileSync(
+  const shadowManifestText = readFileSync(
+    join(root, "public", "models", "manifest-boundary-shadow-v1.json"),
+    "utf8",
+  );
+  const legacyFeedbackBytes = readFileSync(
     join(root, "public", "models", "feedback-form-v3.json"),
+  );
+  const shadowFeedbackBytes = readFileSync(
+    join(
+      root,
+      "public",
+      "models",
+      "feedback-form-boundary-shadow-v1-580ab91c21d988d4ea7e146b70e810b68d0e454372b5cf3cb0ea32abb7f81dc3.json",
+    ),
   );
   const route2Bytes = readFileSync(join(root, "public", "models", "route2-v5.json"));
 
@@ -36,8 +62,17 @@ describe("browser model release manifest", () => {
     return async (input: RequestInfo | URL): Promise<Response> => {
       const path = String(input);
       if (path === "/models/manifest.json") return new Response(manifest);
+      if (path === "/models/manifest-boundary-shadow-v1.json") {
+        return new Response(shadowManifestText);
+      }
       if (path === "/models/feedback-form-v3.json") {
-        return new Response(new Uint8Array(feedbackBytes));
+        return new Response(new Uint8Array(legacyFeedbackBytes));
+      }
+      if (
+        path ===
+        "/models/feedback-form-boundary-shadow-v1-580ab91c21d988d4ea7e146b70e810b68d0e454372b5cf3cb0ea32abb7f81dc3.json"
+      ) {
+        return new Response(new Uint8Array(shadowFeedbackBytes));
       }
       if (path === "/models/route2-v5.json") {
         return new Response(new Uint8Array(route2Bytes));
@@ -46,24 +81,74 @@ describe("browser model release manifest", () => {
     };
   }
 
-  it("loads both versioned artifacts through the manifest after SHA-256 verification", async () => {
+  it("loads the production classifier by default after SHA-256 verification", async () => {
+    expect(createHash("sha256").update(manifestText).digest("hex")).toBe(
+      "ecb077b810cab4fb1949a25c948d65e5878a51164743cd3cc0c1986b70826f76",
+    );
     const released = await loadBrowserModelsFromManifest("", releaseFetcher());
     expect(released.features).toHaveLength(53);
     expect(released.classify("Please take a dish.").modelHash).toBe(
       "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
     );
+    expect(released.classifierMode).toBe("production");
+  });
+
+  it("loads the explicit shadow preview without changing the default channel", async () => {
+    const released = await loadBrowserModelsFromManifest(
+      "",
+      releaseFetcher(),
+      "boundary-shadow-v1",
+    );
+    expect(released.classify("you should not wait").modelHash).toBe(
+      "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+    );
+    expect(released.classifierMode).toBe("experimental-shadow-preview");
   });
 
   it("rejects an artifact whose bytes do not match the release manifest", async () => {
-    const manifest = JSON.parse(manifestText);
-    manifest.models.feedback_form.sha256 = "0".repeat(64);
+    const fetcher = releaseFetcher();
     await expect(
-      loadBrowserModelsFromManifest("", releaseFetcher(JSON.stringify(manifest))),
+      loadBrowserModelsFromManifest("", async (input) => {
+        if (String(input) === "/models/feedback-form-v3.json") {
+          return new Response("tampered");
+        }
+        return fetcher(input);
+      }),
     ).rejects.toThrow("feedback-form model hash mismatch");
+  });
+
+  it("does not fall back when the explicit shadow manifest is missing", async () => {
+    await expect(
+      loadBrowserModelsFromManifest(
+        "",
+        async (input) => {
+          if (String(input) === "/models/manifest-boundary-shadow-v1.json") {
+            return new Response("not found", { status: 404 });
+          }
+          return releaseFetcher()(input);
+        },
+        "boundary-shadow-v1",
+      ),
+    ).rejects.toThrow("failed to load browser model manifest");
+  });
+
+  it("selects the shadow only for the exact opt-in query parameter", () => {
+    expect(classifierVariantFromSearch("?classifier=boundary-shadow-v1")).toBe(
+      "boundary-shadow-v1",
+    );
+    expect(classifierVariantFromSearch("")).toBe("production");
+    expect(() => classifierVariantFromSearch("?classifier=unknown")).toThrow(
+      "unsupported classifier query parameter",
+    );
+    expect(() =>
+      classifierVariantFromSearch(
+        "?classifier=boundary-shadow-v1&classifier=boundary-shadow-v1",
+      ),
+    ).toThrow("must appear exactly once");
   });
 });
 
-describe("browser feedback-form model parity", () => {
+describe("rollback feedback-form v3 model parity", () => {
   const gold: Record<string, Record<string, number>> = {
     "That last route was bad.": {
       descriptive: 0.0007616129387273556,
@@ -89,7 +174,7 @@ describe("browser feedback-form model parity", () => {
 
   for (const [text, probabilities] of Object.entries(gold)) {
     it(`matches sklearn for ${text}`, () => {
-      const prediction = models.classify(text);
+      const prediction = legacyModels.classify(text);
       for (const [label, expected] of Object.entries(probabilities)) {
         expect(prediction.probabilities[label as keyof typeof prediction.probabilities]).toBeCloseTo(
           expected,
@@ -103,10 +188,85 @@ describe("browser feedback-form model parity", () => {
   }
 
   it("keeps the low-score top class but abstains", () => {
-    const prediction = models.classify("There is a spare dish near the stove.");
+    const prediction = legacyModels.classify("There is a spare dish near the stove.");
     expect(prediction.label).toBe("imperative");
     expect(prediction.abstained).toBe(true);
     expect(prediction.threshold).toBe(0.55);
+  });
+});
+
+describe("boundary shadow preview model parity", () => {
+  const gold: Record<string, Record<string, number>> = {
+    "you should not wait": {
+      descriptive: 9.929842301860547e-18,
+      evaluative: 4.331421478968129e-14,
+      imperative: 0.9999999999999567,
+    },
+    "you need to pick up the tomato closest to you.": {
+      descriptive: 2.6274986168347226e-19,
+      evaluative: 2.6181990532796743e-12,
+      imperative: 0.9999999999973819,
+    },
+    "There is a spare dish near the stove.": {
+      descriptive: 0.9999329295030418,
+      evaluative: 2.3639187171761516e-10,
+      imperative: 6.707026056616814e-5,
+    },
+    "should not block my way": {
+      descriptive: 1.0542149527233571e-20,
+      evaluative: 4.228884786855795e-21,
+      imperative: 1.0,
+    },
+  };
+
+  for (const [text, probabilities] of Object.entries(gold)) {
+    it(`matches shadow sklearn for ${text}`, () => {
+      const prediction = models.classify(text);
+      for (const [label, expected] of Object.entries(probabilities)) {
+        expect(
+          prediction.probabilities[label as keyof typeof prediction.probabilities],
+        ).toBeCloseTo(expected, 9);
+      }
+      expect(prediction.modelHash).toBe(
+        "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+      );
+      expect(prediction.scoreKind).toBe(
+        "temperature_scaled_train_oof_probability",
+      );
+      expect(prediction.temperatureScaled).toBe(true);
+      expect(prediction.independentlyCalibrated).toBe(false);
+      expect(prediction.calibrated).toBe(false);
+    });
+  }
+
+  it("classifies all three acceptance phrases as imperative", () => {
+    expect(models.classify("you should not wait").label).toBe("imperative");
+    expect(
+      models.classify("you need to pick up the tomato closest to you.").label,
+    ).toBe("imperative");
+    expect(models.classify("should not block my way").label).toBe("imperative");
+  });
+
+  it("replays the frozen temperature, class order, diagnostic threshold, and FeatureUnion weight", () => {
+    expect(shadowFeedbackArtifact.classes).toEqual([
+      "descriptive",
+      "evaluative",
+      "imperative",
+    ]);
+    expect(shadowFeedbackArtifact.calibration.temperature).toBe(
+      0.0823618560384671,
+    );
+    expect(shadowFeedbackArtifact.minimum_confidence).toBe(0.55);
+    expect(shadowFeedbackArtifact.transformers[0].weight ?? 1).toBe(1);
+    expect(shadowFeedbackArtifact.transformers[1].weight).toBe(0.7);
+  });
+
+  it("fails closed when the class order is changed", () => {
+    const mutated = structuredClone(shadowFeedbackArtifact);
+    mutated.classes = ["evaluative", "descriptive", "imperative"];
+    expect(() => createBrowserModels(mutated, route2Artifact)).toThrow(
+      "class order changed",
+    );
   });
 });
 

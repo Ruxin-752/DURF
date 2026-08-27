@@ -44,3 +44,12 @@ describe('pagehide queue lifecycle', () => {
     expect(handler).toContain('queue.flushWithBeacon();');
   });
 });
+
+describe('experimental classifier disclosure', () => {
+  it('marks the opt-in shadow as non-production and explains its live effect', () => {
+    expect(component).toContain('Experimental shadow classifier');
+    expect(component).toContain('Not production. Scores are not independently calibrated.');
+    expect(component).toContain('drives the displayed result and Route1 update');
+    expect(component).toContain("{uncertain ? 'Uncertain' : copy.name}");
+  });
+});

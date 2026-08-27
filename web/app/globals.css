@@ -556,6 +556,16 @@ button:not(:disabled):active {
 
 .notice-error { border-color: #a9463c; background: #f9d2bd; }
 
+.experimental-classifier-notice {
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.experimental-classifier-notice code {
+  overflow-wrap: anywhere;
+}
+
 .pixel-loader {
   width: 10px;
   height: 10px;

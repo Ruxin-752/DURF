@@ -1,0 +1,212 @@
+[
+  {
+    "expected_feedback_type": "evaluative",
+    "independent_accuracy_gate": false,
+    "probe_id": "known-regression-00",
+    "role": "training_informed_regression_only",
+    "text": "Good move: you served the soup."
+  },
+  {
+    "expected_feedback_type": "evaluative",
+    "independent_accuracy_gate": false,
+    "probe_id": "known-regression-01",
+    "role": "training_informed_regression_only",
+    "text": "That last step was helpful."
+  },
+  {
+    "expected_feedback_type": "evaluative",
+    "independent_accuracy_gate": false,
+    "probe_id": "known-regression-02",
+    "role": "training_informed_regression_only",
+    "text": "You handled the pickup well."
+  },
+  {
+    "expected_feedback_type": "evaluative",
+    "independent_accuracy_gate": false,
+    "probe_id": "known-regression-03",
+    "role": "training_informed_regression_only",
+    "text": "Bad move: you blocked the corridor."
+  },
+  {
+    "expected_feedback_type": "evaluative",
+    "independent_accuracy_gate": false,
+    "probe_id": "known-regression-04",
+    "role": "training_informed_regression_only",
+    "text": "That recent action was unhelpful."
+  },
+  {
+    "expected_feedback_type": "evaluative",
+    "independent_accuracy_gate": false,
+    "probe_id": "known-regression-05",
+    "role": "training_informed_regression_only",
+    "text": "The completed move was wrong."
+  },
+  {
+    "expected_feedback_type": "evaluative",
+    "independent_accuracy_gate": false,
+    "probe_id": "known-regression-06",
+    "role": "training_informed_regression_only",
+    "text": "Nice work just now."
+  },
+  {
+    "expected_feedback_type": "evaluative",
+    "independent_accuracy_gate": false,
+    "probe_id": "known-regression-07",
+    "role": "training_informed_regression_only",
+    "text": "Poor decision a moment ago."
+  },
+  {
+    "expected_feedback_type": "evaluative",
+    "independent_accuracy_gate": false,
+    "probe_id": "known-regression-08",
+    "role": "training_informed_regression_only",
+    "text": "What you just did was effective."
+  },
+  {
+    "expected_feedback_type": "evaluative",
+    "independent_accuracy_gate": false,
+    "probe_id": "known-regression-09",
+    "role": "training_informed_regression_only",
+    "text": "That was a mistake on the last step."
+  },
+  {
+    "expected_feedback_type": "imperative",
+    "independent_accuracy_gate": false,
+    "probe_id": "known-regression-10",
+    "role": "training_informed_regression_only",
+    "text": "Please get an onion."
+  },
+  {
+    "expected_feedback_type": "imperative",
+    "independent_accuracy_gate": false,
+    "probe_id": "known-regression-11",
+    "role": "training_informed_regression_only",
+    "text": "Could you take a dish?"
+  },
+  {
+    "expected_feedback_type": "imperative",
+    "independent_accuracy_gate": false,
+    "probe_id": "known-regression-12",
+    "role": "training_informed_regression_only",
+    "text": "Would you please serve the soup?"
+  },
+  {
+    "expected_feedback_type": "imperative",
+    "independent_accuracy_gate": false,
+    "probe_id": "known-regression-13",
+    "role": "training_informed_regression_only",
+    "text": "Why don't you clear the upper corridor?"
+  },
+  {
+    "expected_feedback_type": "imperative",
+    "independent_accuracy_gate": false,
+    "probe_id": "known-regression-14",
+    "role": "training_informed_regression_only",
+    "text": "Can you wait while the soup cooks?"
+  },
+  {
+    "expected_feedback_type": "imperative",
+    "independent_accuracy_gate": false,
+    "probe_id": "known-regression-15",
+    "role": "training_informed_regression_only",
+    "text": "Could you leave the access tile in front of the pot open?"
+  },
+  {
+    "expected_feedback_type": "imperative",
+    "independent_accuracy_gate": false,
+    "probe_id": "known-regression-16",
+    "role": "training_informed_regression_only",
+    "text": "Would you leave the access tile in front of the serving station open?"
+  },
+  {
+    "expected_feedback_type": "imperative",
+    "independent_accuracy_gate": false,
+    "probe_id": "known-regression-17",
+    "role": "training_informed_regression_only",
+    "text": "You should put the tomato in the pot."
+  },
+  {
+    "expected_feedback_type": "imperative",
+    "independent_accuracy_gate": false,
+    "probe_id": "known-regression-18",
+    "role": "training_informed_regression_only",
+    "text": "I need you to use the dish for the ready soup."
+  },
+  {
+    "expected_feedback_type": "imperative",
+    "independent_accuracy_gate": false,
+    "probe_id": "known-regression-19",
+    "role": "training_informed_regression_only",
+    "text": "Pick up the tomato now."
+  },
+  {
+    "expected_feedback_type": "descriptive",
+    "independent_accuracy_gate": false,
+    "probe_id": "known-regression-20",
+    "role": "training_informed_regression_only",
+    "text": "At present, one tomato is inside the pot."
+  },
+  {
+    "expected_feedback_type": "descriptive",
+    "independent_accuracy_gate": false,
+    "probe_id": "known-regression-21",
+    "role": "training_informed_regression_only",
+    "text": "The AI chef is holding a dish."
+  },
+  {
+    "expected_feedback_type": "descriptive",
+    "independent_accuracy_gate": false,
+    "probe_id": "known-regression-22",
+    "role": "training_informed_regression_only",
+    "text": "Right now, the soup is cooking."
+  },
+  {
+    "expected_feedback_type": "descriptive",
+    "independent_accuracy_gate": false,
+    "probe_id": "known-regression-23",
+    "role": "training_informed_regression_only",
+    "text": "The serving station has received soup."
+  },
+  {
+    "expected_feedback_type": "descriptive",
+    "independent_accuracy_gate": false,
+    "probe_id": "known-regression-24",
+    "role": "training_informed_regression_only",
+    "text": "An accessible counter holds an onion."
+  },
+  {
+    "expected_feedback_type": "descriptive",
+    "independent_accuracy_gate": false,
+    "probe_id": "known-regression-25",
+    "role": "training_informed_regression_only",
+    "text": "The upper corridor is open."
+  },
+  {
+    "expected_feedback_type": "descriptive",
+    "independent_accuracy_gate": false,
+    "probe_id": "known-regression-26",
+    "role": "training_informed_regression_only",
+    "text": "The pot is ready."
+  },
+  {
+    "expected_feedback_type": "descriptive",
+    "independent_accuracy_gate": false,
+    "probe_id": "known-regression-27",
+    "role": "training_informed_regression_only",
+    "text": "The AI chef carries soup in a dish."
+  },
+  {
+    "expected_feedback_type": "descriptive",
+    "independent_accuracy_gate": false,
+    "probe_id": "known-regression-28",
+    "role": "training_informed_regression_only",
+    "text": "The current state is that the lower corridor is clear."
+  },
+  {
+    "expected_feedback_type": "descriptive",
+    "independent_accuracy_gate": false,
+    "probe_id": "known-regression-29",
+    "role": "training_informed_regression_only",
+    "text": "Two tomatoes and one onion are cooking in the pot."
+  }
+]

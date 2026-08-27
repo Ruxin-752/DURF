@@ -10,6 +10,7 @@ import {
 import {
   applyRoute1PaperUpdate,
   applyRoute2Gaussian,
+  classifierVariantFromSearch,
   createFullGaussianPrior,
   createIndependentGaussianPrior,
   loadBrowserModels,
@@ -111,7 +112,10 @@ function mostChanged(delta: Record<string, number>): Array<[string, number]> {
     .slice(0, 5);
 }
 
-function lowConfidenceCopy(threshold: number): string {
+function lowConfidenceCopy(threshold: number, experimental: boolean): string {
+  if (experimental) {
+    return `Below the experimental ${(threshold * 100).toFixed(0)}% diagnostic threshold. Classification is uncertain; the score is not independently calibrated.`;
+  }
   return `Below the model's ${(threshold * 100).toFixed(0)}% decision threshold. Classification is uncertain.`;
 }
 
@@ -285,7 +289,17 @@ export function KitchenGameApp() {
 
   useEffect(() => {
     let cancelled = false;
-    loadBrowserModels()
+    let classifierVariant;
+    try {
+      classifierVariant = classifierVariantFromSearch(window.location.search);
+    } catch (error) {
+      setModelError(error instanceof Error ? error.message : 'Invalid classifier query');
+      setModelStatus('error');
+      return () => {
+        cancelled = true;
+      };
+    }
+    loadBrowserModels('', classifierVariant)
       .then((loaded) => {
         if (cancelled) return;
         setModels(loaded);
@@ -544,6 +558,7 @@ export function KitchenGameApp() {
         outcome = `Route 2 used ${prediction.ensembleSize} models to update all ${models.features.length} reward weights`;
         trace = 'u + trajectory → 10-model ensemble → 53D reward vector → independent-Gaussian update with precision 2 (fG is diagnostic only).';
       }
+      trace = `${trace} Classifier release: variant=${models.classifierVariant}; manifest=${models.classifierManifestPath}; artifact=${models.classifierArtifactPath}; classifier_sha256=${classifierHash}.`;
       setVisibleFeedback({ phrases: visiblePhrases });
       const feedbackId = crypto.randomUUID();
       queueRef.current?.enqueue(
@@ -554,6 +569,19 @@ export function KitchenGameApp() {
           classifierModelHash: classifierHash,
           updaterModelHash,
           calibrated: modelPredictions.every((prediction) => prediction.calibrated),
+          temperatureScaled: modelPredictions.every(
+            (prediction) => prediction.temperatureScaled,
+          ),
+          independentlyCalibrated: modelPredictions.every(
+            (prediction) => prediction.independentlyCalibrated,
+          ),
+          scoreKinds: modelPredictions.map((prediction) => prediction.scoreKind),
+          diagnosticThresholds: modelPredictions.map(
+            (prediction) => prediction.threshold,
+          ),
+          classifierVariant: models.classifierVariant,
+          classifierManifestPath: models.classifierManifestPath,
+          classifierArtifactPath: models.classifierArtifactPath,
           calibrationVersions: modelPredictions.map(
             (prediction) => prediction.calibrationVersion,
           ),
@@ -703,6 +731,13 @@ export function KitchenGameApp() {
             <h2>Say Something to the AI</h2>
           </div>
 
+          {models?.classifierMode === 'experimental-shadow-preview' && (
+            <div className="model-notice experimental-classifier-notice" role="status">
+              <strong>Experimental shadow classifier</strong>
+              <span>Not production. Scores are not independently calibrated. During this trial, this classifier drives the displayed result and Route1 update. Remove <code>?classifier=boundary-shadow-v1</code> from the URL to return to the standard model.</span>
+            </div>
+          )}
+
           <form className="feedback-form" onSubmit={submitFeedback}>
             <label htmlFor="feedback-input">Feedback (up to 500 characters)</label>
             <textarea
@@ -737,19 +772,27 @@ export function KitchenGameApp() {
               )}
               {visibleFeedback.phrases.map((phrase, index) => {
                 const copy = LABEL_COPY[phrase.research.label];
+                const uncertain = phrase.model.abstained;
                 return (
                   <article className={`phrase-card ${phrase.model.abstained ? 'low-confidence' : ''}`} key={`${phrase.research.phrase}-${index}`}>
                     <div className="phrase-number">Phrase {index + 1}</div>
                     <blockquote>{phrase.research.phrase}</blockquote>
                     <div className="prediction-line">
-                      <span style={{ color: copy.color }}>{copy.name}</span>
+                      <span style={{ color: uncertain ? 'var(--ink)' : copy.color }}>
+                        {uncertain ? 'Uncertain' : copy.name}
+                      </span>
                       <strong>{(phrase.model.confidence * 100).toFixed(1)}%</strong>
                     </div>
                     <ProbabilityRows phrase={phrase} />
                     <p className={phrase.model.abstained ? 'confidence-warning' : 'confidence-ok'}>
                       {phrase.model.abstained
-                        ? lowConfidenceCopy(phrase.model.threshold)
-                        : `Model confidence · not measured accuracy · threshold ${(phrase.model.threshold * 100).toFixed(0)}%`}
+                        ? lowConfidenceCopy(
+                            phrase.model.threshold,
+                            models?.classifierMode === 'experimental-shadow-preview',
+                          )
+                        : models?.classifierMode === 'experimental-shadow-preview'
+                          ? `Experimental model score · not independently calibrated · diagnostic threshold ${(phrase.model.threshold * 100).toFixed(0)}%`
+                          : `Model confidence · not measured accuracy · threshold ${(phrase.model.threshold * 100).toFixed(0)}%`}
                     </p>
                   </article>
                 );

@@ -1,0 +1,23 @@
+{
+  "accuracy_claim_role": "targeted_train_augmentation_only",
+  "contrast_triad_count": 80,
+  "external_input_files_opened": 0,
+  "known_regression_rows": 30,
+  "known_regression_single_direct_speech_act_passed": true,
+  "known_regression_train_normalized_exact_overlap": 0,
+  "label_counts": {
+    "descriptive": 80,
+    "evaluative": 80,
+    "imperative": 80
+  },
+  "mixed_rejection_detector_passed": true,
+  "mixed_rejection_rows": 24,
+  "negative_command_rows": 20,
+  "old_human_dev_test_frozen_rows_read": 0,
+  "reference_type_used_as_target": false,
+  "rows": 240,
+  "scenario_count": 20,
+  "status": "passed_train_data_contract",
+  "surface_bundle_count": 20,
+  "version": "direct-fg-boundary-shadow-v1"
+}
