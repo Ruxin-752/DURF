@@ -47,6 +47,7 @@ from durf.baseline.collect_rule_teacher_dataset import (
     rule_teacher_candidates,
 )
 from durf.baseline.coordination import (
+    choose_reroute_action,
     CONTINUE_CURRENT_SUBGOAL,
     YIELD,
     CoordinationController,
@@ -55,6 +56,7 @@ from durf.baseline.coordination import (
 )
 from durf.baseline.runtime import REPO_ROOT, make_direct_multi_env
 from durf.feedback_attribution.condition_features import extract_condition_features
+from durf.hu.subgoal_reranker import load_runtime_hu, runtime_hu_score
 
 STAY = 4
 INTERACT = 5
@@ -651,7 +653,8 @@ class AiRuntime:
         motion_planner,
         subgoal_model=None,
         hu_model=None,
-        hu_lambda: float = 0.0,
+        hu_task_tolerance: float = 0.0,
+        hu_coordination_lambda: float = 0.0,
         hu_apply: bool = False,
         stubborn_prob: float = 0.0,
         stalled_escape: bool = False,
@@ -662,7 +665,8 @@ class AiRuntime:
         self.motion_planner = motion_planner
         self.subgoal_model = subgoal_model
         self.hu_model = hu_model
-        self.hu_lambda = hu_lambda
+        self.hu_task_tolerance = hu_task_tolerance
+        self.hu_coordination_lambda = hu_coordination_lambda
         self.hu_apply = hu_apply
         self.coordination = CoordinationController(
             min_commit_steps=1,
@@ -709,7 +713,8 @@ class AiRuntime:
         if self.hu_model is not None:
             for candidate in candidates:
                 try:
-                    candidate.hu_score = self.hu_model.score(
+                    candidate.hu_score = runtime_hu_score(
+                        self.hu_model,
                         "task",
                         hu_user_id,
                         condition_features,
@@ -719,7 +724,7 @@ class AiRuntime:
                     candidate.hu_score = 0.0
         chosen = choose_task_candidate(
             candidates,
-            hu_lambda=self.hu_lambda if self.hu_apply else 0.0,
+            task_tolerance=self.hu_task_tolerance if self.hu_apply else 0.0,
         )
         subgoal_name = chosen.subgoal
         planner_action = chosen.action
@@ -759,38 +764,15 @@ class AiRuntime:
             "candidates": serialized_candidates,
             "selected": subgoal_name,
             "selected_action": int(planner_action),
-            "hu_applied": bool(self.hu_apply and self.hu_lambda != 0.0),
-            "hu_lambda": self.hu_lambda,
+            "hu_applied": bool(self.hu_apply and self.hu_task_tolerance > 0.0),
+            "hu_task_tolerance": self.hu_task_tolerance,
         }
 
-        # Low-level executor for subgoals the rule teacher cannot execute
-        # directly (same path as play_with_baseline).
-        if subgoal_name not in {
-            "GET_TOMATO",
-            "PUT_TOMATO_IN_POT",
-            "GET_ONION",
-            "PUT_ONION_IN_POT",
-            "GET_DISH",
-            "PICKUP_SOUP",
-            "SERVE_SOUP",
-            "PUT_DOWN_OBJECT",
-            "WAIT",
-        }:
-            if self.subgoal_model is not None:
-                subgoal_id = SUBGOAL_TO_INDEX[subgoal_name]
-                observations = self.env.base_env.lossless_state_encoding_mdp(
-                    self.env.base_env.state
-                )
-                observation = np.asarray(
-                    observations[0], dtype=np.float32
-                )[None, ...]
-                subgoal_one_hot = np.eye(len(SUBGOALS), dtype=np.float32)[
-                    [subgoal_id]
-                ]
-                logits = self.subgoal_model.predict(
-                    [observation, subgoal_one_hot], verbose=0
-                )
-                planner_action = int(np.argmax(logits[0]))
+        # Every subgoal the generator can produce is executed by the motion
+        # planner.  The learned executor used to sit behind this point as a
+        # fallback, but the whitelist it guarded had grown to cover the whole
+        # vocabulary, so the network was never called in any recorded session
+        # (same path as play_with_baseline).
 
         recovered_action, recovery_event = _recovery_action_override(
             int(planner_action),
@@ -846,17 +828,37 @@ class AiRuntime:
             condition_features["human_trying_to_pass"] = (
                 human_delta is not None and on_path
             )
-            yield_action = (
-                _choose_yield_action(
+            # WAIT / BACK_OFF / REROUTE are execution-level refinements of a
+            # single Hu-scored YIELD decision, not options Hu chooses between:
+            # REROUTE (keep making task progress on a path that avoids the
+            # human) beats BACK_OFF (retreat to the most separating open
+            # tile) beats WAIT (stay put) when the stronger options aren't
+            # available.  This applies to every conflict type (same rule as
+            # play_with_baseline's coordination_action_decision).
+            reroute_action = choose_reroute_action(
+                self.motion_planner,
+                self.env.base_env.state.players[0],
+                target_positions,
+                human_pos,
+                human_target,
+                recovered_action,
+            )
+            if reroute_action is not None:
+                yield_action = reroute_action
+                yield_mode = "reroute"
+            else:
+                back_off_action = _choose_yield_action(
                     self.motion_planner.mdp,
                     ai_pos,
                     human_pos,
                     human_target,
                 )
-                if conflict_type
-                in ("human_entering_ai_tile", "ai_blocking_human_route")
-                else None
-            )
+                if back_off_action is not None:
+                    yield_action = back_off_action
+                    yield_mode = "back_off"
+                else:
+                    yield_action = None
+                    yield_mode = "wait"
             coordination_candidates = build_coordination_candidates(
                 proposed_action=recovered_action,
                 yield_action=yield_action,
@@ -867,6 +869,7 @@ class AiRuntime:
                         "ai_adjacent_to_current_subgoal_target"
                     )
                 ),
+                yield_mode=yield_mode,
             )
             stubborn = (
                 self.stubborn_prob > 0.0
@@ -896,6 +899,17 @@ class AiRuntime:
                 current_coordination_decision = stubborn_decision
                 coordination_event = "sim_stubborn_override"
             else:
+                def coordination_hu_score(option: str) -> float:
+                    if self.hu_model is None:
+                        return 0.0
+                    return runtime_hu_score(
+                        self.hu_model,
+                        "coordination",
+                        hu_user_id,
+                        condition_features,
+                        option,
+                    )
+
                 result = self.coordination.resolve(
                     timestep=total_step + 1,
                     episode=episode,
@@ -905,7 +919,12 @@ class AiRuntime:
                     human_pos=human_pos,
                     candidates=coordination_candidates,
                     condition_features=condition_features,
-                    hu_lambda=self.hu_lambda,
+                    hu_score=(
+                        coordination_hu_score
+                        if self.hu_model is not None
+                        else None
+                    ),
+                    hu_lambda=self.hu_coordination_lambda,
                     apply_hu=self.hu_apply,
                 )
                 if result is not None:
@@ -1069,6 +1088,15 @@ def parse_args() -> argparse.Namespace:
         help="Keras executor used for subgoals outside the rule teacher set.",
     )
     parser.add_argument(
+        "--load-retired-executor",
+        action="store_true",
+        help=(
+            "Load the retired learned subgoal executor. Nothing calls it -- the "
+            "motion planner executes every subgoal -- so this exists only for "
+            "reproducing older runs."
+        ),
+    )
+    parser.add_argument(
         "--sim-human",
         choices=("cooperative", "selfish", "polite", "lenient"),
         default="cooperative",
@@ -1106,6 +1134,15 @@ def parse_args() -> argparse.Namespace:
         ),
     )
     parser.add_argument("--hu-user-id", default="PILOT01")
+    parser.add_argument(
+        "--hu-model",
+        type=Path,
+        default=None,
+        help="Frozen Hu_general or protocol-v2 PerUserAdapter JSON.",
+    )
+    parser.add_argument("--hu-task-tolerance", type=float, default=0.0)
+    parser.add_argument("--hu-coordination-lambda", type=float, default=0.0)
+    parser.add_argument("--hu-apply", action="store_true")
     parser.add_argument("--output-dir", default=str(REPO_ROOT / "outputs" / "human_ai_sessions"))
     return parser.parse_args()
 
@@ -1114,11 +1151,18 @@ def run_sim_session(args: argparse.Namespace) -> Path:
     if not 0.0 <= args.sim_ai_stubborn_prob <= 1.0:
         raise ValueError("--sim-ai-stubborn-prob must be in [0, 1]")
 
+    # The learned executor is retired: every subgoal is executed by the motion
+    # planner.  The file is only loaded when explicitly asked for, so a run no
+    # longer pays the TensorFlow import cost for a model nothing calls.
     subgoal_model = None
-    if args.subgoal_executor and args.subgoal_executor.exists():
+    if args.load_retired_executor and args.subgoal_executor and args.subgoal_executor.exists():
         import tensorflow as tf
 
         subgoal_model = tf.keras.models.load_model(args.subgoal_executor)
+
+    hu_model = load_runtime_hu(args.hu_model) if args.hu_model else None
+    if args.hu_task_tolerance < 0 or args.hu_coordination_lambda < 0:
+        raise ValueError("Hu lambdas cannot be negative")
 
     env = make_direct_multi_env(args.layout, args.seed, horizon=args.horizon)
     motion_planner = make_motion_planner(args.layout, args.seed, args.horizon)
@@ -1126,6 +1170,10 @@ def run_sim_session(args: argparse.Namespace) -> Path:
         env=env,
         motion_planner=motion_planner,
         subgoal_model=subgoal_model,
+        hu_model=hu_model,
+        hu_task_tolerance=args.hu_task_tolerance,
+        hu_coordination_lambda=args.hu_coordination_lambda,
+        hu_apply=args.hu_apply,
         stubborn_prob=args.sim_ai_stubborn_prob,
         stalled_escape=True,
         stall_escape_delay=args.sim_stall_escape_delay,
@@ -1157,6 +1205,10 @@ def run_sim_session(args: argparse.Namespace) -> Path:
                 "human_player_index": 1,
                 "ai_player_index": 0,
                 "hu_user_id": args.hu_user_id,
+                "hu_model": str(args.hu_model) if args.hu_model else None,
+                "hu_task_tolerance": args.hu_task_tolerance,
+                "hu_coordination_lambda": args.hu_coordination_lambda,
+                "hu_apply": args.hu_apply,
                 "data_source": "synthetic_sim_human",
                 "sim_human": {
                     "persona": args.sim_human,

@@ -4,10 +4,12 @@
 本文由五路并行考据合成，凡数字均为实际统计而非文档转述；文档与代码不一致处已标出。
 
 > **更新（2026-09-03）**：候选存废与队友位置解耦（闸门/价值判断分离）、task 层决策规则
-> 从"task_score + λ·hu_score"加法改成 ε-约束分层满足式、低层执行器正式下线、
-> `PerUserAdapter` 的 task 头默认关闭 `user_bias` 这四项已经落地并跨四个仿真人格验证。
-> 下面「五个最要紧的坑」里①②③的状态已相应更新；持物分支候选放开（坑①的另一半）仍未
-> 完成。工程细节见 `docs/hierarchical_hu_runtime.md`。
+> 从"task_score + λ·hu_score"加法改成 ε-约束分层满足式、低层执行器正式下线（并补齐了
+> `sim_session.py` 此前遗漏的同一次下线）、`PerUserAdapter` 的 task 头默认关闭
+> `user_bias`、YIELD 拆分为 WAIT/BACK_OFF/REROUTE 三种执行层规则（Hu 的协调词表本身
+> 不变）这五项已经落地并跨四个仿真人格验证。下面「五个最要紧的坑」里①②③的状态已相应
+> 更新；持物分支候选放开（坑①的另一半）仍未完成。工程细节见
+> `docs/hierarchical_hu_runtime.md` §4.1。
 
 ---
 
@@ -299,7 +301,7 @@ task 层 `task_score` 是 0–100，相邻候选差 10–30 分；而 Hu 分数�
 
 所以：**所有实验里 AI 的动作都来自运动规划器，那个神经网络是死代码**。但 README、设计文档、session metadata 都把底座描述成 `state → subgoal → learned low-level executor action`。**"learned"这一环在部署中是空的**，论文里必须说清楚。
 
-✅ **进度（2026-09-03）**：已经正式下线，不再是"文档说 learned、代码里其实没用"的静默不一致——`play_with_baseline.py` 现在无条件走运动规划器，keras 模型默认不加载（新增 `--load-retired-executor` 标志，仅用于回归对比时手动加载），底座描述改成 `state → subgoal → planner action`，和实际代码一致。Ours 和 Linguistic 两个方法都是这样，底座claim不再有"learned"这个空环节。
+✅ **进度（2026-09-03）**：已经正式下线，不再是"文档说 learned、代码里其实没用"的静默不一致——`play_with_baseline.py` 和 `sim_session.py` 现在都无条件走运动规划器，keras 模型默认不加载（两边都有 `--load-retired-executor` 标志，仅用于回归对比时手动加载），底座描述改成 `state → subgoal → planner action`，和实际代码一致。这次核查还发现 `sim_session.py` 此前遗漏了这次下线——仍然无条件加载模型、保留一段永远不会命中的白名单调用分支——已经补齐一致。Ours 和 Linguistic 两个方法都是这样，底座claim不再有"learned"这个空环节。
 
 ### ④ 评估的 probe 主指标已被自己证伪
 
@@ -359,7 +361,8 @@ task 层 `task_score` 是 0–100，相邻候选差 10–30 分；而 Hu 分数�
 | **checkpoint F0/F5/F10/F15** | 收到第 0/5/10/15 条反馈时的模型快照，用来画学习曲线 |
 | **λ (lambda)** | coordination 层仍在用的偏好分数权重，λ=0 就是完全不个体化；task 层已经不用 λ，改用 `hu_task_tolerance`（见下） |
 | **hu_task_tolerance** | task 层的容忍带宽度，单位是任务点数：愿意为学到的偏好放弃多少任务分，=0 就是完全不个体化 |
-| **YIELD / CONTINUE** | 协作域仅有的两个选项：让路 / 继续走自己的 |
+| **YIELD / CONTINUE** | 协作域仅有的两个选项：让路 / 继续走自己的。这是 Hu 能看到、能选的全部词表 |
+| **WAIT / BACK_OFF / REROUTE** | `YIELD` 选中之后"具体怎么让"的三种执行方式，由规则判断，不是 Hu 的选项：原地等 / 退到最远的空格 / 换一条绕开人的路。优先级 REROUTE > BACK_OFF > WAIT，记录在决策的 `reason` 字段里 |
 
 ---
 

@@ -11,6 +11,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Callable
 
+from durf.baseline.collect_rule_teacher_dataset import first_action_to_feature
+
 
 CONTINUE_CURRENT_SUBGOAL = "CONTINUE_CURRENT_SUBGOAL"
 YIELD = "YIELD"
@@ -111,6 +113,37 @@ def path_conflict_type(
     return None
 
 
+def choose_reroute_action(
+    motion_planner,
+    ai_player,
+    target_positions,
+    human_pos: tuple[int, int],
+    human_target: tuple[int, int],
+    proposed_action: int,
+) -> int | None:
+    """First step of an alternate route to the task target that avoids the
+    human's current tile and its destination, when one exists and genuinely
+    differs from the plan already in conflict.
+
+    Returns ``None`` when there is nothing to reroute to: no task target on
+    record, or the planner cannot find any step that avoids the human (a
+    single momentary tile block rarely severs every path, but a narrow
+    corridor can), or the avoiding route's first step happens to coincide
+    with the plan already in conflict (a purely dynamic, same-timestep
+    conflict that a static reroute cannot resolve).  Either way the caller
+    is expected to fall back to BACK_OFF and then WAIT.
+    """
+    if not target_positions:
+        return None
+    blocked = {tuple(human_pos), tuple(human_target)}
+    reroute_action = first_action_to_feature(
+        motion_planner, ai_player, list(target_positions), blocked_positions=blocked
+    )
+    if reroute_action is None or int(reroute_action) == int(proposed_action):
+        return None
+    return int(reroute_action)
+
+
 def build_coordination_candidates(
     *,
     proposed_action: int,
@@ -120,6 +153,7 @@ def build_coordination_candidates(
     ai_adjacent_to_current_subgoal_target: bool = False,
     yield_on_conflict_score: float = 1.0,
     continue_score: float = 0.0,
+    yield_mode: str | None = None,
 ) -> list[CoordinationCandidate]:
     """Build the minimal executable coordination choice set.
 
@@ -128,6 +162,13 @@ def build_coordination_candidates(
     (``ai_adjacent_to_current_subgoal_target``), persistence beats politeness:
     the human should route around, so the prior is reversed to prefer
     CONTINUE_CURRENT_SUBGOAL.  Hu may still reverse either ordering.
+
+    ``yield_mode`` records how the caller picked ``yield_action`` (e.g.
+    ``"reroute"``, ``"back_off"``, ``"wait"``) purely for audit purposes.  It
+    is folded into the YIELD candidate's ``reason`` string, never into the
+    coordination option vocabulary itself: Hu still only ever chooses between
+    CONTINUE_CURRENT_SUBGOAL and YIELD, and has no say in which yield_mode was
+    used to execute a YIELD once chosen.
     """
     effective_yield_action = stay_action if yield_action is None else yield_action
     if ai_adjacent_to_current_subgoal_target:
@@ -138,6 +179,9 @@ def build_coordination_candidates(
         continue_prior = continue_score
         yield_prior = yield_on_conflict_score
         continue_reason = f"continue_task_during_{conflict_type}"
+    yield_reason = f"yield_during_{conflict_type}"
+    if yield_mode:
+        yield_reason = f"{yield_reason}_via_{yield_mode}"
     return [
         CoordinationCandidate(
             option=CONTINUE_CURRENT_SUBGOAL,
@@ -149,7 +193,7 @@ def build_coordination_candidates(
             option=YIELD,
             action=effective_yield_action,
             base_score=yield_prior,
-            reason=f"yield_during_{conflict_type}",
+            reason=yield_reason,
         ),
     ]
 

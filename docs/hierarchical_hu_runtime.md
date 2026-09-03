@@ -67,7 +67,10 @@ CONTINUE_CURRENT_SUBGOAL
 YIELD
 ```
 
-`HOLD_POSITION` 与 `YIELD` 在动作上重合（都是停在原地），已从词表移除；`REROUTE` 属于 task 层的路径重规划决策，需要独立的 planner 工作流，不作为协调选项保留。
+`HOLD_POSITION` 与 `YIELD` 在动作上重合（都是停在原地），已从词表移除。`REROUTE`
+**不是**新的协调选项——Hu 的协调词表现在和以前一样，永远只有这两个。REROUTE 已经实现，
+但是作为 `YIELD` 选中之后、决定"具体怎么让"的执行层规则（见 §4.1），不是 Hu 要挑选的
+第三个选项。
 
 ## 3. 基础分数与 Hu 分数
 
@@ -126,6 +129,47 @@ min_commit_steps = 1
 max_option_steps = 3
 yield_cooldown_steps = 2
 ```
+
+### 4.1 `YIELD` 选中之后：WAIT / BACK_OFF / REROUTE
+
+`YIELD` 曾经等价于"原地停住"（`STAY`）。这混淆了两件事：**要不要让路**（Hu 该学的
+偏好）和**让路的具体动作**（该不该往后退一步、该不该干脆换条不经过人的路）。现在这两
+件事分开了：
+
+- Hu 仍然只在 `CONTINUE_CURRENT_SUBGOAL` / `YIELD` 之间选，词表没有变化，训练数据、
+  pairwise 样本、`condition_delta` 维度都不需要重新设计——这正是当初决定"先只拆
+  执行层，不拆 Hu 词表"的原因（数据量在 coordination 维度已经吃紧，见
+  `docs/hierarchical_hu_runtime.md` 历史讨论）。
+- `YIELD` 一旦被选中，一段**规则判断**（不经过 Hu、不训练）决定具体怎么让，按优先级：
+
+  ```text
+  REROUTE   -- 找一条绕开人当前位置和目的地的路，继续推进任务
+              （复用 collect_rule_teacher_dataset.first_action_to_feature，
+              把人的当前格和目的格当成临时障碍）
+  BACK_OFF  -- 找不到能绕开人的路时，退到离人和人的目的地都最远的相邻空格
+              （原来就有的逻辑，但以前只在 2/4 种冲突类型下触发，现在对全部
+              4 种冲突类型都生效）
+  WAIT      -- 两者都不可行时，原地停住（STAY）
+  ```
+
+  实现在 `durf/baseline/coordination.py::choose_reroute_action`，`play_with_baseline.py`
+  和 `sim_session.py` 共用同一份实现（不再各自维护一份重复代码）。
+
+- 这次拆分选中的**具体方式**（`"reroute"` / `"back_off"` / `"wait"`）会写进
+  `YIELD` 候选的 `reason` 字段（例如
+  `yield_during_ai_blocking_human_route_via_back_off`），供审计和后续分析用，
+  但**不会**出现在 `candidate_set` 或 Hu 的决策空间里——`build_coordination_candidates`
+  的 `yield_mode` 参数只影响 `reason` 文本。
+
+⚠️ **实测发现（2026-09-03）**：在默认的 `ring_tomato_onion_10x6_h0_full_task` 环形地图
+上跑了 4 种仿真人格 × 6 个随机种子共 180 次协调冲突，`REROUTE` 一次也没有被选中——全部
+落到 `BACK_OFF`。原因是几何上的：这张图确实是一个环（两条方向都能走到），但冲突发生时
+AI 和人已经贴在一起，绕环一整圈的代价远高于退让一两步；而"人挡住的那两格"通常不在 AI
+已经规划好的最短路径上（最短路径本来就没打算经过人），所以把这两格设成临时障碍对路径
+规划毫无影响。这不代表 `REROUTE` 是死代码——`durf/baseline/test_coordination_yield.py`
+在同一张地图上直接单测了 `choose_reroute_action`，构造了"最短路径确实经过人所在的那条
+窄连接通道"的场景，证明它能正确绕到另一条通道。只是在这张图默认的对局动态下，这个分支
+很少被触发，真人数据或更窄的地图布局可能会改变这个比例。
 
 ## 5. trajectory 中新增的决策证据
 
@@ -348,24 +392,30 @@ python -m durf.group_a.play_with_baseline `
   `durf/baseline/collect_rule_teacher_dataset.py::feature_candidate` 的
   `route_blocked_by_partner` 标记）；
 - 低层执行器正式下线：候选生成器能产出的全部 subgoal 都直接走运动规划器，训练好的
-  keras 执行器网络默认不再加载（`play_with_baseline.py --load-retired-executor` 才会
-  加载，仅用于回归对比）；
+  keras 执行器网络默认不再加载（`play_with_baseline.py` 和 `sim_session.py` 都新增了
+  `--load-retired-executor` 标志，默认关闭，仅用于回归对比时手动加载）——这两个入口
+  之前不一致：`sim_session.py` 曾经遗漏了这次下线，仍然无条件加载模型、保留一段永远
+  不会命中的白名单分支，现已补齐一致；
 - `PerUserAdapter` 的 task 头默认关闭 `user_bias`（`enable_task_bias=False`）：跨四个
   sim persona 验证，task 层的无条件个体偏移始终落在噪声范围内（±0.06），而
   coordination 层的个体偏移是有意义的信号（±0.05 到 ±1.74，随人格单调变化）。这是可逆
-  开关，不是删除，真人数据到手后需要重新检验。
+  开关，不是删除，真人数据到手后需要重新检验；
+- YIELD 的语义拆分：Hu 的协调词表不变（仍然只有 `CONTINUE_CURRENT_SUBGOAL` / `YIELD`
+  两个选项），但 `YIELD` 选中之后由规则判断具体怎么让——REROUTE（绕开人、继续推进任务）
+  优先于 BACK_OFF（退到最远的空格，现覆盖全部 4 种冲突类型而非原来的 2 种）优先于 WAIT
+  （原地不动）。选中的方式记录在 `reason` 字段供审计，不进入 Hu 的决策空间（见 §4.1）；
 
 仍待真实数据验证：
 
 - 两个 head 是否都有足够 pairwise 样本；
 - Hu 是否在同一 probe condition 下稳定改变候选排序；
 - Hu 改变偏好后是否保持任务完成率；
-- `PerUserAdapter.enable_task_bias=False` 这个假设在真人数据上是否依然成立。
+- `PerUserAdapter.enable_task_bias=False` 这个假设在真人数据上是否依然成立；
+- REROUTE 在真人对局里的实际触发率——仿真环形地图上的 180 次冲突里一次都没触发（见
+  §4.1），这是否是地图几何的特例，还是真人协调冲突普遍也是"贴身冲突、绕路不划算"。
 
 仍未开工：
 
 - 持物分支的候选生成放开（`mechanism_blueprint_v1.md` §3 的 P1，`WAIT_NEAR_POT` /
   `GET_USEFUL_INGREDIENT` 等候选目前不会在持物状态下出现）；
-- 是否需要正式实现 `REROUTE`（保持 task 目标的路径重规划）并为其建立独立的决策域、候选生成与训练数据；
-- YIELD 的语义拆分（让路 / 后退 / 切换路线三种含义目前都折叠成同一个 STAY 动作）；
 - Coordination 层是否也要从加法混合改成满足式。

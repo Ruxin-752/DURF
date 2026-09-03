@@ -6,8 +6,11 @@
 > **实施进度更新（2026-09-03）**：§2「运行时不变量」里"候选存废不受队友影响"的原则已经
 > 实现（`feature_candidate` 的 `route_blocked_by_partner` 标记，队友挡路只影响路线，不
 > 删候选）；§3.3 描述的 `λ` 加法已经废弃，改成 ε-约束分层满足式（见下方标注）；执行侧的
-> 低层执行器已下线。**但 §3.1-3.4 提出的"放开持物分支候选"本身仍未实施**——这仍是本蓝图
-> 最核心、也是唯一还没做的部分。
+> 低层执行器已下线（`play_with_baseline.py` 和 `sim_session.py` 两边一致）；§6 风险 4
+> 提到的"coordination_decision 未落盘"已经不成立，两个入口都会落盘，且新增的 YIELD
+> 拆分（WAIT/BACK_OFF/REROUTE，见 `docs/hierarchical_hu_runtime.md` §4.1）会把具体的
+> 让路方式写进候选的 `reason` 字段。**但 §3.1-3.4 提出的"放开持物分支候选"本身仍未
+> 实施**——这仍是本蓝图最核心、也是唯一还没做的部分。
 
 ---
 
@@ -260,7 +263,7 @@ return candidates                                       # 多项
    的区间——这个界限和非劣效性验收标准共用同一个"任务点数"单位，标定可以直接复用。
 2. **`PUT_DOWN_OBJECT` 滥用风险**。若 Hu 学到过强的「放下」偏好，可能出现反复捡放。现有 recovery 机制针对该情形，需在 P2 验证其是否仍然生效。
 3. **候选集扩大对归因侧无影响**。LLM 归因本来就在完整词表上产出标签，因此 P1 不改变归因链路，也不使已有的 Hu 训练数据失效。
-4. **coordination 层同样需要检查**。当前 `ai_mode=subgoal_executor` 下 `coordination_decision` 未落盘，YIELD/CONTINUE 的候选在运行时不可见。这是与 L1 同类的问题，须在 P1 一并处理。
+4. ~~coordination 层同样需要检查：当前 `ai_mode=subgoal_executor` 下 `coordination_decision` 未落盘，YIELD/CONTINUE 的候选在运行时不可见。~~ **已解决（2026-09-03）**：`play_with_baseline.py` 和 `sim_session.py` 都会把 `coordination_decision`（含 `candidate_set`、每个候选的 `reason`/`hu_score`/`final_score`）落盘到 trajectory 记录里，YIELD 选中后具体走的是 WAIT/BACK_OFF/REROUTE 哪一种也记在 `reason` 字段中，运行时可见、可审计。
 5. **文档与实现的偏差需要修正**。`hierarchical_hu_runtime.md` §2 称「Task 候选由任务 planner 根据可行性生成」并列出 11 个 subgoal，但实际持物时只生成 1 个。P1 完成后该节须重写。
 
 ---

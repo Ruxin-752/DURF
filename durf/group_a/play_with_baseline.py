@@ -23,6 +23,7 @@ from overcooked_ai_py.visualization.state_visualizer import StateVisualizer
 
 from durf.baseline.action_prior import StepPrefixPrior, available_priors
 from durf.baseline.coordination import (
+    choose_reroute_action,
     CONTINUE_CURRENT_SUBGOAL,
     YIELD,
     CoordinationController,
@@ -54,7 +55,8 @@ from durf.group_a.deepseek_chat import DeepSeekChatError, chat_once
 from durf.hu.subgoal_reranker import (
     COORDINATION_DECISION_LEVEL,
     TASK_DECISION_LEVEL,
-    HierarchicalHu,
+    load_runtime_hu,
+    runtime_hu_score,
 )
 
 
@@ -195,6 +197,15 @@ def parse_args() -> argparse.Namespace:
         ),
     )
     parser.add_argument(
+        "--load-retired-executor",
+        action="store_true",
+        help=(
+            "Load the retired learned subgoal executor. Nothing calls it -- the "
+            "motion planner executes every subgoal -- so this exists only for "
+            "reproducing older runs."
+        ),
+    )
+    parser.add_argument(
         "--subgoal-executor",
         type=Path,
         default=(
@@ -275,10 +286,16 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--hu-user-id", default="PILOT01")
     parser.add_argument(
-        "--hu-lambda",
+        "--hu-task-tolerance",
         type=float,
         default=0.0,
-        help="Weight for Hu preference scores when --hu-apply is enabled.",
+        help=(
+            "Task points the agent may give up for the learned preference. "
+            "Candidates within this many points of the task optimum form the "
+            "acceptable set; the user's preference orders that set. 0 = frozen "
+            "task backbone. This is the same quantity as the non-inferiority "
+            "margin used to accept the task-competence result."
+        ),
     )
     parser.add_argument(
         "--hu-coordination-lambda",
@@ -782,14 +799,19 @@ def main() -> int:
 
     agent_dir = resolve_agent_dir(args.agent) if args.ai_mode == "ppo" else None
     ai_agent = load_rllib_agent(args.agent, agent_index=0) if args.ai_mode == "ppo" else None
+    # The learned executor is retired: every subgoal is executed by the motion
+    # planner.  The file is only loaded when explicitly asked for, so a run no
+    # longer pays the TensorFlow import cost for a model nothing calls.
     subgoal_model = (
         tf.keras.models.load_model(args.subgoal_executor)
-        if args.ai_mode == "subgoal_executor"
+        if args.ai_mode == "subgoal_executor" and args.load_retired_executor
         else None
     )
-    hu_model = HierarchicalHu.load(args.hu_model) if args.hu_model else None
-    if args.hu_lambda < 0 or args.hu_coordination_lambda < 0:
-        raise ValueError("Hu lambdas cannot be negative")
+    hu_model = load_runtime_hu(args.hu_model) if args.hu_model else None
+    if args.hu_task_tolerance < 0:
+        raise ValueError("--hu-task-tolerance cannot be negative")
+    if args.hu_coordination_lambda < 0:
+        raise ValueError("--hu-coordination-lambda cannot be negative")
     coordination_controller = CoordinationController(
         min_commit_steps=1,
         max_option_steps=3,
@@ -827,7 +849,7 @@ def main() -> int:
                 "ai_player_index": 0,
                 "hu_model": str(args.hu_model) if args.hu_model else None,
                 "hu_user_id": args.hu_user_id,
-                "hu_lambda": args.hu_lambda,
+                "hu_task_tolerance": args.hu_task_tolerance,
                 "hu_coordination_lambda": args.hu_coordination_lambda,
                 "hu_apply": args.hu_apply,
             },
@@ -988,7 +1010,8 @@ def main() -> int:
             return
         for candidate in candidates:
             try:
-                candidate.hu_score = hu_model.score(
+                candidate.hu_score = runtime_hu_score(
+                    hu_model,
                     TASK_DECISION_LEVEL,
                     args.hu_user_id,
                     condition_features,
@@ -1000,15 +1023,13 @@ def main() -> int:
     def subgoal_executor_action(
         human_action: int,
     ) -> tuple[int, str, list[dict], dict, dict]:
-        if subgoal_model is None:
-            raise RuntimeError("subgoal_executor_action called without a loaded model")
         motion_planner = motion_planners_by_layout[current_layout]
         candidates = rule_teacher_candidates(env.base_env.state, motion_planner, 0)
         condition_features = live_condition_features(human_action)
         apply_hu_shadow_scores(candidates, condition_features)
         chosen = choose_task_candidate(
             candidates,
-            hu_lambda=args.hu_lambda if args.hu_apply else 0.0,
+            task_tolerance=args.hu_task_tolerance if args.hu_apply else 0.0,
         )
         subgoal_name = chosen.subgoal
         planner_action = chosen.action
@@ -1037,34 +1058,19 @@ def main() -> int:
             "candidates": serialized_candidates,
             "selected": subgoal_name,
             "selected_action": int(planner_action),
-            "hu_applied": bool(args.hu_apply and args.hu_lambda != 0.0),
-            "hu_lambda": args.hu_lambda,
+            "hu_applied": bool(args.hu_apply and args.hu_task_tolerance > 0.0),
+            "hu_task_tolerance": args.hu_task_tolerance,
         }
-        if subgoal_name in {
-            "GET_TOMATO",
-            "PUT_TOMATO_IN_POT",
-            "GET_ONION",
-            "PUT_ONION_IN_POT",
-            "GET_DISH",
-            "PICKUP_SOUP",
-            "SERVE_SOUP",
-            "PUT_DOWN_OBJECT",
-            "WAIT",
-        }:
-            return (
-                int(planner_action),
-                subgoal_name,
-                serialized_candidates,
-                condition_features,
-                task_decision,
-            )
-        subgoal_id = SUBGOAL_TO_INDEX[subgoal_name]
-        observations = env.base_env.lossless_state_encoding_mdp(env.base_env.state)
-        observation = np.asarray(observations[0], dtype=np.float32)[None, ...]
-        subgoal_one_hot = np.eye(len(SUBGOALS), dtype=np.float32)[[subgoal_id]]
-        logits = subgoal_model.predict([observation, subgoal_one_hot], verbose=0)
+        # Every subgoal the generator can produce is executed by the motion
+        # planner.  The learned executor used to sit behind this point as a
+        # fallback, but the whitelist it guarded had grown to cover the whole
+        # vocabulary, so the network was never called in any recorded session
+        # while the docs still described the backbone as
+        # "state -> subgoal -> learned low-level executor action".  Both methods
+        # under comparison execute through the planner, so the planner is the
+        # backbone and the claim now matches the code.
         return (
-            int(np.argmax(logits[0])),
+            int(planner_action),
             subgoal_name,
             serialized_candidates,
             condition_features,
@@ -1239,6 +1245,7 @@ def main() -> int:
         human_action: int,
         subgoal_name: str,
         condition_features: dict,
+        task_target_positions: list | None = None,
     ) -> tuple[int, str, dict]:
         if args.ai_mode != "subgoal_executor":
             coordination_controller.clear_if_no_conflict()
@@ -1275,12 +1282,32 @@ def main() -> int:
             route_blocked = False
         condition_features["human_trying_to_pass"] = route_blocked
         condition_features["ai_on_human_path"] = route_blocked
-        yield_action = (
-            choose_yield_action(ai_pos, human_pos, human_target)
-            if conflict_type
-            in ("human_entering_ai_tile", "ai_blocking_human_route")
-            else STAY
+        # WAIT / BACK_OFF / REROUTE are execution-level refinements of a
+        # single Hu-scored YIELD decision, not options Hu chooses between:
+        # REROUTE (keep making task progress on a path that avoids the
+        # human) beats BACK_OFF (retreat to the most separating open tile)
+        # beats WAIT (stay put) when the stronger options aren't available.
+        # This applies to every conflict type -- a dynamic simultaneous-move
+        # conflict deserves the same repertoire as a static tile conflict.
+        reroute_action = choose_reroute_action(
+            motion_planners_by_layout[current_layout],
+            env.base_env.state.players[0],
+            task_target_positions,
+            human_pos,
+            human_target,
+            proposed_ai_action,
         )
+        if reroute_action is not None:
+            yield_action = reroute_action
+            yield_mode = "reroute"
+        else:
+            back_off_action = choose_yield_action(ai_pos, human_pos, human_target)
+            if back_off_action is not None:
+                yield_action = back_off_action
+                yield_mode = "back_off"
+            else:
+                yield_action = STAY
+                yield_mode = "wait"
         candidates = build_coordination_candidates(
             proposed_action=proposed_ai_action,
             yield_action=yield_action,
@@ -1291,12 +1318,14 @@ def main() -> int:
                     "ai_adjacent_to_current_subgoal_target"
                 )
             ),
+            yield_mode=yield_mode,
         )
 
         def coordination_hu_score(option: str) -> float:
             if hu_model is None:
                 return 0.0
-            return hu_model.score(
+            return runtime_hu_score(
+                hu_model,
                 COORDINATION_DECISION_LEVEL,
                 args.hu_user_id,
                 condition_features,
@@ -1779,6 +1808,7 @@ def main() -> int:
                     human_action,
                     current_ai_subgoal,
                     current_ai_condition_features,
+                    current_task_decision.get("selected_target_positions"),
                 )
                 ai_action, safety_event = hard_safety_guard(coordinated_action)
                 current_ai_event = (
