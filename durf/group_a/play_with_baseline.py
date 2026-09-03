@@ -33,6 +33,7 @@ from durf.baseline.coordination import (
 from durf.baseline.collect_rule_teacher_dataset import (
     SUBGOAL_TO_INDEX,
     SUBGOALS,
+    counters_for_put_down,
     first_action_to_feature,
     make_motion_planner,
     pots_needing_ingredient,
@@ -1116,113 +1117,36 @@ def main() -> int:
     def manhattan(a, b) -> int:
         return abs(a[0] - b[0]) + abs(a[1] - b[1])
 
-    def pot_positions_for_waiting(state) -> list[tuple[int, int]]:
-        pot_states = env.base_env.mdp.get_pot_states(state)
-        positions: list[tuple[int, int]] = []
-        for key in ("ready", "cooking"):
-            positions.extend(tuple(pos) for pos in pot_states.get(key, []) or [])
-        if positions:
-            return positions
-        return [tuple(pos) for pos in env.base_env.mdp.get_pot_locations()]
-
     def detect_subgoal_issue(state, subgoal_name: str) -> str:
+        # AI_HELD_DISH_BEFORE_SOUP_READY and AI_HELD_UNNEEDED_INGREDIENT used
+        # to live here and be force-corrected downstream in
+        # recovery_action_override, unconditionally overriding whatever the
+        # task/Hu layer had already chosen. Both states are now covered by
+        # real, scored candidates in generate_candidate_subgoals (WAIT_NEAR_POT
+        # / PUT_DOWN_OBJECT / WAIT), reproducing the exact same H0 action at
+        # hu_task_tolerance=0 -- so Hu can finally have a say here instead of
+        # being silently overruled. Only a genuinely stale committed choice
+        # (the world changed since this subgoal was picked) still needs a
+        # post-hoc recovery step.
         if args.ai_mode != "subgoal_executor":
             return ""
-        ai_player = state.players[0]
-        held = getattr(ai_player, "held_object", None)
-        held_name = getattr(held, "name", None)
-        if held_name == "dish" and not env.base_env.mdp.get_ready_pots(
-            env.base_env.mdp.get_pot_states(state)
-        ):
-            return "AI_HELD_DISH_BEFORE_SOUP_READY"
-        if held_name in ("tomato", "onion"):
-            if not pots_needing_ingredient(state, env.base_env.mdp, held_name):
-                return "AI_HELD_UNNEEDED_INGREDIENT"
         if subgoal_name in ("PUT_TOMATO_IN_POT", "PUT_ONION_IN_POT"):
             ingredient = "tomato" if subgoal_name == "PUT_TOMATO_IN_POT" else "onion"
             if not pots_needing_ingredient(state, env.base_env.mdp, ingredient):
                 return "STALE_PUT_INGREDIENT_SUBGOAL"
         return ""
 
-    def empty_counter_locations(state) -> list[tuple[int, int]]:
-        mdp = env.base_env.mdp
-        motion_planner = motion_planners_by_layout[current_layout]
-        if hasattr(mdp, "get_counter_locations"):
-            counters = list(mdp.get_counter_locations())
-        else:
-            valid_positions = set(mdp.get_valid_player_positions())
-            counters = []
-            rows = getattr(mdp, "terrain_mtx", [])
-            for y, row in enumerate(rows):
-                for x, terrain in enumerate(row):
-                    pos = (x, y)
-                    if pos in valid_positions or terrain != "X":
-                        continue
-                    adjacent = [
-                        (x + 1, y),
-                        (x - 1, y),
-                        (x, y + 1),
-                        (x, y - 1),
-                    ]
-                    if any(candidate in valid_positions for candidate in adjacent):
-                        counters.append(pos)
-        feature_positions = set()
-        for getter_name in (
-            "get_pot_locations",
-            "get_serving_locations",
-            "get_dish_dispenser_locations",
-            "get_tomato_dispenser_locations",
-            "get_onion_dispenser_locations",
-        ):
-            getter = getattr(mdp, getter_name, None)
-            if getter is not None:
-                feature_positions.update(getter())
-        occupied = set(getattr(state, "objects", {}).keys())
-        motion_goal_positions = set(getattr(motion_planner, "motion_goals_for_pos", {}))
-        available = [
-            tuple(position)
-            for position in counters
-            if tuple(position) not in feature_positions and tuple(position) not in occupied
-        ]
-        reachable = [
-            position for position in available if position in motion_goal_positions
-        ]
-        candidates = reachable or available
-        player_pos = state.players[0].position
-        pot_positions = env.base_env.mdp.get_pot_locations()
-        return sorted(
-            candidates,
-            key=lambda pos: (
-                min((manhattan(pos, pot) for pot in pot_positions), default=99),
-                manhattan(pos, player_pos),
-            ),
-        )
-
     def put_down_unneeded_object_action(state) -> int:
         motion_planner = motion_planners_by_layout[current_layout]
         action = first_action_to_feature(
             motion_planner,
             state.players[0],
-            empty_counter_locations(state),
+            counters_for_put_down(
+                state, env.base_env.mdp, motion_planner, state.players[0]
+            ),
             {state.players[1].position},
         )
         return int(action) if action is not None else STAY
-
-    def wait_near_pot_action(state) -> int:
-        motion_planner = motion_planners_by_layout[current_layout]
-        action = first_action_to_feature(
-            motion_planner,
-            state.players[0],
-            pot_positions_for_waiting(state),
-            {state.players[1].position},
-        )
-        if action is None or int(action) == INTERACT:
-            return STAY
-        return int(action)
-
-    def pot_state_has(state, *keys: str) -> bool:
-        pot_states = env.base_env.mdp.get_pot_states(state)
-        return any(bool(pot_states.get(key)) for key in keys)
 
     def recovery_action_override(
         proposed_ai_action: int,
@@ -1233,10 +1157,6 @@ def main() -> int:
         state = env.base_env.state
         issue = detect_subgoal_issue(state, subgoal_name)
         if issue:
-            if issue == "AI_HELD_DISH_BEFORE_SOUP_READY":
-                if pot_state_has(state, "cooking", "ready"):
-                    return wait_near_pot_action(state), issue
-                return put_down_unneeded_object_action(state), issue
             return put_down_unneeded_object_action(state), issue
         return proposed_ai_action, ""
 

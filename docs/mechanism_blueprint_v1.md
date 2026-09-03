@@ -175,16 +175,30 @@ return candidates                                       # 多项
 
 ### 3.2 各分支的目标候选集
 
-| 状态 | 现在 | 目标候选集 |
-|---|---|---|
-| 手持番茄/洋葱，锅需要它 | `[PUT_X_IN_POT]` | `PUT_X_IN_POT` / `PUT_DOWN_OBJECT` / `WAIT_NEAR_POT` / `WAIT` |
-| 手持番茄/洋葱，锅不需要 | `put_down_candidates` | `PUT_DOWN_OBJECT` / `WAIT` / `WAIT_NEAR_POT` |
-| 手持盘子，汤已好 | `[PICKUP_SOUP]` | `PICKUP_SOUP` / `WAIT_NEAR_POT` / `WAIT` |
-| 手持盘子，汤未好 | `[stay(等汤)]` | `WAIT_NEAR_POT` / `WAIT` / `PUT_DOWN_OBJECT` |
-| 手持汤 | `[SERVE_SOUP]` | `SERVE_SOUP` / `WAIT` |
-| 空手 | 2–3 项 | 维持现状 |
+✅ **已实现（2026-09-03）**。实际候选集：
 
-预期效果：持物步的候选数从 1 升到 2–4，可检验机会从个位数升到数百。
+| 状态 | 原来 | 实际候选集（按 task_score 降序） |
+|---|---|---|
+| 手持番茄/洋葱，锅需要它 | `[PUT_X_IN_POT]` | `PUT_X_IN_POT`(80) / `WAIT_NEAR_POT`(10) / `PUT_DOWN_OBJECT`(5) / `WAIT`(0) |
+| 手持番茄/洋葱，锅不需要 | `put_down_candidates`（单一 `PUT_DOWN_OBJECT`） | `PUT_DOWN_OBJECT`(60) / `WAIT_NEAR_POT`(10) / `WAIT`(0) |
+| 手持盘子，汤已好 | `[PICKUP_SOUP]` | `PICKUP_SOUP`(95) / `WAIT_NEAR_POT`(10) / `WAIT`(0) |
+| 手持盘子，汤未好，有锅在煮 | `[stay(等汤)]`（恒定，且被 `AI_HELD_DISH_BEFORE_SOUP_READY` 覆盖） | `WAIT_NEAR_POT`(15) / `WAIT`(5) / `PUT_DOWN_OBJECT`(2) |
+| 手持盘子，汤未好，无锅在煮 | 同上 | `PUT_DOWN_OBJECT`(20) / `WAIT_NEAR_POT`(10) / `WAIT`(5) |
+| 手持汤 | `[SERVE_SOUP]` | `SERVE_SOUP`(100) / `WAIT`(0) |
+| 空手 | 2–3 项 | 维持不变 |
+
+比原计划多做了一步：「手持盘子，汤未好」原方案只有一套候选集，实现时发现它在运行时
+一直被 `recovery_action_override` 的 `AI_HELD_DISH_BEFORE_SOUP_READY` 触发器**覆盖**——
+覆盖逻辑本身就是按"锅是否在煮"二选一（煮→去锅边等，不煮→放下），所以实际候选集必须
+按同一条件分裂成两套，才能在 `hu_task_tolerance=0` 时精确复现覆盖之前的动作。「手持
+番茄/洋葱，锅不需要」同理：其 `PUT_DOWN_OBJECT` 分支原来由 `AI_HELD_UNNEEDED_INGREDIENT`
+触发器强制执行，目标位置的排序逻辑（`counters_for_put_down`，见 §3.3）也是从该触发器的
+`empty_counter_locations` 原样搬过来的，不是候选生成器原有的"离玩家最近"排序。这两个
+触发器已从 `play_with_baseline.py` 和 `sim_session.py` 的 `recovery_action_override` /
+`_recovery_action_override` 中退休；剩下的唯一触发器是 `STALE_PUT_INGREDIENT_SUBGOAL`
+（与本次改动无关的另一类安全网）。
+
+实测效果：持物步的候选数从 1 升到 2–4，可检验机会从个位数升到数百（见 §3.3 的实测覆盖率）。
 
 ### 3.3 关键性质：可以做到零行为变更
 
@@ -204,19 +218,51 @@ return candidates                                       # 多项
 - 已有的 H0 基线数据**仍然有效**；
 - 只有开启 `--hu-apply` 且 `hu_task_tolerance > 0` 时行为才会变化，而那正是我们要研究的东西。
 
-**验证方式**：对既有 session 做重放，逐步断言 `hu_task_tolerance=0` 下新旧实现选择完全一致。
-这条断言已经写成单元测试（`durf/baseline/test_candidate_generation.py`）并长期保留。
+**验证方式（2026-09-03 实测，替换原计划里对 `test_candidate_generation.py` 的错误引用——
+该文件其实只有 `choose_task_candidate` 的抽象单测，从未包含过重放断言）**：
 
-### 3.4 新候选的 task_score 建议
+1. **单元测试**：`durf/baseline/test_holding_item_candidates.py`——用真实
+   `ring_tomato_onion_10x6_h0_full_task` 布局手工构造持物/锅态状态，断言每个分支的候选
+   集合、task_score、最终选择，以及"主候选不可行时精确退化为旧的单候选 fallback"这一支。
+2. **端到端影子重放**（比单测更硬的证据）：跑 4 人格 × 10 seed × 400 步（16000 步）的
+   sim_session 仿真，用**改动前**代码驱动整条轨迹，同时 monkeypatch 记录下每一步喂给
+   player 0 候选生成器的**原始 state 对象**和 `recovery_action_override` 调整后的**最终
+   动作**；随后用**改动后**代码在完全相同的 16000 个 state 上重新跑一遍候选生成 +
+   `choose_task_candidate(task_tolerance=0.0)`，逐步比较其动作是否与旧代码的最终动作
+   （覆盖调整后）字节级一致。结果：**16000/16000 全部一致，0 处偏差**，且覆盖到两个被
+   退休触发器的全部真实发生场景（`AI_HELD_DISH_BEFORE_SOUP_READY` 680 次，
+   `AI_HELD_UNNEEDED_INGREDIENT` 240 次）。
 
-沿用现有量纲（送餐 100 / 取汤 95 / 拿盘 90 / 放料 80 / 取料 70 / 备料 50 / WAIT 0）：
+   **方法论上的一个教训**：第一次验证时直接对比新旧两次独立仿真的完整 `ai_action` 序列，
+   得到 4530/16000 处"不一致"，一度以为实现有 bug。排查后发现两个问题：(a) 只比较了
+   AI 的动作，没比较模拟人类（`SimHuman.choose_action`）的动作——而 `SimHuman` 内部调用
+   的正是同一个 `generate_candidate_subgoals`，候选集变化会真实改变它自己的行为，这个
+   分歧比 AI 侧的分歧早发生了十几步；(b) 一旦任何一步（哪怕是模拟人类那一侧、且完全
+   符合预期）产生分歧，后续所有步的游戏状态都会连锁性地不同，让"整条轨迹逐步比较"这个
+   方法本身失效。改成"固定旧轨迹的 state，只重放 AI 侧的决策"后，才是对 H0 不变式的
+   正确检验。`SimHuman` 的模拟行为本身不在 H0 不变式的保护范围内（它只用于开发期的
+   sim_session 仿真，不出现在真人实验或 `play_with_baseline.py` 的部署路径里），但它的
+   偏好排序会随本次改动一起变化，这点值得任何读到"改动前/改动后" sim_session 输出差异
+   的人知晓。
 
-| 新增候选 | task_score | 理由 |
-|---|---|---|
-| `WAIT_NEAR_POT` | 10 | 高于纯 WAIT，低于任何推进任务的动作 |
-| `PUT_DOWN_OBJECT`（锅仍需该物） | 5 | 任务上是退步，但可能是用户偏好 |
-| `PUT_DOWN_OBJECT`（锅不需该物） | 40 | 任务上合理，低于取新料 |
-| `WAIT`（持物时） | 0 | 与现有 fallback 一致 |
+### 3.4 新候选的 task_score（实际实现值，2026-09-03）
+
+沿用现有量纲（送餐 100 / 取汤 95 / 拿盘 90 / 放料 80 / 取料 70 / 备料 50 / WAIT 0）。
+实现时为了在 `hu_task_tolerance=0` 下精确复现被退休的 override 触发器的历史动作，部分
+取值与本节最初的建议不同（尤其"锅不需要该物"从建议的 40 改成了 60——这是
+`AI_HELD_UNNEEDED_INGREDIENT` 触发器原本的隐含优先级，不是新定的数）：
+
+| 分支 | 新增候选 | task_score | 理由 |
+|---|---|---|---|
+| 锅仍需该物 | `PUT_DOWN_OBJECT`（放下不需要的这份） | 5 | 任务上是退步，但可能是用户偏好 |
+| 锅仍需该物 | `WAIT_NEAR_POT` | 10 | 高于纯 WAIT，低于任何推进任务的动作 |
+| 锅不需该物 | `PUT_DOWN_OBJECT` | 60 | 复现退休前 `AI_HELD_UNNEEDED_INGREDIENT` 的强制动作 |
+| 锅不需该物 | `WAIT_NEAR_POT` | 10 | 同上 |
+| 持盘子，锅在煮 | `WAIT_NEAR_POT` | 15 | 复现退休前 `AI_HELD_DISH_BEFORE_SOUP_READY`（煮中分支） |
+| 持盘子，锅在煮 | `PUT_DOWN_OBJECT` | 2 | 任务上明显倒退，仅供极端偏好使用 |
+| 持盘子，无锅在煮 | `PUT_DOWN_OBJECT` | 20 | 复现退休前 `AI_HELD_DISH_BEFORE_SOUP_READY`（未煮分支） |
+| 持盘子，无锅在煮 | `WAIT_NEAR_POT` | 10 | 同上 |
+| 持物时 `WAIT` | `WAIT` | 0 或 5（视分支） | 与现有 fallback 一致；等汤分支沿用历史的 5 分 |
 
 ---
 
@@ -225,7 +271,7 @@ return candidates                                       # 多项
 | 阶段 | 内容 | 工作量 | 风险 | 产出 |
 |---|---|---|---|---|
 | **P0** | 影子打分扩到全词表：每步对 13 个 subgoal 全部打 Hu 分并落盘，**不改变任何选择** | 半天 | 零 | 量化「若有选择权会怎样」，作为 P1 的先导实验 |
-| **P1** | 按 §3.2 放开候选生成 + §3.3 零行为变更断言 | 2–3 天 | 低 | 候选集 ≥2 的步数占比从 43% 升至 ~95% |
+| **P1** | 按 §3.2 放开候选生成 + §3.3 零行为变更断言 | ✅ 已完成（2026-09-03） | — | 5 个持物分支全部放开，16000 步影子重放 0 偏差 |
 | **P2** | sim 回归：λ=0 行为一致性、λ>0 任务能力回归、Hu 训练重跑 | 2 天 | 中 | 确认 λ 需要重新标定的范围 |
 | **P3** | 评估层：行为一致性指标（同情景反馈前后对比）；候选集健康度进入前置门槛 | 2 天 | 低 | M3-1 具备可用样本量 |
 | **P4** | 真人实验 | — | — | — |
@@ -261,13 +307,32 @@ return candidates                                       # 多项
    `hu_task_tolerance` 定得太小则偏好几乎不可能生效，定得太大则可能牺牲过多任务分。建议
    在 P2 用 sim 扫描 `hu_task_tolerance`，选取「偏好遵循率提升而任务能力仍在等效界限内」
    的区间——这个界限和非劣效性验收标准共用同一个"任务点数"单位，标定可以直接复用。
-2. **`PUT_DOWN_OBJECT` 滥用风险**。若 Hu 学到过强的「放下」偏好，可能出现反复捡放。现有 recovery 机制针对该情形，需在 P2 验证其是否仍然生效。
+2. **`PUT_DOWN_OBJECT` 滥用风险**。若 Hu 学到过强的「放下」偏好，可能出现反复捡放。
+   ~~现有 recovery 机制针对该情形~~——**该 recovery 机制（`AI_HELD_UNNEEDED_INGREDIENT` /
+   `AI_HELD_DISH_BEFORE_SOUP_READY`）已在 2026-09-03 随 P1 一起退休**：它原本的强制动作
+   现在就是对应候选的 task_score 排序结果，不再是候选生成之外的另一层兜底。反复捡放的
+   风险因此从"recovery 是否仍然生效"变成了"`hu_task_tolerance` 定多大"，仍需在 P2 用
+   sim 扫描验证。
+5.5. **`SimHuman` 与部署 AI 共享同一份候选生成代码**（新增，2026-09-03）。
+   `sim_session.py` 的 `SimHuman.choose_action` 直接调用
+   `generate_candidate_subgoals(state, motion_planner, 1)`，与部署 AI（player 0）用的是
+   同一个函数。放开持物分支后，模拟人类在这些分支里的行为也会跟着变——这不违反 H0
+   不变式（`SimHuman` 从不出现在真人实验或 `play_with_baseline.py` 的部署路径里），但
+   意味着"改动前/改动后"的 sim_session 完整轨迹不能直接逐步比较（见 §3.3 的方法论教训），
+   而且任何依赖 `SimHuman` 具体轨迹的既有回归基线（如果存在）需要重新生成。
 3. **候选集扩大对归因侧无影响**。LLM 归因本来就在完整词表上产出标签，因此 P1 不改变归因链路，也不使已有的 Hu 训练数据失效。
 4. ~~coordination 层同样需要检查：当前 `ai_mode=subgoal_executor` 下 `coordination_decision` 未落盘，YIELD/CONTINUE 的候选在运行时不可见。~~ **已解决（2026-09-03）**：`play_with_baseline.py` 和 `sim_session.py` 都会把 `coordination_decision`（含 `candidate_set`、每个候选的 `reason`/`hu_score`/`final_score`）落盘到 trajectory 记录里，YIELD 选中后具体走的是 WAIT/BACK_OFF/REROUTE 哪一种也记在 `reason` 字段中，运行时可见、可审计。
-5. **文档与实现的偏差需要修正**。`hierarchical_hu_runtime.md` §2 称「Task 候选由任务 planner 根据可行性生成」并列出 11 个 subgoal，但实际持物时只生成 1 个。P1 完成后该节须重写。
+5. ~~**文档与实现的偏差需要修正**。`hierarchical_hu_runtime.md` §2 称「Task 候选由任务
+   planner 根据可行性生成」并列出 11 个 subgoal，但实际持物时只生成 1 个。P1 完成后该节
+   须重写。~~ **已解决（2026-09-03）**：`hierarchical_hu_runtime.md` §2 和 §10 已随 P1
+   完成同步更新。
 
 ---
 
 ## 7. 一句话总结
 
-归因侧（LLM 读懂反馈）和偏好模型（Hu 学到偏好）都已建成并可用。缺的是**执行侧的候选生成**——它至今仍是规则教师的产物，把一个词表级的偏好模型压成了单点重排序器。补上 L1 规范并放开持物分支，是让这套机制成立的**唯一必要改动**，且可以做到对基线行为零影响。
+归因侧（LLM 读懂反馈）和偏好模型（Hu 学到偏好）都已建成并可用。执行侧的候选生成——
+原来是规则教师的产物，把一个词表级的偏好模型压成了单点重排序器——**已于 2026-09-03
+补上 L1 规范并放开全部持物分支**（含两个 recovery override 触发器的退休），16000 步
+影子重放验证零行为变更。这是让这套机制成立的必要改动，现已完成；下一步是 P2（sim 回归 +
+`hu_task_tolerance` 标定）。

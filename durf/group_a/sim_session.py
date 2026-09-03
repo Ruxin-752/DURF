@@ -41,6 +41,7 @@ from durf.baseline.collect_rule_teacher_dataset import (
     SUBGOAL_TO_INDEX,
     SUBGOALS,
     choose_task_candidate,
+    counters_for_put_down,
     first_action_to_feature,
     make_motion_planner,
     pots_needing_ingredient,
@@ -562,14 +563,16 @@ def _pot_positions_for_waiting(mdp, state) -> list[tuple[int, int]]:
 
 
 def _detect_subgoal_issue(state, subgoal_name: str, mdp) -> str:
-    ai_player = state.players[0]
-    held = getattr(ai_player, "held_object", None)
-    held_name = getattr(held, "name", None)
-    if held_name == "dish" and not mdp.get_ready_pots(mdp.get_pot_states(state)):
-        return "AI_HELD_DISH_BEFORE_SOUP_READY"
-    if held_name in ("tomato", "onion"):
-        if not pots_needing_ingredient(state, mdp, held_name):
-            return "AI_HELD_UNNEEDED_INGREDIENT"
+    # AI_HELD_DISH_BEFORE_SOUP_READY and AI_HELD_UNNEEDED_INGREDIENT used to
+    # live here and be force-corrected downstream in _recovery_action_override,
+    # unconditionally overriding whatever the task/Hu layer had already
+    # chosen. Both states are now covered by real, scored candidates in
+    # generate_candidate_subgoals (WAIT_NEAR_POT / PUT_DOWN_OBJECT / WAIT),
+    # reproducing the exact same H0 action at hu_task_tolerance=0 -- so Hu
+    # can finally have a say here instead of being silently overruled (same
+    # change as play_with_baseline.py). Only a genuinely stale committed
+    # choice (the world changed since this subgoal was picked) still needs a
+    # post-hoc recovery step.
     if subgoal_name in ("PUT_TOMATO_IN_POT", "PUT_ONION_IN_POT"):
         ingredient = "tomato" if subgoal_name == "PUT_TOMATO_IN_POT" else "onion"
         if not pots_needing_ingredient(state, mdp, ingredient):
@@ -577,51 +580,14 @@ def _detect_subgoal_issue(state, subgoal_name: str, mdp) -> str:
     return ""
 
 
-def _empty_counter_locations(state, mdp) -> list[tuple[int, int]]:
-    if hasattr(mdp, "get_counter_locations"):
-        counters = list(mdp.get_counter_locations())
-    else:
-        valid_positions = set(mdp.get_valid_player_positions())
-        counters = []
-        rows = getattr(mdp, "terrain_mtx", [])
-        for y, row in enumerate(rows):
-            for x, terrain in enumerate(row):
-                pos = (x, y)
-                if terrain == "X" and pos in valid_positions:
-                    counters.append(pos)
-    occupied = set(getattr(state, "objects", {}).keys())
-    return [
-        tuple(position)
-        for position in counters
-        if tuple(position) not in occupied
-    ]
-
-
 def _put_down_unneeded_object_action(state, motion_planner) -> int:
     action = first_action_to_feature(
         motion_planner,
         state.players[0],
-        _empty_counter_locations(state, motion_planner.mdp),
+        counters_for_put_down(state, motion_planner.mdp, motion_planner, state.players[0]),
         {state.players[1].position},
     )
     return int(action) if action is not None else STAY
-
-
-def _wait_near_pot_action(state, motion_planner) -> int:
-    action = first_action_to_feature(
-        motion_planner,
-        state.players[0],
-        _pot_positions_for_waiting(motion_planner.mdp, state),
-        {state.players[1].position},
-    )
-    if action is None or int(action) == INTERACT:
-        return STAY
-    return int(action)
-
-
-def _pot_state_has(mdp, state, *keys: str) -> bool:
-    pot_states = mdp.get_pot_states(state)
-    return any(bool(pot_states.get(key)) for key in keys)
 
 
 def _recovery_action_override(
@@ -637,9 +603,6 @@ def _recovery_action_override(
     )
     if not issue:
         return proposed_ai_action, ""
-    if issue == "AI_HELD_DISH_BEFORE_SOUP_READY":
-        if _pot_state_has(motion_planner.mdp, state, "cooking", "ready"):
-            return _wait_near_pot_action(state, motion_planner), issue
     return _put_down_unneeded_object_action(state, motion_planner), issue
 
 

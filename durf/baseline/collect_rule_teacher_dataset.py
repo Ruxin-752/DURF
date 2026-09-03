@@ -424,6 +424,120 @@ def stay_candidate(reason: str, task_score: float = 0.0) -> CandidateSubgoal:
     )
 
 
+def pot_positions_for_waiting(mdp, state) -> list[tuple[int, int]]:
+    """Pots worth standing next to while holding a dish: prefer one that is
+    already cooking or ready, otherwise fall back to any pot at all.  This is
+    the same rule the runtime entry points have long used for stall recovery
+    and (until this change) for their AI_HELD_DISH_BEFORE_SOUP_READY
+    override -- centralized here so the candidate generator's WAIT_NEAR_POT
+    candidate targets the identical set of tiles.
+    """
+    pot_states = mdp.get_pot_states(state)
+    positions: list[tuple[int, int]] = []
+    for key in ("ready", "cooking"):
+        positions.extend(tuple(pos) for pos in pot_states.get(key, []) or [])
+    if positions:
+        return positions
+    return [tuple(pos) for pos in mdp.get_pot_locations()]
+
+
+def counters_for_put_down(
+    state,
+    mdp,
+    motion_planner: MotionPlanner,
+    player,
+) -> list[tuple[int, int]]:
+    """Free counters to drop an object on: not a pot/dispenser/serving tile,
+    not already occupied, preferring ones the motion planner can actually
+    route to, ranked by distance to the nearest pot first (so the object
+    stays convenient to pick back up) and then by distance to the player.
+
+    This is the same ranking the runtime entry points' now-retired
+    AI_HELD_UNNEEDED_INGREDIENT override used (their `empty_counter_locations`
+    helper) -- centralizing it here means PUT_DOWN_OBJECT candidates target
+    the identical tile the override used to force, not the candidate
+    generator's old, simpler nearest-to-player-only ranking.
+    """
+    if hasattr(mdp, "get_counter_locations"):
+        counters = list(mdp.get_counter_locations())
+    else:
+        valid_positions = set(mdp.get_valid_player_positions())
+        counters = []
+        rows = getattr(mdp, "terrain_mtx", [])
+        for y, row in enumerate(rows):
+            for x, terrain in enumerate(row):
+                pos = (x, y)
+                if pos in valid_positions or terrain != "X":
+                    continue
+                adjacent = [(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)]
+                if any(candidate in valid_positions for candidate in adjacent):
+                    counters.append(pos)
+    feature_positions: set[tuple[int, int]] = set()
+    for getter_name in (
+        "get_pot_locations",
+        "get_serving_locations",
+        "get_dish_dispenser_locations",
+        "get_tomato_dispenser_locations",
+        "get_onion_dispenser_locations",
+    ):
+        getter = getattr(mdp, getter_name, None)
+        if getter is not None:
+            feature_positions.update(getter())
+    occupied = set(getattr(state, "objects", {}).keys())
+    motion_goal_positions = set(getattr(motion_planner, "motion_goals_for_pos", {}))
+    available = [
+        tuple(position)
+        for position in counters
+        if tuple(position) not in feature_positions and tuple(position) not in occupied
+    ]
+    reachable = [position for position in available if position in motion_goal_positions]
+    candidates = reachable or available
+    pot_positions = mdp.get_pot_locations()
+    player_pos = tuple(player.position)
+
+    def manhattan(a: tuple[int, int], b: tuple[int, int]) -> int:
+        return abs(a[0] - b[0]) + abs(a[1] - b[1])
+
+    return sorted(
+        candidates,
+        key=lambda pos: (
+            min((manhattan(pos, pot) for pot in pot_positions), default=99),
+            manhattan(pos, player_pos),
+        ),
+    )
+
+
+def wait_near_pot_candidate(
+    *,
+    task_score: float,
+    reason: str,
+    motion_planner: MotionPlanner,
+    player,
+    pot_targets: list[tuple[int, int]],
+    blocked_positions: set[tuple[int, int]],
+) -> CandidateSubgoal:
+    """WAIT_NEAR_POT: move adjacent to a pot worth waiting at, without
+    interacting with it -- this is a positioning subgoal, not an action on
+    the pot, so a route that would end in INTERACT falls back to STAY
+    exactly like the runtime's retired wait_near_pot_action did.  Always
+    feasible: with nowhere useful to move it degrades to STAY in place,
+    which is why it never returns None the way feature_candidate can.
+    """
+    action = first_action_to_feature(
+        motion_planner, player, pot_targets, blocked_positions
+    )
+    if action is None or int(action) == int(Action.ACTION_TO_INDEX[Action.INTERACT]):
+        action = int(Action.ACTION_TO_INDEX[Action.STAY])
+    return CandidateSubgoal(
+        subgoal="WAIT_NEAR_POT",
+        task_score=task_score,
+        action=int(action),
+        reason=reason,
+        feasible=True,
+        metadata={"target_positions": [list(position) for position in pot_targets]},
+    )
+
+
 def feature_candidate(
     *,
     subgoal: str,
@@ -435,15 +549,33 @@ def feature_candidate(
     blocked_positions: set[tuple[int, int]],
     metadata: dict | None = None,
 ) -> CandidateSubgoal | None:
+    # Candidate EXISTENCE is an environment question, never a partner question.
+    # The partner's current tile may make one route unusable, but "the human is
+    # standing there right now" must not delete an option -- that is exactly the
+    # moment a coordination preference (push through vs. give way) needs both
+    # options on the table, and it is the coordination layer's job to decide.
+    # So: prefer a route that avoids the partner; if none exists, keep the
+    # candidate with a partner-agnostic route and flag it for audit.
     action = first_action_to_feature(
         motion_planner,
         player,
         feature_positions,
         blocked_positions,
     )
+    route_blocked_by_partner = False
+    if action is None and blocked_positions:
+        action = first_action_to_feature(
+            motion_planner,
+            player,
+            feature_positions,
+            set(),
+        )
+        route_blocked_by_partner = action is not None
     if action is None:
         return None
     candidate_metadata = dict(metadata or {})
+    if route_blocked_by_partner:
+        candidate_metadata["route_blocked_by_partner"] = True
     candidate_metadata.setdefault(
         "target_positions",
         [list(position) for position in feature_positions],
@@ -472,37 +604,15 @@ def put_down_candidates(
     choice, so PUT_DOWN_OBJECT must be in the pool.  Without it, probes that
     expect PUT_DOWN_OBJECT can never evaluate against the real task pool and
     always report preferred_available=False.
+
+    WAIT_NEAR_POT is only offered alongside a *feasible* PUT_DOWN_OBJECT: if
+    there is nowhere to put the ingredient down, this reproduces the old
+    single-candidate fallback exactly rather than letting WAIT_NEAR_POT (task
+    score 10) outscore WAIT (0) in a state the frozen H0 backbone never
+    actually visited before.
     """
-    counters = (
-        list(mdp.get_counter_locations())
-        if hasattr(mdp, "get_counter_locations")
-        else []
-    )
-    feature_positions: set[tuple[int, int]] = set()
-    for getter_name in (
-        "get_pot_locations",
-        "get_serving_locations",
-        "get_dish_dispenser_locations",
-        "get_tomato_dispenser_locations",
-        "get_onion_dispenser_locations",
-    ):
-        getter = getattr(mdp, getter_name, None)
-        if getter is not None:
-            feature_positions.update(getter())
-    occupied = set(getattr(state, "objects", {}).keys())
-    player_pos = tuple(player.position)
-    free = sorted(
-        (
-            tuple(position)
-            for position in counters
-            if tuple(position) not in feature_positions
-            and tuple(position) not in occupied
-        ),
-        key=lambda position: (
-            abs(position[0] - player_pos[0]) + abs(position[1] - player_pos[1])
-        ),
-    )
-    candidate = feature_candidate(
+    free = counters_for_put_down(state, mdp, motion_planner, player)
+    put_down = feature_candidate(
         subgoal="PUT_DOWN_OBJECT",
         task_score=60.0,
         reason="holding_unneeded_ingredient_drop_on_free_counter",
@@ -512,9 +622,20 @@ def put_down_candidates(
         blocked_positions=blocked_positions,
         metadata={"held_object": held_name},
     )
-    if candidate is not None:
-        return [candidate, stay_candidate("holding_unneeded_ingredient")]
-    return [stay_candidate("holding_unneeded_ingredient")]
+    if put_down is None:
+        return [stay_candidate("holding_unneeded_ingredient")]
+    return [
+        put_down,
+        wait_near_pot_candidate(
+            task_score=10.0,
+            reason="holding_unneeded_ingredient_wait_near_pot",
+            motion_planner=motion_planner,
+            player=player,
+            pot_targets=pot_positions_for_waiting(mdp, state),
+            blocked_positions=blocked_positions,
+        ),
+        stay_candidate("holding_unneeded_ingredient"),
+    ]
 
 
 def generate_candidate_subgoals(
@@ -551,7 +672,7 @@ def generate_candidate_subgoals(
                 if held_name == "tomato"
                 else "PUT_ONION_IN_POT"
             )
-            candidate = feature_candidate(
+            put_in_pot = feature_candidate(
                 subgoal=subgoal,
                 task_score=80.0,
                 reason="held_ingredient_needed_by_pot",
@@ -561,12 +682,123 @@ def generate_candidate_subgoals(
                 blocked_positions=blocked_positions,
                 metadata={"held_object": held_name},
             )
-            return [candidate] if candidate else [stay_candidate("no_path_to_needed_pot")]
+            if put_in_pot is None:
+                # Preserve the historical fallback exactly: no route to any
+                # pot that needs this ingredient existed before either, and
+                # offering lower-scored alternatives here (rather than only
+                # alongside a feasible PUT_X_IN_POT) would let one of them
+                # outrank plain WAIT in a state H0 never visited before.
+                return [stay_candidate("no_path_to_needed_pot")]
+            # Putting it down anyway is a task regression -- the pot still
+            # needs it -- but a preference-worthy option.  Scored well under
+            # PUT_X_IN_POT's 80 so it never wins at hu_task_tolerance=0.
+            held_candidates = [put_in_pot]
+            put_down_anyway = feature_candidate(
+                subgoal="PUT_DOWN_OBJECT",
+                task_score=5.0,
+                reason="held_ingredient_needed_by_pot_put_down_anyway",
+                motion_planner=motion_planner,
+                player=player,
+                feature_positions=counters_for_put_down(
+                    state, mdp, motion_planner, player
+                ),
+                blocked_positions=blocked_positions,
+                metadata={"held_object": held_name},
+            )
+            if put_down_anyway is not None:
+                held_candidates.append(put_down_anyway)
+            held_candidates.append(
+                wait_near_pot_candidate(
+                    task_score=10.0,
+                    reason="held_ingredient_needed_by_pot_wait_near_pot",
+                    motion_planner=motion_planner,
+                    player=player,
+                    pot_targets=ingredient_targets,
+                    blocked_positions=blocked_positions,
+                )
+            )
+            held_candidates.append(
+                stay_candidate("held_ingredient_needed_by_pot_wait")
+            )
+            return held_candidates
         if held_name == "dish":
             ready_pots = mdp.get_ready_pots(pot_states)
             if not ready_pots:
-                return [stay_candidate("holding_dish_waiting_for_soup", task_score=5.0)]
-            candidate = feature_candidate(
+                # This branch used to be entirely overridden downstream by
+                # the runtime's AI_HELD_DISH_BEFORE_SOUP_READY recovery
+                # logic: walk to a cooking pot if one exists, otherwise drop
+                # the dish. That rule is reproduced here as scored
+                # candidates -- byte-identical actions, same
+                # cooking-pot-or-not branch -- so it is now visible to Hu and
+                # the override can be retired instead of silently
+                # overruling whatever the task/Hu layer picked.
+                cooking_pots = mdp.get_cooking_pots(pot_states)
+                wait_targets = pot_positions_for_waiting(mdp, state)
+                put_down_targets = counters_for_put_down(
+                    state, mdp, motion_planner, player
+                )
+                if cooking_pots:
+                    dish_candidates = [
+                        wait_near_pot_candidate(
+                            task_score=15.0,
+                            reason="holding_dish_soup_cooking_wait_near_pot",
+                            motion_planner=motion_planner,
+                            player=player,
+                            pot_targets=wait_targets,
+                            blocked_positions=blocked_positions,
+                        ),
+                        stay_candidate(
+                            "holding_dish_waiting_for_soup", task_score=5.0
+                        ),
+                    ]
+                    put_down = feature_candidate(
+                        subgoal="PUT_DOWN_OBJECT",
+                        task_score=2.0,
+                        reason="holding_dish_soup_cooking_put_down_anyway",
+                        motion_planner=motion_planner,
+                        player=player,
+                        feature_positions=put_down_targets,
+                        blocked_positions=blocked_positions,
+                        metadata={"held_object": held_name},
+                    )
+                    if put_down is not None:
+                        dish_candidates.append(put_down)
+                    return dish_candidates
+                put_down = feature_candidate(
+                    subgoal="PUT_DOWN_OBJECT",
+                    task_score=20.0,
+                    reason="holding_dish_no_pot_cooking_put_down",
+                    motion_planner=motion_planner,
+                    player=player,
+                    feature_positions=put_down_targets,
+                    blocked_positions=blocked_positions,
+                    metadata={"held_object": held_name},
+                )
+                if put_down is None:
+                    # Nowhere to put it down either: preserve the exact
+                    # historical fallback (plain WAIT) rather than only
+                    # offering WAIT_NEAR_POT, which the override never chose
+                    # in this sub-case (no pot is even cooking yet).
+                    return [
+                        stay_candidate(
+                            "holding_dish_waiting_for_soup", task_score=5.0
+                        )
+                    ]
+                return [
+                    put_down,
+                    wait_near_pot_candidate(
+                        task_score=10.0,
+                        reason="holding_dish_no_pot_cooking_wait_near_pot",
+                        motion_planner=motion_planner,
+                        player=player,
+                        pot_targets=wait_targets,
+                        blocked_positions=blocked_positions,
+                    ),
+                    stay_candidate(
+                        "holding_dish_waiting_for_soup", task_score=5.0
+                    ),
+                ]
+            pickup_soup = feature_candidate(
                 subgoal="PICKUP_SOUP",
                 task_score=95.0,
                 reason="held_dish_and_soup_ready",
@@ -575,9 +807,22 @@ def generate_candidate_subgoals(
                 feature_positions=ready_pots,
                 blocked_positions=blocked_positions,
             )
-            return [candidate] if candidate else [stay_candidate("no_path_to_ready_pot")]
+            if pickup_soup is None:
+                return [stay_candidate("no_path_to_ready_pot")]
+            return [
+                pickup_soup,
+                wait_near_pot_candidate(
+                    task_score=10.0,
+                    reason="held_dish_and_soup_ready_wait_near_pot",
+                    motion_planner=motion_planner,
+                    player=player,
+                    pot_targets=ready_pots,
+                    blocked_positions=blocked_positions,
+                ),
+                stay_candidate("held_dish_and_soup_ready_wait"),
+            ]
         if held_name == "soup":
-            candidate = feature_candidate(
+            serve_soup = feature_candidate(
                 subgoal="SERVE_SOUP",
                 task_score=100.0,
                 reason="held_soup_deliver_immediately",
@@ -586,7 +831,12 @@ def generate_candidate_subgoals(
                 feature_positions=mdp.get_serving_locations(),
                 blocked_positions=blocked_positions,
             )
-            return [candidate] if candidate else [stay_candidate("no_path_to_serving")]
+            if serve_soup is None:
+                return [stay_candidate("no_path_to_serving")]
+            return [
+                serve_soup,
+                stay_candidate("held_soup_alternative_wait"),
+            ]
 
     ready_pots = mdp.get_ready_pots(pot_states)
     if ready_pots:
@@ -666,20 +916,58 @@ def generate_candidate_subgoals(
 def choose_task_candidate(
     candidates: list[CandidateSubgoal],
     *,
-    hu_lambda: float = 0.0,
+    task_tolerance: float = 0.0,
 ) -> CandidateSubgoal:
+    """Satisfice on the task, then let the learned preference choose.
+
+    Task score and Hu score are not commensurable, so they are never added.
+    ``task_score`` is in task points and its gaps carry real information (100 vs
+    0 for "deliver the soup" is not the same kind of decision as 90 vs 70 for
+    "dish first or tomato first"); ``hu_score`` comes out of a pairwise logistic
+    fit, where only the ORDER is meaningful and the magnitude is an artefact of
+    regularization.  Adding them would require an exchange rate nobody can state.
+
+    So instead: keep every candidate within ``task_tolerance`` points of the task
+    optimum, and among those pick the one the user prefers.
+
+    * ``task_tolerance`` is in task points and answers a question a researcher
+      can actually answer: how much task performance are we willing to give up
+      for personalization?  It is the same quantity as the non-inferiority
+      margin used to accept the task-competence result.
+    * Only the ordering of ``hu_score`` is used, so Hu's arbitrary output scale
+      never has to be calibrated.
+    * ``task_tolerance = 0`` reduces to the frozen task backbone exactly.
+    """
+
     feasible = [candidate for candidate in candidates if candidate.feasible]
     if not feasible:
         return stay_candidate("no_feasible_candidate")
-    for candidate in feasible:
-        candidate.final_score = candidate.task_score + hu_lambda * candidate.hu_score
-    return max(
-        feasible,
-        key=lambda candidate: (
-            candidate.final_score if candidate.final_score is not None else candidate.task_score,
-            candidate.task_score,
-        ),
+
+    tolerance = max(0.0, float(task_tolerance))
+    best_task = max(candidate.task_score for candidate in feasible)
+    acceptable = [
+        candidate
+        for candidate in feasible
+        if candidate.task_score >= best_task - tolerance
+    ]
+    task_optimum = max(acceptable, key=lambda candidate: candidate.task_score)
+
+    # Rank inside the acceptable set by preference; ties fall back to the task
+    # prior so the result stays deterministic.
+    chosen = max(
+        acceptable,
+        key=lambda candidate: (candidate.hu_score, candidate.task_score),
     )
+    for candidate in feasible:
+        candidate.final_score = candidate.task_score
+
+    sacrificed = task_optimum.task_score - chosen.task_score
+    chosen.metadata = dict(chosen.metadata or {})
+    chosen.metadata["acceptable_set_size"] = len(acceptable)
+    chosen.metadata["task_tolerance"] = tolerance
+    chosen.metadata["preference_override"] = chosen.subgoal != task_optimum.subgoal
+    chosen.metadata["task_points_sacrificed"] = sacrificed
+    return chosen
 
 
 def rule_teacher_candidates(

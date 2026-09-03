@@ -54,11 +54,16 @@ WAIT_NEAR_POT
 WAIT
 ```
 
-⚠️ **这是词表，不是每一步都同时可选**。手里拿着东西时，候选生成器目前仍然是一条带
-`return` 的规则级联，绝大多数持物状态只会产出上表里的**一个**候选（详见
-`docs/mechanism_blueprint_v1.md` §1.3 的实测数据）。放开这些分支、让它们改成 `append`
-是 `mechanism_blueprint_v1.md` 提出、尚未落地的工作，不要把这张词表读成"每步都有全部
-候选参与竞争"。
+⚠️ **这是词表，不是每一步都同时可选**——不要把它读成"每步都有全部候选参与竞争"。
+
+✅ **2026-09-03 起，持物分支也已放开为多候选**（`mechanism_blueprint_v1.md` §3 的 P1
+已完成）：5 个持物状态（手持番茄/洋葱且锅需要、手持番茄/洋葱且锅不需要、手持盘子且汤
+已好、手持盘子且汤未好、手持汤）现在各产出 2–4 个候选而不是单一 `return`，且原来
+`recovery_action_override` 的 `AI_HELD_DISH_BEFORE_SOUP_READY` / `AI_HELD_UNNEEDED_INGREDIENT`
+两个强制触发器已随之退休（其历史动作原样变成了对应候选的 task_score 排序结果）。仍然
+只产出单一候选的情形只剩：(a) 该分支唯一有意义的候选本身不可行时的精确历史 fallback
+（例如"没有空闲台面可放"或"没有路径去需要的锅"）；(b) 极少数尚未纳入本次改动的边缘
+分支。详见 `mechanism_blueprint_v1.md` §3.2/§3.3。
 
 当前运行时已经启用的 Coordination 候选是：
 
@@ -404,6 +409,10 @@ python -m durf.group_a.play_with_baseline `
   两个选项），但 `YIELD` 选中之后由规则判断具体怎么让——REROUTE（绕开人、继续推进任务）
   优先于 BACK_OFF（退到最远的空格，现覆盖全部 4 种冲突类型而非原来的 2 种）优先于 WAIT
   （原地不动）。选中的方式记录在 `reason` 字段供审计，不进入 Hu 的决策空间（见 §4.1）；
+- 持物分支的候选生成放开：5 个持物状态从单一 `return` 改成 2–4 个带 task_score 的候选，
+  `recovery_action_override` 的两个强制触发器（`AI_HELD_DISH_BEFORE_SOUP_READY` /
+  `AI_HELD_UNNEEDED_INGREDIENT`）随之退休，16000 步影子重放验证 `hu_task_tolerance=0`
+  时动作零变化（`mechanism_blueprint_v1.md` §3）；
 
 仍待真实数据验证：
 
@@ -416,6 +425,7 @@ python -m durf.group_a.play_with_baseline `
 
 仍未开工：
 
-- 持物分支的候选生成放开（`mechanism_blueprint_v1.md` §3 的 P1，`WAIT_NEAR_POT` /
-  `GET_USEFUL_INGREDIENT` 等候选目前不会在持物状态下出现）；
 - Coordination 层是否也要从加法混合改成满足式。
+
+（持物分支的候选生成放开已于 2026-09-03 完成，见上方"已经完成"列表末尾一条及
+`mechanism_blueprint_v1.md` §3。）
