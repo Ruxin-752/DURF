@@ -1,10 +1,12 @@
 # Hu-v0: 条件化 Subgoal 偏好重排序器
 
-> 状态说明：本文保留单层 Hu-v0 的设计背景。当前实现已经升级为
-> Task / Coordination 双头结构，最新工程口径与命令见
-> [`hierarchical_hu_runtime.md`](hierarchical_hu_runtime.md)。
+> 状态说明：本文保留单层 Hu-v0 的设计背景，**下面提到的 backbone 描述、
+> `final_score = task_score + lambda * hu_score` 混合公式和三级分解都已经过时**
+> （2026-09-03 起：task 层改成 ε-约束满足式、低层执行器下线、task 头默认关闭
+> `user_bias`）。当前实现已经升级为 Task / Coordination 双头结构，最新工程口径与命令见
+> [`hierarchical_hu_runtime.md`](hierarchical_hu_runtime.md)，本文只作历史背景保留。
 
-本文档说明当前 Hu-v0 的真实定位、训练标签、模型形式和运行方法。这里特意不再使用“PPO + Hu”的说法，因为当前实际可用 backbone 已经转向：
+本文档说明当时 Hu-v0 的定位、训练标签、模型形式和运行方法。这里特意不再使用"PPO + Hu"的说法，因为当时实际可用 backbone 已经转向（现已过时，见上）：
 
 ```text
 state -> rule/planner subgoal -> learned low-level executor action

@@ -54,6 +54,12 @@ WAIT_NEAR_POT
 WAIT
 ```
 
+⚠️ **这是词表，不是每一步都同时可选**。手里拿着东西时，候选生成器目前仍然是一条带
+`return` 的规则级联，绝大多数持物状态只会产出上表里的**一个**候选（详见
+`docs/mechanism_blueprint_v1.md` §1.3 的实测数据）。放开这些分支、让它们改成 `append`
+是 `mechanism_blueprint_v1.md` 提出、尚未落地的工作，不要把这张词表读成"每步都有全部
+候选参与竞争"。
+
 当前运行时已经启用的 Coordination 候选是：
 
 ```text
@@ -65,21 +71,35 @@ YIELD
 
 ## 3. 基础分数与 Hu 分数
 
-Task 层：
+Task 层和 Coordination 层用的是两条**不同**的混合规则，不要套用同一个公式。
+
+**Task 层：ε-约束分层满足式（不是加法）**。`task_score` 和 `hu_score` 单位不同、不可通约，
+从来就不该相加——`task_score` 是研究者标定的任务价值判断，量级是几十到一百；`hu_score`
+来自成对 logistic 排序模型，只有序信息可靠，量级不固定。实际规则是：
 
 ```text
-task_final_score
-= task_score
-+ hu_task_lambda * Hu_task(user, condition, task_subgoal)
+best_task = 可行候选里最高的 task_score
+acceptable = { c | c.task_score >= best_task - hu_task_tolerance }   # 容忍带内的候选
+selected = acceptable 里 hu_score 最高的那个                          # Hu 只在容忍带内挑
+selected.final_score = selected.task_score                           # 不做加法
 ```
 
-Coordination 层：
+`hu_task_tolerance`（原来叫 `hu_lambda`，已改名并改了语义）是"愿意为学到的偏好放弃多少
+任务分"，单位是**任务点数**，不是权重系数。`hu_task_tolerance = 0` 时容忍带只剩任务最优
+一个候选，行为与迁移前的任务底座完全一致。实现见
+`durf/baseline/collect_rule_teacher_dataset.py::choose_task_candidate`。
+
+**Coordination 层：仍然是加法**。这一层还没有做同样的重构：
 
 ```text
 coord_final_score
 = coordination_prior
 + hu_coordination_lambda * Hu_coord(user, condition, option)
 ```
+
+`coordination_prior` 是 0/1 量级，`hu_coordination_lambda` 依然是权重系数而不是任务点数，
+和 task 层的 `hu_task_tolerance` 不是同一种东西，不要混用参数含义。这一层是否也要改成
+满足式，是待评审的开放问题。
 
 当 `--hu-apply` 未开启时，Hu 只进行 shadow scoring：记录分数，但不改变选择。
 
@@ -133,7 +153,7 @@ Task 记录示例：
       "subgoal": "GET_ONION",
       "task_score": 70.0,
       "hu_score": 0.8,
-      "final_score": 70.8
+      "final_score": 70.0
     }
   ],
   "selected": "GET_ONION"
@@ -305,10 +325,13 @@ python -m durf.group_a.play_with_baseline `
   --layout ring_tomato_onion_10x6_h0_full_task `
   --hu-model outputs\hu_models\pilot01\hierarchical_hu.json `
   --hu-user-id PILOT01 `
-  --hu-lambda 1.0 `
+  --hu-task-tolerance 10.0 `
   --hu-coordination-lambda 1.0 `
   --hu-apply
 ```
+
+`--hu-lambda` 已不存在；task 层用 `--hu-task-tolerance`，单位是任务点数而不是权重，示例值
+请按实际标定结果调整。
 
 ## 10. 当前边界
 
@@ -319,11 +342,30 @@ python -m durf.group_a.play_with_baseline `
 - 双头 Hu 训练和旧单头模型兼容；
 - decision-level 日志与 event 溯源；
 - review 标签覆盖自动归因；
-- bounded yield，避免一直退让。
+- bounded yield，避免一直退让；
+- Task 层的 ε-约束分层满足式决策规则，替代了原来量纲不匹配的加法混合（见 §3）；
+- 候选存废与队友位置解耦：队友挡路只影响路线可行性，不再让候选直接消失（见
+  `durf/baseline/collect_rule_teacher_dataset.py::feature_candidate` 的
+  `route_blocked_by_partner` 标记）；
+- 低层执行器正式下线：候选生成器能产出的全部 subgoal 都直接走运动规划器，训练好的
+  keras 执行器网络默认不再加载（`play_with_baseline.py --load-retired-executor` 才会
+  加载，仅用于回归对比）；
+- `PerUserAdapter` 的 task 头默认关闭 `user_bias`（`enable_task_bias=False`）：跨四个
+  sim persona 验证，task 层的无条件个体偏移始终落在噪声范围内（±0.06），而
+  coordination 层的个体偏移是有意义的信号（±0.05 到 ±1.74，随人格单调变化）。这是可逆
+  开关，不是删除，真人数据到手后需要重新检验。
 
 仍待真实数据验证：
 
 - 两个 head 是否都有足够 pairwise 样本；
 - Hu 是否在同一 probe condition 下稳定改变候选排序；
 - Hu 改变偏好后是否保持任务完成率；
-- 是否需要正式实现 `REROUTE`（保持 task 目标的路径重规划）并为其建立独立的决策域、候选生成与训练数据。
+- `PerUserAdapter.enable_task_bias=False` 这个假设在真人数据上是否依然成立。
+
+仍未开工：
+
+- 持物分支的候选生成放开（`mechanism_blueprint_v1.md` §3 的 P1，`WAIT_NEAR_POT` /
+  `GET_USEFUL_INGREDIENT` 等候选目前不会在持物状态下出现）；
+- 是否需要正式实现 `REROUTE`（保持 task 目标的路径重规划）并为其建立独立的决策域、候选生成与训练数据；
+- YIELD 的语义拆分（让路 / 后退 / 切换路线三种含义目前都折叠成同一个 STAY 动作）；
+- Coordination 层是否也要从加法混合改成满足式。

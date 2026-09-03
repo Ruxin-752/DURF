@@ -39,6 +39,13 @@ UNKNOWN_CONDITION_VALUE = 0.0
 TRUE_CONDITION_VALUE = 1.0
 FALSE_CONDITION_VALUE = -1.0
 
+# PerUserAdapter design switch: whether the task head keeps a per-user
+# constant offset (user_bias_task) alongside its condition-dependent term.
+# Default is off -- see PerUserAdapter.__init__ for the rationale.  This is
+# a reversible flag, not an architecture deletion: flipping it back to True
+# restores the original three-level decomposition for the task head.
+DEFAULT_ENABLE_TASK_BIAS = False
+
 
 @dataclass(frozen=True)
 class PairwiseSample:
@@ -519,3 +526,406 @@ class HierarchicalHu:
     @classmethod
     def load(cls, path: Path):
         return cls.from_dict(json.loads(path.read_text(encoding="utf-8")))
+
+
+# ---------------------------------------------------------------------------
+# Protocol-v2: Per-user adapter with frozen Hu_general
+# ---------------------------------------------------------------------------
+
+
+class PerUserAdapter:
+    """Protocol-v2 three-level user model on top of frozen Hu_general.
+
+    Score decomposition:
+
+        Hu_user(subgoal | condition)
+            = Hu_general(condition, subgoal)                    [frozen]
+            + user_bias[subgoal]                                 [learnable]
+            + sum_k(condition_delta[k, subgoal] * condition[k])  [learnable]
+
+    Only user_bias and condition_delta are trained.  Hu_general weights
+    are never modified.
+    """
+
+    def __init__(
+        self,
+        *,
+        hu_general: HierarchicalHu,
+        user_id: str,
+        enable_task_bias: bool = DEFAULT_ENABLE_TASK_BIAS,
+    ) -> None:
+        self.hu_general = hu_general
+        self.user_id = user_id
+        self._model_type = "per_user_adapter_v2"
+
+        # Task-level user_bias is disabled by default: across the simulated
+        # personas evaluated so far, user_bias_task stays within +/-0.06,
+        # consistent with the design view that "unconditionally liking a
+        # subgoal" is not a meaningful construct at the task level -- task
+        # preference is inherently conditional on the situation (missing
+        # ingredients, pot status, etc.).  Coordination-level yielding
+        # tendencies behave differently and do show a stable per-user
+        # offset (user_bias_coord ~= +/-1.7), so that head keeps its bias
+        # term.  This flag is a reversible switch, not a deletion: when
+        # disabled, user_bias_task is never updated during training (stays
+        # exactly zero) and never contributes to the task-head score, but
+        # the array, its shape, and the load/save code are all left intact
+        # so a future dataset (e.g. real human feedback) can flip it back
+        # on and re-test the assumption without a schema migration.
+        self.enable_task_bias = bool(enable_task_bias)
+
+        # -- user_bias (user x subgoal) --
+        self.user_bias_task = np.zeros(len(TASK_HU_SUBGOALS), dtype=np.float32)
+        self.user_bias_coord = np.zeros(
+            len(COORDINATION_SUBGOALS), dtype=np.float32
+        )
+        self._task_subgoal_to_index = {
+            name: idx for idx, name in enumerate(TASK_HU_SUBGOALS)
+        }
+        self._coord_subgoal_to_index = {
+            name: idx for idx, name in enumerate(COORDINATION_SUBGOALS)
+        }
+
+        # -- condition_delta (condition x subgoal) --
+        self.condition_delta_task = np.zeros(
+            (len(CONDITION_KEYS), len(TASK_HU_SUBGOALS)), dtype=np.float32
+        )
+        self.condition_delta_coord = np.zeros(
+            (len(COORDINATION_CONDITION_KEYS), len(COORDINATION_SUBGOALS)),
+            dtype=np.float32,
+        )
+        self._task_cond_to_index = {
+            name: idx for idx, name in enumerate(CONDITION_KEYS)
+        }
+        self._coord_cond_to_index = {
+            name: idx for idx, name in enumerate(COORDINATION_CONDITION_KEYS)
+        }
+
+        # tracking: which conditions this user has observed
+        self.observed_conditions_task: set[str] = set()
+        self.observed_conditions_coord: set[str] = set()
+
+    # -- Scoring -----------------------------------------------------------
+
+    def score(
+        self,
+        decision_level: str,
+        condition_features: dict[str, Any],
+        subgoal: str,
+    ) -> dict[str, float]:
+        """Return decomposed dict: general_score, user_bias_score,
+        condition_delta_score, final_score."""
+        general = self.hu_general.score(
+            decision_level, self.user_id, condition_features, subgoal
+        )
+        bias = self._user_bias_score(decision_level, subgoal)
+        delta = self._condition_delta_score(
+            decision_level, condition_features, subgoal
+        )
+        return {
+            "general_score": float(general),
+            "user_bias_score": float(bias),
+            "condition_delta_score": float(delta),
+            "final_score": float(general + bias + delta),
+        }
+
+    def _user_bias_score(self, decision_level: str, subgoal: str) -> float:
+        if decision_level == TASK_DECISION_LEVEL:
+            if not self.enable_task_bias:
+                return 0.0
+            idx = self._task_subgoal_to_index.get(subgoal)
+            return float(self.user_bias_task[idx]) if idx is not None else 0.0
+        idx = self._coord_subgoal_to_index.get(subgoal)
+        return float(self.user_bias_coord[idx]) if idx is not None else 0.0
+
+    def _condition_delta_score(
+        self,
+        decision_level: str,
+        condition_features: dict[str, Any],
+        subgoal: str,
+    ) -> float:
+        if decision_level == TASK_DECISION_LEVEL:
+            cond_keys = CONDITION_KEYS
+            delta = self.condition_delta_task
+            c2i = self._task_cond_to_index
+            s2i = self._task_subgoal_to_index
+        else:
+            cond_keys = COORDINATION_CONDITION_KEYS
+            delta = self.condition_delta_coord
+            c2i = self._coord_cond_to_index
+            s2i = self._coord_subgoal_to_index
+
+        subgoal_idx = s2i.get(subgoal)
+        if subgoal_idx is None:
+            return 0.0
+
+        value = 0.0
+        for cond_key in cond_keys:
+            cond_idx = c2i.get(cond_key)
+            if cond_idx is None:
+                continue
+            cv = condition_value(condition_features.get(cond_key))
+            if cv == UNKNOWN_CONDITION_VALUE:
+                continue
+            value += delta[cond_idx, subgoal_idx] * cv
+        return float(value)
+
+    # -- Training ----------------------------------------------------------
+
+    def pair_margin(
+        self,
+        decision_level: str,
+        condition_features: dict[str, Any],
+        preferred_subgoal: str,
+        rejected_subgoal: str,
+    ) -> float:
+        pref = self.score(decision_level, condition_features, preferred_subgoal)
+        rej = self.score(decision_level, condition_features, rejected_subgoal)
+        return pref["final_score"] - rej["final_score"]
+
+    def train(
+        self,
+        samples: list[PairwiseSample],
+        *,
+        epochs: int = 200,
+        learning_rate: float = 0.05,
+        l2_bias: float = 1e-4,
+        l2_delta: float = 1e-3,
+        seed: int = 0,
+    ) -> dict[str, Any]:
+        """Train user_bias and condition_delta. Hu_general is frozen."""
+        if not samples:
+            return {
+                "history": {"loss": [], "accuracy": []},
+                "observed_conditions": {"task": [], "coordination": []},
+            }
+
+        # Track observed conditions
+        for sample in samples:
+            cf = sample.condition_features or {}
+            keys = (
+                CONDITION_KEYS
+                if sample.decision_level == TASK_DECISION_LEVEL
+                else COORDINATION_CONDITION_KEYS
+            )
+            target = (
+                self.observed_conditions_task
+                if sample.decision_level == TASK_DECISION_LEVEL
+                else self.observed_conditions_coord
+            )
+            for key in keys:
+                if cf.get(key) is not None:
+                    target.add(key)
+
+        history: dict[str, Any] = {"loss": [], "accuracy": []}
+        rng = np.random.default_rng(seed)
+        order = np.arange(len(samples))
+
+        for _ in range(epochs):
+            rng.shuffle(order)
+            loss_sum = 0.0
+            correct = 0
+            for index in order:
+                sample = samples[int(index)]
+                margin = self.pair_margin(
+                    sample.decision_level,
+                    sample.condition_features,
+                    sample.preferred_subgoal,
+                    sample.rejected_subgoal,
+                )
+                correct += int(margin > 0.0)
+                loss_sum += float(np.logaddexp(0.0, -margin))
+                g = -1.0 / (1.0 + float(np.exp(margin)))
+
+                if sample.decision_level == TASK_DECISION_LEVEL:
+                    bias_arr = self.user_bias_task
+                    delta_mat = self.condition_delta_task
+                    cond_keys = CONDITION_KEYS
+                    c2i = self._task_cond_to_index
+                    s2i = self._task_subgoal_to_index
+                else:
+                    bias_arr = self.user_bias_coord
+                    delta_mat = self.condition_delta_coord
+                    cond_keys = COORDINATION_CONDITION_KEYS
+                    c2i = self._coord_cond_to_index
+                    s2i = self._coord_subgoal_to_index
+
+                pi = s2i[sample.preferred_subgoal]
+                ri = s2i[sample.rejected_subgoal]
+
+                update_bias = (
+                    sample.decision_level != TASK_DECISION_LEVEL
+                    or self.enable_task_bias
+                )
+                if update_bias:
+                    bias_arr[pi] -= learning_rate * (g + l2_bias * bias_arr[pi])
+                    bias_arr[ri] -= learning_rate * (-g + l2_bias * bias_arr[ri])
+
+                for cond_key in cond_keys:
+                    ci = c2i.get(cond_key)
+                    if ci is None:
+                        continue
+                    cv = condition_value(
+                        sample.condition_features.get(cond_key)
+                    )
+                    if cv == UNKNOWN_CONDITION_VALUE:
+                        continue
+                    delta_mat[ci, pi] -= learning_rate * (
+                        g * cv + l2_delta * delta_mat[ci, pi]
+                    )
+                    delta_mat[ci, ri] -= learning_rate * (
+                        -g * cv + l2_delta * delta_mat[ci, ri]
+                    )
+
+            history["loss"].append(loss_sum / len(samples))
+            history["accuracy"].append(correct / len(samples))
+
+        return {
+            "history": history,
+            "observed_conditions": {
+                "task": sorted(self.observed_conditions_task),
+                "coordination": sorted(self.observed_conditions_coord),
+            },
+        }
+
+    def evaluate(self, samples: list[PairwiseSample]) -> dict[str, Any]:
+        if not samples:
+            return {}
+        metrics: dict[str, Any] = {}
+        for dl in DECISION_LEVELS:
+            domain_samples = [s for s in samples if s.decision_level == dl]
+            if not domain_samples:
+                metrics[dl] = {
+                    "samples": 0, "pairwise_accuracy": None,
+                    "mean_margin": None,
+                }
+                continue
+            margins = np.asarray(
+                [
+                    self.pair_margin(
+                        s.decision_level,
+                        s.condition_features,
+                        s.preferred_subgoal,
+                        s.rejected_subgoal,
+                    )
+                    for s in domain_samples
+                ],
+                dtype=np.float32,
+            )
+            metrics[dl] = {
+                "samples": len(domain_samples),
+                "pairwise_accuracy": float((margins > 0.0).mean()),
+                "mean_margin": float(margins.mean()),
+                "min_margin": float(margins.min()),
+                "max_margin": float(margins.max()),
+            }
+        return metrics
+
+    # -- Serialization -----------------------------------------------------
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "model_type": self._model_type,
+            "user_id": self.user_id,
+            "enable_task_bias": self.enable_task_bias,
+            "hu_general": self.hu_general.to_dict(),
+            "user_bias_task": self.user_bias_task.tolist(),
+            "user_bias_coord": self.user_bias_coord.tolist(),
+            "condition_delta_task": self.condition_delta_task.tolist(),
+            "condition_delta_coord": self.condition_delta_coord.tolist(),
+            "observed_conditions_task": sorted(
+                self.observed_conditions_task
+            ),
+            "observed_conditions_coord": sorted(
+                self.observed_conditions_coord
+            ),
+        }
+
+    @classmethod
+    def from_dict(
+        cls,
+        data: dict[str, Any],
+        *,
+        hu_general: HierarchicalHu | None = None,
+    ):
+        if hu_general is None:
+            hu_general = HierarchicalHu.from_dict(data["hu_general"])
+        # Backward compatibility: model files saved before this switch
+        # existed were always trained with the task bias term enabled, so a
+        # missing key means "on" (preserve exactly what was trained), not
+        # "off" (the new default for freshly constructed adapters).
+        enable_task_bias = data.get("enable_task_bias")
+        if enable_task_bias is None:
+            enable_task_bias = True
+        adapter = cls(
+            hu_general=hu_general,
+            user_id=data["user_id"],
+            enable_task_bias=bool(enable_task_bias),
+        )
+        adapter.user_bias_task = np.asarray(
+            data.get("user_bias_task") or [], dtype=np.float32
+        )
+        adapter.user_bias_coord = np.asarray(
+            data.get("user_bias_coord") or [], dtype=np.float32
+        )
+        adapter.condition_delta_task = np.asarray(
+            data.get("condition_delta_task") or [],
+            dtype=np.float32,
+        ).reshape((len(CONDITION_KEYS), len(TASK_HU_SUBGOALS)))
+        adapter.condition_delta_coord = np.asarray(
+            data.get("condition_delta_coord") or [],
+            dtype=np.float32,
+        ).reshape(
+            (len(COORDINATION_CONDITION_KEYS), len(COORDINATION_SUBGOALS))
+        )
+        adapter.observed_conditions_task = set(
+            data.get("observed_conditions_task") or []
+        )
+        adapter.observed_conditions_coord = set(
+            data.get("observed_conditions_coord") or []
+        )
+        return adapter
+
+    def save(self, path: Path) -> None:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(
+            json.dumps(self.to_dict(), indent=2, ensure_ascii=False),
+            encoding="utf-8",
+        )
+
+    @classmethod
+    def load(
+        cls, path: Path, *, hu_general: HierarchicalHu | None = None
+    ):
+        data = json.loads(path.read_text(encoding="utf-8"))
+        return cls.from_dict(data, hu_general=hu_general)
+
+
+def load_runtime_hu(path: Path) -> HierarchicalHu | PerUserAdapter:
+    """Load either a frozen general model or a protocol-v2 user adapter."""
+    data = json.loads(path.read_text(encoding="utf-8"))
+    model_type = data.get("model_type")
+    if model_type == "per_user_adapter_v2":
+        return PerUserAdapter.from_dict(data)
+    if model_type == "hierarchical_linear_pairwise_hu":
+        return HierarchicalHu.from_dict(data)
+    raise ValueError(f"Unsupported Hu runtime model_type={model_type!r}: {path}")
+
+
+def runtime_hu_score(
+    model: HierarchicalHu | PerUserAdapter,
+    decision_level: str,
+    user_id: str,
+    condition_features: dict[str, Any],
+    subgoal: str,
+) -> float:
+    """Return one scalar score through a common runtime interface."""
+    if isinstance(model, PerUserAdapter):
+        return float(
+            model.score(decision_level, condition_features, subgoal)[
+                "final_score"
+            ]
+        )
+    return float(
+        model.score(decision_level, user_id, condition_features, subgoal)
+    )
