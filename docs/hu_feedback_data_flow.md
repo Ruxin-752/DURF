@@ -191,6 +191,19 @@ human_waiting_near_pot
 - condition 应该尽量保持固定 schema，避免每条样本随意长出不同字段。
 - 如果某些字段无法从旧日志中恢复，则用 `null`，而不是硬猜。
 
+**“当时”指决策前的状态（2026-09-03 修正）。** 轨迹每一步有两份快照：`state_before_json`
+（AI 做决策时看到的）和 `state_after_json`（动作执行后）。`extract_condition_features(step)`
+读的是 `state_facts`，而 `session_converter` 把它设成了 **after** 快照——这是"发生了什么"
+的视角，适合事件检测；但 Hu 标签说的是"在 X 条件下应选 A 而非 B"，X 必须是做出 B 那个
+决策时的状态，也就是 **before** 快照，和运行时 `ai_condition_features_json` 记录的完全一致。
+之前二者错开一步，在状态切换点直接自相矛盾：4554 条仿真样本里 2666 条（59%）是
+`GET_DISH/PICKUP_SOUP > PUT_DOWN_OBJECT` 且条件写着 `ai_empty_handed=True`——空手时根本没有
+PUT_DOWN_OBJECT 这个候选。现在所有进入标签的条件都走 `decision_condition_features(step)`：
+优先取运行时记录的 `ai_condition_features`（Hu 打分时实际看到的那份），缺的字段再从
+`extra.state_before` 重算；旧 session 没有 before 快照的，退回 after 并用
+`condition_state_source="state_after_fallback"` 标出，可过滤。事件检测器内部判断"发生了
+什么"仍然用 after 快照，不受影响。
+
 ### Step 3: 程序检测候选事件
 
 入口文件：
@@ -638,7 +651,41 @@ python -m durf.feedback_attribution.demo_offline_attribution `
 - candidate events 成功带上 `condition_features`
 - 因为该 session 没有玩家反馈，所以 Hu 样本为 0，符合预期
 
-## 6. 当前进度与下一步
+## 6. 标签质量审计（2026-09-03）
+
+对 4 人格 × 20 seed 仿真数据的 4554 条 pairwise 样本和冻结的 `outputs/hu_general` 做了一次
+逐条审计，发现三个定义层面的问题，均已修正：
+
+1. **条件错位一步**（见 Step 2）。修法：`decision_condition_features`。
+2. **两个任务域事件检测器系统性误报。** `AI_ignored_ready_or_nearly_ready_pot` 把"锅在煮、
+   AI 正在为下一轮取番茄"当成"无视锅"（抽样 20 个事件 20 个都是这种），仿真人类模板随之
+   说出"the pot is ready, go get a dish"这句事实上不成立的话；
+   `AI_failed_to_prepare_ingredient_while_waiting` 把"正在走向出料口"当成"没在备料"，还会在
+   运行时根本没有 GET_TOMATO/GET_ONION 候选（下一轮原料已全部在台面上）时要求 AI 去取料。
+   由此产生的标签让冻结 `hu_general` 的任务头学到 GET_TOMATO −0.19、GET_ONION −0.16、
+   PUT_DOWN_OBJECT −0.21、GET_DISH/PICKUP_SOUP +0.24——即"别备料、别放下"，纯属检测器伪影。
+   修法：`event_detectors.ai_ignoring_pot`（锅 ready 时只要 AI 没在做 GET_DISH/PICKUP_SOUP/
+   WAIT_NEAR_POT 就算无视；锅只是 cooking 时只有空手 WAIT 且人类没拿盘子才算）、
+   `prep_option_available`（运行时候选集里没有取料项就不算错过机会）；`SimHuman` 的
+   streak 逻辑同步镜像，并把 AI 的 subgoal 和候选集传给它。
+3. **标签词表 ≠ 运行时词表。** `GET_USEFUL_INGREDIENT` 有 201 条 preferred 标签、bias +0.18，
+   但候选生成器只产出 GET_TOMATO/GET_ONION，运行时对未知名字 `except KeyError: hu_score=0`
+   静默吞掉，这条偏好永远到不了决策。修法：它从 `TASK_HU_SUBGOALS` 移除、降为归因层名字
+   （`ATTRIBUTION_ONLY_TASK_SUBGOALS`），`hu_dataset_builder` 在成对之前用该决策步真实的
+   候选集把它解析成 GET_TOMATO/GET_ONION（`resolve_useful_ingredient`），解析不了的记入
+   provenance 的 `unresolved_subgoals` 并丢弃；运行时遇到模型打不了分的候选会在 stderr 警告
+   一次（`warn_unknown_runtime_subgoal`）。
+
+**修正后重跑同一批 80 个仿真 session（`outputs/hu_general_v2_regen/`，未覆盖冻结模型）的结果
+必须如实记录：任务域样本从 3143 条降到 0 条。** 400 条仿真反馈全部是协调域（让路/坚持），
+没有一条任务域反馈——因为 H0 底座根本不犯仿真模板所抱怨的那两种错（锅好了它一定去拿盘子；
+空手等待的 560 个抽样步里 100% 是"下一轮原料已经全在台面上、无料可取"）。这意味着：
+冻结 `hu_general` 的任务头**整体是伪影**，不能再作为任务域先验使用；仿真人格目前只能为
+协调域提供先验（重训后 YIELD/CONTINUE 的 global bias 从 ±0.49 回到 ±0.02，条件权重仍在）。
+任务域的偏好学习要么等真人数据，要么给仿真人格设计真正的"偏好式"任务反馈（例如在
+GET_DISH 与 GET_TOMATO 都可行时说"盘子我来拿"），而不是"纠错式"反馈。
+
+## 7. 当前进度与下一步
 
 已用 `20260722_211635` 的 12 条真实语言反馈完成一次 schema-v2 回放：
 

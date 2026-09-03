@@ -14,14 +14,18 @@ from pathlib import Path
 from typing import Any
 
 from .condition_features import (
-    extract_condition_features,
+    decision_condition_features,
     latest_step_at_or_before,
     null_condition_features,
 )
 from .io_utils import read_jsonl, write_jsonl
 from .review_io import read_review_decisions
 from .sample_builder import feedback_event_id
-from .subgoal_preferences import COORDINATION_SUBGOALS, infer_subgoal_preferences
+from .subgoal_preferences import (
+    COORDINATION_SUBGOALS,
+    infer_subgoal_preferences,
+    resolve_useful_ingredient,
+)
 
 CONDITION_TOKENS = {
     "when",
@@ -134,9 +138,33 @@ def condition_for_attribution(
         target_step = attribution["target_time_window"][-1]
     elif feedback:
         target_step = feedback.get("total_step")
-    return extract_condition_features(
+    # A label is about the decision made at the target step, so use the
+    # pre-action condition the runtime actually scored with (see
+    # decision_condition_features), not the post-action snapshot.
+    return decision_condition_features(
         latest_step_at_or_before(trajectory, target_step)
     )
+
+
+def decision_step_for_attribution(
+    attribution: dict[str, Any],
+    event: dict[str, Any] | None,
+    feedback: dict[str, Any] | None,
+    trajectory: list[dict[str, Any]],
+) -> dict[str, Any] | None:
+    """The trajectory step whose decision a label is about: the event's first
+    step when there is one, else the start of the attributed window, else the
+    feedback step."""
+    target_step = None
+    if event and event.get("start_timestep") is not None:
+        target_step = event.get("start_timestep")
+    elif attribution.get("target_time_window"):
+        target_step = attribution["target_time_window"][0]
+    elif feedback:
+        target_step = feedback.get("total_step")
+    if target_step is None:
+        return None
+    return latest_step_at_or_before(trajectory, int(target_step))
 
 
 def build_provenance_record(
@@ -158,6 +186,23 @@ def build_provenance_record(
         alternative_subgoals=event.get("alternative_subgoals") if event else None,
         event_valence=event.get("event_valence") if event else None,
     )
+    # Attribution-level names that the runtime never offers as candidates
+    # (GET_USEFUL_INGREDIENT) are resolved against the candidate set the
+    # decision actually had; a pair that cannot be expressed there is dropped
+    # and the unresolved name is kept in the provenance for audit.
+    attributed_preferred = list(preferred_subgoals)
+    attributed_rejected = list(rejected_subgoals)
+    decision_step = decision_step_for_attribution(attribution, event, feedback, trajectory)
+    decision_candidates = (
+        (decision_step or {}).get("ai_subgoal_candidates") or []
+    )
+    preferred_subgoals, unresolved_preferred = resolve_useful_ingredient(
+        preferred_subgoals, decision_candidates
+    )
+    rejected_subgoals, unresolved_rejected = resolve_useful_ingredient(
+        rejected_subgoals, decision_candidates
+    )
+    unresolved_subgoals = [*unresolved_preferred, *unresolved_rejected]
     event_evidence = event.get("evidence") if event else {}
     explicit_level = (
         event_evidence.get("decision_level")
@@ -189,6 +234,7 @@ def build_provenance_record(
         "target_time_window": attribution.get("target_time_window"),
         "event_evidence": event_evidence,
         "decision_level": decision_level,
+        "preference_source": attribution.get("preference_source"),
         "source_decision_id": (
             event_evidence.get("decision_id")
             if isinstance(event_evidence, dict)
@@ -197,6 +243,13 @@ def build_provenance_record(
         "condition_features": condition_features,
         "preferred_subgoals": preferred_subgoals,
         "rejected_subgoals": rejected_subgoals,
+        "attributed_preferred_subgoals": attributed_preferred,
+        "attributed_rejected_subgoals": attributed_rejected,
+        "unresolved_subgoals": unresolved_subgoals,
+        "decision_candidate_set": [
+            candidate.get("subgoal") if isinstance(candidate, dict) else candidate
+            for candidate in decision_candidates
+        ],
         "confidence": attribution.get("confidence"),
         "needs_clarification": attribution.get("needs_clarification"),
         "clarification_question": attribution.get("clarification_question"),
@@ -211,6 +264,9 @@ def build_provenance_record(
             if review_decision
             else None
         ),
+        "source": attribution.get("source", "unknown"),
+        "label_status": attribution.get("label_status", "automatic"),
+        "protocol_version": attribution.get("protocol_version", "protocol-v2"),
     }
 
 
@@ -224,9 +280,16 @@ def build_training_samples(
             and not provenance.get("use_for_hu_training")
         ):
             continue
-        if provenance.get("needs_clarification"):
+        if provenance.get("needs_clarification") and not provenance.get(
+            "preference_source"
+        ):
             continue
-        if not provenance.get("target_event"):
+        # A direct policy preference may be valid without an observed event.
+        # Keep event-grounded and event-free labels distinguishable in the
+        # provenance and report them separately during evaluation.
+        if not provenance.get("target_event") and not provenance.get(
+            "preference_source"
+        ):
             continue
         if provenance.get("event_actor") not in {None, "ai"}:
             continue
@@ -291,14 +354,24 @@ def build_training_samples(
                         "preferred_subgoal": preferred_subgoal,
                         "rejected_subgoal": rejected_subgoal,
                         "source_event": provenance.get("target_event"),
+                        "preference_source": provenance.get("preference_source"),
                         "source_feedback_id": provenance.get("feedback_event_id"),
                         "source_decision_id": provenance.get(
                             "source_decision_id"
+                        ),
+                        "source": provenance.get("source", "unknown"),
+                        "label_status": (
+                            "reviewed"
+                            if provenance.get("reviewed")
+                            else "automatic"
                         ),
                         "label_source": (
                             "human_review"
                             if provenance.get("reviewed")
                             else "automatic_attribution"
+                        ),
+                        "protocol_version": provenance.get(
+                            "protocol_version", "protocol-v2"
                         ),
                     }
                 )
@@ -427,6 +500,21 @@ def build_hu_dataset(session_dir: Path, *, user_id: str) -> dict[str, int]:
     ]
     training_samples = build_training_samples(provenance_records)
 
+    # --- protocol-v2: user isolation check ---
+    foreign_user_ids = {
+        sample["user_id"]
+        for sample in training_samples
+        if sample.get("user_id") != user_id
+    }
+    if foreign_user_ids:
+        raise ValueError(
+            f"User isolation violation in {session_dir}: "
+            f"expected user_id={user_id}, "
+            f"found foreign user_ids={sorted(foreign_user_ids)}. "
+            f"Real human feedback must not be mixed across participants."
+        )
+    # --- end user isolation check ---
+
     provenance_count = write_jsonl(
         session_dir / "hu_attribution_provenance.jsonl",
         provenance_records,
@@ -442,6 +530,7 @@ def build_hu_dataset(session_dir: Path, *, user_id: str) -> dict[str, int]:
     summary = {
         "session": str(session_dir),
         "user_id": user_id,
+        "protocol_version": "protocol-v2",
         "provenance_records": provenance_count,
         "hu_training_samples": sample_count,
         "schema_updates": schema_update_count,
@@ -455,6 +544,34 @@ def build_hu_dataset(session_dir: Path, *, user_id: str) -> dict[str, int]:
             )
             for record in provenance_records
         ),
+        "event_grounded_training_records": sum(
+            1
+            for sample in training_samples
+            if sample.get("source_event") and not sample.get("preference_source")
+        ),
+        "direct_preference_training_records": sum(
+            1 for sample in training_samples if sample.get("preference_source")
+        ),
+        "source_distribution": {
+            "synthetic_sim_human": sum(
+                1 for r in provenance_records
+                if r.get("source", "") == "synthetic_sim_human"
+            ),
+            "human_feedback": sum(
+                1 for r in provenance_records
+                if r.get("source", "") == "human_feedback"
+            ),
+        },
+        "label_status_distribution": {
+            "reviewed": sum(
+                1 for r in provenance_records
+                if r.get("reviewed")
+            ),
+            "automatic": sum(
+                1 for r in provenance_records
+                if not r.get("reviewed")
+            ),
+        },
     }
     (session_dir / "hu_dataset_summary.json").write_text(
         json.dumps(summary, indent=2, ensure_ascii=False),

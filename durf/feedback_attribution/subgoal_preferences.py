@@ -22,13 +22,24 @@ PLANNER_TASK_SUBGOALS = (
     "WAIT",
 )
 
-# Hu can reason over a slightly richer task set than the current task planner.
+# Hu's task vocabulary is exactly the set of subgoals the runtime candidate
+# generator can actually put on the table (collect_rule_teacher_dataset.py):
+# a preference on a name that never appears as a runtime candidate can never
+# change a decision, however many labels it collects.
 TASK_HU_SUBGOALS = (
     *PLANNER_TASK_SUBGOALS,
     "WAIT_NEAR_POT",
     "PUT_DOWN_OBJECT",
-    "GET_USEFUL_INGREDIENT",
 )
+
+# Attribution may name a subgoal at a coarser grain than the runtime uses.
+# "GET_USEFUL_INGREDIENT" ("prepare the next ingredient", "take the onion off
+# the counter") is legitimate feedback, but the runtime only ever offers
+# GET_TOMATO / GET_ONION, so hu_dataset_builder resolves it to whichever of
+# those the decision's real candidate set contained before a pair is formed.
+# It is accepted as an attribution label and is NOT a Hu dimension.
+ATTRIBUTION_ONLY_TASK_SUBGOALS = ("GET_USEFUL_INGREDIENT",)
+USEFUL_INGREDIENT_RUNTIME_SUBGOALS = ("GET_TOMATO", "GET_ONION")
 
 # Only options that are actually constructed as runtime candidates are kept.
 # HOLD_POSITION duplicates YIELD's stay-action; REROUTE is a replanning-level
@@ -39,6 +50,7 @@ COORDINATION_SUBGOALS = (
 )
 
 HU_SUBGOALS = (*TASK_HU_SUBGOALS, *COORDINATION_SUBGOALS)
+ATTRIBUTION_SUBGOALS = (*HU_SUBGOALS, *ATTRIBUTION_ONLY_TASK_SUBGOALS)
 
 # Backward-compatible name used by older imports.
 TASK_SUBGOALS = PLANNER_TASK_SUBGOALS
@@ -112,13 +124,112 @@ EVENT_SUBGOAL_DEFAULTS: dict[str, dict[str, list[str]]] = {
 NEGATIVE_EVENT_VALENCES = {"negative_problem", "missed_opportunity"}
 
 
+def infer_explicit_preference_from_text(
+    feedback_text: str | None,
+) -> tuple[list[str], list[str], str | None]:
+    """Extract only high-confidence, explicit policy preferences.
+
+    This is intentionally separate from event attribution. A participant may
+    describe what the AI should do in a future situation before that event has
+    actually occurred. Such feedback is useful for Hu, but it must not be
+    mislabeled as evidence that an event happened.
+
+    The fallback is deliberately conservative; richer language parsing belongs
+    to the LLM attributor. The returned source is used to keep these labels
+    auditable in the provenance file.
+    """
+    text = str(feedback_text or "").strip().lower()
+    if not text:
+        return [], [], None
+
+    # Coordination preference: continue the current task instead of yielding.
+    no_yield = any(
+        phrase in text
+        for phrase in (
+            "don't yield",
+            "do not yield",
+            "dont yield",
+            "no need to yield",
+            "not yield",
+            "shouldn't yield",
+            "should not yield",
+            "insist",
+            "keep going",
+            "don't stop",
+            "do not stop",
+            "don't change route",
+            "do not change route",
+            "don't pause",
+            "do not pause",
+        )
+    )
+    yield_preference = any(
+        phrase in text
+        for phrase in (
+            "let me through",
+            "step aside",
+            "move out of the way",
+            "you should yield",
+            "should yield",
+            "need to yield",
+        )
+    )
+    if no_yield and not yield_preference:
+        return ["CONTINUE_CURRENT_SUBGOAL"], ["YIELD"], "explicit_text_fallback"
+    if yield_preference and not no_yield:
+        return ["YIELD"], ["CONTINUE_CURRENT_SUBGOAL"], "explicit_text_fallback"
+
+    # Task preference: take the dish when the human is covering the final
+    # ingredient or when the feedback explicitly contrasts dish vs ingredient.
+    asks_for_dish = any(
+        phrase in text
+        for phrase in (
+            "get plate",
+            "get the plate",
+            "get dish",
+            "get the dish",
+            "pick up the plate",
+            "pick up plate",
+        )
+    )
+    contrasts_ingredient = any(
+        phrase in text
+        for phrase in (
+            "instead of more ingredient",
+            "instead of getting ingredient",
+            "rather than ingredient",
+            "last ingredient",
+        )
+    )
+    if asks_for_dish and contrasts_ingredient:
+        return ["GET_DISH"], ["GET_USEFUL_INGREDIENT"], "explicit_text_fallback"
+
+    # During cooking, preparing/staging another ingredient is preferred to
+    # waiting. This is a task-level preference, not a claim that a failure
+    # event occurred.
+    asks_to_prepare = any(
+        phrase in text
+        for phrase in (
+            "prepare ingredient",
+            "prepare food",
+            "get ingredient while",
+            "drop it near the pot",
+            "put it near the pot",
+        )
+    )
+    if asks_to_prepare:
+        return ["GET_USEFUL_INGREDIENT"], ["WAIT"], "explicit_text_fallback"
+
+    return [], [], None
+
+
 def canonical_subgoal(value: Any) -> str | None:
     text = str(value).strip()
     if not text:
         return None
     upper = text.upper()
     canonical = SUBGOAL_ALIASES.get(upper, upper)
-    if canonical in HU_SUBGOALS:
+    if canonical in ATTRIBUTION_SUBGOALS:
         return canonical
     return None
 
@@ -134,6 +245,42 @@ def normalize_subgoals(values: Any) -> list[str]:
         if text and text not in normalized:
             normalized.append(text)
     return normalized
+
+
+def resolve_useful_ingredient(
+    subgoals: list[str],
+    candidate_subgoals: Any,
+) -> tuple[list[str], list[str]]:
+    """Replace GET_USEFUL_INGREDIENT with the runtime fetch subgoal(s) that the
+    decision's candidate set actually contained.
+
+    Returns ``(resolved, unresolved)``.  ``unresolved`` is non-empty when the
+    runtime offered no ingredient fetch at that decision at all -- then the
+    preference is not expressible there and the pair must be dropped rather
+    than trained on a phantom option.  ``candidate_subgoals`` accepts the
+    trajectory's ``ai_subgoal_candidates`` entries (dicts with ``subgoal``) or
+    plain names.
+    """
+    names: list[str] = []
+    for candidate in candidate_subgoals or []:
+        name = candidate.get("subgoal") if isinstance(candidate, dict) else candidate
+        if isinstance(name, str) and name not in names:
+            names.append(name)
+    concrete = [name for name in USEFUL_INGREDIENT_RUNTIME_SUBGOALS if name in names]
+    resolved: list[str] = []
+    unresolved: list[str] = []
+    for subgoal in subgoals:
+        if subgoal not in ATTRIBUTION_ONLY_TASK_SUBGOALS:
+            if subgoal not in resolved:
+                resolved.append(subgoal)
+            continue
+        if not concrete:
+            unresolved.append(subgoal)
+            continue
+        for name in concrete:
+            if name not in resolved:
+                resolved.append(name)
+    return resolved, unresolved
 
 
 def infer_subgoal_preferences(

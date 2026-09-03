@@ -13,6 +13,7 @@ handles movement and object interaction; Hu-v0 only scores high-level subgoals.
 from __future__ import annotations
 
 import json
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -910,6 +911,31 @@ def load_runtime_hu(path: Path) -> HierarchicalHu | PerUserAdapter:
     if model_type == "hierarchical_linear_pairwise_hu":
         return HierarchicalHu.from_dict(data)
     raise ValueError(f"Unsupported Hu runtime model_type={model_type!r}: {path}")
+
+
+_UNKNOWN_SUBGOALS_WARNED: set[tuple[str, str]] = set()
+
+
+def warn_unknown_runtime_subgoal(decision_level: str, subgoal: str) -> None:
+    """Report (once per name) a runtime candidate the loaded Hu cannot score.
+
+    Callers fall back to hu_score=0 for such candidates, which is the right
+    runtime behaviour but must not be silent: a vocabulary mismatch between
+    the candidate generator and the model means a whole option is invisible
+    to preference learning (this is how GET_USEFUL_INGREDIENT collected 201
+    labels that could never reach a decision).
+    """
+    key = (decision_level, subgoal)
+    if key in _UNKNOWN_SUBGOALS_WARNED:
+        return
+    _UNKNOWN_SUBGOALS_WARNED.add(key)
+    print(
+        f"[hu] warning: loaded Hu cannot score '{decision_level}' candidate "
+        f"'{subgoal}' (no such head, or the name is outside its vocabulary); "
+        "scoring it 0. A model trained with the current TASK_HU_SUBGOALS and "
+        "with data for this decision level is needed for it to carry a preference.",
+        file=sys.stderr,
+    )
 
 
 def runtime_hu_score(

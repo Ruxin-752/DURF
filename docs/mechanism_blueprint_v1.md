@@ -313,6 +313,12 @@ return candidates                                       # 多项
    现在就是对应候选的 task_score 排序结果，不再是候选生成之外的另一层兜底。反复捡放的
    风险因此从"recovery 是否仍然生效"变成了"`hu_task_tolerance` 定多大"，仍需在 P2 用
    sim 扫描验证。
+5.4. **冻结 `hu_general` 的任务头是标签伪影，已作废**（新增，2026-09-03 审计）。三个标签链路
+   缺陷（条件特征错位一步、两个任务域检测器系统性误报、`GET_USEFUL_INGREDIENT` 永远到不了
+   运行时）修正后重跑 80 个仿真 session，任务域 pairwise 样本从 3143 条降到 0 条；仿真人格
+   只为协调域提供先验。细节和修法见 `hu_feedback_data_flow.md` §6。P2 的"Hu 训练重跑"和
+   `hu_task_tolerance` 标定不能再以旧任务头为基础；任务域偏好要么来自真人数据，要么给仿真
+   人格补"偏好式"（而非"纠错式"）任务反馈模板。
 5.5. **`SimHuman` 与部署 AI 共享同一份候选生成代码**（新增，2026-09-03）。
    `sim_session.py` 的 `SimHuman.choose_action` 直接调用
    `generate_candidate_subgoals(state, motion_planner, 1)`，与部署 AI（player 0）用的是

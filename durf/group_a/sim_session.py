@@ -57,7 +57,12 @@ from durf.baseline.coordination import (
 )
 from durf.baseline.runtime import REPO_ROOT, make_direct_multi_env
 from durf.feedback_attribution.condition_features import extract_condition_features
-from durf.hu.subgoal_reranker import load_runtime_hu, runtime_hu_score
+from durf.feedback_attribution.event_detectors import (
+    PREP_FETCH_SUBGOALS,
+    PREP_SUBGOALS,
+    ai_ignoring_pot,
+)
+from durf.hu.subgoal_reranker import load_runtime_hu, runtime_hu_score, warn_unknown_runtime_subgoal
 
 STAY = 4
 INTERACT = 5
@@ -331,7 +336,13 @@ class SimHuman:
     #   AI_ignored_ready_or_nearly_ready_pot      -> streak >= 3
     #   AI_failed_to_prepare_ingredient_while_waiting -> streak >= 4
 
-    def _update_task_streaks(self, state_after: dict, ai_action_name: str) -> None:
+    def _update_task_streaks(
+        self,
+        state_after: dict,
+        ai_action_name: str,
+        ai_subgoal: str | None = None,
+        ai_candidate_subgoals: list[str] | None = None,
+    ) -> None:
         pot_states = state_after.get("pot_states") or {}
         ai_held = (state_after.get("ai_held_object") or {}).get("name")
         human_held = (state_after.get("human_held_object") or {}).get("name")
@@ -343,7 +354,22 @@ class SimHuman:
         ai_handled_pot = (
             ai_action_name == "interact" and nearest_ready_dist in {0, 1}
         )
-        if ready_positions and ai_can_pickup_soup and not ai_handled_pot:
+        # Same rule as event_detectors.ai_ignoring_pot: an AI already walking
+        # for a dish / collecting the soup / standing by is not ignoring the
+        # pot, and during a mere cooking wait only an idle AI is.  Without it
+        # the persona said "the pot is ready, go get a dish" while the pot was
+        # still cooking and the AI was fetching the next tomato.
+        ignoring = (
+            bool(ready_positions)
+            and ai_can_pickup_soup
+            and not ai_handled_pot
+            and ai_ignoring_pot(
+                {"ai_subgoal": ai_subgoal},
+                pot_is_ready=bool(_pot_positions(pot_states, ("ready",))),
+                human_holding=human_held,
+            )
+        )
+        if ignoring:
             self._ready_pot_streak += 1
         else:
             self._ready_pot_streak = 0
@@ -352,8 +378,18 @@ class SimHuman:
         ai_picked_up_ingredient = (
             ai_action_name == "interact" and ai_held in {"onion", "tomato"}
         )
-        ai_not_prepping = ai_held is None and not ai_picked_up_ingredient
-        if cooking and ai_not_prepping and human_held == "dish":
+        ai_not_prepping = (
+            ai_held is None
+            and not ai_picked_up_ingredient
+            and ai_subgoal not in PREP_SUBGOALS
+        )
+        # Mirror of event_detectors.prep_option_available: no complaint when
+        # the runtime had no ingredient fetch on the table (next batch already
+        # staged on counters).
+        prep_available = ai_candidate_subgoals is None or any(
+            name in PREP_FETCH_SUBGOALS for name in ai_candidate_subgoals
+        )
+        if cooking and ai_not_prepping and human_held == "dish" and prep_available:
             self._prep_wait_streak += 1
         else:
             self._prep_wait_streak = 0
@@ -365,12 +401,16 @@ class SimHuman:
         condition_features: dict[str, Any],
         state_after: dict[str, Any],
         ai_action_name: str,
+        ai_subgoal: str | None = None,
+        ai_candidate_subgoals: list[str] | None = None,
     ) -> str | None:
         self.steps_since_feedback += 1
         if self.steps_since_feedback < self.config.feedback_min_gap:
             return None
 
-        self._update_task_streaks(state_after, ai_action_name)
+        self._update_task_streaks(
+            state_after, ai_action_name, ai_subgoal, ai_candidate_subgoals
+        )
         if self._ready_pot_streak >= 3:
             self._ready_pot_streak = 0
             self.steps_since_feedback = 0
@@ -685,6 +725,7 @@ class AiRuntime:
                     )
                 except KeyError:
                     candidate.hu_score = 0.0
+                    warn_unknown_runtime_subgoal("task", candidate.subgoal)
         chosen = choose_task_candidate(
             candidates,
             task_tolerance=self.hu_task_tolerance if self.hu_apply else 0.0,
@@ -1027,7 +1068,14 @@ def _write_row(writer: csv.DictWriter, handle, row: dict) -> None:
 
 def _new_session_dir(output_dir: str | Path) -> Path:
     run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
-    session_dir = Path(output_dir).resolve() / run_id
+    root = Path(output_dir).resolve()
+    session_dir = root / run_id
+    # Second-resolution ids collide when sessions are launched back to back
+    # (batch sweeps in one process); suffix instead of failing.
+    suffix = 1
+    while session_dir.exists():
+        session_dir = root / f"{run_id}_{suffix:02d}"
+        suffix += 1
     session_dir.mkdir(parents=True, exist_ok=False)
     return session_dir
 
@@ -1265,6 +1313,11 @@ def run_sim_session(args: argparse.Namespace) -> Path:
                 condition_features=decision["condition_features"],
                 state_after=state_after,
                 ai_action_name=ACTION_NAMES[decision["action"]],
+                ai_subgoal=decision["subgoal"],
+                ai_candidate_subgoals=[
+                    candidate.get("subgoal")
+                    for candidate in decision.get("subgoal_candidates") or []
+                ],
             )
             if feedback_text:
                 _write_row(

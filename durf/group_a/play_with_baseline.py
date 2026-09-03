@@ -58,6 +58,7 @@ from durf.hu.subgoal_reranker import (
     TASK_DECISION_LEVEL,
     load_runtime_hu,
     runtime_hu_score,
+    warn_unknown_runtime_subgoal,
 )
 
 
@@ -1020,6 +1021,7 @@ def main() -> int:
                 )
             except KeyError:
                 candidate.hu_score = 0.0
+                warn_unknown_runtime_subgoal(TASK_DECISION_LEVEL, candidate.subgoal)
 
     def subgoal_executor_action(
         human_action: int,

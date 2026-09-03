@@ -6,7 +6,10 @@ records into candidate events for later semantic attribution, not final labels.
 
 from __future__ import annotations
 
-from .condition_features import extract_condition_features
+from .condition_features import (
+    decision_condition_features,
+    extract_condition_features,
+)
 from .schemas import candidate_event
 
 
@@ -231,9 +234,10 @@ def step_ai_subgoal(step: dict) -> str | None:
 
 
 def event_context(step: dict) -> dict:
+    # Label context: the decision made at this step, so the pre-action view.
     return {
         "related_subgoal": step_ai_subgoal(step),
-        "condition_features": extract_condition_features(step),
+        "condition_features": decision_condition_features(step),
     }
 
 
@@ -436,6 +440,72 @@ def detect_ai_failed_to_yield_or_clear_path(window: list[dict]) -> list[dict]:
     return []
 
 
+# Subgoals that mean the AI is already attending to the pot: walking for a
+# dish, going to collect the soup, or standing by (dish in hand) while it
+# finishes.  While one of these is active the pot is not being ignored, however
+# many steps the walk takes.
+POT_ATTENDING_SUBGOALS = {"GET_DISH", "PICKUP_SOUP", "WAIT_NEAR_POT"}
+# Subgoals that mean the AI is using a cooking pot's wait productively.
+PREP_SUBGOALS = {"GET_TOMATO", "GET_ONION", "PUT_TOMATO_IN_POT", "PUT_ONION_IN_POT"}
+PREP_FETCH_SUBGOALS = {"GET_TOMATO", "GET_ONION"}
+
+
+def step_candidate_subgoals(step: dict) -> list[str] | None:
+    """Runtime candidate names recorded for this step, or None when the
+    trajectory carries no candidate information (legacy sessions)."""
+    raw = step.get("ai_subgoal_candidates")
+    if raw is None:
+        decision = step.get("task_decision") or {}
+        raw = decision.get("candidate_set")
+    if raw is None:
+        return None
+    names = []
+    for candidate in raw:
+        name = candidate.get("subgoal") if isinstance(candidate, dict) else candidate
+        if isinstance(name, str):
+            names.append(name)
+    return names
+
+
+def prep_option_available(step: dict) -> bool:
+    """Whether the runtime actually offered an ingredient fetch at this step.
+
+    The rule teacher stops fetching once a full next batch is already staged
+    on counters; feedback demanding "go get the next ingredient" in that state
+    names an option that did not exist, so it is not a missed opportunity.
+    Legacy steps without candidate information are assumed to have had one.
+    """
+    names = step_candidate_subgoals(step)
+    if names is None:
+        return True
+    return any(name in PREP_FETCH_SUBGOALS for name in names)
+
+
+def ai_ignoring_pot(step: dict, *, pot_is_ready: bool, human_holding: str | None) -> bool:
+    """Whether this step's AI decision leaves a ready/cooking pot unattended.
+
+    A pot that is READY is ignored whenever the AI's subgoal is not one of the
+    pot-attending ones.  A pot that is merely COOKING is ignored only when the
+    AI is idle (plain WAIT): fetching the next batch's ingredient is the
+    productive use of that wait (the very behaviour
+    ``AI_failed_to_prepare_ingredient_while_waiting`` asks for), and going for
+    a dish the human already holds would be a duplicate.  Before this rule,
+    the detector fired on every cooking window in which the AI walked for a
+    tomato -- 20/20 sampled sim events -- and the resulting labels taught the
+    general prior that GET_TOMATO/GET_ONION are dispreferred.
+    """
+    subgoal = step_ai_subgoal(step)
+    if subgoal in POT_ATTENDING_SUBGOALS:
+        return False
+    if pot_is_ready:
+        return True
+    if subgoal in PREP_SUBGOALS:
+        return False
+    if human_holding == "dish":
+        return False
+    return subgoal == "WAIT"
+
+
 def detect_ai_ignored_ready_or_nearly_ready_pot(window: list[dict]) -> list[dict]:
     """Detect ready/cooking-pot windows where the AI does not interact with the pot.
 
@@ -461,6 +531,7 @@ def detect_ai_ignored_ready_or_nearly_ready_pot(window: list[dict]) -> list[dict
 
         ai_pos = pos_tuple(after.get("ai_pos"))
         ai_holding = held_name(after.get("ai_held_object"))
+        human_holding = held_name(after.get("human_held_object"))
         distances = [manhattan(ai_pos, pot_pos) for pot_pos in ready_positions]
         nearest_ready_pot_dist = min(
             [distance for distance in distances if distance is not None],
@@ -469,8 +540,13 @@ def detect_ai_ignored_ready_or_nearly_ready_pot(window: list[dict]) -> list[dict
         ai_action_name = str(step.get("ai_action_name"))
         ai_can_pickup_soup = ai_holding in {None, "dish"}
         ai_handled_pot = ai_action_name == "interact" and nearest_ready_pot_dist in {0, 1}
+        pot_is_ready = bool(pot_positions(after.get("pot_states"), ("ready",)))
 
-        if ai_can_pickup_soup and not ai_handled_pot:
+        if ai_can_pickup_soup and not ai_handled_pot and ai_ignoring_pot(
+            step,
+            pot_is_ready=pot_is_ready,
+            human_holding=human_holding,
+        ):
             streak.append(step)
         else:
             if len(streak) >= 3:
@@ -545,9 +621,16 @@ def detect_ai_failed_to_prepare_ingredient_while_waiting(window: list[dict]) -> 
 
         ai_has_free_hand = ai_holding is None
         human_waiting_with_dish = human_holding == "dish"
-        ai_not_prepping = ai_has_free_hand and not ai_picked_up_ingredient
+        # Walking to a dispenser is preparation too -- only an idle AI (plain
+        # WAIT) is failing to prepare.  Judging by "still empty-handed" alone
+        # flagged every multi-step walk to the tomato dispenser.
+        ai_not_prepping = (
+            ai_has_free_hand
+            and not ai_picked_up_ingredient
+            and step_ai_subgoal(step) not in PREP_SUBGOALS
+        )
 
-        if ai_not_prepping and human_waiting_with_dish:
+        if ai_not_prepping and human_waiting_with_dish and prep_option_available(step):
             streak.append(step)
         else:
             if len(streak) >= 4:
@@ -623,7 +706,7 @@ def detect_successfully_delivered_soup(window: list[dict]) -> list[dict]:
                 actor=actor,
                 event_valence=VALENCE_POSITIVE_PROGRESS,
                 related_subgoal=related_subgoal,
-                condition_features=extract_condition_features(step),
+                condition_features=decision_condition_features(step),
             )
         )
     return events
@@ -655,7 +738,7 @@ def detect_ai_successfully_picked_up_soup(window: list[dict]) -> list[dict]:
                     actor=ACTOR_AI,
                     event_valence=VALENCE_POSITIVE_PROGRESS,
                     related_subgoal=step_ai_subgoal(step) or "PICKUP_SOUP",
-                    condition_features=extract_condition_features(step),
+                    condition_features=decision_condition_features(step),
                 )
             )
     return events
@@ -721,7 +804,7 @@ def detect_ai_successfully_put_ingredient_into_pot(window: list[dict]) -> list[d
                 actor=ACTOR_AI,
                 event_valence=VALENCE_POSITIVE_PROGRESS,
                 related_subgoal=step_ai_subgoal(step) or subgoal,
-                condition_features=extract_condition_features(step),
+                condition_features=decision_condition_features(step),
             )
         )
     return events
@@ -827,7 +910,7 @@ def detect_ai_pick_drop_loop(window: list[dict]) -> list[dict]:
                 actor=ACTOR_AI,
                 event_valence=VALENCE_NEGATIVE_PROBLEM,
                 related_subgoal=step_ai_subgoal(group[0]),
-                condition_features=extract_condition_features(group[0]),
+                condition_features=decision_condition_features(group[0]),
             )
         )
     return events
@@ -927,7 +1010,7 @@ def detect_ai_put_object_on_unhelpful_counter(window: list[dict]) -> list[dict]:
                 actor=ACTOR_AI,
                 event_valence=VALENCE_NEUTRAL_CONTEXT,
                 related_subgoal=step_ai_subgoal(step),
-                condition_features=extract_condition_features(step),
+                condition_features=decision_condition_features(step),
             )
         )
     return events
@@ -1201,7 +1284,7 @@ def held_unneeded_event(streak: list[dict]) -> dict:
         actor=ACTOR_AI,
         event_valence=VALENCE_NEGATIVE_PROBLEM,
         related_subgoal=step_ai_subgoal(first),
-        condition_features=extract_condition_features(first),
+        condition_features=decision_condition_features(first),
     )
 
 
@@ -1226,7 +1309,7 @@ def missed_plate_event(streak: list[dict]) -> dict:
         actor=ACTOR_AI,
         event_valence=VALENCE_MISSED_OPPORTUNITY,
         related_subgoal=step_ai_subgoal(first),
-        condition_features=extract_condition_features(first),
+        condition_features=decision_condition_features(first),
     )
 
 
@@ -1310,7 +1393,7 @@ def missed_useful_counter_event(streak: list[dict]) -> dict | None:
                 else "GET_USEFUL_INGREDIENT"
             )
         ],
-        condition_features=first_conditions,
+        condition_features=decision_condition_features(first),
     )
 
 
@@ -1357,7 +1440,7 @@ def labor_division_event(streak: list[dict], opportunity_kind: str) -> dict:
         event_valence=VALENCE_MISSED_OPPORTUNITY,
         related_subgoal=step_ai_subgoal(first),
         alternative_subgoals=[preferred_subgoal],
-        condition_features=conditions,
+        condition_features=decision_condition_features(first),
     )
 
 
@@ -1393,7 +1476,7 @@ def prep_wait_event(streak: list[dict]) -> dict:
         actor=ACTOR_AI,
         event_valence=VALENCE_MISSED_OPPORTUNITY,
         related_subgoal=step_ai_subgoal(first),
-        condition_features=extract_condition_features(first),
+        condition_features=decision_condition_features(first),
     )
 
 
@@ -1417,7 +1500,14 @@ def ready_pot_event(streak: list[dict]) -> dict:
         end_timestep=int(last["total_step"]),
         evidence={
             "ready_pot_positions": [list(pos) for pos in ready_positions],
-            "detected_pot_states": ["cooking", "ready"],
+            "detected_pot_states": sorted(
+                {
+                    state_name
+                    for step in streak
+                    for state_name in ("cooking", "ready")
+                    if pot_positions(step_state_after(step).get("pot_states"), (state_name,))
+                }
+            ),
             "ai_pos": list(ai_pos) if ai_pos else None,
             "ai_held_object": last_after.get("ai_held_object"),
             "nearest_ready_pot_dist": nearest_ready_pot_dist,
@@ -1428,7 +1518,7 @@ def ready_pot_event(streak: list[dict]) -> dict:
         actor=ACTOR_AI,
         event_valence=VALENCE_MISSED_OPPORTUNITY,
         related_subgoal=step_ai_subgoal(first),
-        condition_features=extract_condition_features(first),
+        condition_features=decision_condition_features(first),
     )
 
 

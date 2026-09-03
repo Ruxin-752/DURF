@@ -13,7 +13,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from .condition_features import extract_condition_features
+from .condition_features import decision_condition_features
 from .io_utils import read_jsonl, write_jsonl
 from .session_converter import convert_session
 
@@ -243,7 +243,7 @@ def probe_candidate_pool(
 
 
 def build_probe_hit(step: dict[str, Any], probe: ProbeDefinition) -> dict[str, Any]:
-    condition_features = extract_condition_features(step)
+    condition_features = decision_condition_features(step)
     candidates, chosen_subgoal = probe_candidate_pool(step, probe)
     evaluation_unavailable = (
         probe.domain == COORDINATION_PROBE_DOMAIN and not candidates
@@ -291,7 +291,7 @@ def detect_probe_hits(
     hits: list[dict[str, Any]] = []
     last_hit_step_by_key: dict[tuple[str, int], int] = {}
     for step in trajectory:
-        conditions = extract_condition_features(step)
+        conditions = decision_condition_features(step)
         episode = int(step.get("episode") or 0)
         total_step = step_total(step)
         for probe in probes:

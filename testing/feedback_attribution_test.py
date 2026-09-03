@@ -4,8 +4,12 @@ from __future__ import annotations
 
 import unittest
 
-from durf.feedback_attribution.condition_features import extract_condition_features
+from durf.feedback_attribution.condition_features import (
+    decision_condition_features,
+    extract_condition_features,
+)
 from durf.feedback_attribution.event_detectors import (
+    detect_ai_failed_to_prepare_ingredient_while_waiting,
     detect_ai_failed_to_yield_or_clear_path,
     detect_ai_held_unneeded_object_too_long,
     detect_ai_ignored_ready_or_nearly_ready_pot,
@@ -27,7 +31,9 @@ from durf.feedback_attribution.probe_state_detector import (
 )
 from durf.feedback_attribution.sample_builder import candidates_visible_at_feedback
 from durf.feedback_attribution.subgoal_preferences import (
+    TASK_HU_SUBGOALS as ATTRIBUTION_TASK_HU_SUBGOALS,
     infer_subgoal_preferences,
+    resolve_useful_ingredient,
 )
 from durf.hu.subgoal_reranker import (
     COORDINATION_DECISION_LEVEL,
@@ -209,6 +215,34 @@ class ConditionFeatureTests(unittest.TestCase):
 
         self.assertFalse(features["human_trying_to_pass"])
         self.assertFalse(features["ai_on_human_path"])
+
+    def test_decision_condition_uses_the_pre_action_state(self):
+        """A label about the decision at step t must carry the condition the
+        decision layer saw (state_before), not the post-action snapshot.
+        The put-down step is the canonical trap: after the action the AI is
+        empty-handed, but PUT_DOWN_OBJECT was chosen while holding a tomato."""
+        before = facts(ai_held="tomato", pot_states={"cooking": [[2, 0]]})
+        after = facts(ai_held=None, pot_states={"cooking": [[2, 0]]})
+        step = before_after_step(7, before=before, after=after, ai_action="interact", ai_subgoal="PUT_DOWN_OBJECT")
+
+        outcome_view = extract_condition_features(step)
+        decision_view = decision_condition_features(step)
+
+        self.assertTrue(outcome_view["ai_empty_handed"])
+        self.assertFalse(decision_view["ai_empty_handed"])
+        self.assertTrue(decision_view["ai_has_tomato"])
+        self.assertEqual(decision_view["condition_state_source"], "state_before")
+
+        # The runtime-recorded features are what Hu actually scored with, so
+        # they win over anything recomputed here.
+        step["ai_condition_features"] = {"ai_adjacent_to_current_subgoal_target": True, "ai_current_subgoal": "PUT_DOWN_OBJECT"}
+        decision_view = decision_condition_features(step)
+        self.assertTrue(decision_view["ai_adjacent_to_current_subgoal_target"])
+        self.assertEqual(decision_view["ai_current_subgoal"], "PUT_DOWN_OBJECT")
+
+        # Legacy sessions without a pre-action snapshot are flagged, not silently shifted.
+        legacy = {**step, "extra": {}}
+        self.assertEqual(decision_condition_features(legacy)["condition_state_source"], "state_after_fallback")
 
     def test_old_hu_condition_dimension_remains_loadable(self):
         model = LinearSubgoalReranker(condition_keys=("pot_empty",))
@@ -595,13 +629,14 @@ class CandidateEventTests(unittest.TestCase):
         self.assertEqual(events[0]["event_type"], "AI_held_unneeded_object_too_long")
         self.assertEqual(events[0]["evidence"]["duration_steps"], 5)
 
-    def test_ignored_pot_fires_during_cooking_not_only_ready(self):
+    def test_ignored_pot_fires_during_cooking_when_ai_is_idle(self):
         steps = [
             make_step(
                 total_step,
                 ai_pos=(3, 1),
                 ai_held=None,
                 pot_states={"cooking": [[2, 0]]},
+                ai_subgoal="WAIT",
             )
             for total_step in (1, 2, 3)
         ]
@@ -610,7 +645,85 @@ class CandidateEventTests(unittest.TestCase):
 
         self.assertEqual(len(events), 1)
         self.assertEqual(events[0]["event_type"], "AI_ignored_ready_or_nearly_ready_pot")
-        self.assertEqual(events[0]["evidence"]["detected_pot_states"], ["cooking", "ready"])
+        self.assertEqual(events[0]["evidence"]["detected_pot_states"], ["cooking"])
+        self.assertEqual(events[0]["related_subgoal"], "WAIT")
+
+    def test_ignored_pot_does_not_fire_while_ai_preps_during_cooking(self):
+        """Fetching the next batch's ingredient IS the productive use of a
+        cooking wait -- it is what AI_failed_to_prepare_ingredient_while_waiting
+        asks for, so the two detectors must not contradict each other."""
+        steps = [
+            make_step(
+                total_step,
+                ai_held=None,
+                pot_states={"cooking": [[2, 0]]},
+                ai_subgoal="GET_TOMATO",
+            )
+            for total_step in (1, 2, 3, 4)
+        ]
+        self.assertEqual(detect_ai_ignored_ready_or_nearly_ready_pot(steps), [])
+
+    def test_ignored_pot_does_not_fire_during_cooking_when_human_has_dish(self):
+        steps = [
+            make_step(
+                total_step,
+                ai_held=None,
+                human_held="dish",
+                pot_states={"cooking": [[2, 0]]},
+                ai_subgoal="WAIT",
+            )
+            for total_step in (1, 2, 3)
+        ]
+        self.assertEqual(detect_ai_ignored_ready_or_nearly_ready_pot(steps), [])
+
+    def test_ignored_pot_fires_on_ready_pot_unless_ai_is_attending(self):
+        ignoring = [
+            make_step(t, ai_held=None, pot_states={"ready": [[2, 0]]}, ai_subgoal="GET_TOMATO")
+            for t in (1, 2, 3)
+        ]
+        events = detect_ai_ignored_ready_or_nearly_ready_pot(ignoring)
+        self.assertEqual(len(events), 1)
+        self.assertEqual(events[0]["related_subgoal"], "GET_TOMATO")
+
+        for attending in ("GET_DISH", "PICKUP_SOUP", "WAIT_NEAR_POT"):
+            steps = [
+                make_step(t, ai_held=None, pot_states={"ready": [[2, 0]]}, ai_subgoal=attending)
+                for t in (1, 2, 3, 4, 5)
+            ]
+            self.assertEqual(
+                detect_ai_ignored_ready_or_nearly_ready_pot(steps), [], attending
+            )
+
+    def test_prep_wait_does_not_fire_while_ai_walks_to_dispenser(self):
+        idle = [
+            make_step(t, ai_held=None, human_held="dish", pot_states={"cooking": [[2, 0]]}, ai_subgoal="WAIT")
+            for t in (1, 2, 3, 4)
+        ]
+        self.assertEqual(len(detect_ai_failed_to_prepare_ingredient_while_waiting(idle)), 1)
+
+        walking = [
+            make_step(t, ai_held=None, human_held="dish", pot_states={"cooking": [[2, 0]]}, ai_subgoal="GET_ONION")
+            for t in (1, 2, 3, 4, 5, 6)
+        ]
+        self.assertEqual(detect_ai_failed_to_prepare_ingredient_while_waiting(walking), [])
+
+    def test_prep_wait_requires_a_fetch_option_on_the_table(self):
+        """When the next batch is already staged the runtime offers no
+        GET_TOMATO/GET_ONION; demanding one then names a phantom option."""
+        nothing_to_fetch = [
+            {
+                **make_step(t, ai_held=None, human_held="dish", pot_states={"cooking": [[2, 0]]}, ai_subgoal="WAIT"),
+                "ai_subgoal_candidates": [{"subgoal": "WAIT"}],
+            }
+            for t in (1, 2, 3, 4, 5)
+        ]
+        self.assertEqual(detect_ai_failed_to_prepare_ingredient_while_waiting(nothing_to_fetch), [])
+
+        fetch_available = [
+            {**step, "ai_subgoal_candidates": [{"subgoal": "GET_TOMATO"}, {"subgoal": "WAIT"}]}
+            for step in nothing_to_fetch
+        ]
+        self.assertEqual(len(detect_ai_failed_to_prepare_ingredient_while_waiting(fetch_available)), 1)
 
     def test_missed_plate_fires_after_three_frames(self):
         steps = [
@@ -779,6 +892,79 @@ class SubgoalPreferenceTests(unittest.TestCase):
 
         self.assertEqual(preferred, ["GET_DISH"])
         self.assertEqual(rejected, ["WAIT"])
+
+    def test_useful_ingredient_is_not_a_hu_dimension(self):
+        """A label on a name the runtime never offers can never change a
+        decision, so it must not be a Hu dimension -- it is resolved instead."""
+        self.assertNotIn("GET_USEFUL_INGREDIENT", ATTRIBUTION_TASK_HU_SUBGOALS)
+        self.assertNotIn("GET_USEFUL_INGREDIENT", TASK_HU_SUBGOALS)
+
+    def test_useful_ingredient_resolves_to_the_decisions_real_candidates(self):
+        candidates = [{"subgoal": "GET_TOMATO"}, {"subgoal": "WAIT"}]
+        resolved, unresolved = resolve_useful_ingredient(
+            ["GET_USEFUL_INGREDIENT"], candidates
+        )
+        self.assertEqual(resolved, ["GET_TOMATO"])
+        self.assertEqual(unresolved, [])
+
+        # Nothing to fetch was on the table: the preference is not expressible
+        # at that decision and must be dropped, not trained on a phantom.
+        resolved, unresolved = resolve_useful_ingredient(
+            ["GET_USEFUL_INGREDIENT"], [{"subgoal": "WAIT"}]
+        )
+        self.assertEqual(resolved, [])
+        self.assertEqual(unresolved, ["GET_USEFUL_INGREDIENT"])
+
+        # Concrete names pass through untouched.
+        resolved, unresolved = resolve_useful_ingredient(["GET_DISH"], [])
+        self.assertEqual((resolved, unresolved), (["GET_DISH"], []))
+
+    def test_builder_resolves_useful_ingredient_against_trajectory_candidates(self):
+        trajectory = [
+            {
+                **make_step(5, ai_subgoal="WAIT", human_held="dish", pot_states={"cooking": [[2, 0]]}),
+                "ai_subgoal_candidates": [
+                    {"subgoal": "GET_ONION", "task_score": 50.0},
+                    {"subgoal": "WAIT", "task_score": 0.0},
+                ],
+            }
+        ]
+        attribution = {
+            "feedback_event_id": "feedback:9",
+            "target_event": "AI_failed_to_prepare_ingredient_while_waiting",
+            "target_time_window": [5, 8],
+            "candidate_events": [
+                {
+                    "event_type": "AI_failed_to_prepare_ingredient_while_waiting",
+                    "start_timestep": 5,
+                    "end_timestep": 8,
+                    "actor": "ai",
+                    "event_valence": "missed_opportunity",
+                    "related_subgoal": "WAIT",
+                }
+            ],
+        }
+        provenance = build_provenance_record(
+            attribution=attribution, feedback=None, trajectory=trajectory, user_id="SIM"
+        )
+        self.assertEqual(provenance["attributed_preferred_subgoals"], ["GET_USEFUL_INGREDIENT"])
+        self.assertEqual(provenance["preferred_subgoals"], ["GET_ONION"])
+        self.assertEqual(provenance["rejected_subgoals"], ["WAIT"])
+        self.assertEqual(provenance["unresolved_subgoals"], [])
+        samples = build_training_samples([provenance])
+        self.assertEqual(
+            [(s["preferred_subgoal"], s["rejected_subgoal"]) for s in samples],
+            [("GET_ONION", "WAIT")],
+        )
+
+        # Same feedback, but the runtime had nothing to fetch on the table.
+        trajectory[0]["ai_subgoal_candidates"] = [{"subgoal": "WAIT", "task_score": 0.0}]
+        provenance = build_provenance_record(
+            attribution=attribution, feedback=None, trajectory=trajectory, user_id="SIM"
+        )
+        self.assertEqual(provenance["preferred_subgoals"], [])
+        self.assertEqual(provenance["unresolved_subgoals"], ["GET_USEFUL_INGREDIENT"])
+        self.assertEqual(build_training_samples([provenance]), [])
 
     def test_partial_llm_output_is_not_completed_by_static_defaults(self):
         preferred, rejected = infer_subgoal_preferences(
