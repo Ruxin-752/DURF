@@ -248,6 +248,35 @@ class ConditionFeatureTests(unittest.TestCase):
         legacy = {**step, "extra": {}}
         self.assertEqual(decision_condition_features(legacy)["condition_state_source"], "state_after_fallback")
 
+    def test_unlabelled_subgoals_carry_no_opinion(self):
+        """Weights start at exactly zero and only labelled subgoals move, so a
+        subgoal Hu has never seen scores 0 and reports no support. Random
+        init used to leave every unlabelled subgoal with a permanent ~0.05
+        opinion -- enough to win a zero-margin argmax inside the band."""
+        model = LinearSubgoalReranker(subgoals=("A", "B", "C"), condition_keys=("pot_empty",), seed=7)
+        self.assertEqual(float(abs(model.condition_weights).sum()), 0.0)
+        self.assertEqual(model.has_support("C"), False)
+
+        samples = [
+            PairwiseSample(user_id="u", layout=None, condition_features={"pot_empty": True},
+                           preferred_subgoal="A", rejected_subgoal="B",
+                           decision_level=TASK_DECISION_LEVEL)
+            for _ in range(4)
+        ]
+        model.train(samples, epochs=20)
+        self.assertTrue(model.has_support("A"))
+        self.assertTrue(model.has_support("B"))
+        self.assertFalse(model.has_support("C"))
+        self.assertEqual(model.score("u", {"pot_empty": True}, "C"), 0.0)
+        self.assertGreater(model.score("u", {"pot_empty": True}, "A"), model.score("u", {"pot_empty": True}, "B"))
+
+        reloaded = LinearSubgoalReranker.from_dict(model.to_dict())
+        self.assertEqual(reloaded.has_support("C"), False)
+        self.assertTrue(reloaded.has_support("A"))
+
+        legacy = model.to_dict(); legacy.pop("subgoal_support")
+        self.assertIsNone(LinearSubgoalReranker.from_dict(legacy).has_support("A"))
+
     def test_old_hu_condition_dimension_remains_loadable(self):
         model = LinearSubgoalReranker(condition_keys=("pot_empty",))
 

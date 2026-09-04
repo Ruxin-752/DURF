@@ -40,6 +40,7 @@ from durf.baseline.collect_rule_teacher_dataset import (
     choose_task_candidate,
     rule_teacher_candidates,
 )
+from durf.baseline.task_cost import attach_step_costs, build_feature_map
 from durf.baseline.runtime import (
     DEFAULT_AGENT_NAME,
     DEFAULT_PLAYABLE_LAYOUTS,
@@ -58,6 +59,7 @@ from durf.hu.subgoal_reranker import (
     TASK_DECISION_LEVEL,
     load_runtime_hu,
     runtime_hu_score,
+    runtime_hu_has_support,
     warn_unknown_runtime_subgoal,
 )
 
@@ -287,6 +289,19 @@ def parse_args() -> argparse.Namespace:
         ),
     )
     parser.add_argument("--hu-user-id", default="PILOT01")
+    parser.add_argument(
+        "--hu-step-tolerance",
+        type=float,
+        default=None,
+        help=(
+            "Estimated extra STEPS to the next delivery the agent may spend "
+            "to honour the learned preference (durf/baseline/task_cost.py). "
+            "When set (> 0) it replaces the task-point band: candidates whose "
+            "estimated steps-to-delivery are within this many steps of the "
+            "task optimum's form the acceptable set. The task optimum itself "
+            "is still the frozen backbone's pick. Unset/0 = task-point rule."
+        ),
+    )
     parser.add_argument(
         "--hu-task-tolerance",
         type=float,
@@ -812,6 +827,8 @@ def main() -> int:
     hu_model = load_runtime_hu(args.hu_model) if args.hu_model else None
     if args.hu_task_tolerance < 0:
         raise ValueError("--hu-task-tolerance cannot be negative")
+    if args.hu_step_tolerance is not None and args.hu_step_tolerance < 0:
+        raise ValueError("--hu-step-tolerance cannot be negative")
     if args.hu_coordination_lambda < 0:
         raise ValueError("--hu-coordination-lambda cannot be negative")
     coordination_controller = CoordinationController(
@@ -827,6 +844,10 @@ def main() -> int:
         if args.ai_mode == "subgoal_executor"
         else {}
     )
+    task_features_by_layout = {
+        layout: build_feature_map(planner.mdp, planner)
+        for layout, planner in motion_planners_by_layout.items()
+    }
     session_dir = new_session_dir(args.output_dir)
 
     trajectory_path = session_dir / "trajectory.csv"
@@ -852,6 +873,7 @@ def main() -> int:
                 "hu_model": str(args.hu_model) if args.hu_model else None,
                 "hu_user_id": args.hu_user_id,
                 "hu_task_tolerance": args.hu_task_tolerance,
+                "hu_step_tolerance": args.hu_step_tolerance,
                 "hu_coordination_lambda": args.hu_coordination_lambda,
                 "hu_apply": args.hu_apply,
             },
@@ -993,6 +1015,8 @@ def main() -> int:
                 "reason": candidate.reason,
                 "feasible": candidate.feasible,
                 "metadata": candidate.metadata,
+                "step_cost": candidate.step_cost,
+                "hu_supported": candidate.hu_supported,
             }
             for candidate in candidates
         ]
@@ -1011,6 +1035,9 @@ def main() -> int:
         if hu_model is None:
             return
         for candidate in candidates:
+            candidate.hu_supported = runtime_hu_has_support(
+                hu_model, TASK_DECISION_LEVEL, candidate.subgoal
+            )
             try:
                 candidate.hu_score = runtime_hu_score(
                     hu_model,
@@ -1028,11 +1055,20 @@ def main() -> int:
     ) -> tuple[int, str, list[dict], dict, dict]:
         motion_planner = motion_planners_by_layout[current_layout]
         candidates = rule_teacher_candidates(env.base_env.state, motion_planner, 0)
+        attach_step_costs(
+            candidates,
+            features=task_features_by_layout[current_layout],
+            motion_planner=motion_planner,
+            player=env.base_env.state.players[0],
+            state=env.base_env.state,
+            mdp=env.base_env.mdp,
+        )
         condition_features = live_condition_features(human_action)
         apply_hu_shadow_scores(candidates, condition_features)
         chosen = choose_task_candidate(
             candidates,
             task_tolerance=args.hu_task_tolerance if args.hu_apply else 0.0,
+            step_tolerance=args.hu_step_tolerance if args.hu_apply else None,
         )
         subgoal_name = chosen.subgoal
         planner_action = chosen.action
@@ -1061,8 +1097,12 @@ def main() -> int:
             "candidates": serialized_candidates,
             "selected": subgoal_name,
             "selected_action": int(planner_action),
-            "hu_applied": bool(args.hu_apply and args.hu_task_tolerance > 0.0),
+            "hu_applied": bool(
+                args.hu_apply
+                and (args.hu_task_tolerance > 0.0 or (args.hu_step_tolerance or 0.0) > 0.0)
+            ),
             "hu_task_tolerance": args.hu_task_tolerance,
+            "hu_step_tolerance": args.hu_step_tolerance,
         }
         # Every subgoal the generator can produce is executed by the motion
         # planner.  The learned executor used to sit behind this point as a
@@ -1305,6 +1345,10 @@ def main() -> int:
                         current_layout,
                         args.seed,
                         args.horizon,
+                    )
+                    task_features_by_layout[current_layout] = build_feature_map(
+                        motion_planners_by_layout[current_layout].mdp,
+                        motion_planners_by_layout[current_layout],
                     )
             env = envs_by_layout[current_layout]
 

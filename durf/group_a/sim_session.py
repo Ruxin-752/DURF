@@ -47,6 +47,7 @@ from durf.baseline.collect_rule_teacher_dataset import (
     pots_needing_ingredient,
     rule_teacher_candidates,
 )
+from durf.baseline.task_cost import attach_step_costs, build_feature_map
 from durf.baseline.coordination import (
     choose_reroute_action,
     CONTINUE_CURRENT_SUBGOAL,
@@ -62,7 +63,12 @@ from durf.feedback_attribution.event_detectors import (
     PREP_SUBGOALS,
     ai_ignoring_pot,
 )
-from durf.hu.subgoal_reranker import load_runtime_hu, runtime_hu_score, warn_unknown_runtime_subgoal
+from durf.hu.subgoal_reranker import (
+    load_runtime_hu,
+    runtime_hu_has_support,
+    runtime_hu_score,
+    warn_unknown_runtime_subgoal,
+)
 
 STAY = 4
 INTERACT = 5
@@ -787,12 +793,15 @@ class AiRuntime:
         stalled_escape: bool = False,
         stall_escape_delay: int = 8,
         seed: int = 0,
+        hu_step_tolerance: float | None = None,
     ) -> None:
         self.env = env
         self.motion_planner = motion_planner
+        self.task_features = build_feature_map(motion_planner.mdp, motion_planner)
         self.subgoal_model = subgoal_model
         self.hu_model = hu_model
         self.hu_task_tolerance = hu_task_tolerance
+        self.hu_step_tolerance = hu_step_tolerance
         self.hu_coordination_lambda = hu_coordination_lambda
         self.hu_apply = hu_apply
         self.coordination = CoordinationController(
@@ -829,6 +838,14 @@ class AiRuntime:
             self.motion_planner,
             0,
         )
+        attach_step_costs(
+            candidates,
+            features=self.task_features,
+            motion_planner=self.motion_planner,
+            player=state.players[0],
+            state=state,
+            mdp=self.motion_planner.mdp,
+        )
         facts = _state_facts(self.env)
         condition_features = extract_condition_features(
             {
@@ -839,6 +856,9 @@ class AiRuntime:
         )
         if self.hu_model is not None:
             for candidate in candidates:
+                candidate.hu_supported = runtime_hu_has_support(
+                    self.hu_model, "task", candidate.subgoal
+                )
                 try:
                     candidate.hu_score = runtime_hu_score(
                         self.hu_model,
@@ -853,6 +873,7 @@ class AiRuntime:
         chosen = choose_task_candidate(
             candidates,
             task_tolerance=self.hu_task_tolerance if self.hu_apply else 0.0,
+            step_tolerance=self.hu_step_tolerance if self.hu_apply else None,
         )
         subgoal_name = chosen.subgoal
         planner_action = chosen.action
@@ -876,6 +897,8 @@ class AiRuntime:
                 "reason": candidate.reason,
                 "feasible": candidate.feasible,
                 "metadata": candidate.metadata,
+                "step_cost": candidate.step_cost,
+                "hu_supported": candidate.hu_supported,
             }
             for candidate in candidates
         ]
@@ -892,8 +915,15 @@ class AiRuntime:
             "candidates": serialized_candidates,
             "selected": subgoal_name,
             "selected_action": int(planner_action),
-            "hu_applied": bool(self.hu_apply and self.hu_task_tolerance > 0.0),
+            "hu_applied": bool(
+                self.hu_apply
+                and (
+                    self.hu_task_tolerance > 0.0
+                    or (self.hu_step_tolerance or 0.0) > 0.0
+                )
+            ),
             "hu_task_tolerance": self.hu_task_tolerance,
+            "hu_step_tolerance": self.hu_step_tolerance,
         }
 
         # Every subgoal the generator can produce is executed by the motion
@@ -1287,6 +1317,16 @@ def parse_args() -> argparse.Namespace:
         help="Frozen Hu_general or protocol-v2 PerUserAdapter JSON.",
     )
     parser.add_argument("--hu-task-tolerance", type=float, default=0.0)
+    parser.add_argument(
+        "--hu-step-tolerance",
+        type=float,
+        default=None,
+        help=(
+            "Estimated extra steps to the next delivery the agent may spend to "
+            "honour the learned preference; replaces the task-point band when "
+            "> 0 (see play_with_baseline.py --hu-step-tolerance)."
+        ),
+    )
     parser.add_argument("--hu-coordination-lambda", type=float, default=0.0)
     parser.add_argument("--hu-apply", action="store_true")
     parser.add_argument("--output-dir", default=str(REPO_ROOT / "outputs" / "human_ai_sessions"))
@@ -1307,6 +1347,8 @@ def run_sim_session(args: argparse.Namespace) -> Path:
         subgoal_model = tf.keras.models.load_model(args.subgoal_executor)
 
     hu_model = load_runtime_hu(args.hu_model) if args.hu_model else None
+    if args.hu_step_tolerance is not None and args.hu_step_tolerance < 0:
+        raise ValueError("--hu-step-tolerance cannot be negative")
     if args.hu_task_tolerance < 0 or args.hu_coordination_lambda < 0:
         raise ValueError("Hu lambdas cannot be negative")
 
@@ -1318,6 +1360,7 @@ def run_sim_session(args: argparse.Namespace) -> Path:
         subgoal_model=subgoal_model,
         hu_model=hu_model,
         hu_task_tolerance=args.hu_task_tolerance,
+        hu_step_tolerance=args.hu_step_tolerance,
         hu_coordination_lambda=args.hu_coordination_lambda,
         hu_apply=args.hu_apply,
         stubborn_prob=args.sim_ai_stubborn_prob,
@@ -1354,6 +1397,7 @@ def run_sim_session(args: argparse.Namespace) -> Path:
                 "hu_user_id": args.hu_user_id,
                 "hu_model": str(args.hu_model) if args.hu_model else None,
                 "hu_task_tolerance": args.hu_task_tolerance,
+                "hu_step_tolerance": args.hu_step_tolerance,
                 "hu_coordination_lambda": args.hu_coordination_lambda,
                 "hu_apply": args.hu_apply,
                 "data_source": "synthetic_sim_human",

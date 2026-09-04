@@ -166,17 +166,43 @@ class LinearSubgoalReranker:
         self.users = tuple(users)
         self.subgoal_to_index = {name: index for index, name in enumerate(self.subgoals)}
         self.user_to_index = {name: index for index, name in enumerate(self.users)}
-        rng = np.random.default_rng(seed)
+        # Zero-initialised on purpose (2026-09-04).  This is a linear pairwise
+        # model: gradient descent from zero needs no symmetry breaking, and a
+        # random init leaves every subgoal that never appears in a label with
+        # a random, permanent opinion (~+/-0.05 per decision) -- which, under a
+        # zero-margin argmax inside the satisficing band, is enough to pick a
+        # never-labelled candidate over the backbone's.  Observed as a
+        # drop/pick-up loop between PUT_TOMATO_IN_POT and PUT_DOWN_OBJECT
+        # driven entirely by init noise.  `seed` is kept for signature
+        # compatibility; nothing random remains here.
+        del seed
         self.global_subgoal_bias = np.zeros(len(self.subgoals), dtype=np.float32)
-        self.condition_weights = rng.normal(
-            loc=0.0,
-            scale=0.01,
-            size=(len(self.condition_keys), len(self.subgoals)),
-        ).astype(np.float32)
+        self.condition_weights = np.zeros(
+            (len(self.condition_keys), len(self.subgoals)),
+            dtype=np.float32,
+        )
         self.user_subgoal_bias = np.zeros(
             (len(self.users), len(self.subgoals)),
             dtype=np.float32,
         )
+        # How many training pairs each subgoal took part in.  A subgoal with
+        # zero support has no evidence behind it and must never be the reason
+        # a decision moves away from the backbone (see
+        # collect_rule_teacher_dataset.choose_task_candidate).  None until a
+        # model trained with this field is loaded.
+        self.subgoal_support: np.ndarray | None = np.zeros(
+            len(self.subgoals), dtype=np.int64
+        )
+
+    def has_support(self, subgoal: str) -> bool | None:
+        """True/False when known; None for models saved before support was
+        tracked (callers should treat None as "unknown", not as "no")."""
+        if self.subgoal_support is None:
+            return None
+        index = self.subgoal_to_index.get(subgoal)
+        if index is None:
+            return False
+        return bool(self.subgoal_support[index] > 0)
 
     @classmethod
     def from_samples(
@@ -250,6 +276,11 @@ class LinearSubgoalReranker:
         history = {"loss": [], "accuracy": []}
         rng = np.random.default_rng(seed)
         order = np.arange(len(samples))
+        if self.subgoal_support is None:
+            self.subgoal_support = np.zeros(len(self.subgoals), dtype=np.int64)
+        for sample in samples:
+            self.subgoal_support[self.subgoal_to_index[sample.preferred_subgoal]] += 1
+            self.subgoal_support[self.subgoal_to_index[sample.rejected_subgoal]] += 1
         for _epoch in range(epochs):
             rng.shuffle(order)
             loss_sum = 0.0
@@ -336,6 +367,11 @@ class LinearSubgoalReranker:
             "global_subgoal_bias": self.global_subgoal_bias.tolist(),
             "condition_weights": self.condition_weights.tolist(),
             "user_subgoal_bias": self.user_subgoal_bias.tolist(),
+            "subgoal_support": (
+                self.subgoal_support.tolist()
+                if self.subgoal_support is not None
+                else None
+            ),
         }
 
     @classmethod
@@ -354,6 +390,10 @@ class LinearSubgoalReranker:
             data.get("user_subgoal_bias") or [],
             dtype=np.float32,
         ).reshape((len(model.users), len(model.subgoals)))
+        support = data.get("subgoal_support")
+        model.subgoal_support = (
+            np.asarray(support, dtype=np.int64) if support is not None else None
+        )
         return model
 
     def save(self, path: Path) -> None:
@@ -432,6 +472,12 @@ class HierarchicalHu:
         if head is None or candidate not in head.subgoal_to_index:
             return 0.0
         return head.score(user_id, condition_features, candidate)
+
+    def has_support(self, decision_level: str, candidate: str) -> bool | None:
+        head = self.head_for(decision_level)
+        if head is None or candidate not in head.subgoal_to_index:
+            return False
+        return head.has_support(candidate)
 
     def train(
         self,
@@ -605,6 +651,22 @@ class PerUserAdapter:
         # tracking: which conditions this user has observed
         self.observed_conditions_task: set[str] = set()
         self.observed_conditions_coord: set[str] = set()
+        # tracking: which subgoals this user's own feedback has labelled
+        self.observed_subgoals_task: set[str] = set()
+        self.observed_subgoals_coord: set[str] = set()
+
+    def has_support(self, decision_level: str, subgoal: str) -> bool | None:
+        """Evidence for a subgoal from the general prior OR this user's own
+        labels.  None only if the general prior predates support tracking
+        and the user has not labelled the subgoal either."""
+        own = (
+            self.observed_subgoals_task
+            if decision_level == TASK_DECISION_LEVEL
+            else self.observed_subgoals_coord
+        )
+        if subgoal in own:
+            return True
+        return self.hu_general.has_support(decision_level, subgoal)
 
     # -- Scoring -----------------------------------------------------------
 
@@ -701,8 +763,15 @@ class PerUserAdapter:
                 "observed_conditions": {"task": [], "coordination": []},
             }
 
-        # Track observed conditions
+        # Track observed subgoals and conditions
         for sample in samples:
+            observed = (
+                self.observed_subgoals_task
+                if sample.decision_level == TASK_DECISION_LEVEL
+                else self.observed_subgoals_coord
+            )
+            observed.add(sample.preferred_subgoal)
+            observed.add(sample.rejected_subgoal)
             cf = sample.condition_features or {}
             keys = (
                 CONDITION_KEYS
@@ -840,6 +909,8 @@ class PerUserAdapter:
             "observed_conditions_coord": sorted(
                 self.observed_conditions_coord
             ),
+            "observed_subgoals_task": sorted(self.observed_subgoals_task),
+            "observed_subgoals_coord": sorted(self.observed_subgoals_coord),
         }
 
     @classmethod
@@ -885,6 +956,8 @@ class PerUserAdapter:
         adapter.observed_conditions_coord = set(
             data.get("observed_conditions_coord") or []
         )
+        adapter.observed_subgoals_task = set(data.get("observed_subgoals_task") or [])
+        adapter.observed_subgoals_coord = set(data.get("observed_subgoals_coord") or [])
         return adapter
 
     def save(self, path: Path) -> None:
@@ -936,6 +1009,25 @@ def warn_unknown_runtime_subgoal(decision_level: str, subgoal: str) -> None:
         "with data for this decision level is needed for it to carry a preference.",
         file=sys.stderr,
     )
+
+
+def runtime_hu_has_support(
+    model: HierarchicalHu | PerUserAdapter,
+    decision_level: str,
+    subgoal: str,
+) -> bool:
+    """Whether the loaded Hu has any labelled evidence about ``subgoal``.
+
+    Models saved before support was tracked return None from has_support;
+    that is treated as supported so their behaviour is unchanged, but such
+    models also still carry random-init opinions on unlabelled subgoals and
+    should be retrained.
+    """
+    try:
+        support = model.has_support(decision_level, subgoal)
+    except KeyError:
+        return False
+    return True if support is None else bool(support)
 
 
 def runtime_hu_score(

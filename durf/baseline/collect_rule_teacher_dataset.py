@@ -21,6 +21,7 @@ import numpy as np
 from durf.baseline.evaluate_baseline import count_event_value
 from durf.baseline.runtime import make_direct_multi_env, resolve_agent_dir
 from durf.baseline.task_logic import next_unstaged_ingredient
+from durf.baseline.task_cost import WAITING_SUBGOALS
 from human_aware_rl.rllib.rllib import load_trainer
 from overcooked_ai_py.mdp.actions import Action
 from overcooked_ai_py.planning.planners import MotionPlanner
@@ -51,6 +52,17 @@ class CandidateSubgoal:
     metadata: dict = field(default_factory=dict)
     hu_score: float = 0.0
     final_score: float | None = None
+    # Whether the loaded Hu has labelled evidence about this subgoal.  Set by
+    # the runtime next to hu_score.  A candidate without evidence can never be
+    # the reason a decision moves away from the backbone: "no opinion" must
+    # not outrank a trained opinion, and a random-init residue must not
+    # outrank anything.
+    hu_supported: bool = True
+    # Estimated steps this agent would still need to deliver the next soup if
+    # it committed to this subgoal (durf/baseline/task_cost.py).  Attached by
+    # the runtime; None when no estimate is available.  This is the unit the
+    # satisficing tolerance is denominated in when `step_tolerance` is used.
+    step_cost: float | None = None
 
 
 def parse_args() -> argparse.Namespace:
@@ -1003,6 +1015,7 @@ def choose_task_candidate(
     candidates: list[CandidateSubgoal],
     *,
     task_tolerance: float = 0.0,
+    step_tolerance: float | None = None,
 ) -> CandidateSubgoal:
     """Satisfice on the task, then let the learned preference choose.
 
@@ -1023,6 +1036,24 @@ def choose_task_candidate(
     * Only the ordering of ``hu_score`` is used, so Hu's arbitrary output scale
       never has to be calibrated.
     * ``task_tolerance = 0`` reduces to the frozen task backbone exactly.
+
+    ``step_tolerance`` (2026-09-04) denominates the band in a quantity that
+    means something: estimated extra steps to the next delivery
+    (``CandidateSubgoal.step_cost``, from durf/baseline/task_cost.py).  The
+    task-point gaps are a priority encoding lifted from the rule teacher --
+    lumpy (10, 50, 60, 70, 90) and unitless -- so "how many task points may
+    we give up?" has no answerable form, whereas "how many extra steps may
+    the agent spend to honour the user's preference?" does.
+
+    The ORDERING stays the rule teacher's: the task optimum is still the
+    highest ``task_score`` (the frozen backbone), and ``step_tolerance``
+    only widens the acceptable set around it -- to every feasible candidate
+    whose estimated cost is within ``step_tolerance`` steps of the optimum's,
+    including candidates the estimator thinks are cheaper than the optimum
+    (the estimator is a greedy serial approximation with no partner model,
+    so it is allowed to widen the band but never to overrule the backbone's
+    pick at tolerance 0).  ``step_tolerance=None`` or ``0`` falls back to the
+    task-point rule, so tolerance 0 is the backbone exactly in both units.
     """
 
     feasible = [candidate for candidate in candidates if candidate.feasible]
@@ -1031,17 +1062,63 @@ def choose_task_candidate(
 
     tolerance = max(0.0, float(task_tolerance))
     best_task = max(candidate.task_score for candidate in feasible)
-    acceptable = [
-        candidate
-        for candidate in feasible
-        if candidate.task_score >= best_task - tolerance
-    ]
-    task_optimum = max(acceptable, key=lambda candidate: candidate.task_score)
+    task_optimum = max(feasible, key=lambda candidate: candidate.task_score)
+    use_steps = (
+        step_tolerance is not None
+        and float(step_tolerance) > 0.0
+        and task_optimum.step_cost is not None
+    )
+    if use_steps:
+        optimum_steps = float(task_optimum.step_cost)
+        budget = optimum_steps + float(step_tolerance)
+        acceptable = [
+            candidate
+            for candidate in feasible
+            if candidate is task_optimum
+            or (
+                candidate.step_cost is not None
+                and float(candidate.step_cost) <= budget
+            )
+        ]
+    else:
+        acceptable = [
+            candidate
+            for candidate in feasible
+            if candidate.task_score >= best_task - tolerance
+        ]
+    # A preference may choose HOW to act, or HOW to wait -- never WHETHER to
+    # act.  The band is evaluated per decision, but the preference is applied
+    # at every decision: a waiting candidate (WAIT, WAIT_NEAR_POT) leaves the
+    # world exactly as it was, so the same "one step worse" option is offered
+    # again next tick and a per-step sacrifice of 1 compounds without bound.
+    # In task points WAIT sat 50+ below every action so this never bit;
+    # priced in steps, waiting is exactly best_action + 1 and sat inside any
+    # band >= 1 -- observed as a 0-reward episode (idling instead of fetching)
+    # and as 1062 consecutive "keep holding the unneeded onion by the pot"
+    # decisions.  "Wait for me" preferences belong to the coordination
+    # domain, whose YIELD carries a commitment horizon for precisely this
+    # reason.  PUT_DOWN_OBJECT is not a waiting candidate: it changes the
+    # world, so the situation moves on and its cost is paid once.  Waiting
+    # candidates stay in the band when the backbone's own pick is a wait
+    # (wait here or by the pot; keep waiting or drop the plate).
+    if task_optimum.subgoal not in WAITING_SUBGOALS:
+        acceptable = [
+            candidate
+            for candidate in acceptable
+            if candidate.subgoal not in WAITING_SUBGOALS
+        ]
 
     # Rank inside the acceptable set by preference; ties fall back to the task
-    # prior so the result stays deterministic.
+    # prior so the result stays deterministic.  Only candidates Hu actually
+    # has evidence about may displace the backbone's pick (the pick itself is
+    # always eligible, so an unlabelled optimum is simply kept).
+    pool = [task_optimum] + [
+        candidate
+        for candidate in acceptable
+        if candidate is not task_optimum and candidate.hu_supported
+    ]
     chosen = max(
-        acceptable,
+        pool,
         key=lambda candidate: (candidate.hu_score, candidate.task_score),
     )
     for candidate in feasible:
@@ -1053,6 +1130,15 @@ def choose_task_candidate(
     chosen.metadata["task_tolerance"] = tolerance
     chosen.metadata["preference_override"] = chosen.subgoal != task_optimum.subgoal
     chosen.metadata["task_points_sacrificed"] = sacrificed
+    chosen.metadata["tolerance_unit"] = "steps" if use_steps else "task_points"
+    if use_steps:
+        chosen.metadata["step_tolerance"] = float(step_tolerance)
+        chosen.metadata["task_optimum_steps"] = float(task_optimum.step_cost)
+        chosen.metadata["steps_sacrificed"] = (
+            float(chosen.step_cost) - float(task_optimum.step_cost)
+            if chosen.step_cost is not None
+            else None
+        )
     return chosen
 
 
