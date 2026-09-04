@@ -158,10 +158,14 @@ def decision_step_for_attribution(
     target_step = None
     if event and event.get("start_timestep") is not None:
         target_step = event.get("start_timestep")
-    elif attribution.get("target_time_window"):
-        target_step = attribution["target_time_window"][0]
-    elif feedback:
+    elif feedback and feedback.get("total_step") is not None:
+        # No event: an explicit policy statement is about the decision the
+        # participant had just watched, i.e. the feedback step -- the same
+        # step condition_for_attribution falls back to, so condition and
+        # candidate set describe one decision rather than two.
         target_step = feedback.get("total_step")
+    elif attribution.get("target_time_window"):
+        target_step = attribution["target_time_window"][-1]
     if target_step is None:
         return None
     return latest_step_at_or_before(trajectory, int(target_step))

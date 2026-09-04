@@ -29,9 +29,13 @@ from durf.feedback_attribution.probe_state_detector import (
     DEFAULT_PROBES,
     build_probe_hit,
 )
-from durf.feedback_attribution.sample_builder import candidates_visible_at_feedback
+from durf.feedback_attribution.sample_builder import (
+    build_preview_attribution,
+    candidates_visible_at_feedback,
+)
 from durf.feedback_attribution.subgoal_preferences import (
     TASK_HU_SUBGOALS as ATTRIBUTION_TASK_HU_SUBGOALS,
+    infer_explicit_preference_from_text,
     infer_subgoal_preferences,
     resolve_useful_ingredient,
 )
@@ -1343,3 +1347,223 @@ class TrainSplitTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class SimTaskPreferenceTests(unittest.TestCase):
+    """The sim persona's task-domain PREFERENCE feedback (docs/hu_feedback_data_flow.md S6).
+
+    The corrective templates produce nothing on this backbone, so the only way
+    a sim participant can express a task preference is at decision points
+    where two candidates are genuinely close. These tests pin the three parts
+    that must agree: when an opportunity exists, what the persona says, and
+    what that sentence is parsed into.
+    """
+
+    def test_opportunity_requires_two_close_feasible_candidates(self):
+        from durf.group_a.sim_session import _preference_opportunity
+
+        cooking_dish_vs_prep = [
+            {"subgoal": "GET_DISH", "task_score": 60.0},
+            {"subgoal": "GET_TOMATO", "task_score": 50.0},
+            {"subgoal": "WAIT", "task_score": 0.0},
+        ]
+        self.assertEqual(
+            _preference_opportunity(cooking_dish_vs_prep), "division_of_labour"
+        )
+
+        # Soup is ready: the dish is 20 points ahead, no longer a toss-up.
+        ready = [
+            {"subgoal": "GET_DISH", "task_score": 90.0},
+            {"subgoal": "GET_TOMATO", "task_score": 70.0},
+        ]
+        self.assertIsNone(_preference_opportunity(ready))
+
+        no_pot_cooking = [
+            {"subgoal": "PUT_DOWN_OBJECT", "task_score": 20.0},
+            {"subgoal": "WAIT_NEAR_POT", "task_score": 10.0},
+            {"subgoal": "WAIT", "task_score": 5.0},
+        ]
+        self.assertEqual(_preference_opportunity(no_pot_cooking), "hold_plate")
+
+        # Holding an unneeded ingredient: dropping it is 50 points better, so
+        # "hold on to it" would be a task regression, not a preference.
+        unneeded = [
+            {"subgoal": "PUT_DOWN_OBJECT", "task_score": 60.0},
+            {"subgoal": "WAIT_NEAR_POT", "task_score": 10.0},
+        ]
+        self.assertIsNone(_preference_opportunity(unneeded))
+        self.assertIsNone(_preference_opportunity([{"subgoal": "WAIT", "task_score": 0.0}]))
+
+    def test_every_template_parses_to_the_pair_it_is_meant_to_express(self):
+        from durf.group_a import sim_session as ss
+
+        expected = [
+            (ss._TASK_PREF_PREP_FIRST, ["GET_USEFUL_INGREDIENT"], ["GET_DISH"]),
+            (ss._TASK_PREF_DISH_FIRST, ["GET_DISH"], ["GET_USEFUL_INGREDIENT"]),
+            (ss._TASK_PREF_HOLD_PLATE, ["WAIT_NEAR_POT"], ["PUT_DOWN_OBJECT"]),
+        ]
+        for templates, preferred, rejected in expected:
+            for text in templates:
+                got_preferred, got_rejected, source = infer_explicit_preference_from_text(text)
+                self.assertEqual((got_preferred, got_rejected), (preferred, rejected), text)
+                self.assertEqual(source, "explicit_text_fallback", text)
+
+    def test_personas_disagree_on_the_division_of_labour_and_repeat_is_capped(self):
+        from durf.group_a import sim_session as ss
+
+        candidates = [
+            {"subgoal": "GET_DISH", "task_score": 60.0},
+            {"subgoal": "GET_TOMATO", "task_score": 50.0},
+        ]
+        said = {}
+        for persona in ("cooperative", "polite", "selfish", "lenient"):
+            human = ss.SimHuman(ss.SimHumanConfig(persona=persona, seed=1))
+            text = human._voice_task_preference(candidates)
+            self.assertIsNotNone(text)
+            preferred, rejected, _ = infer_explicit_preference_from_text(text)
+            said[persona] = (preferred[0], rejected[0])
+        self.assertEqual(said["cooperative"], ("GET_USEFUL_INGREDIENT", "GET_DISH"))
+        self.assertEqual(said["polite"], ("GET_USEFUL_INGREDIENT", "GET_DISH"))
+        self.assertEqual(said["selfish"], ("GET_DISH", "GET_USEFUL_INGREDIENT"))
+        self.assertEqual(said["lenient"], ("GET_DISH", "GET_USEFUL_INGREDIENT"))
+
+        # A standing preference is stated a couple of times per round, not on
+        # every one of the ~200 steps the opportunity is open.
+        human = ss.SimHuman(ss.SimHumanConfig(persona="cooperative", seed=1))
+        voiced = [human._voice_task_preference(candidates) for _ in range(6)]
+        self.assertEqual(sum(text is not None for text in voiced), ss.PREFERENCE_MAX_PER_EPISODE)
+        human.reset_episode()
+        self.assertIsNotNone(human._voice_task_preference(candidates))
+
+    def test_explicit_task_preference_is_not_filed_as_the_nearby_coordination_event(self):
+        """Conflicts are frequent; a task preference typed while one was being
+        resolved must not become a YIELD/CONTINUE label."""
+        from durf.feedback_attribution.schemas import candidate_event
+
+        trajectory = [
+            {
+                **make_step(20, ai_subgoal="GET_DISH", pot_states={"cooking": [[2, 0]]}),
+                "ai_subgoal_candidates": [
+                    {"subgoal": "GET_DISH", "task_score": 60.0},
+                    {"subgoal": "GET_TOMATO", "task_score": 50.0},
+                    {"subgoal": "WAIT", "task_score": 0.0},
+                ],
+            }
+        ]
+        coordination_event = candidate_event(
+            event_type="AI_successfully_yielded",
+            start_timestep=20,
+            end_timestep=20,
+            evidence={"decision_level": "coordination"},
+            severity=0.2,
+            confidence=0.9,
+            related_subgoal="YIELD",
+        )
+        feedback = {
+            "record_type": "feedback_event",
+            "total_step": 20,
+            "episode": 1,
+            "episode_step": 20,
+            "feedback_text": "i'll get the plate, you start the next ingredient",
+            "feedback_value": None,
+        }
+
+        attribution = build_preview_attribution(
+            feedback=feedback,
+            trajectory=trajectory,
+            candidate_events=[coordination_event],
+        )
+
+        self.assertEqual(attribution["preferred_subgoals"], ["GET_USEFUL_INGREDIENT"])
+        self.assertEqual(attribution["rejected_subgoals"], ["GET_DISH"])
+        self.assertEqual(attribution["decision_level"], "task")
+        self.assertEqual(attribution["preference_source"], "explicit_text_fallback")
+        self.assertIsNone(attribution["target_event"])
+        # The keyword selector did not match this sentence to the conflict at
+        # all, so there was nothing to displace.
+        self.assertIsNone(attribution["preference_overridden_event"])
+
+        # ... and the pair that reaches training is resolved against the real
+        # candidate set at that decision, so it names a runtime option.
+        provenance = build_provenance_record(
+            attribution=attribution, feedback=feedback, trajectory=trajectory, user_id="SIM"
+        )
+        samples = build_training_samples([provenance])
+        self.assertEqual(
+            [(s["preferred_subgoal"], s["rejected_subgoal"], s["decision_level"]) for s in samples],
+            [("GET_TOMATO", "GET_DISH", "task")],
+        )
+        self.assertFalse(provenance["condition_features"]["ai_empty_handed"] is None)
+
+    def test_a_two_sided_statement_outranks_a_keyword_matched_event(self):
+        """Event selection is keyword matching. When it lands on an event whose
+        default names only one side, or on the wrong decision domain, the
+        sentence -- which names both sides explicitly -- is the better label."""
+        from durf.feedback_attribution.schemas import candidate_event
+
+        trajectory = [
+            {
+                **make_step(20, ai_subgoal="GET_TOMATO", pot_states={"cooking": [[2, 0]]}),
+                "ai_subgoal_candidates": [
+                    {"subgoal": "GET_DISH", "task_score": 60.0},
+                    {"subgoal": "GET_ONION", "task_score": 50.0},
+                ],
+            }
+        ]
+
+        def attribute(text, event):
+            return build_preview_attribution(
+                feedback={
+                    "record_type": "feedback_event",
+                    "total_step": 20,
+                    "episode": 1,
+                    "episode_step": 20,
+                    "feedback_text": text,
+                    "feedback_value": None,
+                },
+                trajectory=trajectory,
+                candidate_events=[event],
+            )
+
+        # (a) The event agrees on the domain AND names both sides, using the
+        # subgoal the AI was actually running -- more specific than the
+        # sentence's generic "ingredient". It is kept.
+        same_domain = candidate_event(
+            event_type="AI_missed_plate_pickup_opportunity",
+            start_timestep=20,
+            end_timestep=20,
+            evidence={},
+            severity=0.3,
+            confidence=0.7,
+            event_valence="missed_opportunity",
+            related_subgoal="GET_TOMATO",
+        )
+        result = attribute("grab the dish now, i'll handle the next ingredient", same_domain)
+        self.assertEqual(result["preferred_subgoals"], ["GET_DISH"])
+        self.assertEqual(result["rejected_subgoals"], ["GET_TOMATO"])
+        self.assertIsNone(result["preference_overridden_event"])
+
+        # (b) different domain: a complete coordination pair vs a task sentence.
+        conflict = candidate_event(
+            event_type="AI_blocked_human_path",
+            start_timestep=20,
+            end_timestep=20,
+            evidence={},
+            severity=0.5,
+            confidence=0.8,
+            event_valence="negative_problem",
+            related_subgoal="CONTINUE_CURRENT_SUBGOAL",
+        )
+        result = attribute(
+            "you keep blocking me. anyway, you get the plate, i'll take care of the ingredients",
+            conflict,
+        )
+        self.assertEqual(result["decision_level"], "task")
+        self.assertEqual(result["preferred_subgoals"], ["GET_DISH"])
+        self.assertEqual(result["preference_overridden_event"], "AI_blocked_human_path")
+
+        # (c) event and sentence agree on domain and the event is complete:
+        # the event stays the label, nothing is displaced.
+        result = attribute("step aside, i can't pass", conflict)
+        self.assertEqual(result["target_event"], "AI_blocked_human_path")
+        self.assertIsNone(result["preference_overridden_event"])

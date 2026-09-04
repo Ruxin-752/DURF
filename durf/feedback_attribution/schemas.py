@@ -37,6 +37,7 @@ def trajectory_step(
     coordination_decision: dict[str, Any] | None = None,
     state_facts: dict[str, Any] | None = None,
     extra: dict[str, Any] | None = None,
+    protocol_version: str = "protocol-v2",
 ) -> dict[str, Any]:
     """Create a normalized trajectory step.
 
@@ -48,6 +49,7 @@ def trajectory_step(
     return {
         "record_type": "trajectory_step",
         "source": source,
+        "protocol_version": protocol_version,
         "timestamp_utc": timestamp_utc,
         "episode": episode,
         "episode_step": episode_step,
@@ -89,6 +91,8 @@ def feedback_event(
     feedback_value: int | None,
     role: str | None,
     extra: dict[str, Any] | None = None,
+    user_id: str | None = None,
+    protocol_version: str = "protocol-v2",
 ) -> dict[str, Any]:
     return {
         "record_type": "feedback_event",
@@ -101,6 +105,8 @@ def feedback_event(
         "feedback_value": feedback_value,
         "role": role,
         "extra": extra or {},
+        "user_id": user_id,
+        "protocol_version": protocol_version,
     }
 
 
@@ -118,6 +124,9 @@ def candidate_event(
     alternative_subgoals: list[str] | None = None,
     condition_features: dict[str, Any] | None = None,
     missing_required_facts: list[str] | None = None,
+    source: str = "synthetic_sim_human",
+    label_status: str = "automatic",
+    protocol_version: str = "protocol-v2",
 ) -> dict[str, Any]:
     return {
         "record_type": "candidate_event",
@@ -133,6 +142,9 @@ def candidate_event(
         "severity": severity,
         "confidence": confidence,
         "missing_required_facts": missing_required_facts or [],
+        "source": source,
+        "label_status": label_status,
+        "protocol_version": protocol_version,
     }
 
 
@@ -154,6 +166,13 @@ def attribution_result(
     clarification_question: str | None,
     proposed_schema_update: list[dict[str, Any]],
     notes: str,
+    source: str = "synthetic_sim_human",
+    label_status: str = "automatic",
+    user_id: str | None = None,
+    decision_level: str | None = None,
+    preference_source: str | None = None,
+    preference_overridden_event: str | None = None,
+    protocol_version: str = "protocol-v2",
 ) -> dict[str, Any]:
     return {
         "record_type": "attribution_result",
@@ -174,4 +193,14 @@ def attribution_result(
         "clarification_question": clarification_question,
         "proposed_schema_update": proposed_schema_update,
         "notes": notes,
+        "source": source,
+        "label_status": label_status,
+        "user_id": user_id,
+        "decision_level": decision_level,
+        "preference_source": preference_source,
+        # Set when an explicit policy statement was filed instead of the
+        # nearest detected event because they belong to different decision
+        # domains (see sample_builder.build_preview_attribution).
+        "preference_overridden_event": preference_overridden_event,
+        "protocol_version": protocol_version,
     }

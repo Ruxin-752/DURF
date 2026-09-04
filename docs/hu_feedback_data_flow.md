@@ -685,7 +685,84 @@ python -m durf.feedback_attribution.demo_offline_attribution `
 任务域的偏好学习要么等真人数据，要么给仿真人格设计真正的"偏好式"任务反馈（例如在
 GET_DISH 与 GET_TOMATO 都可行时说"盘子我来拿"），而不是"纠错式"反馈。
 
-## 7. 当前进度与下一步
+## 7. 仿真人格的任务域偏好反馈（2026-09-03，接 §6）
+
+§6 的结论是"纠错式"模板在这个底座上产不出任务域标签。补的办法不是放宽检测器，而是让
+仿真参与者说**偏好**而不是**纠错**：在两个候选都可行、任务分差 ≤10 的决策点上表达"这件事
+你做还是我做"。任务分差 ≤10 正是 ε-约束规则允许偏好说了算的那条带（§3.3），所以这类
+陈述在定义上不是在指出错误。
+
+实现（`durf/group_a/sim_session.py`）：
+
+- `_preference_opportunity(candidates)` 只认两种机会，都要求前两名候选分差 ≤10：
+  `division_of_labour`（锅在煮、AI 空手：GET_DISH 60 vs GET_TOMATO/GET_ONION 50）和
+  `hold_plate`（无锅在煮、手持盘子：PUT_DOWN_OBJECT 20 vs WAIT_NEAR_POT 10）。
+  手持多余原料时 PUT_DOWN_OBJECT 领先 50 分，不算机会——那是任务退步，不是口味。
+- `PERSONA_TASK_PREFERENCE` 给每个人格加了第二条、与协调性格独立的特质：
+  cooperative/polite = `prep_first`（"盘子我来拿，你去备下一份"），selfish/lenient =
+  `dish_first`（"你去拿盘子，原料我管"）。`--sim-task-preference` 可以单独覆盖。
+  `prep_first` 与 H0 默认相反（H0 选 GET_DISH），`dish_first` 与 H0 一致，天然构成
+  处理组/对照组。
+- 每个 episode 每种机会最多说 2 次（`PREFERENCE_MAX_PER_EPISODE`），不是每步都刷。
+- 措辞由 `infer_explicit_preference_from_text` 解析成成对标签；模板与解析器由
+  `testing/feedback_attribution_test.py::test_every_template_parses_to_the_pair_it_is_meant_to_express`
+  钉在一起，改一边不改另一边会红。
+- 归因侧配套改了一处：事件选择本质是关键词匹配，而一句"你拿 X、我拿 Y"是明确的两侧
+  陈述。因此当事件给出的配对**不完整**或**属于另一个决策域**时，以句子为准，被顶掉的事件
+  记进 `preference_overridden_event` 供审计，条件取反馈发生的那一步。两者同域且事件配对
+  完整时仍以事件为准（事件知道 AI 当时具体在做 GET_TOMATO 还是 GET_ONION，比句子里泛指的
+  "ingredient"更具体）。
+
+重跑 80 个 session（`outputs/hu_general_v3_pref/`）的结果：
+
+| | 数量 |
+|---|---|
+| pairwise 样本总数 | 560 |
+| 协调域 | 400（其中不变量 160 进 Hu_general） |
+| 任务域 | 160（GET_TOMATO>GET_DISH 80 / GET_DISH>GET_TOMATO 80） |
+
+任务域 160 条全部是**人格冲突**样本（audit 的 `conflict_details` 里明确记着四个人格的方向），
+因此按协议不进 Hu_general，而是个体差异信号。**Hu_general 的任务头仍然是空的**，这次是
+正确的空：仿真里不存在"所有人都同意"的任务偏好。`hold_plate` 那种可能是不变量的机会在
+128000 步里一次都没出现（这个布局下 AI 从不会在没有锅在煮时手持盘子），所以没有支撑。
+
+### 7.1 任务域行为确实被偏好改变了（第一次）
+
+按人格各训一个 HierarchicalHu（`outputs/hu_general_v3_pref/personas/<persona>/`，用 seed
+0–15 训、20–23 留出），再用留出 seed 跑仿真：
+
+| 人格 | 特质 | 运行 | 选 GET_DISH | 选备料 | preference_override | 每局分数 |
+|---|---|---|---|---|---|---|
+| cooperative | prep_first | H0（容忍带 0） | 18 | 0 | 0 | 60 |
+| cooperative | prep_first | 自己的模型，容忍带 10 | 0 | 26 | 26 | 20 |
+| polite | prep_first | H0 | 18 | 0 | 0 | 60 |
+| polite | prep_first | 自己的模型，容忍带 10 | 0 | 26 | 26 | 20 |
+| selfish | dish_first | 自己的模型，容忍带 10 | 18 | 0 | 0 | 60 |
+| lenient | dish_first | 自己的模型，容忍带 10 | 18 | 0 | 0 | 60 |
+
+翻转点精确落在容忍带 = 分差：容忍带 9 完全不变，10 全翻。交叉对照（cooperative 的对局用
+selfish 的模型跑）也不变，说明变化来自偏好本身而不是仿真随机数漂移。三个留出 seed 全部
+复现。
+
+**但那个 60→20 不是偏好的代价，是一个被顺带暴露出来的死锁。** 逐帧看 cooperative/seed20
+的轨迹：翻转之后局面走到"AI 手持盘子、锅已好、要去锅边"，而人类在 1 格宽的上走廊里
+来回，两人相隔 2 格互相镜像地 east/west 摆动，692 步没有任何进展。协调层从未介入
+（`coordination_decision` 全程为空）——因为两人从不真的争夺同一格，`path_conflict_type`
+不触发；`stalled_escape` 也不管——它只处理"空手 + WAIT + 无动作"。这是机制里一个既有的
+鲁棒性缺口，不是这次改动引入的，只是偏好把对局推进了这个状态。**在修掉它之前，任何
+容忍带标定量到的都是这个死锁，而不是偏好的真实代价。**
+
+### 7.2 已知的两个局限（写清楚，别在论文里当成人类证据）
+
+1. **这些标签验证的是机制，不是人类偏好。** 模板是我们自己写的，人格特质是我们自己
+   指派的，然后 Hu 学到了我们指派的东西——这条闭环只能证明"从一句话到行为改变"的管道
+   通了，不能证明任何关于真人偏好的事实。
+2. **仿真人格说的和做的不一致。** 说"盘子我来拿"的人格，它自己的动作仍然由同一个规则
+   教师（`rule_teacher_candidates(state, mp, 1)`）决定，并不会真的去拿盘子。真人说了会做，
+   所以真人实验里honor这条偏好的代价大概率比仿真里小。要修就得让 `SimHuman.choose_action`
+   也按自己的特质在同样的 ≤10 分差带内选边。
+
+## 8. 当前进度与下一步
 
 已用 `20260722_211635` 的 12 条真实语言反馈完成一次 schema-v2 回放：
 

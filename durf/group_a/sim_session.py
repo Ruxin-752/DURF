@@ -185,8 +185,76 @@ _TASK_NEG_PREP_WAIT = [
 ]
 
 
+# Task-domain PREFERENCE feedback (not correction).  Emitted only at decision
+# points where two candidates are both feasible and within 10 task points of
+# each other, i.e. exactly the band a preference is allowed to decide under
+# the epsilon-constraint rule.  Wording is matched by
+# subgoal_preferences.infer_explicit_preference_from_text; the templates and
+# that matcher are pinned together by a test.
+_TASK_PREF_PREP_FIRST = [
+    "i'll get the plate, you start the next ingredient",
+    "leave the plate to me, keep prepping the next batch",
+]
+_TASK_PREF_DISH_FIRST = [
+    "you get the plate, i'll take care of the ingredients",
+    "grab the dish now, i'll handle the next ingredient",
+]
+_TASK_PREF_HOLD_PLATE = [
+    "don't put the plate down, wait by the pot with it",
+    "keep hold of the plate and stand by the pot",
+]
+
+# Which side of the division of labour each synthetic participant wants.  This
+# is a second, independent trait from the coordination personality above: a
+# persona is a whole participant, not only a blocking-tolerance profile.
+# prep_first opposes the H0 default (GET_DISH 60 > GET_TOMATO 50), so it only
+# changes behaviour once hu_task_tolerance >= 10; dish_first agrees with H0
+# and acts as the control side of the pair.
+PERSONA_TASK_PREFERENCE = {
+    "cooperative": "prep_first",
+    "polite": "prep_first",
+    "selfish": "dish_first",
+    "lenient": "dish_first",
+}
+# Every persona wants the plate kept rather than dropped while the soup is not
+# ready: an invariant preference, and one the H0 backbone gets wrong by
+# default (PUT_DOWN_OBJECT 20 > WAIT_NEAR_POT 10 when no pot is cooking).
+PREFERENCE_MAX_PER_EPISODE = 2
+
+
 def _pick(templates: list[str], rng: np.random.Generator) -> str:
     return str(rng.choice(templates))
+
+
+def _preference_opportunity(candidates: list[dict] | None) -> str | None:
+    """Name the preference opportunity this decision offers, if any.
+
+    Both recognised opportunities are pairs of feasible candidates within 10
+    task points, so the choice between them is genuinely a matter of taste
+    rather than task competence:
+
+    * ``division_of_labour`` -- fetch the plate now (60) or start the next
+      batch (50) while the pot cooks;
+    * ``hold_plate`` -- put the plate down (20) or keep it and wait by the pot
+      (10) while no pot is cooking.
+    """
+    scored = [
+        (float(candidate.get("task_score") or 0.0), str(candidate.get("subgoal")))
+        for candidate in candidates or []
+        if candidate.get("subgoal")
+    ]
+    if len(scored) < 2:
+        return None
+    scored.sort(key=lambda item: -item[0])
+    (top_score, top), (second_score, second) = scored[0], scored[1]
+    if top_score - second_score > 10.0:
+        return None
+    pair = {top, second}
+    if top == "GET_DISH" and second in {"GET_TOMATO", "GET_ONION"}:
+        return "division_of_labour"
+    if pair == {"PUT_DOWN_OBJECT", "WAIT_NEAR_POT"}:
+        return "hold_plate"
+    return None
 
 
 @dataclass
@@ -196,6 +264,14 @@ class SimHumanConfig:
     persona: str = "cooperative"  # cooperative | selfish
     feedback_min_gap: int = 15
     seed: int = 0
+    # "auto" derives the task-preference trait from the persona; an explicit
+    # value makes the two traits independent for ablations.
+    task_preference: str = "auto"
+
+    def resolved_task_preference(self) -> str:
+        if self.task_preference != "auto":
+            return self.task_preference
+        return PERSONA_TASK_PREFERENCE.get(self.persona, "dish_first")
 
 
 class SimHuman:
@@ -227,6 +303,14 @@ class SimHuman:
         self._ready_pot_streak = 0
         self._prep_wait_streak = 0
         self._task_steps_since_feedback = config.feedback_min_gap + 1
+        self._preferences_voiced: dict[str, int] = {}
+
+    def reset_episode(self) -> None:
+        """A participant repeats a standing preference in a new round; the cap
+        is per episode, not per session."""
+        self._preferences_voiced = {}
+        self._ready_pot_streak = 0
+        self._prep_wait_streak = 0
 
     # -- action selection ---------------------------------------------------
 
@@ -286,6 +370,36 @@ class SimHuman:
             if step is not None:
                 return step
         return int(chosen.action)
+
+    # -- task preference ----------------------------------------------------
+
+    def _voice_task_preference(self, ai_candidates: list[dict] | None) -> str | None:
+        """State a standing task preference when the AI reaches a decision the
+        preference actually applies to.
+
+        Deliberately NOT a correction: the AI has done nothing wrong at these
+        steps, and both options stay within 10 task points.  This is the only
+        way a sim persona can produce a task-domain Hu label at all -- the
+        rule-teacher backbone never commits the task mistakes the corrective
+        templates complain about (see docs/hu_feedback_data_flow.md S6).
+        """
+        opportunity = _preference_opportunity(ai_candidates)
+        if opportunity is None:
+            return None
+        if self._preferences_voiced.get(opportunity, 0) >= PREFERENCE_MAX_PER_EPISODE:
+            return None
+        if opportunity == "division_of_labour":
+            templates = (
+                _TASK_PREF_PREP_FIRST
+                if self.config.resolved_task_preference() == "prep_first"
+                else _TASK_PREF_DISH_FIRST
+            )
+        else:
+            templates = _TASK_PREF_HOLD_PLATE
+        self._preferences_voiced[opportunity] = (
+            self._preferences_voiced.get(opportunity, 0) + 1
+        )
+        return _pick(templates, self.rng)
 
     # -- feedback generation ------------------------------------------------
 
@@ -402,14 +516,19 @@ class SimHuman:
         state_after: dict[str, Any],
         ai_action_name: str,
         ai_subgoal: str | None = None,
-        ai_candidate_subgoals: list[str] | None = None,
+        ai_candidates: list[dict] | None = None,
     ) -> str | None:
         self.steps_since_feedback += 1
         if self.steps_since_feedback < self.config.feedback_min_gap:
             return None
 
+        candidate_names = [
+            str(candidate.get("subgoal"))
+            for candidate in ai_candidates or []
+            if candidate.get("subgoal")
+        ]
         self._update_task_streaks(
-            state_after, ai_action_name, ai_subgoal, ai_candidate_subgoals
+            state_after, ai_action_name, ai_subgoal, candidate_names
         )
         if self._ready_pot_streak >= 3:
             self._ready_pot_streak = 0
@@ -419,6 +538,11 @@ class SimHuman:
             self._prep_wait_streak = 0
             self.steps_since_feedback = 0
             return _pick(_TASK_NEG_PREP_WAIT, self.rng)
+
+        preference = self._voice_task_preference(ai_candidates)
+        if preference is not None:
+            self.steps_since_feedback = 0
+            return preference
 
         text = self._evaluate_coordination(coordination_decision, condition_features)
         if text is not None:
@@ -1127,6 +1251,17 @@ def parse_args() -> argparse.Namespace:
         help="Minimum steps between two human feedback messages.",
     )
     parser.add_argument(
+        "--sim-task-preference",
+        choices=("auto", "dish_first", "prep_first"),
+        default="auto",
+        help=(
+            "Which side of the division of labour the simulated participant "
+            "wants when fetching the plate and starting the next batch are "
+            "within 10 task points. 'auto' derives it from the persona "
+            "(see PERSONA_TASK_PREFERENCE)."
+        ),
+    )
+    parser.add_argument(
         "--sim-ai-stubborn-prob",
         type=float,
         default=0.0,
@@ -1195,6 +1330,7 @@ def run_sim_session(args: argparse.Namespace) -> Path:
             persona=args.sim_human,
             feedback_min_gap=args.sim_feedback_min_gap,
             seed=args.sim_seed,
+            task_preference=args.sim_task_preference,
         )
     )
 
@@ -1314,10 +1450,7 @@ def run_sim_session(args: argparse.Namespace) -> Path:
                 state_after=state_after,
                 ai_action_name=ACTION_NAMES[decision["action"]],
                 ai_subgoal=decision["subgoal"],
-                ai_candidate_subgoals=[
-                    candidate.get("subgoal")
-                    for candidate in decision.get("subgoal_candidates") or []
-                ],
+                ai_candidates=decision.get("subgoal_candidates") or [],
             )
             if feedback_text:
                 _write_row(
@@ -1349,6 +1482,7 @@ def run_sim_session(args: argparse.Namespace) -> Path:
                 episode_reward = 0.0
                 ai_obs, _ = env.multi_reset()
                 ai_runtime.reset_episode()
+                sim_human.reset_episode()
     finally:
         trajectory_handle.close()
         chat_handle.close()

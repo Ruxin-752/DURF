@@ -179,6 +179,97 @@ def infer_explicit_preference_from_text(
     if yield_preference and not no_yield:
         return ["YIELD"], ["CONTINUE_CURRENT_SUBGOAL"], "explicit_text_fallback"
 
+    # Task-domain division of labour. Both halves of the statement are
+    # required ("I take X, you take Y"), so a passing remark about a plate is
+    # never read as a policy. These are genuine preferences, not corrections:
+    # both options are feasible and near-equal in task points, which is
+    # exactly where a preference is allowed to decide (see
+    # mechanism_blueprint_v1.md S3.3).
+    speaker_takes_plate = any(
+        phrase in text
+        for phrase in (
+            "i'll get the plate",
+            "i will get the plate",
+            "i'll get the dish",
+            "i'll take the plate",
+            "i've got the plate",
+            "ive got the plate",
+            "leave the plate to me",
+            "leave the dish to me",
+        )
+    )
+    asks_partner_to_prep = any(
+        phrase in text
+        for phrase in (
+            "next ingredient",
+            "next batch",
+            "keep prepping",
+            "start prepping",
+        )
+    )
+    asks_partner_to_take_plate = any(
+        phrase in text
+        for phrase in (
+            "you get the plate",
+            "you get the dish",
+            "you grab the plate",
+            "you grab the dish",
+            "grab the plate",
+            "grab the dish",
+            "you take the plate",
+            "you take the dish",
+        )
+    )
+    speaker_takes_ingredients = any(
+        phrase in text
+        for phrase in (
+            "i'll handle the ingredient",
+            "i'll handle the next ingredient",
+            "i'll take care of the ingredient",
+            "i'll get the ingredient",
+            "leave the ingredients to me",
+            "i'll do the prepping",
+        )
+    )
+    if speaker_takes_plate and asks_partner_to_prep:
+        return (
+            ["GET_USEFUL_INGREDIENT"],
+            ["GET_DISH"],
+            "explicit_text_fallback",
+        )
+    if asks_partner_to_take_plate and speaker_takes_ingredients:
+        return (
+            ["GET_DISH"],
+            ["GET_USEFUL_INGREDIENT"],
+            "explicit_text_fallback",
+        )
+
+    # Hold the plate rather than dropping it while the soup is not ready.
+    keeps_plate = any(
+        phrase in text
+        for phrase in (
+            "don't put the plate down",
+            "do not put the plate down",
+            "dont put the plate down",
+            "don't put the dish down",
+            "keep hold of the plate",
+            "keep hold of the dish",
+            "hang on to the plate",
+            "hang onto the plate",
+            "keep the plate",
+        )
+    )
+    stays_by_pot = any(
+        phrase in text
+        for phrase in ("by the pot", "near the pot", "at the pot")
+    )
+    if keeps_plate and stays_by_pot:
+        return (
+            ["WAIT_NEAR_POT"],
+            ["PUT_DOWN_OBJECT"],
+            "explicit_text_fallback",
+        )
+
     # Task preference: take the dish when the human is covering the final
     # ingredient or when the feedback explicitly contrasts dish vs ingredient.
     asks_for_dish = any(
