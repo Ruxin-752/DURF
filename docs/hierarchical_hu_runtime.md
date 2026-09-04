@@ -148,21 +148,43 @@ acceptable   = { c | c.step_cost <= task_optimum.step_cost + N }   # 估计的�
 与 H0 一致的人格在任何预算下都纹丝不动，与 H0 相反的人格随预算逐级翻转、翻转点跟着估计
 的步数差走，其他任何决策点上一次 override 都没有——容忍带终于是一个有量纲、可标定的量。
 
-**Coordination 层：仍然是加法**。这一层还没有做同样的重构：
+**Coordination 层：同样是满足式（2026-09-04 起，不再是加法）**。原来的
+`prior + hu_coordination_lambda · Hu` 有同一个量纲问题：prior 是 0/1，Hu 是成对 logistic
+输出（只有序可靠，量级是正则化的产物），λ 就是一个谁也说不清的汇率。现在：
 
 ```text
-coord_final_score
-= coordination_prior
-+ hu_coordination_lambda * Hu_coord(user, condition, option)
+prior_pick  = 可行选项里 base_score 最高者                      # 冲突时 YIELD，贴近目标时 CONTINUE
+acceptable  = { o | o.base_score >= best_prior - hu_coordination_tolerance }
+selected    = acceptable 里 hu_score 最高者（并列回退到 prior）   # Hu 只排序，不相加
+selected.final_score = selected.base_score
 ```
 
-`coordination_prior` 是 0/1 量级，`hu_coordination_lambda` 依然是权重系数而不是任务点数，
-和 task 层的 `hu_task_tolerance` 不是同一种东西，不要混用参数含义。这一层是否也要改成
-满足式，是待评审的开放问题。
+prior 只有两档，所以 `--hu-coordination-tolerance` 实际上是一个开关，文档里就按开关说：
+**0 = 按 prior 让/不让；≥ 1 = 由用户的偏好决定让还是不让，prior 只做并列时的裁决。**
+没有像 task 层那样再套一层步数代价——YIELD 自带承诺期（`max_option_steps=3`）和冷却，那
+才是"等我一下"这类偏好的上界，逐决策的代价带在这里加不了什么。同 task 层：Hu 没有标注
+证据的选项永远不能成为离开 prior 的理由（`hu_supported`）；`--hu-coordination-lambda`
+已删除，传了会直接报错指向新参数。
+
+**两边都有界（同日修正）。** 原来只有 YIELD 有承诺期 + 冷却（"别一直让"），CONTINUE 没有
+任何上界。prior 只在离目标一步时才坚持，所以从没暴露；一旦偏好可以在远离目标的迎面冲突里
+选 CONTINUE，就是：动作被挡住、局面不变、同一个决策下一拍又来——实测 cooperative/lenient
+人格的模型 524 步连续 CONTINUE、整局 0 分。现在 CONTINUE 跑满承诺期而冲突未消，也进入
+同样长度的冷却让 YIELD 上场（`continue_cooldown_steps`，默认等于 `yield_cooldown_steps`）；
+一方进冷却时另一方的冷却清零，保证任何时候至少一个选项可行。对 H0 的影响只在"贴近目标却
+被持续挡住 ≥3 步"这一种情形（每局 107 次冲突里约 2 次的让/不让翻转），冲突次数和分数不变。
+
+实测（按人格训的协调头，留出 seed，800 步 × 2 局）：
+
+| 人格 | 学到的倾向 | 容忍带 0（= H0） | 容忍带 1 |
+|---|---|---|---|
+| polite / selfish | 偏让（YIELD +0.38） | 让路率 54–59%，260/240 分 | 让路率 88%，26 次 override，240/240 分 |
+| cooperative / lenient | 偏坚持（global bias 0，条件权重偏 CONTINUE） | 让路率 55%，260/240 分 | 让路率 47–48%，23 次 override，240/240 分（修 CONTINUE 上界前：0%，0 分） |
 
 当 `--hu-apply` 未开启时，Hu 只进行 shadow scoring：记录分数，但不改变选择。
 
-当 Hu 没有 coordination head，或者 `--hu-coordination-lambda 0` 时，系统使用初始协调 prior。当前 prior 在检测到直接路径冲突时优先 `YIELD`，以保持旧版本行为。
+当 Hu 没有 coordination head，或者 `--hu-coordination-tolerance 0` 时，系统使用初始协调
+prior。当前 prior 在检测到直接路径冲突时优先 `YIELD`，以保持旧版本行为。
 
 ## 4. Coordination option 的生命周期
 
@@ -462,13 +484,14 @@ python -m durf.group_a.play_with_baseline `
   --layout ring_tomato_onion_10x6_h0_full_task `
   --hu-model outputs\hu_models\pilot01\hierarchical_hu.json `
   --hu-user-id PILOT01 `
-  --hu-task-tolerance 10.0 `
-  --hu-coordination-lambda 1.0 `
+  --hu-step-tolerance 10.0 `
+  --hu-coordination-tolerance 1 `
   --hu-apply
 ```
 
-`--hu-lambda` 已不存在；task 层用 `--hu-task-tolerance`，单位是任务点数而不是权重，示例值
-请按实际标定结果调整。
+`--hu-lambda` 和 `--hu-coordination-lambda` 都已不存在。task 层用 `--hu-step-tolerance`
+（估计的额外步数，见 §3.1；`--hu-task-tolerance` 是旧的任务点数单位，仍可用），coordination
+层用 `--hu-coordination-tolerance`（0 / 1 开关，见 §3）。示例值请按实际标定结果调整。
 
 ## 10. 当前边界
 
@@ -514,8 +537,8 @@ python -m durf.group_a.play_with_baseline `
 仍未开工：
 
 - Coordination 层是否也要从加法混合改成满足式。
-- Coordination 层的 λ 加法是否也换成同样的步数满足式——task 层的经验是：换单位之前先想
-  清楚"逐决策"和"累计"的关系，否则等待类选项会把带子撑爆（§3.1）。
+- ~~Coordination 层的 λ 加法是否也换成同样的满足式~~ 已完成（§3）：prior 满足、Hu 排序、
+  不相加；顺带给 CONTINUE 加上了和 YIELD 对称的上界。
 - 是否还需要一个基于"任务无进展"的兜底停滞检测。§4.2 修掉根因之后，最长零得分区间已经
   回到正常烹饪周期的长度，没有观察到残留死锁，因此没有加——多一层行为覆盖就多一层没有
   实证需求的接管逻辑。真人数据里若再出现僵持，再按证据补。

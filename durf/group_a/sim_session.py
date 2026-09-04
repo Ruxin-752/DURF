@@ -787,7 +787,7 @@ class AiRuntime:
         subgoal_model=None,
         hu_model=None,
         hu_task_tolerance: float = 0.0,
-        hu_coordination_lambda: float = 0.0,
+        hu_coordination_tolerance: float = 0.0,
         hu_apply: bool = False,
         stubborn_prob: float = 0.0,
         stalled_escape: bool = False,
@@ -802,7 +802,7 @@ class AiRuntime:
         self.hu_model = hu_model
         self.hu_task_tolerance = hu_task_tolerance
         self.hu_step_tolerance = hu_step_tolerance
-        self.hu_coordination_lambda = hu_coordination_lambda
+        self.hu_coordination_tolerance = hu_coordination_tolerance
         self.hu_apply = hu_apply
         self.coordination = CoordinationController(
             min_commit_steps=1,
@@ -1082,8 +1082,13 @@ class AiRuntime:
                         if self.hu_model is not None
                         else None
                     ),
-                    hu_lambda=self.hu_coordination_lambda,
+                    hu_tolerance=self.hu_coordination_tolerance,
                     apply_hu=self.hu_apply,
+                    hu_supported=(
+                        (lambda option: runtime_hu_has_support(self.hu_model, "coordination", option))
+                        if self.hu_model is not None
+                        else None
+                    ),
                 )
                 if result is not None:
                     coordinated_action = result.action
@@ -1327,7 +1332,19 @@ def parse_args() -> argparse.Namespace:
             "> 0 (see play_with_baseline.py --hu-step-tolerance)."
         ),
     )
-    parser.add_argument("--hu-coordination-lambda", type=float, default=0.0)
+    parser.add_argument(
+        "--hu-coordination-tolerance",
+        type=float,
+        default=0.0,
+        help=(
+            "Prior points the coordination prior may give up for the learned "
+            "preference. The prior is two-level (0/1), so this is a switch: "
+            "0 keeps the prior's yield/continue pick; >= 1 lets the user's "
+            "preference decide, with the prior as tie-break. Replaces "
+            "--hu-coordination-lambda: the prior and Hu are never added."
+        ),
+    )
+    parser.add_argument("--hu-coordination-lambda", type=float, default=None, help=argparse.SUPPRESS)
     parser.add_argument("--hu-apply", action="store_true")
     parser.add_argument("--output-dir", default=str(REPO_ROOT / "outputs" / "human_ai_sessions"))
     return parser.parse_args()
@@ -1349,7 +1366,13 @@ def run_sim_session(args: argparse.Namespace) -> Path:
     hu_model = load_runtime_hu(args.hu_model) if args.hu_model else None
     if args.hu_step_tolerance is not None and args.hu_step_tolerance < 0:
         raise ValueError("--hu-step-tolerance cannot be negative")
-    if args.hu_task_tolerance < 0 or args.hu_coordination_lambda < 0:
+    if args.hu_coordination_lambda is not None:
+        raise ValueError(
+            "--hu-coordination-lambda is gone: the coordination prior and Hu are no "
+            "longer added. Use --hu-coordination-tolerance (0 = prior only, "
+            ">= 1 = the preference decides)."
+        )
+    if args.hu_task_tolerance < 0 or args.hu_coordination_tolerance < 0:
         raise ValueError("Hu lambdas cannot be negative")
 
     env = make_direct_multi_env(args.layout, args.seed, horizon=args.horizon)
@@ -1361,7 +1384,7 @@ def run_sim_session(args: argparse.Namespace) -> Path:
         hu_model=hu_model,
         hu_task_tolerance=args.hu_task_tolerance,
         hu_step_tolerance=args.hu_step_tolerance,
-        hu_coordination_lambda=args.hu_coordination_lambda,
+        hu_coordination_tolerance=args.hu_coordination_tolerance,
         hu_apply=args.hu_apply,
         stubborn_prob=args.sim_ai_stubborn_prob,
         stalled_escape=True,
@@ -1398,7 +1421,7 @@ def run_sim_session(args: argparse.Namespace) -> Path:
                 "hu_model": str(args.hu_model) if args.hu_model else None,
                 "hu_task_tolerance": args.hu_task_tolerance,
                 "hu_step_tolerance": args.hu_step_tolerance,
-                "hu_coordination_lambda": args.hu_coordination_lambda,
+                "hu_coordination_tolerance": args.hu_coordination_tolerance,
                 "hu_apply": args.hu_apply,
                 "data_source": "synthetic_sim_human",
                 "sim_human": {

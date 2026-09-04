@@ -315,14 +315,18 @@ def parse_args() -> argparse.Namespace:
         ),
     )
     parser.add_argument(
-        "--hu-coordination-lambda",
+        "--hu-coordination-tolerance",
         type=float,
         default=0.0,
         help=(
-            "Weight for Hu coordination scores. Zero preserves the initial "
-            "coordination prior while still logging shadow scores."
+            "Prior points the coordination prior may give up for the learned "
+            "preference. The prior is two-level (0/1), so this is a switch: "
+            "0 keeps the prior's yield/continue pick; >= 1 lets the user's "
+            "preference decide, with the prior as tie-break. Replaces "
+            "--hu-coordination-lambda: the prior and Hu are never added."
         ),
     )
+    parser.add_argument("--hu-coordination-lambda", type=float, default=None, help=argparse.SUPPRESS)
     parser.add_argument(
         "--hu-apply",
         action="store_true",
@@ -829,8 +833,14 @@ def main() -> int:
         raise ValueError("--hu-task-tolerance cannot be negative")
     if args.hu_step_tolerance is not None and args.hu_step_tolerance < 0:
         raise ValueError("--hu-step-tolerance cannot be negative")
-    if args.hu_coordination_lambda < 0:
-        raise ValueError("--hu-coordination-lambda cannot be negative")
+    if args.hu_coordination_lambda is not None:
+        raise ValueError(
+            "--hu-coordination-lambda is gone: the coordination prior and Hu are no "
+            "longer added. Use --hu-coordination-tolerance (0 = prior only, "
+            ">= 1 = the preference decides)."
+        )
+    if args.hu_coordination_tolerance < 0:
+        raise ValueError("--hu-coordination-tolerance cannot be negative")
     coordination_controller = CoordinationController(
         min_commit_steps=1,
         max_option_steps=3,
@@ -874,7 +884,7 @@ def main() -> int:
                 "hu_user_id": args.hu_user_id,
                 "hu_task_tolerance": args.hu_task_tolerance,
                 "hu_step_tolerance": args.hu_step_tolerance,
-                "hu_coordination_lambda": args.hu_coordination_lambda,
+                "hu_coordination_tolerance": args.hu_coordination_tolerance,
                 "hu_apply": args.hu_apply,
             },
             indent=2,
@@ -1304,8 +1314,13 @@ def main() -> int:
             candidates=candidates,
             condition_features=condition_features,
             hu_score=coordination_hu_score if hu_model is not None else None,
-            hu_lambda=args.hu_coordination_lambda,
+            hu_tolerance=args.hu_coordination_tolerance,
             apply_hu=args.hu_apply,
+            hu_supported=(
+                (lambda option: runtime_hu_has_support(hu_model, COORDINATION_DECISION_LEVEL, option))
+                if hu_model is not None
+                else None
+            ),
         )
         if result is None:
             return proposed_ai_action, "", {}

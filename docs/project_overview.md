@@ -310,7 +310,11 @@ task 层 `task_score` 是 0–100，相邻候选差 10–30 分；而 Hu 分数�
 ✅ **进度（2026-09-03）**：task 层的量纲问题已经从根上解决——不再把 `task_score` 和
 `hu_score` 相加，改成 ε-约束分层满足式：`hu_score` 只在任务分的容忍带内挑选，容忍带宽度
 `hu_task_tolerance` 单位是任务点数，不再需要给两个不可通约的量找一个共同的权重。
-**coordination 层还没有改**，仍然是 prior + λ·Hu 的加法，这条坑对 coordination 域原样成立。
+~~**coordination 层还没有改**，仍然是 prior + λ·Hu 的加法，这条坑对 coordination 域原样成立。~~
+✅ **coordination 层也改了（2026-09-04）**：prior 满足、Hu 只排序、不相加，λ 删除；prior 只有
+两档，所以 `--hu-coordination-tolerance` 是一个 0/1 开关。改的时候发现 CONTINUE 没有上界
+（YIELD 有承诺期 + 冷却，坚持没有），偏好一旦选坚持就是永久迎面死锁（整局 0 分），已给
+CONTINUE 加上对称的冷却。见 `docs/hierarchical_hu_runtime.md` §3。
 
 ✅ **进度（2026-09-04）**：容忍带的单位进一步从"任务点数"换成"估计的额外步数"
 （`--hu-step-tolerance`，`task_cost.py`），排序仍是冻结底座、容忍带 0 零变化。仿真里第一次

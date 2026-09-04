@@ -42,6 +42,9 @@ class CoordinationCandidate:
     feasible: bool = True
     hu_score: float = 0.0
     final_score: float | None = None
+    # Whether the loaded Hu has labelled evidence about this option (same
+    # rule as the task layer: no evidence, no opinion).
+    hu_supported: bool = True
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -52,6 +55,7 @@ class CoordinationCandidate:
             "final_score": self.final_score,
             "reason": self.reason,
             "feasible": self.feasible,
+            "hu_supported": self.hu_supported,
         }
 
 
@@ -202,8 +206,16 @@ class CoordinationController:
     """Stateful short-horizon controller for coordination options.
 
     A selected option is committed briefly to avoid timestep-by-timestep
-    oscillation.  YIELD is bounded; if conflict remains after expiry, a short
-    cooldown prevents the AI from retreating forever.
+    oscillation.  BOTH options are bounded: if the conflict is still there
+    when an option expires, a short cooldown makes that option infeasible so
+    the other one gets its turn.  For YIELD that stops the AI retreating
+    forever; for CONTINUE (added 2026-09-04) it stops the AI insisting
+    forever.  The second bound was invisible under the prior alone -- the
+    prior only insists when one step from the goal -- and became load-bearing
+    the moment a learned preference could choose CONTINUE in a far-from-goal
+    head-on: the move is blocked, nothing changes, the same decision recurs,
+    and a preference for insisting compounds into a permanent deadlock
+    (observed as 524 consecutive CONTINUE decisions and a 0-reward episode).
     """
 
     def __init__(
@@ -212,6 +224,7 @@ class CoordinationController:
         min_commit_steps: int = 1,
         max_option_steps: int = 3,
         yield_cooldown_steps: int = 2,
+        continue_cooldown_steps: int | None = None,
     ) -> None:
         if min_commit_steps < 1:
             raise ValueError("min_commit_steps must be at least 1")
@@ -219,21 +232,29 @@ class CoordinationController:
             raise ValueError("max_option_steps must be >= min_commit_steps")
         if yield_cooldown_steps < 0:
             raise ValueError("yield_cooldown_steps cannot be negative")
+        if continue_cooldown_steps is None:
+            continue_cooldown_steps = yield_cooldown_steps
+        if continue_cooldown_steps < 0:
+            raise ValueError("continue_cooldown_steps cannot be negative")
         self.min_commit_steps = min_commit_steps
         self.max_option_steps = max_option_steps
         self.yield_cooldown_steps = yield_cooldown_steps
+        self.continue_cooldown_steps = continue_cooldown_steps
         self.active: ActiveCoordination | None = None
         self.yield_cooldown_until = -1
+        self.continue_cooldown_until = -1
         self._decision_counter = 0
 
     def reset(self) -> None:
         self.active = None
         self.yield_cooldown_until = -1
+        self.continue_cooldown_until = -1
         self._decision_counter = 0
 
     def clear_if_no_conflict(self) -> None:
         self.active = None
         self.yield_cooldown_until = -1
+        self.continue_cooldown_until = -1
 
     def resolve(
         self,
@@ -247,9 +268,31 @@ class CoordinationController:
         candidates: list[CoordinationCandidate],
         condition_features: dict[str, Any],
         hu_score: Callable[[str], float] | None = None,
-        hu_lambda: float = 0.0,
+        hu_tolerance: float = 0.0,
         apply_hu: bool = False,
+        hu_supported: Callable[[str], bool] | None = None,
     ) -> CoordinationResult | None:
+        """Resolve a conflict: the prior satisfices, the preference orders.
+
+        Same rule as the task layer (2026-09-04), for the same reason: the
+        prior (0/1 conflict priority) and ``hu_score`` (pairwise-logistic
+        output, order meaningful, magnitude an artefact) are not
+        commensurable, so ``prior + lambda * hu`` needed an exchange rate
+        nobody could state -- pitfall (2).  Instead every feasible option
+        within ``hu_tolerance`` prior points of the best prior forms the
+        acceptable set and the preference orders it; ties fall back to the
+        prior.  With a two-level prior this is a switch and is documented as
+        one: 0 keeps the prior's pick, >= 1 lets the user's preference decide
+        yield-vs-continue outright (the prior only breaks ties).  There is no
+        step-cost band here on purpose: YIELD already carries a commitment
+        horizon (max_option_steps) and a cooldown, which is what bounds a
+        "wait for me" preference; a per-decision cost would add nothing the
+        horizon does not already give.
+
+        An option Hu has no labelled evidence about can never be the reason
+        the decision leaves the prior's pick (``hu_supported``); the pick
+        itself is always eligible.
+        """
         if conflict_type is None:
             self.clear_if_no_conflict()
             return None
@@ -264,26 +307,43 @@ class CoordinationController:
                 self.active = None
                 active = None
             elif timestep > active.expires_at:
+                # The option ran its full horizon and the conflict is still
+                # here: give the other option its turn.
+                # The expired option steps aside and the other one is freed,
+                # so at least one option is always feasible.
                 if active.option == YIELD:
                     self.yield_cooldown_until = (
                         timestep + self.yield_cooldown_steps
                     )
+                    self.continue_cooldown_until = -1
+                else:
+                    self.continue_cooldown_until = (
+                        timestep + self.continue_cooldown_steps
+                    )
+                    self.yield_cooldown_until = -1
                 self.active = None
                 active = None
 
         for candidate in candidates:
             if hu_score is not None:
                 candidate.hu_score = float(hu_score(candidate.option))
+            if hu_supported is not None:
+                candidate.hu_supported = bool(hu_supported(candidate.option))
             if (
                 candidate.option == YIELD
                 and timestep <= self.yield_cooldown_until
             ):
                 candidate.feasible = False
                 candidate.reason += "_cooldown"
-            effective_lambda = hu_lambda if apply_hu else 0.0
-            candidate.final_score = (
-                candidate.base_score + effective_lambda * candidate.hu_score
-            )
+            if (
+                candidate.option == CONTINUE_CURRENT_SUBGOAL
+                and timestep <= self.continue_cooldown_until
+            ):
+                candidate.feasible = False
+                candidate.reason += "_cooldown"
+            # Never added to: the prior is the option's score, the preference
+            # only ever orders (see docstring).
+            candidate.final_score = candidate.base_score
 
         selected: CoordinationCandidate | None = None
         status = "started"
@@ -301,16 +361,28 @@ class CoordinationController:
             if selected is not None:
                 status = "continued"
 
+        tolerance = max(0.0, float(hu_tolerance)) if apply_hu else 0.0
+        prior_pick: CoordinationCandidate | None = None
+        acceptable: list[CoordinationCandidate] = []
         if selected is None:
             feasible = [candidate for candidate in candidates if candidate.feasible]
             if not feasible:
                 return None
+            best_prior = max(candidate.base_score for candidate in feasible)
+            prior_pick = max(feasible, key=lambda candidate: candidate.base_score)
+            acceptable = [
+                candidate
+                for candidate in feasible
+                if candidate.base_score >= best_prior - tolerance
+            ]
+            pool = [prior_pick] + [
+                candidate
+                for candidate in acceptable
+                if candidate is not prior_pick and candidate.hu_supported
+            ]
             selected = max(
-                feasible,
-                key=lambda candidate: (
-                    float(candidate.final_score),
-                    candidate.base_score,
-                ),
+                pool,
+                key=lambda candidate: (candidate.hu_score, candidate.base_score),
             )
             self._decision_counter += 1
             decision_id = (
@@ -358,7 +430,15 @@ class CoordinationController:
                 "candidates": [candidate.to_dict() for candidate in candidates],
                 "selected": selected.option,
                 "selected_action": selected.action,
-                "hu_applied": bool(apply_hu and hu_lambda != 0.0),
-                "hu_lambda": hu_lambda,
+                "hu_applied": bool(apply_hu and tolerance > 0.0),
+                "hu_coordination_tolerance": tolerance,
+                "tolerance_unit": "prior_points",
+                "prior_pick": prior_pick.option if prior_pick is not None else None,
+                "acceptable_set_size": len(acceptable) if prior_pick is not None else None,
+                "preference_override": (
+                    selected.option != prior_pick.option
+                    if prior_pick is not None
+                    else False
+                ),
             },
         )
