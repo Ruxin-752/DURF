@@ -302,12 +302,15 @@ def action_plan_hits_blocked_position(
     return False
 
 
-def bfs_first_action_to_feature(
+def bfs_route_to_feature(
     mdp,
     player,
     feature_positions: list[tuple[int, int]],
     blocked_positions: set[tuple[int, int]] | None = None,
-) -> int | None:
+) -> tuple[int, float] | None:
+    """Breadth-first fallback for goals the precomputed motion planner has no
+    plan for.  Returns ``(first action, route cost in steps)`` so callers can
+    compare it against the planner's own cost."""
     blocked_positions = blocked_positions or set()
     valid_positions = set(mdp.get_valid_player_positions()) - blocked_positions
     start = player.position
@@ -333,22 +336,24 @@ def bfs_first_action_to_feature(
             feature_pos[1] - start[1],
         )
         if player.orientation == desired_orientation:
-            return int(Action.ACTION_TO_INDEX[Action.INTERACT])
-        return int(Action.ACTION_TO_INDEX[desired_orientation])
+            return int(Action.ACTION_TO_INDEX[Action.INTERACT]), 1.0
+        return int(Action.ACTION_TO_INDEX[desired_orientation]), 2.0
 
-    queue = deque([start])
+    queue = deque([(start, 0)])
     parent: dict[tuple[int, int], tuple[tuple[int, int], tuple[int, int]] | None] = {
         start: None
     }
     while queue:
-        position = queue.popleft()
+        position, depth = queue.popleft()
         if position in targets:
             first = position
             while parent[first] is not None and parent[first][0] != start:
                 first = parent[first][0]
             if parent[first] is None:
                 return None
-            return int(Action.ACTION_TO_INDEX[parent[first][1]])
+            # depth is the number of moves walked; the goal tile is entered by
+            # facing the feature and interacting, so the route costs one more.
+            return int(Action.ACTION_TO_INDEX[parent[first][1]]), float(depth + 1)
 
         for action in Action.MOTION_ACTIONS:
             if action == Action.STAY:
@@ -357,23 +362,43 @@ def bfs_first_action_to_feature(
             if nxt not in valid_positions or nxt in parent:
                 continue
             parent[nxt] = (position, action)
-            queue.append(nxt)
+            queue.append((nxt, depth + 1))
     return None
 
 
-def first_action_to_feature(
+# A partner standing in the way is a momentary fact.  The coordination layer
+# commits to a YIELD for at most `max_option_steps` (3) before re-deciding, so
+# walking up to the partner and letting coordination choose costs at most a few
+# steps -- a detour that costs more than that is the worse deal, and paying it
+# silently is also the wrong shape: it lets the partner's transient position
+# make a value judgement that belongs to the coordination layer (the same
+# gate/value confusion `feature_candidate` already fixes for candidate
+# existence, one level down in route choice).
+#
+# Without this budget the AI would oscillate: with the partner two tiles ahead
+# in a one-tile corridor the BFS fallback returns a ~14-step trip around the
+# ring, the partner steps back the next tick, the direct route wins again, and
+# the pair mirrors each other indefinitely -- observed as a 692/800-step
+# livelock that no conflict type and no stall escape could see.
+MAX_PARTNER_DETOUR_STEPS = 3
+
+
+def route_to_feature(
     motion_planner: MotionPlanner,
     player,
     feature_positions: list[tuple[int, int]],
     blocked_positions: set[tuple[int, int]] | None = None,
-) -> int | None:
+) -> tuple[int | None, float]:
+    """Cheapest route to any of ``feature_positions`` as ``(first action, cost)``.
+
+    ``cost`` is in steps and comparable across calls, which is what lets the
+    caller ask "is going around the partner worth it?".  Returns
+    ``(None, inf)`` when no route exists under ``blocked_positions``.
+    """
     blocked_positions = blocked_positions or set()
     mdp = motion_planner.mdp
     if not feature_positions:
-        return None
-    adjacent_action = adjacent_feature_action(player, feature_positions)
-    if adjacent_action is not None:
-        return adjacent_action
+        return None, float("inf")
 
     best_plan = None
     best_cost = float("inf")
@@ -403,15 +428,82 @@ def first_action_to_feature(
                 best_plan = action_plan
                 best_cost = cost
     if best_plan:
-        return int(Action.ACTION_TO_INDEX[best_plan[0]])
+        return int(Action.ACTION_TO_INDEX[best_plan[0]]), float(best_cost)
     if best_plan == [] and adjacent_position(player) in feature_positions:
-        return int(Action.ACTION_TO_INDEX[Action.INTERACT])
-    return bfs_first_action_to_feature(
+        return int(Action.ACTION_TO_INDEX[Action.INTERACT]), float(best_cost)
+    fallback = bfs_route_to_feature(
         mdp,
         player,
         feature_positions,
         blocked_positions,
     )
+    if fallback is None:
+        return None, float("inf")
+    return fallback
+
+
+def route_first_action(
+    motion_planner: MotionPlanner,
+    player,
+    feature_positions: list[tuple[int, int]],
+    blocked_positions: set[tuple[int, int]] | None = None,
+    *,
+    detour_budget: float | None = MAX_PARTNER_DETOUR_STEPS,
+) -> tuple[int | None, bool]:
+    """``(first action, ignored_partner)`` for the route the AI should walk.
+
+    A route that avoids the partner is preferred, but only while the detour
+    stays within ``detour_budget`` steps of the direct route (see
+    MAX_PARTNER_DETOUR_STEPS).  Past that the direct route is returned with
+    ``ignored_partner=True``, which `feature_candidate` records as
+    ``route_blocked_by_partner`` so the encounter is handed to the
+    coordination layer rather than paid for in silence.  Pass
+    ``detour_budget=None`` to restore the unbounded behaviour.
+    """
+    blocked_positions = blocked_positions or set()
+    if not feature_positions:
+        return None, False
+    adjacent_action = adjacent_feature_action(player, feature_positions)
+    if adjacent_action is not None:
+        return adjacent_action, False
+
+    avoiding_action, avoiding_cost = route_to_feature(
+        motion_planner, player, feature_positions, blocked_positions
+    )
+    if not blocked_positions:
+        return avoiding_action, False
+
+    direct_action, direct_cost = route_to_feature(
+        motion_planner, player, feature_positions, set()
+    )
+    if direct_action is None:
+        return avoiding_action, False
+    if avoiding_action is None:
+        return direct_action, True
+    if (
+        detour_budget is not None
+        and avoiding_cost > direct_cost + float(detour_budget)
+    ):
+        return direct_action, True
+    return avoiding_action, False
+
+
+def first_action_to_feature(
+    motion_planner: MotionPlanner,
+    player,
+    feature_positions: list[tuple[int, int]],
+    blocked_positions: set[tuple[int, int]] | None = None,
+    *,
+    detour_budget: float | None = MAX_PARTNER_DETOUR_STEPS,
+) -> int | None:
+    action, _ = route_first_action(
+        motion_planner,
+        player,
+        feature_positions,
+        blocked_positions,
+        detour_budget=detour_budget,
+    )
+    return action
 
 
 def stay_candidate(reason: str, task_score: float = 0.0) -> CandidateSubgoal:
@@ -556,21 +648,15 @@ def feature_candidate(
     # options on the table, and it is the coordination layer's job to decide.
     # So: prefer a route that avoids the partner; if none exists, keep the
     # candidate with a partner-agnostic route and flag it for audit.
-    action = first_action_to_feature(
+    # route_first_action already falls back to the partner-agnostic route when
+    # avoiding the partner is impossible OR costs more than the coordination
+    # layer's bounded yield (MAX_PARTNER_DETOUR_STEPS), and says so.
+    action, route_blocked_by_partner = route_first_action(
         motion_planner,
         player,
         feature_positions,
         blocked_positions,
     )
-    route_blocked_by_partner = False
-    if action is None and blocked_positions:
-        action = first_action_to_feature(
-            motion_planner,
-            player,
-            feature_positions,
-            set(),
-        )
-        route_blocked_by_partner = action is not None
     if action is None:
         return None
     candidate_metadata = dict(metadata or {})

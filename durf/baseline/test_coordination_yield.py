@@ -96,25 +96,45 @@ class RerouteActionTest(unittest.TestCase):
         return PlayerState(position, (0, -1))
 
     def test_reroute_detours_through_the_other_connector(self) -> None:
-        # From (3, 1), the shortest route to (4, 4) goes left through the
-        # column-1 connector (action index 3, "west"). Blocking that
-        # connector's two tiles (the human standing in it, about to finish
-        # crossing it) must not just fail -- it must find the real detour
-        # through the column-8 connector, whose first step is the opposite
-        # direction, "east" (action index 2).
-        player = self._player((3, 1))
+        # From (3, 4), the shortest route to the pot at (4, 0) goes left
+        # through the column-1 connector (action index 3, "west"), cost 10.
+        # Blocking that connector's two tiles (the human standing in it, about
+        # to finish crossing it) must not just fail -- it must find the real
+        # detour through the column-8 connector, whose first step is the
+        # opposite direction, "east" (action index 2), at cost 13.
+        player = self._player((3, 4))
         proposed_action = 3  # the route already in conflict: west, via col 1
         reroute = choose_reroute_action(
             self.motion_planner,
             player,
-            target_positions=[(4, 4)],
-            human_pos=(1, 2),
-            human_target=(1, 3),
+            target_positions=[(4, 0)],
+            human_pos=(1, 1),
+            human_target=(2, 1),
             proposed_action=proposed_action,
         )
         self.assertIsNotNone(reroute)
         self.assertNotEqual(reroute, proposed_action)
         self.assertEqual(reroute, 2)  # east: the column-8 detour
+
+    def test_reroute_is_bounded_by_the_partner_detour_budget(self) -> None:
+        """A reroute is a way around, not an expedition.
+
+        From (3, 1) the same block leaves only a ~19-step trip around the whole
+        ring -- more than MAX_PARTNER_DETOUR_STEPS beyond the direct route, and
+        the source of the mirror-oscillation livelock (see
+        durf/baseline/test_route_choice.py). REROUTE must decline it so the
+        caller falls through to BACK_OFF / WAIT, which is what "yield" means
+        when there is no cheap way around.
+        """
+        reroute = choose_reroute_action(
+            self.motion_planner,
+            self._player((3, 1)),
+            target_positions=[(4, 4)],
+            human_pos=(1, 2),
+            human_target=(1, 3),
+            proposed_action=3,
+        )
+        self.assertIsNone(reroute)
 
     def test_no_reroute_when_the_block_is_off_the_planned_route(self) -> None:
         # Blocking the column-8 connector cannot change a route that was
