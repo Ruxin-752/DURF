@@ -23,6 +23,7 @@ from overcooked_ai_py.visualization.state_visualizer import StateVisualizer
 
 from durf.baseline.action_prior import StepPrefixPrior, available_priors
 from durf.baseline.coordination import (
+    choose_reroute_action,
     CONTINUE_CURRENT_SUBGOAL,
     YIELD,
     CoordinationController,
@@ -32,12 +33,14 @@ from durf.baseline.coordination import (
 from durf.baseline.collect_rule_teacher_dataset import (
     SUBGOAL_TO_INDEX,
     SUBGOALS,
+    counters_for_put_down,
     first_action_to_feature,
     make_motion_planner,
     pots_needing_ingredient,
     choose_task_candidate,
     rule_teacher_candidates,
 )
+from durf.baseline.task_cost import attach_step_costs, build_feature_map
 from durf.baseline.runtime import (
     DEFAULT_AGENT_NAME,
     DEFAULT_PLAYABLE_LAYOUTS,
@@ -54,7 +57,10 @@ from durf.group_a.deepseek_chat import DeepSeekChatError, chat_once
 from durf.hu.subgoal_reranker import (
     COORDINATION_DECISION_LEVEL,
     TASK_DECISION_LEVEL,
-    HierarchicalHu,
+    load_runtime_hu,
+    runtime_hu_score,
+    runtime_hu_has_support,
+    warn_unknown_runtime_subgoal,
 )
 
 
@@ -188,10 +194,21 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--ai-mode",
         choices=("ppo", "random", "subgoal_executor"),
-        default="ppo",
+        # subgoal_executor is the experiment's H0 chain (rule teacher -> motion
+        # planner); ppo is the cramped_room demo agent and cannot run the ring.
+        default="subgoal_executor",
         help=(
             "Use the selected PPO agent, a uniformly random collaborator, or "
             "the rule-planner + learned subgoal executor backbone."
+        ),
+    )
+    parser.add_argument(
+        "--load-retired-executor",
+        action="store_true",
+        help=(
+            "Load the retired learned subgoal executor. Nothing calls it -- the "
+            "motion planner executes every subgoal -- so this exists only for "
+            "reproducing older runs."
         ),
     )
     parser.add_argument(
@@ -206,11 +223,13 @@ def parse_args() -> argparse.Namespace:
         ),
         help="Keras executor used when --ai-mode subgoal_executor.",
     )
-    parser.add_argument("--layout", default="cramped_room")
+    parser.add_argument("--layout", default=STANDARD_LAYOUT)
     parser.add_argument(
         "--layouts",
         nargs="+",
-        default=list(DEFAULT_PLAYABLE_LAYOUTS),
+        # In an experiment session the number keys must not be able to switch
+        # the participant onto another map; pass the full list for demos.
+        default=[STANDARD_LAYOUT],
         help="Layouts available for hot switching with 1-4 or N/M.",
     )
     parser.add_argument("--seed", type=int, default=42)
@@ -275,19 +294,56 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--hu-user-id", default="PILOT01")
     parser.add_argument(
-        "--hu-lambda",
+        "--hu-step-tolerance",
         type=float,
-        default=0.0,
-        help="Weight for Hu preference scores when --hu-apply is enabled.",
+        default=None,
+        help=(
+            "Estimated extra STEPS to the next delivery the agent may spend "
+            "to honour the learned preference (durf/baseline/task_cost.py). "
+            "When set (> 0) it replaces the task-point band: candidates whose "
+            "estimated steps-to-delivery are within this many steps of the "
+            "task optimum's form the acceptable set. The task optimum itself "
+            "is still the frozen backbone's pick. Unset/0 = task-point rule."
+        ),
     )
     parser.add_argument(
-        "--hu-coordination-lambda",
+        "--hu-task-tolerance",
         type=float,
         default=0.0,
         help=(
-            "Weight for Hu coordination scores. Zero preserves the initial "
-            "coordination prior while still logging shadow scores."
+            "Task points the agent may give up for the learned preference. "
+            "Candidates within this many points of the task optimum form the "
+            "acceptable set; the user's preference orders that set. 0 = frozen "
+            "task backbone. This is the same quantity as the non-inferiority "
+            "margin used to accept the task-competence result."
         ),
+    )
+    parser.add_argument(
+        "--hu-coordination-tolerance",
+        type=float,
+        default=0.0,
+        help=(
+            "Prior points the coordination prior may give up for the learned "
+            "preference. The prior is two-level (0/1), so this is a switch: "
+            "0 keeps the prior's yield/continue pick; >= 1 lets the user's "
+            "preference decide, with the prior as tie-break. Replaces "
+            "--hu-coordination-lambda: the prior and Hu are never added."
+        ),
+    )
+    parser.add_argument("--hu-coordination-lambda", type=float, default=None, help=argparse.SUPPRESS)
+    parser.add_argument(
+        "--hu-live", action="store_true",
+        help="Learn from feedback DURING the session: attribute each chat/annotation, "
+             "retrain the per-user adapter in place, archive F0/F5/F10/F15 checkpoints.",
+    )
+    parser.add_argument(
+        "--hu-live-no-llm", action="store_true",
+        help="With --hu-live: keyword baseline only (labels carry attributor=rule_baseline).",
+    )
+    parser.add_argument(
+        "--allow-nonstandard-setup", action="store_true",
+        help=f"Permit a map other than {STANDARD_LAYOUT} or a horizon other than "
+             f"{STANDARD_HORIZON} (demo / smoke runs only; such sessions cannot be pooled).",
     )
     parser.add_argument(
         "--hu-apply",
@@ -396,92 +452,18 @@ def write_crash_log(exc: BaseException) -> Path:
     return crash_path
 
 
-def to_jsonable(value):
-    if value is None or isinstance(value, (str, int, float, bool)):
-        return value
-    if isinstance(value, tuple):
-        return [to_jsonable(item) for item in value]
-    if isinstance(value, list):
-        return [to_jsonable(item) for item in value]
-    if isinstance(value, dict):
-        return {str(key): to_jsonable(item) for key, item in value.items()}
-    if hasattr(value, "tolist"):
-        return value.tolist()
-    if hasattr(value, "name"):
-        return str(value.name)
-    return str(value)
-
-
-def object_summary(obj):
-    if obj is None:
-        return None
-    summary = {
-        "type": type(obj).__name__,
-        "name": getattr(obj, "name", None),
-        "position": to_jsonable(getattr(obj, "position", None)),
-    }
-    for attr in (
-        "ingredients",
-        "cooking_tick",
-        "is_cooking",
-        "is_ready",
-        "is_idle",
-        "is_full",
-    ):
-        if hasattr(obj, attr):
-            value = getattr(obj, attr)
-            summary[attr] = to_jsonable(value() if callable(value) else value)
-    return {key: value for key, value in summary.items() if value is not None}
-
-
-def player_summary(player):
-    return {
-        "position": to_jsonable(getattr(player, "position", None)),
-        "orientation": to_jsonable(getattr(player, "orientation", None)),
-        "held_object": object_summary(getattr(player, "held_object", None)),
-    }
-
-
-def terrain_rows(mdp) -> list[str]:
-    rows = getattr(mdp, "terrain_mtx", [])
-    return ["".join(row) for row in rows]
-
-
-def pot_state_summary(mdp, state):
-    if not hasattr(mdp, "get_pot_states"):
-        return None
-    try:
-        return to_jsonable(mdp.get_pot_states(state))
-    except Exception as exc:
-        return {"error": f"get_pot_states failed: {exc}"}
-
-
-def state_facts(env) -> dict:
-    state = env.base_env.state
-    mdp = env.base_env.mdp
-    players = list(getattr(state, "players", []))
-    ai_player = players[0] if len(players) > 0 else None
-    human_player = players[1] if len(players) > 1 else None
-    objects = getattr(state, "objects", {})
-    return {
-        "ai_pos": to_jsonable(getattr(ai_player, "position", None)),
-        "human_pos": to_jsonable(getattr(human_player, "position", None)),
-        "ai_held_object": object_summary(getattr(ai_player, "held_object", None)),
-        "human_held_object": object_summary(getattr(human_player, "held_object", None)),
-        "players": [player_summary(player) for player in players],
-        "objects": [
-            {
-                "position": to_jsonable(position),
-                "object": object_summary(obj),
-            }
-            for position, obj in getattr(objects, "items", lambda: [])()
-        ],
-        "pot_states": pot_state_summary(mdp, state),
-        "layout_features": {
-            "layout_name": getattr(env, "layout_name", None),
-            "terrain": terrain_rows(mdp),
-        },
-    }
+from durf.baseline.version import STANDARD_HORIZON, STANDARD_LAYOUT, version_stamp  # noqa: E402
+from durf.feedback_attribution.schemas import feedback_event, trajectory_step  # noqa: E402
+from durf.hu.live_learner import LiveLearner  # noqa: E402
+from durf.hu.subgoal_reranker import HierarchicalHu, PerUserAdapter  # noqa: E402
+from durf.group_a.state_summary import (  # noqa: E402  (shared with sim_session)
+    object_summary,
+    player_summary,
+    pot_state_summary,
+    state_facts,
+    terrain_rows,
+    to_jsonable,
+)
 
 
 def json_dumps(value) -> str:
@@ -767,7 +749,7 @@ def main() -> int:
         ensure_agent_layout(args.agent, args.layout)
         layouts = filter_compatible_layouts(args.agent, requested_layouts)
     elif args.ai_mode == "subgoal_executor":
-        if not args.subgoal_executor.exists():
+        if args.load_retired_executor and not args.subgoal_executor.exists():
             raise FileNotFoundError(f"Subgoal executor not found: {args.subgoal_executor}")
         # The learned executor is trained for the H0 ring observation/subgoal space.
         # Keep hot-switching disabled in this mode so a test cannot silently jump
@@ -782,14 +764,45 @@ def main() -> int:
 
     agent_dir = resolve_agent_dir(args.agent) if args.ai_mode == "ppo" else None
     ai_agent = load_rllib_agent(args.agent, agent_index=0) if args.ai_mode == "ppo" else None
+    # The learned executor is retired: every subgoal is executed by the motion
+    # planner.  The file is only loaded when explicitly asked for, so a run no
+    # longer pays the TensorFlow import cost for a model nothing calls.
     subgoal_model = (
         tf.keras.models.load_model(args.subgoal_executor)
-        if args.ai_mode == "subgoal_executor"
+        if args.ai_mode == "subgoal_executor" and args.load_retired_executor
         else None
     )
-    hu_model = HierarchicalHu.load(args.hu_model) if args.hu_model else None
-    if args.hu_lambda < 0 or args.hu_coordination_lambda < 0:
-        raise ValueError("Hu lambdas cannot be negative")
+    hu_model = load_runtime_hu(args.hu_model) if args.hu_model else None
+    if not args.allow_nonstandard_setup:
+        if args.horizon != STANDARD_HORIZON:
+            raise ValueError(
+                f"--horizon {args.horizon} differs from the frozen experiment horizon "
+                f"{STANDARD_HORIZON}. Recorded sessions already mix 800 and 1200 and cannot "
+                f"be pooled; pass --allow-nonstandard-setup for a smoke run."
+            )
+        if args.ai_mode != "subgoal_executor":
+            raise ValueError(
+                f"--ai-mode {args.ai_mode} is not the experiment's H0 chain (subgoal_executor); "
+                f"pass --allow-nonstandard-setup for a demo run."
+            )
+        if args.layout != STANDARD_LAYOUT or list(args.layouts) != [STANDARD_LAYOUT]:
+            raise ValueError(
+                f"--layout {args.layout} / --layouts {list(args.layouts)} differ from the "
+                f"frozen experiment map {STANDARD_LAYOUT}; pass --allow-nonstandard-setup "
+                f"for a demo run."
+            )
+    if args.hu_task_tolerance < 0:
+        raise ValueError("--hu-task-tolerance cannot be negative")
+    if args.hu_step_tolerance is not None and args.hu_step_tolerance < 0:
+        raise ValueError("--hu-step-tolerance cannot be negative")
+    if args.hu_coordination_lambda is not None:
+        raise ValueError(
+            "--hu-coordination-lambda is gone: the coordination prior and Hu are no "
+            "longer added. Use --hu-coordination-tolerance (0 = prior only, "
+            ">= 1 = the preference decides)."
+        )
+    if args.hu_coordination_tolerance < 0:
+        raise ValueError("--hu-coordination-tolerance cannot be negative")
     coordination_controller = CoordinationController(
         min_commit_steps=1,
         max_option_steps=3,
@@ -803,7 +816,29 @@ def main() -> int:
         if args.ai_mode == "subgoal_executor"
         else {}
     )
+    task_features_by_layout = {
+        layout: build_feature_map(planner.mdp, planner)
+        for layout, planner in motion_planners_by_layout.items()
+    }
     session_dir = new_session_dir(args.output_dir)
+
+    live_learner = None
+    if args.hu_live:
+        prior = hu_model.hu_general if isinstance(hu_model, PerUserAdapter) else hu_model
+        if prior is not None and not isinstance(prior, HierarchicalHu):
+            raise ValueError("--hu-live needs a HierarchicalHu prior (or no --hu-model)")
+        live_learner = LiveLearner(
+            user_id=args.hu_user_id,
+            session_dir=session_dir,
+            hu_general=prior,
+            layout=args.layout,
+            use_llm=not args.hu_live_no_llm,
+        )
+        # Every closure below reads `hu_model` by name at call time, so this
+        # rebinding is what makes the runtime score with the learner's
+        # adapter -- the same object for the whole session, retrained in place.
+        hu_model = live_learner.model
+    live_update_queue: queue.Queue = queue.Queue()
 
     trajectory_path = session_dir / "trajectory.csv"
     chat_path = session_dir / "chat_messages.csv"
@@ -813,6 +848,9 @@ def main() -> int:
         json.dumps(
             {
                 "build_id": BUILD_ID,
+                **version_stamp(),
+                "hu_live": bool(args.hu_live),
+                "hu_live_use_llm": bool(args.hu_live and not args.hu_live_no_llm),
                 "agent": str(agent_dir) if agent_dir else None,
                 "ai_mode": args.ai_mode,
                 "subgoal_executor": (
@@ -827,8 +865,9 @@ def main() -> int:
                 "ai_player_index": 0,
                 "hu_model": str(args.hu_model) if args.hu_model else None,
                 "hu_user_id": args.hu_user_id,
-                "hu_lambda": args.hu_lambda,
-                "hu_coordination_lambda": args.hu_coordination_lambda,
+                "hu_task_tolerance": args.hu_task_tolerance,
+                "hu_step_tolerance": args.hu_step_tolerance,
+                "hu_coordination_tolerance": args.hu_coordination_tolerance,
                 "hu_apply": args.hu_apply,
             },
             indent=2,
@@ -969,6 +1008,8 @@ def main() -> int:
                 "reason": candidate.reason,
                 "feasible": candidate.feasible,
                 "metadata": candidate.metadata,
+                "step_cost": candidate.step_cost,
+                "hu_supported": candidate.hu_supported,
             }
             for candidate in candidates
         ]
@@ -987,8 +1028,12 @@ def main() -> int:
         if hu_model is None:
             return
         for candidate in candidates:
+            candidate.hu_supported = runtime_hu_has_support(
+                hu_model, TASK_DECISION_LEVEL, candidate.subgoal
+            )
             try:
-                candidate.hu_score = hu_model.score(
+                candidate.hu_score = runtime_hu_score(
+                    hu_model,
                     TASK_DECISION_LEVEL,
                     args.hu_user_id,
                     condition_features,
@@ -996,19 +1041,27 @@ def main() -> int:
                 )
             except KeyError:
                 candidate.hu_score = 0.0
+                warn_unknown_runtime_subgoal(TASK_DECISION_LEVEL, candidate.subgoal)
 
     def subgoal_executor_action(
         human_action: int,
     ) -> tuple[int, str, list[dict], dict, dict]:
-        if subgoal_model is None:
-            raise RuntimeError("subgoal_executor_action called without a loaded model")
         motion_planner = motion_planners_by_layout[current_layout]
         candidates = rule_teacher_candidates(env.base_env.state, motion_planner, 0)
+        attach_step_costs(
+            candidates,
+            features=task_features_by_layout[current_layout],
+            motion_planner=motion_planner,
+            player=env.base_env.state.players[0],
+            state=env.base_env.state,
+            mdp=env.base_env.mdp,
+        )
         condition_features = live_condition_features(human_action)
         apply_hu_shadow_scores(candidates, condition_features)
         chosen = choose_task_candidate(
             candidates,
-            hu_lambda=args.hu_lambda if args.hu_apply else 0.0,
+            task_tolerance=args.hu_task_tolerance if args.hu_apply else 0.0,
+            step_tolerance=args.hu_step_tolerance if args.hu_apply else None,
         )
         subgoal_name = chosen.subgoal
         planner_action = chosen.action
@@ -1037,33 +1090,23 @@ def main() -> int:
             "candidates": serialized_candidates,
             "selected": subgoal_name,
             "selected_action": int(planner_action),
-            "hu_applied": bool(args.hu_apply and args.hu_lambda != 0.0),
-            "hu_lambda": args.hu_lambda,
+            "hu_applied": bool(
+                args.hu_apply
+                and (args.hu_task_tolerance > 0.0 or (args.hu_step_tolerance or 0.0) > 0.0)
+            ),
+            "hu_task_tolerance": args.hu_task_tolerance,
+            "hu_step_tolerance": args.hu_step_tolerance,
         }
-        if subgoal_name in {
-            "GET_TOMATO",
-            "PUT_TOMATO_IN_POT",
-            "GET_ONION",
-            "PUT_ONION_IN_POT",
-            "GET_DISH",
-            "PICKUP_SOUP",
-            "SERVE_SOUP",
-            "WAIT",
-        }:
-            return (
-                int(planner_action),
-                subgoal_name,
-                serialized_candidates,
-                condition_features,
-                task_decision,
-            )
-        subgoal_id = SUBGOAL_TO_INDEX[subgoal_name]
-        observations = env.base_env.lossless_state_encoding_mdp(env.base_env.state)
-        observation = np.asarray(observations[0], dtype=np.float32)[None, ...]
-        subgoal_one_hot = np.eye(len(SUBGOALS), dtype=np.float32)[[subgoal_id]]
-        logits = subgoal_model.predict([observation, subgoal_one_hot], verbose=0)
+        # Every subgoal the generator can produce is executed by the motion
+        # planner.  The learned executor used to sit behind this point as a
+        # fallback, but the whitelist it guarded had grown to cover the whole
+        # vocabulary, so the network was never called in any recorded session
+        # while the docs still described the backbone as
+        # "state -> subgoal -> learned low-level executor action".  Both methods
+        # under comparison execute through the planner, so the planner is the
+        # backbone and the claim now matches the code.
         return (
-            int(np.argmax(logits[0])),
+            int(planner_action),
             subgoal_name,
             serialized_candidates,
             condition_features,
@@ -1109,113 +1152,36 @@ def main() -> int:
     def manhattan(a, b) -> int:
         return abs(a[0] - b[0]) + abs(a[1] - b[1])
 
-    def pot_positions_for_waiting(state) -> list[tuple[int, int]]:
-        pot_states = env.base_env.mdp.get_pot_states(state)
-        positions: list[tuple[int, int]] = []
-        for key in ("ready", "cooking"):
-            positions.extend(tuple(pos) for pos in pot_states.get(key, []) or [])
-        if positions:
-            return positions
-        return [tuple(pos) for pos in env.base_env.mdp.get_pot_locations()]
-
     def detect_subgoal_issue(state, subgoal_name: str) -> str:
+        # AI_HELD_DISH_BEFORE_SOUP_READY and AI_HELD_UNNEEDED_INGREDIENT used
+        # to live here and be force-corrected downstream in
+        # recovery_action_override, unconditionally overriding whatever the
+        # task/Hu layer had already chosen. Both states are now covered by
+        # real, scored candidates in generate_candidate_subgoals (WAIT_NEAR_POT
+        # / PUT_DOWN_OBJECT / WAIT), reproducing the exact same H0 action at
+        # hu_task_tolerance=0 -- so Hu can finally have a say here instead of
+        # being silently overruled. Only a genuinely stale committed choice
+        # (the world changed since this subgoal was picked) still needs a
+        # post-hoc recovery step.
         if args.ai_mode != "subgoal_executor":
             return ""
-        ai_player = state.players[0]
-        held = getattr(ai_player, "held_object", None)
-        held_name = getattr(held, "name", None)
-        if held_name == "dish" and not env.base_env.mdp.get_ready_pots(
-            env.base_env.mdp.get_pot_states(state)
-        ):
-            return "AI_HELD_DISH_BEFORE_SOUP_READY"
-        if held_name in ("tomato", "onion"):
-            if not pots_needing_ingredient(state, env.base_env.mdp, held_name):
-                return "AI_HELD_UNNEEDED_INGREDIENT"
         if subgoal_name in ("PUT_TOMATO_IN_POT", "PUT_ONION_IN_POT"):
             ingredient = "tomato" if subgoal_name == "PUT_TOMATO_IN_POT" else "onion"
             if not pots_needing_ingredient(state, env.base_env.mdp, ingredient):
                 return "STALE_PUT_INGREDIENT_SUBGOAL"
         return ""
 
-    def empty_counter_locations(state) -> list[tuple[int, int]]:
-        mdp = env.base_env.mdp
-        motion_planner = motion_planners_by_layout[current_layout]
-        if hasattr(mdp, "get_counter_locations"):
-            counters = list(mdp.get_counter_locations())
-        else:
-            valid_positions = set(mdp.get_valid_player_positions())
-            counters = []
-            rows = getattr(mdp, "terrain_mtx", [])
-            for y, row in enumerate(rows):
-                for x, terrain in enumerate(row):
-                    pos = (x, y)
-                    if pos in valid_positions or terrain != "X":
-                        continue
-                    adjacent = [
-                        (x + 1, y),
-                        (x - 1, y),
-                        (x, y + 1),
-                        (x, y - 1),
-                    ]
-                    if any(candidate in valid_positions for candidate in adjacent):
-                        counters.append(pos)
-        feature_positions = set()
-        for getter_name in (
-            "get_pot_locations",
-            "get_serving_locations",
-            "get_dish_dispenser_locations",
-            "get_tomato_dispenser_locations",
-            "get_onion_dispenser_locations",
-        ):
-            getter = getattr(mdp, getter_name, None)
-            if getter is not None:
-                feature_positions.update(getter())
-        occupied = set(getattr(state, "objects", {}).keys())
-        motion_goal_positions = set(getattr(motion_planner, "motion_goals_for_pos", {}))
-        available = [
-            tuple(position)
-            for position in counters
-            if tuple(position) not in feature_positions and tuple(position) not in occupied
-        ]
-        reachable = [
-            position for position in available if position in motion_goal_positions
-        ]
-        candidates = reachable or available
-        player_pos = state.players[0].position
-        pot_positions = env.base_env.mdp.get_pot_locations()
-        return sorted(
-            candidates,
-            key=lambda pos: (
-                min((manhattan(pos, pot) for pot in pot_positions), default=99),
-                manhattan(pos, player_pos),
-            ),
-        )
-
     def put_down_unneeded_object_action(state) -> int:
         motion_planner = motion_planners_by_layout[current_layout]
         action = first_action_to_feature(
             motion_planner,
             state.players[0],
-            empty_counter_locations(state),
+            counters_for_put_down(
+                state, env.base_env.mdp, motion_planner, state.players[0]
+            ),
             {state.players[1].position},
         )
         return int(action) if action is not None else STAY
-
-    def wait_near_pot_action(state) -> int:
-        motion_planner = motion_planners_by_layout[current_layout]
-        action = first_action_to_feature(
-            motion_planner,
-            state.players[0],
-            pot_positions_for_waiting(state),
-            {state.players[1].position},
-        )
-        if action is None or int(action) == INTERACT:
-            return STAY
-        return int(action)
-
-    def pot_state_has(state, *keys: str) -> bool:
-        pot_states = env.base_env.mdp.get_pot_states(state)
-        return any(bool(pot_states.get(key)) for key in keys)
 
     def recovery_action_override(
         proposed_ai_action: int,
@@ -1226,10 +1192,6 @@ def main() -> int:
         state = env.base_env.state
         issue = detect_subgoal_issue(state, subgoal_name)
         if issue:
-            if issue == "AI_HELD_DISH_BEFORE_SOUP_READY":
-                if pot_state_has(state, "cooking", "ready"):
-                    return wait_near_pot_action(state), issue
-                return put_down_unneeded_object_action(state), issue
             return put_down_unneeded_object_action(state), issue
         return proposed_ai_action, ""
 
@@ -1238,6 +1200,7 @@ def main() -> int:
         human_action: int,
         subgoal_name: str,
         condition_features: dict,
+        task_target_positions: list | None = None,
     ) -> tuple[int, str, dict]:
         if args.ai_mode != "subgoal_executor":
             coordination_controller.clear_if_no_conflict()
@@ -1261,28 +1224,63 @@ def main() -> int:
             return proposed_ai_action, "", {}
 
         condition_features = dict(condition_features)
-        condition_features["human_trying_to_pass"] = (
-            human_target == ai_pos
+        if action_moves(human_action):
+            human_delta = (
+                human_target[0] - human_pos[0],
+                human_target[1] - human_pos[1],
+            )
+            route_blocked = human_target == ai_pos or (
+                human_target[0] + human_delta[0],
+                human_target[1] + human_delta[1],
+            ) == ai_pos
+        else:
+            route_blocked = False
+        condition_features["human_trying_to_pass"] = route_blocked
+        condition_features["ai_on_human_path"] = route_blocked
+        # WAIT / BACK_OFF / REROUTE are execution-level refinements of a
+        # single Hu-scored YIELD decision, not options Hu chooses between:
+        # REROUTE (keep making task progress on a path that avoids the
+        # human) beats BACK_OFF (retreat to the most separating open tile)
+        # beats WAIT (stay put) when the stronger options aren't available.
+        # This applies to every conflict type -- a dynamic simultaneous-move
+        # conflict deserves the same repertoire as a static tile conflict.
+        reroute_action = choose_reroute_action(
+            motion_planners_by_layout[current_layout],
+            env.base_env.state.players[0],
+            task_target_positions,
+            human_pos,
+            human_target,
+            proposed_ai_action,
         )
-        condition_features["ai_on_human_path"] = (
-            human_target == ai_pos
-        )
-        yield_action = (
-            choose_yield_action(ai_pos, human_pos, human_target)
-            if conflict_type == "human_entering_ai_tile"
-            else STAY
-        )
+        if reroute_action is not None:
+            yield_action = reroute_action
+            yield_mode = "reroute"
+        else:
+            back_off_action = choose_yield_action(ai_pos, human_pos, human_target)
+            if back_off_action is not None:
+                yield_action = back_off_action
+                yield_mode = "back_off"
+            else:
+                yield_action = STAY
+                yield_mode = "wait"
         candidates = build_coordination_candidates(
             proposed_action=proposed_ai_action,
             yield_action=yield_action,
             stay_action=STAY,
             conflict_type=conflict_type,
+            ai_adjacent_to_current_subgoal_target=bool(
+                condition_features.get(
+                    "ai_adjacent_to_current_subgoal_target"
+                )
+            ),
+            yield_mode=yield_mode,
         )
 
         def coordination_hu_score(option: str) -> float:
             if hu_model is None:
                 return 0.0
-            return hu_model.score(
+            return runtime_hu_score(
+                hu_model,
                 COORDINATION_DECISION_LEVEL,
                 args.hu_user_id,
                 condition_features,
@@ -1299,8 +1297,13 @@ def main() -> int:
             candidates=candidates,
             condition_features=condition_features,
             hu_score=coordination_hu_score if hu_model is not None else None,
-            hu_lambda=args.hu_coordination_lambda,
+            hu_tolerance=args.hu_coordination_tolerance,
             apply_hu=args.hu_apply,
+            hu_supported=(
+                (lambda option: runtime_hu_has_support(hu_model, COORDINATION_DECISION_LEVEL, option))
+                if hu_model is not None
+                else None
+            ),
         )
         if result is None:
             return proposed_ai_action, "", {}
@@ -1341,6 +1344,10 @@ def main() -> int:
                         args.seed,
                         args.horizon,
                     )
+                    task_features_by_layout[current_layout] = build_feature_map(
+                        motion_planners_by_layout[current_layout].mdp,
+                        motion_planners_by_layout[current_layout],
+                    )
             env = envs_by_layout[current_layout]
 
         ai_obs, _ = env.multi_reset()
@@ -1369,6 +1376,39 @@ def main() -> int:
         last_layout_switch_at = now
         reset_episode(new_layout_index)
         return True
+
+    def submit_live_feedback(text: str, role: str) -> None:
+        """Hand one piece of human feedback to the live learner.
+
+        The slow half (event detection + LLM attribution) runs in a worker
+        thread; the fast half (retrain the adapter in place) is applied on the
+        game loop's own thread when the result comes back, so a step never
+        scores with a half-written weight matrix.  Until it lands, the agent
+        keeps playing with the previous model -- that latency is recorded per
+        feedback (update_latency_ms), it is not hidden.
+        """
+        if live_learner is None:
+            return
+        event = feedback_event(
+            source="live",
+            timestamp_utc=utc_timestamp(),
+            episode=episode,
+            episode_step=episode_step,
+            total_step=total_step,
+            feedback_text=text,
+            feedback_value=None,
+            role=role,
+            extra={"layout": current_layout},
+            user_id=args.hu_user_id,
+        )
+
+        def worker() -> None:
+            try:
+                live_update_queue.put(("pending", live_learner.attribute(event)))
+            except Exception as exc:  # noqa: BLE001
+                live_update_queue.put(("error", f"live attribution failed: {exc}"))
+
+        threading.Thread(target=worker, daemon=True).start()
 
     def log_chat_message(role: str, content: str) -> None:
         write_row(
@@ -1411,6 +1451,7 @@ def main() -> int:
             },
         )
         log_chat_message("human_annotation", content)
+        submit_live_feedback(content, "human_annotation")
 
     def open_annotation_prompt() -> None:
         nonlocal annotation_pending
@@ -1474,6 +1515,7 @@ def main() -> int:
 
         chat_messages.append({"role": "user", "content": prompt})
         log_chat_message("user", prompt)
+        submit_live_feedback(prompt, "human_language")
         chat_pending = True
         chat_status = ""
         history = [
@@ -1529,6 +1571,20 @@ def main() -> int:
 
     try:
         while running:
+            while not live_update_queue.empty():
+                kind, payload = live_update_queue.get()
+                if kind == "pending" and live_learner is not None:
+                    update = live_learner.apply(payload)
+                    note = (
+                        f"[preference] +{update.labels_added} label(s) via {update.attributor}, "
+                        f"{update.update_latency_ms:.0f} ms"
+                        + (f", checkpoint {Path(update.checkpoint_written).name}"
+                           if update.checkpoint_written else "")
+                    )
+                    log_chat_message("system", note)
+                else:
+                    log_chat_message("system", f"[preference] {payload}")
+
             while not chat_result_queue.empty():
                 role, content = chat_result_queue.get()
                 chat_pending = False
@@ -1765,6 +1821,7 @@ def main() -> int:
                     human_action,
                     current_ai_subgoal,
                     current_ai_condition_features,
+                    current_task_decision.get("selected_target_positions"),
                 )
                 ai_action, safety_event = hard_safety_guard(coordinated_action)
                 current_ai_event = (
@@ -1849,6 +1906,36 @@ def main() -> int:
                     },
                     flush=total_step % 10 == 0 or bool(done),
                 )
+                if live_learner is not None:
+                    live_learner.observe_step(
+                        trajectory_step(
+                            source="live",
+                            timestamp_utc=utc_timestamp(),
+                            episode=episode,
+                            episode_step=episode_step,
+                            total_step=total_step,
+                            layout=current_layout,
+                            ai_action=int(ai_action),
+                            ai_action_name=ACTION_NAMES[ai_action],
+                            human_action=int(human_action),
+                            human_action_name=ACTION_NAMES[human_action],
+                            environment_reward=float(reward),
+                            episode_reward=episode_reward,
+                            done=bool(done),
+                            ai_subgoal=current_ai_subgoal,
+                            ai_event=current_ai_event,
+                            ai_condition_features=current_ai_condition_features,
+                            ai_subgoal_candidates=current_ai_subgoal_candidates,
+                            task_decision=current_task_decision,
+                            coordination_decision=current_coordination_decision,
+                            state_facts=state_after,
+                            extra={
+                                "predict_ms": round(last_predict_ms, 3),
+                                "environment_step_ms": round(last_environment_step_ms, 3),
+                                "state_before": state_before,
+                            },
+                        )
+                    )
                 game_surface = render_game_surface(
                     visualizer,
                     env,
@@ -2003,6 +2090,23 @@ def main() -> int:
         pygame.key.stop_text_input()
         pygame.quit()
 
+    if live_learner is not None:
+        # Apply anything that came back after the loop stopped, then summarise.
+        while not live_update_queue.empty():
+            kind, payload = live_update_queue.get()
+            if kind == "pending":
+                live_learner.apply(payload)
+        summary = live_learner.summary()
+        (session_dir / "live_learning_summary.json").write_text(
+            json.dumps(summary, indent=2, ensure_ascii=False), encoding="utf-8"
+        )
+        print(
+            "Live learning: "
+            f"{summary['feedback_events']} feedback, {summary['accepted_feedback_count']} accepted, "
+            f"{summary['labels']} labels, fallbacks={summary['llm_fallbacks']}, "
+            f"median latency {summary['median_update_latency_ms']} ms, "
+            f"checkpoints={summary['checkpoints']}"
+        )
     print(f"Trajectory: {trajectory_path}")
     print(f"Chat messages: {chat_path}")
     print(f"Pause events: {pause_path}")

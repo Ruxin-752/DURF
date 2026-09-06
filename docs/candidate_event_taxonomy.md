@@ -37,15 +37,15 @@ Hu training sample = 经过归因/review 后得到的 condition + preferred/reje
 | event_type | actor | event_valence | 检测逻辑 | 当前判断 |
 | --- | --- | --- | --- | --- |
 | `AI_blocked_human_path` | `ai` | `negative_problem` | 人类尝试移动到 AI 当前/下一格，但位置没变。 | 合理，偏保守。只能检测明确“人撞 AI”的阻挡，不能覆盖“AI 站位让我绕路”。 |
-| `AI_ignored_ready_or_nearly_ready_pot` | `ai` | `missed_opportunity` | pot ready，AI 空手或拿盘，连续数步没有在锅附近 interact。 | 合理，但目前只看 ready pot，对“快煮好该拿盘”覆盖不足。 |
+| `AI_ignored_ready_or_nearly_ready_pot` | `ai` | `missed_opportunity` | pot cooking/ready，AI 空手或拿盘，连续数步没有在锅附近 interact。 | 已把 cooking 纳入检测：煮汤期间不准备盘子同样算错失机会。 |
 | `AI_failed_to_prepare_ingredient_while_waiting` | `ai` | `missed_opportunity` | pot cooking，人类拿盘等待，AI 空手但没有准备原料。 | 合理，但条件偏窄：要求人类拿盘等待。 |
-| `AI_missed_plate_pickup_opportunity` | `ai` | `missed_opportunity` | soup cooking/ready，AI 空手，人类没拿盘，AI 没选择盘子相关 subgoal。 | 方向合理，但容易依赖 subgoal 日志质量。后续应增加“附近有盘子/盘子位置更近”的 condition。 |
+| `AI_missed_plate_pickup_opportunity` | `ai` | `missed_opportunity` | soup cooking/ready，AI 空手，人类没拿盘，AI 没选择盘子相关 subgoal，连续 3 帧。 | 阈值已从 4 帧降到 3 帧。方向合理，但容易依赖 subgoal 日志质量。后续应增加“附近有盘子/盘子位置更近”的 condition。 |
 | `AI_missed_useful_counter_object` | `ai` | `missed_opportunity` | AI 从 dispenser 取物时，同类 counter 物体已经存在，且它更靠近 AI、完整任务成本更低，或更靠近锅。 | 已实现。最后一种只表示“队友已 staging”的候选偏好，不宣称客观总路径更短，必须结合反馈和 review。 |
-| `AI_missed_labor_division_opportunity` | `ai` | `missed_opportunity` | 当前覆盖两个保守情形：人类已拿最后所需原料而 AI 未准备盘子；人类已覆盖盘子角色而 AI 重复选择盘子任务。 | 已实现。`opportunity_kind` 保存在 evidence，具体状态保存在 condition。 |
-| `AI_pick_drop_loop` | `ai` | `negative_problem` | 短窗口内 AI 多次 interact 导致手持物反复变化，且无送餐 reward。 | 已修正重叠窗口问题。仍需注意：有些合理 staging 也可能被误报，需要 review。 |
-| `AI_held_unneeded_object_too_long` | `ai` | `negative_problem` | AI 持有 recipe 已不需要的 tomato/onion 连续若干步。 | 合理，但依赖 `recipe_needs_*` condition 是否准确。 |
-| `AI_put_object_on_unhelpful_counter` | `ai` | `negative_problem` | AI 把物体放到离 pot 较远的 counter。 | 已加同位置短期去重。风险是“临时让路放下”可能被误判。 |
-| `AI_successfully_put_ingredient_into_pot` | `ai` | `positive_progress` | AI step 前持 tomato/onion，step 后不持有，soup ingredients 增加。 | 合理。出现多次是正常的，因为每放一个原料都会记录一次。 |
+| `AI_missed_labor_division_opportunity` | `ai` | `missed_opportunity` | 当前覆盖两个保守情形：人类已拿最后所需原料而 AI 未准备盘子；人类已拿盘且锅 cooking/ready（inferred `PICKUP_SOUP`）而 AI 仍重复选盘子任务。 | 已实现。`opportunity_kind` 保存在 evidence。`duplicate_dish_task` 已收紧：人类"正走向盘子"（未持有）不算已覆盖角色。 |
+| `AI_pick_drop_loop` | `ai` | `negative_problem` | AI 在**同一格**反复拿起/放下**同一物体**（拿起-放下-拿起…）≥3 次，且无送餐 reward。 | 已收紧：只在原地同物重复时触发；跨格移动（可能是搬东西）和不同物体交替（可能是整理）不算。confidence 0.85。 |
+| `AI_held_unneeded_object_too_long` | `ai` | `negative_problem` | AI 持有 recipe 已不需要的 tomato/onion，15 步滑动窗口内累计 ≥5 帧（不要求连续）。 | 已从连续 streak 改为滑动窗口累计，避免真实轨迹中短暂拿放打断检测。 |
+| `AI_put_object_on_unhelpful_counter` | `ai` | `neutral_context` | AI 把物体放到离 pot 较远的 counter。 | 已改为 neutral：放下可能是 staging 或临时让路，极性由人类反馈/review 决定，不预设负面。 |
+| `AI_successfully_put_ingredient_into_pot` | `ai` | `positive_progress` | AI step 前持 tomato/onion，step 后不持有，soup ingredients 增加，且 AI 距 pot ≤1。 | 已加距离约束排除远距离误报；同帧人类也 interact 时 confidence 降到 0.7。 |
 | `AI_successfully_picked_up_soup` | `ai` | `positive_progress` | AI step 前持 dish，step 后持 soup。 | 合理。 |
 | `AI_successfully_delivered_soup` | `ai` | `positive_progress` | reward 增加，且 AI step 前持 soup，AI action 是 interact。 | 已修正。不会再把人类送餐算成 AI 送餐。 |
 | `Human_successfully_delivered_soup` | `human` | `positive_progress` | reward 增加，且人类 step 前持 soup，人类 action 是 interact。 | 作为上下文保留，不进入 Hu 训练。 |

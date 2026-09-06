@@ -13,6 +13,7 @@ handles movement and object interaction; Hu-v0 only scores high-level subgoals.
 from __future__ import annotations
 
 import json
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -38,6 +39,13 @@ DECISION_LEVELS = (TASK_DECISION_LEVEL, COORDINATION_DECISION_LEVEL)
 UNKNOWN_CONDITION_VALUE = 0.0
 TRUE_CONDITION_VALUE = 1.0
 FALSE_CONDITION_VALUE = -1.0
+
+# PerUserAdapter design switch: whether the task head keeps a per-user
+# constant offset (user_bias_task) alongside its condition-dependent term.
+# Default is off -- see PerUserAdapter.__init__ for the rationale.  This is
+# a reversible flag, not an architecture deletion: flipping it back to True
+# restores the original three-level decomposition for the task head.
+DEFAULT_ENABLE_TASK_BIAS = False
 
 
 @dataclass(frozen=True)
@@ -94,6 +102,40 @@ def infer_decision_level(
     return None
 
 
+def pairwise_sample_from_record(record: dict[str, Any]) -> PairwiseSample | None:
+    """One hu_pairwise_subgoal_preference record -> PairwiseSample, or None.
+
+    The single conversion used both when loading a corpus from disk and when
+    a label arrives live during a session, so the two paths cannot drift.
+    """
+    if record.get("record_type") != "hu_pairwise_subgoal_preference":
+        return None
+    preferred = str(record.get("preferred_subgoal") or "")
+    rejected = str(record.get("rejected_subgoal") or "")
+    if not preferred or not rejected or preferred == rejected:
+        return None
+    if preferred not in HU_SUBGOALS or rejected not in HU_SUBGOALS:
+        return None
+    decision_level = infer_decision_level(
+        preferred,
+        rejected,
+        record.get("decision_level"),
+    )
+    if decision_level is None:
+        return None
+    return PairwiseSample(
+        user_id=str(record.get("user_id") or "UNKNOWN_USER"),
+        layout=record.get("layout"),
+        condition_features=dict(record.get("condition_features") or {}),
+        preferred_subgoal=preferred,
+        rejected_subgoal=rejected,
+        decision_level=decision_level,
+        source_feedback_id=record.get("source_feedback_id"),
+        source_event=record.get("source_event"),
+        source_decision_id=record.get("source_decision_id"),
+    )
+
+
 def load_pairwise_samples(paths: list[Path]) -> list[PairwiseSample]:
     samples: list[PairwiseSample] = []
     for raw_path in paths:
@@ -101,34 +143,9 @@ def load_pairwise_samples(paths: list[Path]) -> list[PairwiseSample]:
         if not path.exists():
             raise FileNotFoundError(path)
         for record in read_jsonl(path):
-            if record.get("record_type") != "hu_pairwise_subgoal_preference":
-                continue
-            preferred = str(record.get("preferred_subgoal") or "")
-            rejected = str(record.get("rejected_subgoal") or "")
-            if not preferred or not rejected or preferred == rejected:
-                continue
-            if preferred not in HU_SUBGOALS or rejected not in HU_SUBGOALS:
-                continue
-            decision_level = infer_decision_level(
-                preferred,
-                rejected,
-                record.get("decision_level"),
-            )
-            if decision_level is None:
-                continue
-            samples.append(
-                PairwiseSample(
-                    user_id=str(record.get("user_id") or "UNKNOWN_USER"),
-                    layout=record.get("layout"),
-                    condition_features=dict(record.get("condition_features") or {}),
-                    preferred_subgoal=preferred,
-                    rejected_subgoal=rejected,
-                    decision_level=decision_level,
-                    source_feedback_id=record.get("source_feedback_id"),
-                    source_event=record.get("source_event"),
-                    source_decision_id=record.get("source_decision_id"),
-                )
-            )
+            sample = pairwise_sample_from_record(record)
+            if sample is not None:
+                samples.append(sample)
     return samples
 
 
@@ -158,17 +175,43 @@ class LinearSubgoalReranker:
         self.users = tuple(users)
         self.subgoal_to_index = {name: index for index, name in enumerate(self.subgoals)}
         self.user_to_index = {name: index for index, name in enumerate(self.users)}
-        rng = np.random.default_rng(seed)
+        # Zero-initialised on purpose (2026-09-04).  This is a linear pairwise
+        # model: gradient descent from zero needs no symmetry breaking, and a
+        # random init leaves every subgoal that never appears in a label with
+        # a random, permanent opinion (~+/-0.05 per decision) -- which, under a
+        # zero-margin argmax inside the satisficing band, is enough to pick a
+        # never-labelled candidate over the backbone's.  Observed as a
+        # drop/pick-up loop between PUT_TOMATO_IN_POT and PUT_DOWN_OBJECT
+        # driven entirely by init noise.  `seed` is kept for signature
+        # compatibility; nothing random remains here.
+        del seed
         self.global_subgoal_bias = np.zeros(len(self.subgoals), dtype=np.float32)
-        self.condition_weights = rng.normal(
-            loc=0.0,
-            scale=0.01,
-            size=(len(self.condition_keys), len(self.subgoals)),
-        ).astype(np.float32)
+        self.condition_weights = np.zeros(
+            (len(self.condition_keys), len(self.subgoals)),
+            dtype=np.float32,
+        )
         self.user_subgoal_bias = np.zeros(
             (len(self.users), len(self.subgoals)),
             dtype=np.float32,
         )
+        # How many training pairs each subgoal took part in.  A subgoal with
+        # zero support has no evidence behind it and must never be the reason
+        # a decision moves away from the backbone (see
+        # collect_rule_teacher_dataset.choose_task_candidate).  None until a
+        # model trained with this field is loaded.
+        self.subgoal_support: np.ndarray | None = np.zeros(
+            len(self.subgoals), dtype=np.int64
+        )
+
+    def has_support(self, subgoal: str) -> bool | None:
+        """True/False when known; None for models saved before support was
+        tracked (callers should treat None as "unknown", not as "no")."""
+        if self.subgoal_support is None:
+            return None
+        index = self.subgoal_to_index.get(subgoal)
+        if index is None:
+            return False
+        return bool(self.subgoal_support[index] > 0)
 
     @classmethod
     def from_samples(
@@ -242,6 +285,11 @@ class LinearSubgoalReranker:
         history = {"loss": [], "accuracy": []}
         rng = np.random.default_rng(seed)
         order = np.arange(len(samples))
+        if self.subgoal_support is None:
+            self.subgoal_support = np.zeros(len(self.subgoals), dtype=np.int64)
+        for sample in samples:
+            self.subgoal_support[self.subgoal_to_index[sample.preferred_subgoal]] += 1
+            self.subgoal_support[self.subgoal_to_index[sample.rejected_subgoal]] += 1
         for _epoch in range(epochs):
             rng.shuffle(order)
             loss_sum = 0.0
@@ -328,6 +376,11 @@ class LinearSubgoalReranker:
             "global_subgoal_bias": self.global_subgoal_bias.tolist(),
             "condition_weights": self.condition_weights.tolist(),
             "user_subgoal_bias": self.user_subgoal_bias.tolist(),
+            "subgoal_support": (
+                self.subgoal_support.tolist()
+                if self.subgoal_support is not None
+                else None
+            ),
         }
 
     @classmethod
@@ -346,6 +399,10 @@ class LinearSubgoalReranker:
             data.get("user_subgoal_bias") or [],
             dtype=np.float32,
         ).reshape((len(model.users), len(model.subgoals)))
+        support = data.get("subgoal_support")
+        model.subgoal_support = (
+            np.asarray(support, dtype=np.int64) if support is not None else None
+        )
         return model
 
     def save(self, path: Path) -> None:
@@ -424,6 +481,12 @@ class HierarchicalHu:
         if head is None or candidate not in head.subgoal_to_index:
             return 0.0
         return head.score(user_id, condition_features, candidate)
+
+    def has_support(self, decision_level: str, candidate: str) -> bool | None:
+        head = self.head_for(decision_level)
+        if head is None or candidate not in head.subgoal_to_index:
+            return False
+        return head.has_support(candidate)
 
     def train(
         self,
@@ -519,3 +582,498 @@ class HierarchicalHu:
     @classmethod
     def load(cls, path: Path):
         return cls.from_dict(json.loads(path.read_text(encoding="utf-8")))
+
+
+# ---------------------------------------------------------------------------
+# Protocol-v2: Per-user adapter with frozen Hu_general
+# ---------------------------------------------------------------------------
+
+
+class PerUserAdapter:
+    """Protocol-v2 three-level user model on top of frozen Hu_general.
+
+    Score decomposition:
+
+        Hu_user(subgoal | condition)
+            = Hu_general(condition, subgoal)                    [frozen]
+            + user_bias[subgoal]                                 [learnable]
+            + sum_k(condition_delta[k, subgoal] * condition[k])  [learnable]
+
+    Only user_bias and condition_delta are trained.  Hu_general weights
+    are never modified.
+    """
+
+    def __init__(
+        self,
+        *,
+        hu_general: HierarchicalHu,
+        user_id: str,
+        enable_task_bias: bool = DEFAULT_ENABLE_TASK_BIAS,
+    ) -> None:
+        self.hu_general = hu_general
+        self.user_id = user_id
+        self._model_type = "per_user_adapter_v2"
+
+        # Task-level user_bias is disabled by default: across the simulated
+        # personas evaluated so far, user_bias_task stays within +/-0.06,
+        # consistent with the design view that "unconditionally liking a
+        # subgoal" is not a meaningful construct at the task level -- task
+        # preference is inherently conditional on the situation (missing
+        # ingredients, pot status, etc.).  Coordination-level yielding
+        # tendencies behave differently and do show a stable per-user
+        # offset (user_bias_coord ~= +/-1.7), so that head keeps its bias
+        # term.  This flag is a reversible switch, not a deletion: when
+        # disabled, user_bias_task is never updated during training (stays
+        # exactly zero) and never contributes to the task-head score, but
+        # the array, its shape, and the load/save code are all left intact
+        # so a future dataset (e.g. real human feedback) can flip it back
+        # on and re-test the assumption without a schema migration.
+        self.enable_task_bias = bool(enable_task_bias)
+
+        # -- user_bias (user x subgoal) --
+        self.user_bias_task = np.zeros(len(TASK_HU_SUBGOALS), dtype=np.float32)
+        self.user_bias_coord = np.zeros(
+            len(COORDINATION_SUBGOALS), dtype=np.float32
+        )
+        self._task_subgoal_to_index = {
+            name: idx for idx, name in enumerate(TASK_HU_SUBGOALS)
+        }
+        self._coord_subgoal_to_index = {
+            name: idx for idx, name in enumerate(COORDINATION_SUBGOALS)
+        }
+
+        # -- condition_delta (condition x subgoal) --
+        self.condition_delta_task = np.zeros(
+            (len(CONDITION_KEYS), len(TASK_HU_SUBGOALS)), dtype=np.float32
+        )
+        self.condition_delta_coord = np.zeros(
+            (len(COORDINATION_CONDITION_KEYS), len(COORDINATION_SUBGOALS)),
+            dtype=np.float32,
+        )
+        self._task_cond_to_index = {
+            name: idx for idx, name in enumerate(CONDITION_KEYS)
+        }
+        self._coord_cond_to_index = {
+            name: idx for idx, name in enumerate(COORDINATION_CONDITION_KEYS)
+        }
+
+        # tracking: which conditions this user has observed
+        self.observed_conditions_task: set[str] = set()
+        self.observed_conditions_coord: set[str] = set()
+        # tracking: which subgoals this user's own feedback has labelled
+        self.observed_subgoals_task: set[str] = set()
+        self.observed_subgoals_coord: set[str] = set()
+
+    def reset(self) -> None:
+        """Forget everything this user taught us; keep the frozen prior.
+
+        The live learner retrains from scratch on the cumulative label set
+        after every accepted feedback instead of continuing SGD from the
+        current weights: the result is then a deterministic function of the
+        labels so far (checkpoint F5 == "trained on the first five"), with no
+        dependence on the order updates happened to arrive in.  Mutating in
+        place matters -- the runtime holds a reference to this object in
+        several closures, and swapping the object would leave them scoring
+        with a stale model.
+        """
+        self.user_bias_task[:] = 0.0
+        self.user_bias_coord[:] = 0.0
+        self.condition_delta_task[:] = 0.0
+        self.condition_delta_coord[:] = 0.0
+        self.observed_conditions_task.clear()
+        self.observed_conditions_coord.clear()
+        self.observed_subgoals_task.clear()
+        self.observed_subgoals_coord.clear()
+
+    def has_support(self, decision_level: str, subgoal: str) -> bool | None:
+        """Evidence for a subgoal from the general prior OR this user's own
+        labels.  None only if the general prior predates support tracking
+        and the user has not labelled the subgoal either."""
+        own = (
+            self.observed_subgoals_task
+            if decision_level == TASK_DECISION_LEVEL
+            else self.observed_subgoals_coord
+        )
+        if subgoal in own:
+            return True
+        return self.hu_general.has_support(decision_level, subgoal)
+
+    # -- Scoring -----------------------------------------------------------
+
+    def score(
+        self,
+        decision_level: str,
+        condition_features: dict[str, Any],
+        subgoal: str,
+    ) -> dict[str, float]:
+        """Return decomposed dict: general_score, user_bias_score,
+        condition_delta_score, final_score."""
+        general = self.hu_general.score(
+            decision_level, self.user_id, condition_features, subgoal
+        )
+        bias = self._user_bias_score(decision_level, subgoal)
+        delta = self._condition_delta_score(
+            decision_level, condition_features, subgoal
+        )
+        return {
+            "general_score": float(general),
+            "user_bias_score": float(bias),
+            "condition_delta_score": float(delta),
+            "final_score": float(general + bias + delta),
+        }
+
+    def _user_bias_score(self, decision_level: str, subgoal: str) -> float:
+        if decision_level == TASK_DECISION_LEVEL:
+            if not self.enable_task_bias:
+                return 0.0
+            idx = self._task_subgoal_to_index.get(subgoal)
+            return float(self.user_bias_task[idx]) if idx is not None else 0.0
+        idx = self._coord_subgoal_to_index.get(subgoal)
+        return float(self.user_bias_coord[idx]) if idx is not None else 0.0
+
+    def _condition_delta_score(
+        self,
+        decision_level: str,
+        condition_features: dict[str, Any],
+        subgoal: str,
+    ) -> float:
+        if decision_level == TASK_DECISION_LEVEL:
+            cond_keys = CONDITION_KEYS
+            delta = self.condition_delta_task
+            c2i = self._task_cond_to_index
+            s2i = self._task_subgoal_to_index
+        else:
+            cond_keys = COORDINATION_CONDITION_KEYS
+            delta = self.condition_delta_coord
+            c2i = self._coord_cond_to_index
+            s2i = self._coord_subgoal_to_index
+
+        subgoal_idx = s2i.get(subgoal)
+        if subgoal_idx is None:
+            return 0.0
+
+        value = 0.0
+        for cond_key in cond_keys:
+            cond_idx = c2i.get(cond_key)
+            if cond_idx is None:
+                continue
+            cv = condition_value(condition_features.get(cond_key))
+            if cv == UNKNOWN_CONDITION_VALUE:
+                continue
+            value += delta[cond_idx, subgoal_idx] * cv
+        return float(value)
+
+    # -- Training ----------------------------------------------------------
+
+    def pair_margin(
+        self,
+        decision_level: str,
+        condition_features: dict[str, Any],
+        preferred_subgoal: str,
+        rejected_subgoal: str,
+    ) -> float:
+        pref = self.score(decision_level, condition_features, preferred_subgoal)
+        rej = self.score(decision_level, condition_features, rejected_subgoal)
+        return pref["final_score"] - rej["final_score"]
+
+    def train(
+        self,
+        samples: list[PairwiseSample],
+        *,
+        epochs: int = 200,
+        learning_rate: float = 0.05,
+        l2_bias: float = 1e-4,
+        l2_delta: float = 1e-3,
+        seed: int = 0,
+    ) -> dict[str, Any]:
+        """Train user_bias and condition_delta. Hu_general is frozen."""
+        if not samples:
+            return {
+                "history": {"loss": [], "accuracy": []},
+                "observed_conditions": {"task": [], "coordination": []},
+            }
+
+        # Track observed subgoals and conditions
+        for sample in samples:
+            observed = (
+                self.observed_subgoals_task
+                if sample.decision_level == TASK_DECISION_LEVEL
+                else self.observed_subgoals_coord
+            )
+            observed.add(sample.preferred_subgoal)
+            observed.add(sample.rejected_subgoal)
+            cf = sample.condition_features or {}
+            keys = (
+                CONDITION_KEYS
+                if sample.decision_level == TASK_DECISION_LEVEL
+                else COORDINATION_CONDITION_KEYS
+            )
+            target = (
+                self.observed_conditions_task
+                if sample.decision_level == TASK_DECISION_LEVEL
+                else self.observed_conditions_coord
+            )
+            for key in keys:
+                if cf.get(key) is not None:
+                    target.add(key)
+
+        history: dict[str, Any] = {"loss": [], "accuracy": []}
+        rng = np.random.default_rng(seed)
+        order = np.arange(len(samples))
+
+        for _ in range(epochs):
+            rng.shuffle(order)
+            loss_sum = 0.0
+            correct = 0
+            for index in order:
+                sample = samples[int(index)]
+                margin = self.pair_margin(
+                    sample.decision_level,
+                    sample.condition_features,
+                    sample.preferred_subgoal,
+                    sample.rejected_subgoal,
+                )
+                correct += int(margin > 0.0)
+                loss_sum += float(np.logaddexp(0.0, -margin))
+                g = -1.0 / (1.0 + float(np.exp(margin)))
+
+                if sample.decision_level == TASK_DECISION_LEVEL:
+                    bias_arr = self.user_bias_task
+                    delta_mat = self.condition_delta_task
+                    cond_keys = CONDITION_KEYS
+                    c2i = self._task_cond_to_index
+                    s2i = self._task_subgoal_to_index
+                else:
+                    bias_arr = self.user_bias_coord
+                    delta_mat = self.condition_delta_coord
+                    cond_keys = COORDINATION_CONDITION_KEYS
+                    c2i = self._coord_cond_to_index
+                    s2i = self._coord_subgoal_to_index
+
+                pi = s2i[sample.preferred_subgoal]
+                ri = s2i[sample.rejected_subgoal]
+
+                update_bias = (
+                    sample.decision_level != TASK_DECISION_LEVEL
+                    or self.enable_task_bias
+                )
+                if update_bias:
+                    bias_arr[pi] -= learning_rate * (g + l2_bias * bias_arr[pi])
+                    bias_arr[ri] -= learning_rate * (-g + l2_bias * bias_arr[ri])
+
+                for cond_key in cond_keys:
+                    ci = c2i.get(cond_key)
+                    if ci is None:
+                        continue
+                    cv = condition_value(
+                        sample.condition_features.get(cond_key)
+                    )
+                    if cv == UNKNOWN_CONDITION_VALUE:
+                        continue
+                    delta_mat[ci, pi] -= learning_rate * (
+                        g * cv + l2_delta * delta_mat[ci, pi]
+                    )
+                    delta_mat[ci, ri] -= learning_rate * (
+                        -g * cv + l2_delta * delta_mat[ci, ri]
+                    )
+
+            history["loss"].append(loss_sum / len(samples))
+            history["accuracy"].append(correct / len(samples))
+
+        return {
+            "history": history,
+            "observed_conditions": {
+                "task": sorted(self.observed_conditions_task),
+                "coordination": sorted(self.observed_conditions_coord),
+            },
+        }
+
+    def evaluate(self, samples: list[PairwiseSample]) -> dict[str, Any]:
+        if not samples:
+            return {}
+        metrics: dict[str, Any] = {}
+        for dl in DECISION_LEVELS:
+            domain_samples = [s for s in samples if s.decision_level == dl]
+            if not domain_samples:
+                metrics[dl] = {
+                    "samples": 0, "pairwise_accuracy": None,
+                    "mean_margin": None,
+                }
+                continue
+            margins = np.asarray(
+                [
+                    self.pair_margin(
+                        s.decision_level,
+                        s.condition_features,
+                        s.preferred_subgoal,
+                        s.rejected_subgoal,
+                    )
+                    for s in domain_samples
+                ],
+                dtype=np.float32,
+            )
+            metrics[dl] = {
+                "samples": len(domain_samples),
+                "pairwise_accuracy": float((margins > 0.0).mean()),
+                "mean_margin": float(margins.mean()),
+                "min_margin": float(margins.min()),
+                "max_margin": float(margins.max()),
+            }
+        return metrics
+
+    # -- Serialization -----------------------------------------------------
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "model_type": self._model_type,
+            "user_id": self.user_id,
+            "enable_task_bias": self.enable_task_bias,
+            "hu_general": self.hu_general.to_dict(),
+            "user_bias_task": self.user_bias_task.tolist(),
+            "user_bias_coord": self.user_bias_coord.tolist(),
+            "condition_delta_task": self.condition_delta_task.tolist(),
+            "condition_delta_coord": self.condition_delta_coord.tolist(),
+            "observed_conditions_task": sorted(
+                self.observed_conditions_task
+            ),
+            "observed_conditions_coord": sorted(
+                self.observed_conditions_coord
+            ),
+            "observed_subgoals_task": sorted(self.observed_subgoals_task),
+            "observed_subgoals_coord": sorted(self.observed_subgoals_coord),
+        }
+
+    @classmethod
+    def from_dict(
+        cls,
+        data: dict[str, Any],
+        *,
+        hu_general: HierarchicalHu | None = None,
+    ):
+        if hu_general is None:
+            hu_general = HierarchicalHu.from_dict(data["hu_general"])
+        # Backward compatibility: model files saved before this switch
+        # existed were always trained with the task bias term enabled, so a
+        # missing key means "on" (preserve exactly what was trained), not
+        # "off" (the new default for freshly constructed adapters).
+        enable_task_bias = data.get("enable_task_bias")
+        if enable_task_bias is None:
+            enable_task_bias = True
+        adapter = cls(
+            hu_general=hu_general,
+            user_id=data["user_id"],
+            enable_task_bias=bool(enable_task_bias),
+        )
+        adapter.user_bias_task = np.asarray(
+            data.get("user_bias_task") or [], dtype=np.float32
+        )
+        adapter.user_bias_coord = np.asarray(
+            data.get("user_bias_coord") or [], dtype=np.float32
+        )
+        adapter.condition_delta_task = np.asarray(
+            data.get("condition_delta_task") or [],
+            dtype=np.float32,
+        ).reshape((len(CONDITION_KEYS), len(TASK_HU_SUBGOALS)))
+        adapter.condition_delta_coord = np.asarray(
+            data.get("condition_delta_coord") or [],
+            dtype=np.float32,
+        ).reshape(
+            (len(COORDINATION_CONDITION_KEYS), len(COORDINATION_SUBGOALS))
+        )
+        adapter.observed_conditions_task = set(
+            data.get("observed_conditions_task") or []
+        )
+        adapter.observed_conditions_coord = set(
+            data.get("observed_conditions_coord") or []
+        )
+        adapter.observed_subgoals_task = set(data.get("observed_subgoals_task") or [])
+        adapter.observed_subgoals_coord = set(data.get("observed_subgoals_coord") or [])
+        return adapter
+
+    def save(self, path: Path) -> None:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(
+            json.dumps(self.to_dict(), indent=2, ensure_ascii=False),
+            encoding="utf-8",
+        )
+
+    @classmethod
+    def load(
+        cls, path: Path, *, hu_general: HierarchicalHu | None = None
+    ):
+        data = json.loads(path.read_text(encoding="utf-8"))
+        return cls.from_dict(data, hu_general=hu_general)
+
+
+def load_runtime_hu(path: Path) -> HierarchicalHu | PerUserAdapter:
+    """Load either a frozen general model or a protocol-v2 user adapter."""
+    data = json.loads(path.read_text(encoding="utf-8"))
+    model_type = data.get("model_type")
+    if model_type == "per_user_adapter_v2":
+        return PerUserAdapter.from_dict(data)
+    if model_type == "hierarchical_linear_pairwise_hu":
+        return HierarchicalHu.from_dict(data)
+    raise ValueError(f"Unsupported Hu runtime model_type={model_type!r}: {path}")
+
+
+_UNKNOWN_SUBGOALS_WARNED: set[tuple[str, str]] = set()
+
+
+def warn_unknown_runtime_subgoal(decision_level: str, subgoal: str) -> None:
+    """Report (once per name) a runtime candidate the loaded Hu cannot score.
+
+    Callers fall back to hu_score=0 for such candidates, which is the right
+    runtime behaviour but must not be silent: a vocabulary mismatch between
+    the candidate generator and the model means a whole option is invisible
+    to preference learning (this is how GET_USEFUL_INGREDIENT collected 201
+    labels that could never reach a decision).
+    """
+    key = (decision_level, subgoal)
+    if key in _UNKNOWN_SUBGOALS_WARNED:
+        return
+    _UNKNOWN_SUBGOALS_WARNED.add(key)
+    print(
+        f"[hu] warning: loaded Hu cannot score '{decision_level}' candidate "
+        f"'{subgoal}' (no such head, or the name is outside its vocabulary); "
+        "scoring it 0. A model trained with the current TASK_HU_SUBGOALS and "
+        "with data for this decision level is needed for it to carry a preference.",
+        file=sys.stderr,
+    )
+
+
+def runtime_hu_has_support(
+    model: HierarchicalHu | PerUserAdapter,
+    decision_level: str,
+    subgoal: str,
+) -> bool:
+    """Whether the loaded Hu has any labelled evidence about ``subgoal``.
+
+    Models saved before support was tracked return None from has_support;
+    that is treated as supported so their behaviour is unchanged, but such
+    models also still carry random-init opinions on unlabelled subgoals and
+    should be retrained.
+    """
+    try:
+        support = model.has_support(decision_level, subgoal)
+    except KeyError:
+        return False
+    return True if support is None else bool(support)
+
+
+def runtime_hu_score(
+    model: HierarchicalHu | PerUserAdapter,
+    decision_level: str,
+    user_id: str,
+    condition_features: dict[str, Any],
+    subgoal: str,
+) -> float:
+    """Return one scalar score through a common runtime interface."""
+    if isinstance(model, PerUserAdapter):
+        return float(
+            model.score(decision_level, condition_features, subgoal)[
+                "final_score"
+            ]
+        )
+    return float(
+        model.score(decision_level, user_id, condition_features, subgoal)
+    )

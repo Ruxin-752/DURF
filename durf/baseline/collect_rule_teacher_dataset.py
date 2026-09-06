@@ -20,7 +20,8 @@ import numpy as np
 
 from durf.baseline.evaluate_baseline import count_event_value
 from durf.baseline.runtime import make_direct_multi_env, resolve_agent_dir
-from durf.baseline.task_logic import next_unstaged_ingredient
+from durf.baseline.task_logic import next_unstaged_ingredient, unstaged_ingredients
+from durf.baseline.task_cost import WAITING_SUBGOALS
 from human_aware_rl.rllib.rllib import load_trainer
 from overcooked_ai_py.mdp.actions import Action
 from overcooked_ai_py.planning.planners import MotionPlanner
@@ -51,6 +52,17 @@ class CandidateSubgoal:
     metadata: dict = field(default_factory=dict)
     hu_score: float = 0.0
     final_score: float | None = None
+    # Whether the loaded Hu has labelled evidence about this subgoal.  Set by
+    # the runtime next to hu_score.  A candidate without evidence can never be
+    # the reason a decision moves away from the backbone: "no opinion" must
+    # not outrank a trained opinion, and a random-init residue must not
+    # outrank anything.
+    hu_supported: bool = True
+    # Estimated steps this agent would still need to deliver the next soup if
+    # it committed to this subgoal (durf/baseline/task_cost.py).  Attached by
+    # the runtime; None when no estimate is available.  This is the unit the
+    # satisficing tolerance is denominated in when `step_tolerance` is used.
+    step_cost: float | None = None
 
 
 def parse_args() -> argparse.Namespace:
@@ -233,7 +245,15 @@ def pots_needing_ingredient(state, mdp, ingredient: str) -> list[tuple[int, int]
     return targets
 
 
-def next_needed_ingredient(state, mdp) -> str | None:
+def next_needed_ingredients(state, mdp) -> list[str]:
+    """Every distinct ingredient the most-filled unfinished pot still needs.
+
+    Returned in recipe order, most-urgent-first.  ``next_needed_ingredient``
+    is the head of this list and used to be the only thing the candidate
+    generator could see -- which silently turned "tomato first or onion
+    first?" into a non-choice on the 63.7% of steps where the pot was missing
+    more than one kind.
+    """
     recipe = target_recipe(mdp)
     best_missing: list[str] = []
     best_filled = -1
@@ -249,7 +269,39 @@ def next_needed_ingredient(state, mdp) -> str | None:
         if missing and len(current) > best_filled:
             best_missing = missing
             best_filled = len(current)
-    return best_missing[0] if best_missing else None
+    out: list[str] = []
+    for ingredient in best_missing:
+        if ingredient not in out:
+            out.append(ingredient)
+    return out
+
+
+def next_needed_ingredient(state, mdp) -> str | None:
+    needed = next_needed_ingredients(state, mdp)
+    return needed[0] if needed else None
+
+
+def teammate_carries_last_needed_ingredient(state, mdp, player_index: int) -> bool:
+    """True when the most-filled unfinished pot is exactly one ingredient short
+    and the teammate is holding that ingredient."""
+    recipe = target_recipe(mdp)
+    best_missing: list[str] | None = None
+    best_filled = -1
+    for pot_pos in mdp.get_pot_locations():
+        if state.has_object(pot_pos):
+            obj = state.get_object(pot_pos)
+            if getattr(obj, "name", None) != "soup":
+                continue
+            if getattr(obj, "is_ready", False) or getattr(obj, "is_cooking", False):
+                continue
+        current = pot_ingredients(state, pot_pos)
+        missing = missing_ingredients(recipe, current)
+        if missing and len(current) > best_filled:
+            best_missing = missing
+            best_filled = len(current)
+    if not best_missing or len(best_missing) != 1:
+        return False
+    return teammate_holding(state, player_index, best_missing[0])
 
 
 def teammate_holding(state, player_index: int, object_name_: str) -> bool:
@@ -302,12 +354,15 @@ def action_plan_hits_blocked_position(
     return False
 
 
-def bfs_first_action_to_feature(
+def bfs_route_to_feature(
     mdp,
     player,
     feature_positions: list[tuple[int, int]],
     blocked_positions: set[tuple[int, int]] | None = None,
-) -> int | None:
+) -> tuple[int, float] | None:
+    """Breadth-first fallback for goals the precomputed motion planner has no
+    plan for.  Returns ``(first action, route cost in steps)`` so callers can
+    compare it against the planner's own cost."""
     blocked_positions = blocked_positions or set()
     valid_positions = set(mdp.get_valid_player_positions()) - blocked_positions
     start = player.position
@@ -333,22 +388,24 @@ def bfs_first_action_to_feature(
             feature_pos[1] - start[1],
         )
         if player.orientation == desired_orientation:
-            return int(Action.ACTION_TO_INDEX[Action.INTERACT])
-        return int(Action.ACTION_TO_INDEX[desired_orientation])
+            return int(Action.ACTION_TO_INDEX[Action.INTERACT]), 1.0
+        return int(Action.ACTION_TO_INDEX[desired_orientation]), 2.0
 
-    queue = deque([start])
+    queue = deque([(start, 0)])
     parent: dict[tuple[int, int], tuple[tuple[int, int], tuple[int, int]] | None] = {
         start: None
     }
     while queue:
-        position = queue.popleft()
+        position, depth = queue.popleft()
         if position in targets:
             first = position
             while parent[first] is not None and parent[first][0] != start:
                 first = parent[first][0]
             if parent[first] is None:
                 return None
-            return int(Action.ACTION_TO_INDEX[parent[first][1]])
+            # depth is the number of moves walked; the goal tile is entered by
+            # facing the feature and interacting, so the route costs one more.
+            return int(Action.ACTION_TO_INDEX[parent[first][1]]), float(depth + 1)
 
         for action in Action.MOTION_ACTIONS:
             if action == Action.STAY:
@@ -357,23 +414,62 @@ def bfs_first_action_to_feature(
             if nxt not in valid_positions or nxt in parent:
                 continue
             parent[nxt] = (position, action)
-            queue.append(nxt)
+            queue.append((nxt, depth + 1))
     return None
 
 
-def first_action_to_feature(
+# A partner standing in the way is a momentary fact.  The coordination layer
+# commits to a YIELD for at most `max_option_steps` (3) before re-deciding, so
+# walking up to the partner and letting coordination choose costs at most a few
+# steps -- a detour that costs more than that is the worse deal, and paying it
+# silently is also the wrong shape: it lets the partner's transient position
+# make a value judgement that belongs to the coordination layer (the same
+# gate/value confusion `feature_candidate` already fixes for candidate
+# existence, one level down in route choice).
+#
+# Without this budget the AI would oscillate: with the partner two tiles ahead
+# in a one-tile corridor the BFS fallback returns a ~14-step trip around the
+# ring, the partner steps back the next tick, the direct route wins again, and
+# the pair mirrors each other indefinitely -- observed as a 692/800-step
+# livelock that no conflict type and no stall escape could see.
+MAX_PARTNER_DETOUR_STEPS = 3
+
+# Alternatives added by the enumerating generator (2026-09-05).  Each sits
+# strictly below the historical primary of its own branch, so the task optimum
+# -- and therefore H0 at tolerance 0 -- is bit-for-bit unchanged; they exist so
+# that a preference with a non-zero tolerance has something to choose BETWEEN.
+# Verified by shadow replay over 13 009 distinct states: 0 action mismatches.
+NEEDED_ALTERNATIVE_STEP = 5.0   # 70 -> 65 -> 60 ... (pot needs this ingredient)
+PREP_ALTERNATIVE_STEP = 3.0     # 50 -> 47 -> 44 ... (prep for the next cycle)
+# Fetching a second dish when the partner already carries one is worse than
+# standing still, task-wise.  Scoring it below WAIT (0.0) is what makes it
+# impossible for the task optimum to land on it.
+TEAMMATE_ALREADY_HAS_DISH_SCORE = -5.0
+# The partner is carrying the LAST ingredient the pot needs: it will be
+# cooking in a moment, and "you get the plate, I've got this" is a real
+# division-of-labour choice.  The generator used to offer GET_DISH only once
+# the pot was actually cooking, one step too late for that preference to be
+# expressible (first full LLM corpus: 63 such feedbacks, all off-menu).  Well
+# below the 70 of fetching an ingredient, so H0's pick is unchanged.
+TEAMMATE_CARRIES_LAST_INGREDIENT_DISH_SCORE = 40.0
+
+
+def route_to_feature(
     motion_planner: MotionPlanner,
     player,
     feature_positions: list[tuple[int, int]],
     blocked_positions: set[tuple[int, int]] | None = None,
-) -> int | None:
+) -> tuple[int | None, float]:
+    """Cheapest route to any of ``feature_positions`` as ``(first action, cost)``.
+
+    ``cost`` is in steps and comparable across calls, which is what lets the
+    caller ask "is going around the partner worth it?".  Returns
+    ``(None, inf)`` when no route exists under ``blocked_positions``.
+    """
     blocked_positions = blocked_positions or set()
     mdp = motion_planner.mdp
     if not feature_positions:
-        return None
-    adjacent_action = adjacent_feature_action(player, feature_positions)
-    if adjacent_action is not None:
-        return adjacent_action
+        return None, float("inf")
 
     best_plan = None
     best_cost = float("inf")
@@ -403,15 +499,82 @@ def first_action_to_feature(
                 best_plan = action_plan
                 best_cost = cost
     if best_plan:
-        return int(Action.ACTION_TO_INDEX[best_plan[0]])
+        return int(Action.ACTION_TO_INDEX[best_plan[0]]), float(best_cost)
     if best_plan == [] and adjacent_position(player) in feature_positions:
-        return int(Action.ACTION_TO_INDEX[Action.INTERACT])
-    return bfs_first_action_to_feature(
+        return int(Action.ACTION_TO_INDEX[Action.INTERACT]), float(best_cost)
+    fallback = bfs_route_to_feature(
         mdp,
         player,
         feature_positions,
         blocked_positions,
     )
+    if fallback is None:
+        return None, float("inf")
+    return fallback
+
+
+def route_first_action(
+    motion_planner: MotionPlanner,
+    player,
+    feature_positions: list[tuple[int, int]],
+    blocked_positions: set[tuple[int, int]] | None = None,
+    *,
+    detour_budget: float | None = MAX_PARTNER_DETOUR_STEPS,
+) -> tuple[int | None, bool]:
+    """``(first action, ignored_partner)`` for the route the AI should walk.
+
+    A route that avoids the partner is preferred, but only while the detour
+    stays within ``detour_budget`` steps of the direct route (see
+    MAX_PARTNER_DETOUR_STEPS).  Past that the direct route is returned with
+    ``ignored_partner=True``, which `feature_candidate` records as
+    ``route_blocked_by_partner`` so the encounter is handed to the
+    coordination layer rather than paid for in silence.  Pass
+    ``detour_budget=None`` to restore the unbounded behaviour.
+    """
+    blocked_positions = blocked_positions or set()
+    if not feature_positions:
+        return None, False
+    adjacent_action = adjacent_feature_action(player, feature_positions)
+    if adjacent_action is not None:
+        return adjacent_action, False
+
+    avoiding_action, avoiding_cost = route_to_feature(
+        motion_planner, player, feature_positions, blocked_positions
+    )
+    if not blocked_positions:
+        return avoiding_action, False
+
+    direct_action, direct_cost = route_to_feature(
+        motion_planner, player, feature_positions, set()
+    )
+    if direct_action is None:
+        return avoiding_action, False
+    if avoiding_action is None:
+        return direct_action, True
+    if (
+        detour_budget is not None
+        and avoiding_cost > direct_cost + float(detour_budget)
+    ):
+        return direct_action, True
+    return avoiding_action, False
+
+
+def first_action_to_feature(
+    motion_planner: MotionPlanner,
+    player,
+    feature_positions: list[tuple[int, int]],
+    blocked_positions: set[tuple[int, int]] | None = None,
+    *,
+    detour_budget: float | None = MAX_PARTNER_DETOUR_STEPS,
+) -> int | None:
+    action, _ = route_first_action(
+        motion_planner,
+        player,
+        feature_positions,
+        blocked_positions,
+        detour_budget=detour_budget,
+    )
+    return action
 
 
 def stay_candidate(reason: str, task_score: float = 0.0) -> CandidateSubgoal:
@@ -421,6 +584,120 @@ def stay_candidate(reason: str, task_score: float = 0.0) -> CandidateSubgoal:
         action=int(Action.ACTION_TO_INDEX[Action.STAY]),
         reason=reason,
         feasible=True,
+    )
+
+
+def pot_positions_for_waiting(mdp, state) -> list[tuple[int, int]]:
+    """Pots worth standing next to while holding a dish: prefer one that is
+    already cooking or ready, otherwise fall back to any pot at all.  This is
+    the same rule the runtime entry points have long used for stall recovery
+    and (until this change) for their AI_HELD_DISH_BEFORE_SOUP_READY
+    override -- centralized here so the candidate generator's WAIT_NEAR_POT
+    candidate targets the identical set of tiles.
+    """
+    pot_states = mdp.get_pot_states(state)
+    positions: list[tuple[int, int]] = []
+    for key in ("ready", "cooking"):
+        positions.extend(tuple(pos) for pos in pot_states.get(key, []) or [])
+    if positions:
+        return positions
+    return [tuple(pos) for pos in mdp.get_pot_locations()]
+
+
+def counters_for_put_down(
+    state,
+    mdp,
+    motion_planner: MotionPlanner,
+    player,
+) -> list[tuple[int, int]]:
+    """Free counters to drop an object on: not a pot/dispenser/serving tile,
+    not already occupied, preferring ones the motion planner can actually
+    route to, ranked by distance to the nearest pot first (so the object
+    stays convenient to pick back up) and then by distance to the player.
+
+    This is the same ranking the runtime entry points' now-retired
+    AI_HELD_UNNEEDED_INGREDIENT override used (their `empty_counter_locations`
+    helper) -- centralizing it here means PUT_DOWN_OBJECT candidates target
+    the identical tile the override used to force, not the candidate
+    generator's old, simpler nearest-to-player-only ranking.
+    """
+    if hasattr(mdp, "get_counter_locations"):
+        counters = list(mdp.get_counter_locations())
+    else:
+        valid_positions = set(mdp.get_valid_player_positions())
+        counters = []
+        rows = getattr(mdp, "terrain_mtx", [])
+        for y, row in enumerate(rows):
+            for x, terrain in enumerate(row):
+                pos = (x, y)
+                if pos in valid_positions or terrain != "X":
+                    continue
+                adjacent = [(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)]
+                if any(candidate in valid_positions for candidate in adjacent):
+                    counters.append(pos)
+    feature_positions: set[tuple[int, int]] = set()
+    for getter_name in (
+        "get_pot_locations",
+        "get_serving_locations",
+        "get_dish_dispenser_locations",
+        "get_tomato_dispenser_locations",
+        "get_onion_dispenser_locations",
+    ):
+        getter = getattr(mdp, getter_name, None)
+        if getter is not None:
+            feature_positions.update(getter())
+    occupied = set(getattr(state, "objects", {}).keys())
+    motion_goal_positions = set(getattr(motion_planner, "motion_goals_for_pos", {}))
+    available = [
+        tuple(position)
+        for position in counters
+        if tuple(position) not in feature_positions and tuple(position) not in occupied
+    ]
+    reachable = [position for position in available if position in motion_goal_positions]
+    candidates = reachable or available
+    pot_positions = mdp.get_pot_locations()
+    player_pos = tuple(player.position)
+
+    def manhattan(a: tuple[int, int], b: tuple[int, int]) -> int:
+        return abs(a[0] - b[0]) + abs(a[1] - b[1])
+
+    return sorted(
+        candidates,
+        key=lambda pos: (
+            min((manhattan(pos, pot) for pot in pot_positions), default=99),
+            manhattan(pos, player_pos),
+        ),
+    )
+
+
+def wait_near_pot_candidate(
+    *,
+    task_score: float,
+    reason: str,
+    motion_planner: MotionPlanner,
+    player,
+    pot_targets: list[tuple[int, int]],
+    blocked_positions: set[tuple[int, int]],
+) -> CandidateSubgoal:
+    """WAIT_NEAR_POT: move adjacent to a pot worth waiting at, without
+    interacting with it -- this is a positioning subgoal, not an action on
+    the pot, so a route that would end in INTERACT falls back to STAY
+    exactly like the runtime's retired wait_near_pot_action did.  Always
+    feasible: with nowhere useful to move it degrades to STAY in place,
+    which is why it never returns None the way feature_candidate can.
+    """
+    action = first_action_to_feature(
+        motion_planner, player, pot_targets, blocked_positions
+    )
+    if action is None or int(action) == int(Action.ACTION_TO_INDEX[Action.INTERACT]):
+        action = int(Action.ACTION_TO_INDEX[Action.STAY])
+    return CandidateSubgoal(
+        subgoal="WAIT_NEAR_POT",
+        task_score=task_score,
+        action=int(action),
+        reason=reason,
+        feasible=True,
+        metadata={"target_positions": [list(position) for position in pot_targets]},
     )
 
 
@@ -435,7 +712,17 @@ def feature_candidate(
     blocked_positions: set[tuple[int, int]],
     metadata: dict | None = None,
 ) -> CandidateSubgoal | None:
-    action = first_action_to_feature(
+    # Candidate EXISTENCE is an environment question, never a partner question.
+    # The partner's current tile may make one route unusable, but "the human is
+    # standing there right now" must not delete an option -- that is exactly the
+    # moment a coordination preference (push through vs. give way) needs both
+    # options on the table, and it is the coordination layer's job to decide.
+    # So: prefer a route that avoids the partner; if none exists, keep the
+    # candidate with a partner-agnostic route and flag it for audit.
+    # route_first_action already falls back to the partner-agnostic route when
+    # avoiding the partner is impossible OR costs more than the coordination
+    # layer's bounded yield (MAX_PARTNER_DETOUR_STEPS), and says so.
+    action, route_blocked_by_partner = route_first_action(
         motion_planner,
         player,
         feature_positions,
@@ -444,6 +731,8 @@ def feature_candidate(
     if action is None:
         return None
     candidate_metadata = dict(metadata or {})
+    if route_blocked_by_partner:
+        candidate_metadata["route_blocked_by_partner"] = True
     candidate_metadata.setdefault(
         "target_positions",
         [list(position) for position in feature_positions],
@@ -456,6 +745,54 @@ def feature_candidate(
         feasible=True,
         metadata=candidate_metadata,
     )
+
+
+def put_down_candidates(
+    state,
+    mdp,
+    motion_planner: MotionPlanner,
+    player,
+    blocked_positions: set[tuple[int, int]],
+    held_name: str,
+) -> list[CandidateSubgoal]:
+    """Candidate pool for holding an ingredient no pot needs.
+
+    Dropping the unneeded ingredient on a free counter is the productive
+    choice, so PUT_DOWN_OBJECT must be in the pool.  Without it, probes that
+    expect PUT_DOWN_OBJECT can never evaluate against the real task pool and
+    always report preferred_available=False.
+
+    WAIT_NEAR_POT is only offered alongside a *feasible* PUT_DOWN_OBJECT: if
+    there is nowhere to put the ingredient down, this reproduces the old
+    single-candidate fallback exactly rather than letting WAIT_NEAR_POT (task
+    score 10) outscore WAIT (0) in a state the frozen H0 backbone never
+    actually visited before.
+    """
+    free = counters_for_put_down(state, mdp, motion_planner, player)
+    put_down = feature_candidate(
+        subgoal="PUT_DOWN_OBJECT",
+        task_score=60.0,
+        reason="holding_unneeded_ingredient_drop_on_free_counter",
+        motion_planner=motion_planner,
+        player=player,
+        feature_positions=free,
+        blocked_positions=blocked_positions,
+        metadata={"held_object": held_name},
+    )
+    if put_down is None:
+        return [stay_candidate("holding_unneeded_ingredient")]
+    return [
+        put_down,
+        wait_near_pot_candidate(
+            task_score=10.0,
+            reason="holding_unneeded_ingredient_wait_near_pot",
+            motion_planner=motion_planner,
+            player=player,
+            pot_targets=pot_positions_for_waiting(mdp, state),
+            blocked_positions=blocked_positions,
+        ),
+        stay_candidate("holding_unneeded_ingredient"),
+    ]
 
 
 def generate_candidate_subgoals(
@@ -479,13 +816,20 @@ def generate_candidate_subgoals(
         if held_name in ("tomato", "onion"):
             ingredient_targets = pots_needing_ingredient(state, mdp, held_name)
             if not ingredient_targets:
-                return [stay_candidate("holding_unneeded_ingredient")]
+                return put_down_candidates(
+                    state,
+                    mdp,
+                    motion_planner,
+                    player,
+                    blocked_positions,
+                    held_name,
+                )
             subgoal = (
                 "PUT_TOMATO_IN_POT"
                 if held_name == "tomato"
                 else "PUT_ONION_IN_POT"
             )
-            candidate = feature_candidate(
+            put_in_pot = feature_candidate(
                 subgoal=subgoal,
                 task_score=80.0,
                 reason="held_ingredient_needed_by_pot",
@@ -495,12 +839,123 @@ def generate_candidate_subgoals(
                 blocked_positions=blocked_positions,
                 metadata={"held_object": held_name},
             )
-            return [candidate] if candidate else [stay_candidate("no_path_to_needed_pot")]
+            if put_in_pot is None:
+                # Preserve the historical fallback exactly: no route to any
+                # pot that needs this ingredient existed before either, and
+                # offering lower-scored alternatives here (rather than only
+                # alongside a feasible PUT_X_IN_POT) would let one of them
+                # outrank plain WAIT in a state H0 never visited before.
+                return [stay_candidate("no_path_to_needed_pot")]
+            # Putting it down anyway is a task regression -- the pot still
+            # needs it -- but a preference-worthy option.  Scored well under
+            # PUT_X_IN_POT's 80 so it never wins at hu_task_tolerance=0.
+            held_candidates = [put_in_pot]
+            put_down_anyway = feature_candidate(
+                subgoal="PUT_DOWN_OBJECT",
+                task_score=5.0,
+                reason="held_ingredient_needed_by_pot_put_down_anyway",
+                motion_planner=motion_planner,
+                player=player,
+                feature_positions=counters_for_put_down(
+                    state, mdp, motion_planner, player
+                ),
+                blocked_positions=blocked_positions,
+                metadata={"held_object": held_name},
+            )
+            if put_down_anyway is not None:
+                held_candidates.append(put_down_anyway)
+            held_candidates.append(
+                wait_near_pot_candidate(
+                    task_score=10.0,
+                    reason="held_ingredient_needed_by_pot_wait_near_pot",
+                    motion_planner=motion_planner,
+                    player=player,
+                    pot_targets=ingredient_targets,
+                    blocked_positions=blocked_positions,
+                )
+            )
+            held_candidates.append(
+                stay_candidate("held_ingredient_needed_by_pot_wait")
+            )
+            return held_candidates
         if held_name == "dish":
             ready_pots = mdp.get_ready_pots(pot_states)
             if not ready_pots:
-                return [stay_candidate("holding_dish_waiting_for_soup", task_score=5.0)]
-            candidate = feature_candidate(
+                # This branch used to be entirely overridden downstream by
+                # the runtime's AI_HELD_DISH_BEFORE_SOUP_READY recovery
+                # logic: walk to a cooking pot if one exists, otherwise drop
+                # the dish. That rule is reproduced here as scored
+                # candidates -- byte-identical actions, same
+                # cooking-pot-or-not branch -- so it is now visible to Hu and
+                # the override can be retired instead of silently
+                # overruling whatever the task/Hu layer picked.
+                cooking_pots = mdp.get_cooking_pots(pot_states)
+                wait_targets = pot_positions_for_waiting(mdp, state)
+                put_down_targets = counters_for_put_down(
+                    state, mdp, motion_planner, player
+                )
+                if cooking_pots:
+                    dish_candidates = [
+                        wait_near_pot_candidate(
+                            task_score=15.0,
+                            reason="holding_dish_soup_cooking_wait_near_pot",
+                            motion_planner=motion_planner,
+                            player=player,
+                            pot_targets=wait_targets,
+                            blocked_positions=blocked_positions,
+                        ),
+                        stay_candidate(
+                            "holding_dish_waiting_for_soup", task_score=5.0
+                        ),
+                    ]
+                    put_down = feature_candidate(
+                        subgoal="PUT_DOWN_OBJECT",
+                        task_score=2.0,
+                        reason="holding_dish_soup_cooking_put_down_anyway",
+                        motion_planner=motion_planner,
+                        player=player,
+                        feature_positions=put_down_targets,
+                        blocked_positions=blocked_positions,
+                        metadata={"held_object": held_name},
+                    )
+                    if put_down is not None:
+                        dish_candidates.append(put_down)
+                    return dish_candidates
+                put_down = feature_candidate(
+                    subgoal="PUT_DOWN_OBJECT",
+                    task_score=20.0,
+                    reason="holding_dish_no_pot_cooking_put_down",
+                    motion_planner=motion_planner,
+                    player=player,
+                    feature_positions=put_down_targets,
+                    blocked_positions=blocked_positions,
+                    metadata={"held_object": held_name},
+                )
+                if put_down is None:
+                    # Nowhere to put it down either: preserve the exact
+                    # historical fallback (plain WAIT) rather than only
+                    # offering WAIT_NEAR_POT, which the override never chose
+                    # in this sub-case (no pot is even cooking yet).
+                    return [
+                        stay_candidate(
+                            "holding_dish_waiting_for_soup", task_score=5.0
+                        )
+                    ]
+                return [
+                    put_down,
+                    wait_near_pot_candidate(
+                        task_score=10.0,
+                        reason="holding_dish_no_pot_cooking_wait_near_pot",
+                        motion_planner=motion_planner,
+                        player=player,
+                        pot_targets=wait_targets,
+                        blocked_positions=blocked_positions,
+                    ),
+                    stay_candidate(
+                        "holding_dish_waiting_for_soup", task_score=5.0
+                    ),
+                ]
+            pickup_soup = feature_candidate(
                 subgoal="PICKUP_SOUP",
                 task_score=95.0,
                 reason="held_dish_and_soup_ready",
@@ -509,9 +964,22 @@ def generate_candidate_subgoals(
                 feature_positions=ready_pots,
                 blocked_positions=blocked_positions,
             )
-            return [candidate] if candidate else [stay_candidate("no_path_to_ready_pot")]
+            if pickup_soup is None:
+                return [stay_candidate("no_path_to_ready_pot")]
+            return [
+                pickup_soup,
+                wait_near_pot_candidate(
+                    task_score=10.0,
+                    reason="held_dish_and_soup_ready_wait_near_pot",
+                    motion_planner=motion_planner,
+                    player=player,
+                    pot_targets=ready_pots,
+                    blocked_positions=blocked_positions,
+                ),
+                stay_candidate("held_dish_and_soup_ready_wait"),
+            ]
         if held_name == "soup":
-            candidate = feature_candidate(
+            serve_soup = feature_candidate(
                 subgoal="SERVE_SOUP",
                 task_score=100.0,
                 reason="held_soup_deliver_immediately",
@@ -520,7 +988,12 @@ def generate_candidate_subgoals(
                 feature_positions=mdp.get_serving_locations(),
                 blocked_positions=blocked_positions,
             )
-            return [candidate] if candidate else [stay_candidate("no_path_to_serving")]
+            if serve_soup is None:
+                return [stay_candidate("no_path_to_serving")]
+            return [
+                serve_soup,
+                stay_candidate("held_soup_alternative_wait"),
+            ]
 
     ready_pots = mdp.get_ready_pots(pot_states)
     if ready_pots:
@@ -538,30 +1011,65 @@ def generate_candidate_subgoals(
 
     cooking_pots = mdp.get_cooking_pots(pot_states)
     if cooking_pots:
-        if not teammate_holding(state, player_index, "dish"):
-            candidate = feature_candidate(
-                subgoal="GET_DISH",
-                task_score=60.0,
-                reason="soup_cooking_prepare_dish",
-                motion_planner=motion_planner,
-                player=player,
-                feature_positions=mdp.get_dish_dispenser_locations(),
-                blocked_positions=blocked_positions,
-            )
-            if candidate:
-                candidates.append(candidate)
+        # The partner never decides whether an option EXISTS -- only what it is
+        # worth.  This used to delete GET_DISH outright whenever the teammate
+        # was already carrying a dish, so "I'll get one too" was invisible to
+        # the preference layer and no feedback could ever ask for it.
+        #
+        # It is now scored instead of deleted.  Below WAIT deliberately: that
+        # is what makes it provably impossible for H0 (tolerance 0 = argmax of
+        # task_score) to pick it.
+        #
+        # What the negative score does NOT do: keep it out of the step band.
+        # The step estimator is partner-blind, so it prices "fetch a dish" as
+        # if the dish were useful and rates it CHEAPER than the optimum in every
+        # such state observed (439/439 in the shadow corpus).  Under any
+        # step_tolerance > 0 it is therefore inside the band, and a preference
+        # with labelled support for GET_DISH will reach it every time.  That is
+        # the intended reachability -- the user asked for it -- but it means
+        # the tolerance is not what bounds this particular sacrifice; the
+        # partner-blind estimator is a documented limitation (task_cost.py).
+        # It is also excluded from anchoring the idle costs (attach_step_costs).
+        dish_score = (
+            60.0 if not teammate_holding(state, player_index, "dish")
+            else TEAMMATE_ALREADY_HAS_DISH_SCORE
+        )
+        candidate = feature_candidate(
+            subgoal="GET_DISH",
+            task_score=dish_score,
+            reason=(
+                "soup_cooking_prepare_dish" if dish_score > 0
+                else "soup_cooking_second_dish_teammate_already_has_one"
+            ),
+            motion_planner=motion_planner,
+            player=player,
+            feature_positions=mdp.get_dish_dispenser_locations(),
+            blocked_positions=blocked_positions,
+        )
+        if candidate:
+            candidates.append(candidate)
 
         recipe = target_recipe(mdp)
-        prep_ingredient = next_unstaged_ingredient(
-            recipe,
-            staged_ingredients_for_next_cycle(state),
-        )
-        if prep_ingredient in ("tomato", "onion"):
+        prep_pending = [
+            ingredient
+            for ingredient in unstaged_ingredients(
+                recipe, staged_ingredients_for_next_cycle(state)
+            )
+            if ingredient in ("tomato", "onion")
+        ]
+        for rank, prep_ingredient in enumerate(prep_pending):
             subgoal = "GET_TOMATO" if prep_ingredient == "tomato" else "GET_ONION"
             candidate = feature_candidate(
                 subgoal=subgoal,
-                task_score=50.0,
-                reason="soup_cooking_prepare_unstaged_next_cycle_ingredient",
+                # rank 0 keeps the historical 50; the alternatives sit just
+                # below it so the backbone's pick is unchanged while "prep the
+                # other one first" becomes visible to the preference layer.
+                task_score=50.0 - PREP_ALTERNATIVE_STEP * rank,
+                reason=(
+                    "soup_cooking_prepare_unstaged_next_cycle_ingredient"
+                    if rank == 0
+                    else "soup_cooking_prepare_alternative_next_cycle_ingredient"
+                ),
                 motion_planner=motion_planner,
                 player=player,
                 # Loose ingredients are already counted as staged. Fetch a new
@@ -576,14 +1084,44 @@ def generate_candidate_subgoals(
             )
             if candidate:
                 candidates.append(candidate)
+            elif rank == 0:
+                # The historical primary was infeasible.  Offering only the
+                # alternatives here would hand the top score to an option the
+                # backbone never had, so drop the whole prep group -- exactly
+                # what the old single-candidate code did.
+                break
 
-    needed = next_needed_ingredient(state, mdp)
-    if needed is not None:
+    if (
+        not cooking_pots
+        and not ready_pots
+        and teammate_carries_last_needed_ingredient(state, mdp, player_index)
+    ):
+        candidate = feature_candidate(
+            subgoal="GET_DISH",
+            task_score=TEAMMATE_CARRIES_LAST_INGREDIENT_DISH_SCORE,
+            reason="teammate_carries_last_ingredient_prepare_dish",
+            motion_planner=motion_planner,
+            player=player,
+            feature_positions=mdp.get_dish_dispenser_locations(),
+            blocked_positions=blocked_positions,
+        )
+        if candidate:
+            candidates.append(candidate)
+
+    for rank, needed in enumerate(next_needed_ingredients(state, mdp)):
         subgoal = "GET_TOMATO" if needed == "tomato" else "GET_ONION"
         candidate = feature_candidate(
             subgoal=subgoal,
-            task_score=70.0,
-            reason="pot_needs_ingredient",
+            # rank 0 is the historical 70.  The pot needs BOTH kinds on 63.7%
+            # of steps; the generator used to emit only the first, so "fetch
+            # the onion first instead" was not a losing option -- it was not an
+            # option at all.  The alternatives sit below the primary so the
+            # backbone's winner is untouched.
+            task_score=70.0 - NEEDED_ALTERNATIVE_STEP * rank,
+            reason=(
+                "pot_needs_ingredient" if rank == 0
+                else "pot_needs_alternative_ingredient"
+            ),
             motion_planner=motion_planner,
             player=player,
             feature_positions=ingredient_pickup_locations(state, mdp, needed),
@@ -592,28 +1130,217 @@ def generate_candidate_subgoals(
         )
         if candidate:
             candidates.append(candidate)
+        elif rank == 0:
+            # See the prep group above: without the historical primary, an
+            # alternative would become a winner the backbone never had.
+            break
 
     candidates.append(stay_candidate("fallback_wait", task_score=0.0))
     return candidates
 
 
+@dataclass
+class AcceptableSet:
+    """The epsilon-satisficing band around the task optimum.
+
+    Split out of ``choose_task_candidate`` so the band has exactly ONE
+    definition.  M2-10's matched replay (durf/evaluation/matched_replay.py)
+    needs to know which decision points actually offered a choice -- its
+    sampling filter is "acceptable set of at least two" -- and a second copy of
+    this logic over there would drift from the one the runtime really uses.
+
+    ``task_optimum`` is ``None`` only when nothing is feasible.
+    """
+
+    feasible: list[CandidateSubgoal]
+    task_optimum: CandidateSubgoal | None
+    acceptable: list[CandidateSubgoal]
+    tolerance: float
+    use_steps: bool
+
+    @property
+    def size(self) -> int:
+        return len(self.acceptable)
+
+
+def acceptable_candidates(
+    candidates: list[CandidateSubgoal],
+    *,
+    task_tolerance: float = 0.0,
+    step_tolerance: float | None = None,
+) -> AcceptableSet:
+    """Return the band the preference is allowed to reorder, and nothing more.
+
+    Pure: it neither ranks by preference nor writes metadata, so it can be
+    called for measurement without touching the candidates the runtime uses.
+    """
+
+    feasible = [candidate for candidate in candidates if candidate.feasible]
+    if not feasible:
+        return AcceptableSet(
+            feasible=[],
+            task_optimum=None,
+            acceptable=[],
+            tolerance=max(0.0, float(task_tolerance)),
+            use_steps=False,
+        )
+
+    tolerance = max(0.0, float(task_tolerance))
+    best_task = max(candidate.task_score for candidate in feasible)
+    task_optimum = max(feasible, key=lambda candidate: candidate.task_score)
+    use_steps = (
+        step_tolerance is not None
+        and float(step_tolerance) > 0.0
+        and task_optimum.step_cost is not None
+    )
+    if use_steps:
+        optimum_steps = float(task_optimum.step_cost)
+        budget = optimum_steps + float(step_tolerance)
+        acceptable = [
+            candidate
+            for candidate in feasible
+            if candidate is task_optimum
+            or (
+                candidate.step_cost is not None
+                and float(candidate.step_cost) <= budget
+            )
+        ]
+    else:
+        acceptable = [
+            candidate
+            for candidate in feasible
+            if candidate.task_score >= best_task - tolerance
+        ]
+    # A preference may choose HOW to act, or HOW to wait -- never WHETHER to
+    # act.  The band is evaluated per decision, but the preference is applied
+    # at every decision: a waiting candidate (WAIT, WAIT_NEAR_POT) leaves the
+    # world exactly as it was, so the same "one step worse" option is offered
+    # again next tick and a per-step sacrifice of 1 compounds without bound.
+    # In task points WAIT sat 50+ below every action so this never bit;
+    # priced in steps, waiting is exactly best_action + 1 and sat inside any
+    # band >= 1 -- observed as a 0-reward episode (idling instead of fetching)
+    # and as 1062 consecutive "keep holding the unneeded onion by the pot"
+    # decisions.  "Wait for me" preferences belong to the coordination
+    # domain, whose YIELD carries a commitment horizon for precisely this
+    # reason.  PUT_DOWN_OBJECT is not a waiting candidate: it changes the
+    # world, so the situation moves on and its cost is paid once.  Waiting
+    # candidates stay in the band when the backbone's own pick is a wait
+    # (wait here or by the pot; keep waiting or drop the plate).
+    if task_optimum.subgoal not in WAITING_SUBGOALS:
+        acceptable = [
+            candidate
+            for candidate in acceptable
+            if candidate.subgoal not in WAITING_SUBGOALS
+        ]
+
+    return AcceptableSet(
+        feasible=feasible,
+        task_optimum=task_optimum,
+        acceptable=acceptable,
+        tolerance=tolerance,
+        use_steps=use_steps,
+    )
+
+
+def rank_acceptable(band: AcceptableSet) -> CandidateSubgoal:
+    """Pick from the band by preference; ties fall back to the task prior.
+
+    Pure (no metadata writes), so the measurement side (matched_replay) can call
+    the SAME rule the runtime uses instead of carrying its own copy.  Only
+    candidates Hu has evidence about may displace the backbone's pick; the pick
+    itself is always eligible, so an unlabelled optimum is simply kept.
+    """
+    assert band.task_optimum is not None
+    pool = [band.task_optimum] + [
+        candidate
+        for candidate in band.acceptable
+        if candidate is not band.task_optimum and candidate.hu_supported
+    ]
+    return max(pool, key=lambda c: (c.hu_score, c.task_score))
+
+
 def choose_task_candidate(
     candidates: list[CandidateSubgoal],
     *,
-    hu_lambda: float = 0.0,
+    task_tolerance: float = 0.0,
+    step_tolerance: float | None = None,
 ) -> CandidateSubgoal:
-    feasible = [candidate for candidate in candidates if candidate.feasible]
-    if not feasible:
-        return stay_candidate("no_feasible_candidate")
-    for candidate in feasible:
-        candidate.final_score = candidate.task_score + hu_lambda * candidate.hu_score
-    return max(
-        feasible,
-        key=lambda candidate: (
-            candidate.final_score if candidate.final_score is not None else candidate.task_score,
-            candidate.task_score,
-        ),
+    """Satisfice on the task, then let the learned preference choose.
+
+    Task score and Hu score are not commensurable, so they are never added.
+    ``task_score`` is in task points and its gaps carry real information (100 vs
+    0 for "deliver the soup" is not the same kind of decision as 90 vs 70 for
+    "dish first or tomato first"); ``hu_score`` comes out of a pairwise logistic
+    fit, where only the ORDER is meaningful and the magnitude is an artefact of
+    regularization.  Adding them would require an exchange rate nobody can state.
+
+    So instead: keep every candidate within ``task_tolerance`` points of the task
+    optimum, and among those pick the one the user prefers.
+
+    * ``task_tolerance`` is in task points and answers a question a researcher
+      can actually answer: how much task performance are we willing to give up
+      for personalization?  It is the same quantity as the non-inferiority
+      margin used to accept the task-competence result.
+    * Only the ordering of ``hu_score`` is used, so Hu's arbitrary output scale
+      never has to be calibrated.
+    * ``task_tolerance = 0`` reduces to the frozen task backbone exactly.
+
+    ``step_tolerance`` (2026-09-04) denominates the band in a quantity that
+    means something: estimated extra steps to the next delivery
+    (``CandidateSubgoal.step_cost``, from durf/baseline/task_cost.py).  The
+    task-point gaps are a priority encoding lifted from the rule teacher --
+    lumpy (10, 50, 60, 70, 90) and unitless -- so "how many task points may
+    we give up?" has no answerable form, whereas "how many extra steps may
+    the agent spend to honour the user's preference?" does.
+
+    The ORDERING stays the rule teacher's: the task optimum is still the
+    highest ``task_score`` (the frozen backbone), and ``step_tolerance``
+    only widens the acceptable set around it -- to every feasible candidate
+    whose estimated cost is within ``step_tolerance`` steps of the optimum's,
+    including candidates the estimator thinks are cheaper than the optimum
+    (the estimator is a greedy serial approximation with no partner model,
+    so it is allowed to widen the band but never to overrule the backbone's
+    pick at tolerance 0).  ``step_tolerance=None`` or ``0`` falls back to the
+    task-point rule, so tolerance 0 is the backbone exactly in both units.
+    """
+
+    band = acceptable_candidates(
+        candidates,
+        task_tolerance=task_tolerance,
+        step_tolerance=step_tolerance,
     )
+    if band.task_optimum is None:
+        return stay_candidate("no_feasible_candidate")
+    feasible = band.feasible
+    task_optimum = band.task_optimum
+    acceptable = band.acceptable
+    tolerance = band.tolerance
+    use_steps = band.use_steps
+
+    # Rank inside the acceptable set by preference; ties fall back to the task
+    # prior so the result stays deterministic.  Only candidates Hu actually
+    # has evidence about may displace the backbone's pick (the pick itself is
+    # always eligible, so an unlabelled optimum is simply kept).
+    chosen = rank_acceptable(band)
+    for candidate in feasible:
+        candidate.final_score = candidate.task_score
+
+    sacrificed = task_optimum.task_score - chosen.task_score
+    chosen.metadata = dict(chosen.metadata or {})
+    chosen.metadata["acceptable_set_size"] = len(acceptable)
+    chosen.metadata["task_tolerance"] = tolerance
+    chosen.metadata["preference_override"] = chosen.subgoal != task_optimum.subgoal
+    chosen.metadata["task_points_sacrificed"] = sacrificed
+    chosen.metadata["tolerance_unit"] = "steps" if use_steps else "task_points"
+    if use_steps:
+        chosen.metadata["step_tolerance"] = float(step_tolerance)
+        chosen.metadata["task_optimum_steps"] = float(task_optimum.step_cost)
+        chosen.metadata["steps_sacrificed"] = (
+            float(chosen.step_cost) - float(task_optimum.step_cost)
+            if chosen.step_cost is not None
+            else None
+        )
+    return chosen
 
 
 def rule_teacher_candidates(

@@ -13,12 +13,17 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from .condition_features import extract_condition_features
+from .condition_features import decision_condition_features
 from .io_utils import read_jsonl, write_jsonl
 from .session_converter import convert_session
 
 
 PROBE_SCHEMA_VERSION = "probe-state-v0"
+
+
+TASK_PROBE_DOMAIN = "task"
+COORDINATION_PROBE_DOMAIN = "coordination"
+PROBE_DOMAINS = (TASK_PROBE_DOMAIN, COORDINATION_PROBE_DOMAIN)
 
 
 @dataclass(frozen=True)
@@ -30,6 +35,11 @@ class ProbeDefinition:
     rejected_subgoals: tuple[str, ...]
     source_events: tuple[str, ...]
     rationale: str
+    # Which decision level produced the candidate pool this probe evaluates.
+    # Task probes read ai_subgoal_candidates; coordination probes read
+    # coordination_decision.candidates, whose options are bound to concrete
+    # low-level actions at construction time.
+    domain: str = TASK_PROBE_DOMAIN
 
 
 DEFAULT_PROBES: tuple[ProbeDefinition, ...] = (
@@ -40,7 +50,7 @@ DEFAULT_PROBES: tuple[ProbeDefinition, ...] = (
             "pot_cooking_or_ready": True,
             "ai_empty_handed": True,
         },
-        preferred_subgoals=("GET_DISH", "PICKUP_SOUP"),
+        preferred_subgoals=("GET_DISH",),
         rejected_subgoals=("WAIT", "GET_TOMATO", "GET_ONION"),
         source_events=(
             "AI_ignored_ready_or_nearly_ready_pot",
@@ -56,9 +66,10 @@ DEFAULT_PROBES: tuple[ProbeDefinition, ...] = (
             "ai_on_human_path": True,
         },
         preferred_subgoals=("YIELD",),
-        rejected_subgoals=("CONTINUE_CURRENT_SUBGOAL", "WAIT"),
-        source_events=("AI_blocked_human_path", "AI_failed_to_yield"),
+        rejected_subgoals=("CONTINUE_CURRENT_SUBGOAL",),
+        source_events=("AI_blocked_human_path", "AI_failed_to_yield_or_clear_path"),
         rationale="Evaluates whether Hu can prefer cooperative yielding when the human path is blocked.",
+        domain=COORDINATION_PROBE_DOMAIN,
     ),
     ProbeDefinition(
         name="ai_holding_unneeded_onion_should_put_down",
@@ -68,7 +79,7 @@ DEFAULT_PROBES: tuple[ProbeDefinition, ...] = (
             "recipe_needs_onion": False,
         },
         preferred_subgoals=("PUT_DOWN_OBJECT",),
-        rejected_subgoals=("GET_ONION", "WAIT", "CONTINUE_CURRENT_SUBGOAL"),
+        rejected_subgoals=("WAIT",),
         source_events=("AI_held_unneeded_object_too_long",),
         rationale="Evaluates whether Hu discourages carrying an ingredient that is no longer useful.",
     ),
@@ -80,7 +91,7 @@ DEFAULT_PROBES: tuple[ProbeDefinition, ...] = (
             "recipe_needs_tomato": False,
         },
         preferred_subgoals=("PUT_DOWN_OBJECT",),
-        rejected_subgoals=("GET_TOMATO", "WAIT", "CONTINUE_CURRENT_SUBGOAL"),
+        rejected_subgoals=("WAIT",),
         source_events=("AI_held_unneeded_object_too_long",),
         rationale="Evaluates whether Hu discourages carrying an ingredient that is no longer useful.",
     ),
@@ -92,8 +103,8 @@ DEFAULT_PROBES: tuple[ProbeDefinition, ...] = (
             "ai_empty_handed": True,
             "pot_cooking_or_ready": False,
         },
-        preferred_subgoals=("GET_TOMATO", "PUT_TOMATO_IN_POT"),
-        rejected_subgoals=("WAIT", "GET_DISH"),
+        preferred_subgoals=("GET_TOMATO",),
+        rejected_subgoals=("WAIT",),
         source_events=("AI_missed_useful_ingredient_pickup",),
         rationale="Sanity-check probe for task-preserving ingredient progress.",
     ),
@@ -105,8 +116,8 @@ DEFAULT_PROBES: tuple[ProbeDefinition, ...] = (
             "ai_empty_handed": True,
             "pot_cooking_or_ready": False,
         },
-        preferred_subgoals=("GET_ONION", "PUT_ONION_IN_POT"),
-        rejected_subgoals=("WAIT", "GET_DISH"),
+        preferred_subgoals=("GET_ONION",),
+        rejected_subgoals=("WAIT",),
         source_events=("AI_missed_useful_ingredient_pickup",),
         rationale="Sanity-check probe for task-preserving ingredient progress.",
     ),
@@ -117,7 +128,7 @@ DEFAULT_PROBES: tuple[ProbeDefinition, ...] = (
             "human_waiting_near_pot": True,
             "ai_empty_handed": True,
         },
-        preferred_subgoals=("GET_USEFUL_INGREDIENT", "GET_TOMATO", "GET_ONION"),
+        preferred_subgoals=("GET_TOMATO", "GET_ONION"),
         rejected_subgoals=("WAIT",),
         source_events=("AI_failed_to_prepare_ingredient_while_waiting",),
         rationale="Evaluates the preference that AI should use waiting time to prepare useful work.",
@@ -129,7 +140,7 @@ DEFAULT_PROBES: tuple[ProbeDefinition, ...] = (
             "useful_object_adjacent": True,
             "ai_empty_handed": True,
         },
-        preferred_subgoals=("GET_USEFUL_INGREDIENT", "GET_TOMATO", "GET_ONION", "GET_DISH"),
+        preferred_subgoals=("GET_TOMATO", "GET_ONION", "GET_DISH"),
         rejected_subgoals=("WAIT",),
         source_events=("AI_missed_useful_ingredient_pickup",),
         rationale="Evaluates whether nearby useful objects can affect subgoal preference.",
@@ -161,6 +172,21 @@ def candidate_score(candidate: dict[str, Any]) -> float:
     return 0.0
 
 
+def candidate_name(candidate: dict[str, Any]) -> str | None:
+    """Name a candidate from either candidate-pool schema.
+
+    Task candidates use the ``subgoal`` field; coordination candidates use
+    ``option``.  Both names are matched directly against probe vocabularies.
+    """
+    raw = candidate.get("option")
+    if raw is not None:
+        return str(raw)
+    raw = candidate.get("subgoal")
+    if raw is not None:
+        return str(raw)
+    return None
+
+
 def rank_candidate_subgoals(candidates: list[dict[str, Any]]) -> list[dict[str, Any]]:
     ranked = sorted(candidates, key=candidate_score, reverse=True)
     rows = []
@@ -168,7 +194,7 @@ def rank_candidate_subgoals(candidates: list[dict[str, Any]]) -> list[dict[str, 
         rows.append(
             {
                 "rank": index,
-                "subgoal": candidate.get("subgoal"),
+                "subgoal": candidate_name(candidate),
                 "task_score": candidate.get("task_score"),
                 "hu_score": candidate.get("hu_score"),
                 "final_score": candidate.get("final_score"),
@@ -192,11 +218,38 @@ def best_rank_for_subgoals(
     return min(ranks) if ranks else None
 
 
+def probe_candidate_pool(
+    step: dict[str, Any],
+    probe: ProbeDefinition,
+) -> tuple[list[dict[str, Any]], str | None]:
+    """Return (candidates, chosen) for the probe's decision domain.
+
+    Task probes evaluate the subgoal pool produced by the task head
+    (``ai_subgoal_candidates``) against the executed task subgoal.  Coordination
+    probes evaluate the coordination option pool (``coordination_decision``)
+    against the option actually executed, because coord candidates are bound to
+    concrete low-level actions at construction time and never appear in the
+    task pool.  When a coordination probe matches but the step has no
+    coordination decision record, the hit is emitted with an
+    ``evaluation_unavailable`` marker instead of silently evaluating an empty
+    pool.
+    """
+    if probe.domain == COORDINATION_PROBE_DOMAIN:
+        decision = step.get("coordination_decision") or {}
+        candidates = decision.get("candidates") or []
+        chosen = decision.get("selected")
+        return candidates, chosen
+    return step.get("ai_subgoal_candidates") or [], step.get("ai_subgoal")
+
+
 def build_probe_hit(step: dict[str, Any], probe: ProbeDefinition) -> dict[str, Any]:
-    condition_features = extract_condition_features(step)
-    ranked_candidates = rank_candidate_subgoals(step.get("ai_subgoal_candidates") or [])
+    condition_features = decision_condition_features(step)
+    candidates, chosen_subgoal = probe_candidate_pool(step, probe)
+    evaluation_unavailable = (
+        probe.domain == COORDINATION_PROBE_DOMAIN and not candidates
+    )
+    ranked_candidates = rank_candidate_subgoals(candidates)
     top_candidate = ranked_candidates[0] if ranked_candidates else None
-    chosen_subgoal = step.get("ai_subgoal")
     preferred_rank = best_rank_for_subgoals(ranked_candidates, probe.preferred_subgoals)
     rejected_rank = best_rank_for_subgoals(ranked_candidates, probe.rejected_subgoals)
     return {
@@ -206,6 +259,7 @@ def build_probe_hit(step: dict[str, Any], probe: ProbeDefinition) -> dict[str, A
         "description": probe.description,
         "source_events": list(probe.source_events),
         "rationale": probe.rationale,
+        "domain": probe.domain,
         "episode": step.get("episode"),
         "episode_step": step.get("episode_step"),
         "total_step": step.get("total_step"),
@@ -217,6 +271,7 @@ def build_probe_hit(step: dict[str, Any], probe: ProbeDefinition) -> dict[str, A
         "chosen_subgoal": chosen_subgoal,
         "candidate_ranking": ranked_candidates,
         "evaluation": {
+            "evaluation_unavailable": evaluation_unavailable,
             "top_candidate": top_candidate.get("subgoal") if top_candidate else None,
             "preferred_available": preferred_rank is not None,
             "best_preferred_rank": preferred_rank,
@@ -231,12 +286,12 @@ def detect_probe_hits(
     trajectory: list[dict[str, Any]],
     *,
     probes: tuple[ProbeDefinition, ...] = DEFAULT_PROBES,
-    min_gap_steps: int = 5,
+    min_gap_steps: int = 3,
 ) -> list[dict[str, Any]]:
     hits: list[dict[str, Any]] = []
     last_hit_step_by_key: dict[tuple[str, int], int] = {}
     for step in trajectory:
-        conditions = extract_condition_features(step)
+        conditions = decision_condition_features(step)
         episode = int(step.get("episode") or 0)
         total_step = step_total(step)
         for probe in probes:
@@ -255,7 +310,7 @@ def generate_probe_hits(
     session_dir: Path,
     *,
     convert_csv: bool = True,
-    min_gap_steps: int = 5,
+    min_gap_steps: int = 3,
 ) -> dict[str, int]:
     if convert_csv:
         convert_session(session_dir)
@@ -280,7 +335,7 @@ def main() -> int:
     parser.add_argument(
         "--min-gap-steps",
         type=int,
-        default=5,
+        default=3,
         help="Minimum gap before emitting the same probe again in one episode.",
     )
     args = parser.parse_args()

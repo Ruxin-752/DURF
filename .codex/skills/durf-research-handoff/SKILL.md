@@ -56,7 +56,7 @@ state
 -> low-level action
 ```
 
-Task answers what to do. Coordination answers how to execute the current task during human conflict. Currently executable Coordination options are `CONTINUE_CURRENT_SUBGOAL` and `YIELD`. `HOLD_POSITION` and `REROUTE` are reserved but not fully implemented as runtime candidates.
+Task answers what to do. Coordination answers how to execute the current task during human conflict. The Coordination vocabulary is exactly `CONTINUE_CURRENT_SUBGOAL` and `YIELD`; `HOLD_POSITION` was removed (same stay action as YIELD) and `REROUTE` is a task-layer replan decision that would need its own workflow.
 
 ## Work Procedure
 

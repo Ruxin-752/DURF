@@ -8,20 +8,27 @@ This module separates two representations:
 
 from __future__ import annotations
 
+import collections
+
 import argparse
 import json
 from pathlib import Path
 from typing import Any
 
 from .condition_features import (
-    extract_condition_features,
+    decision_condition_features,
     latest_step_at_or_before,
     null_condition_features,
 )
 from .io_utils import read_jsonl, write_jsonl
+from .label_validator import filter_training_samples, rejection_summary
 from .review_io import read_review_decisions
 from .sample_builder import feedback_event_id
-from .subgoal_preferences import COORDINATION_SUBGOALS, infer_subgoal_preferences
+from .subgoal_preferences import (
+    COORDINATION_SUBGOALS,
+    infer_subgoal_preferences,
+    resolve_useful_ingredient,
+)
 
 CONDITION_TOKENS = {
     "when",
@@ -134,9 +141,45 @@ def condition_for_attribution(
         target_step = attribution["target_time_window"][-1]
     elif feedback:
         target_step = feedback.get("total_step")
-    return extract_condition_features(
+    # A label is about the decision made at the target step, so use the
+    # pre-action condition the runtime actually scored with (see
+    # decision_condition_features), not the post-action snapshot.
+    return decision_condition_features(
         latest_step_at_or_before(trajectory, target_step)
     )
+
+
+def _offered_names(candidates: list) -> set[str]:
+    return {
+        c.get("subgoal") if isinstance(c, dict) else c
+        for c in candidates
+        if (c.get("feasible", True) if isinstance(c, dict) else True)
+    }
+
+
+def decision_step_for_attribution(
+    attribution: dict[str, Any],
+    event: dict[str, Any] | None,
+    feedback: dict[str, Any] | None,
+    trajectory: list[dict[str, Any]],
+) -> dict[str, Any] | None:
+    """The trajectory step whose decision a label is about: the event's first
+    step when there is one, else the start of the attributed window, else the
+    feedback step."""
+    target_step = None
+    if event and event.get("start_timestep") is not None:
+        target_step = event.get("start_timestep")
+    elif feedback and feedback.get("total_step") is not None:
+        # No event: an explicit policy statement is about the decision the
+        # participant had just watched, i.e. the feedback step -- the same
+        # step condition_for_attribution falls back to, so condition and
+        # candidate set describe one decision rather than two.
+        target_step = feedback.get("total_step")
+    elif attribution.get("target_time_window"):
+        target_step = attribution["target_time_window"][-1]
+    if target_step is None:
+        return None
+    return latest_step_at_or_before(trajectory, int(target_step))
 
 
 def build_provenance_record(
@@ -158,6 +201,89 @@ def build_provenance_record(
         alternative_subgoals=event.get("alternative_subgoals") if event else None,
         event_valence=event.get("event_valence") if event else None,
     )
+    # Attribution-level names that the runtime never offers as candidates
+    # (GET_USEFUL_INGREDIENT) are resolved against the candidate set the
+    # decision actually had; a pair that cannot be expressed there is dropped
+    # and the unresolved name is kept in the provenance for audit.
+    attributed_preferred = list(preferred_subgoals)
+    attributed_rejected = list(rejected_subgoals)
+    decision_step = decision_step_for_attribution(attribution, event, feedback, trajectory)
+    decision_anchor = "event_step" if (event and event.get("start_timestep") is not None) else "feedback_step"
+    decision_candidates = (
+        (decision_step or {}).get("ai_subgoal_candidates") or []
+    )
+    # Two anchors, both with a meaning: the event's first step (the label is
+    # about what the agent did there) or the feedback step (the participant
+    # is talking about the decision they just watched).  When the LLM names a
+    # task pair that the event step never offered but the feedback step did,
+    # the sentence was about the feedback step -- first full LLM corpus: 186
+    # of 303 off-menu pairs were "you take the dish, I'll do ingredients" said
+    # at a dish-vs-ingredient decision but hung on an earlier event whose
+    # step offered only [GET_ONION, WAIT].  Condition features move with the
+    # anchor so condition and candidate set describe one decision.
+    if decision_anchor == "event_step" and feedback and feedback.get("total_step") is not None:
+        named_task = [
+            sg for sg in [*preferred_subgoals, *rejected_subgoals]
+            if sg not in COORDINATION_SUBGOALS and sg != "GET_USEFUL_INGREDIENT"
+        ]
+        if named_task and not all(sg in _offered_names(decision_candidates) for sg in named_task):
+            feedback_step = latest_step_at_or_before(trajectory, int(feedback["total_step"]))
+            feedback_candidates = (feedback_step or {}).get("ai_subgoal_candidates") or []
+            if all(sg in _offered_names(feedback_candidates) for sg in named_task):
+                decision_step, decision_candidates = feedback_step, feedback_candidates
+                decision_anchor = "feedback_step_realigned"
+                condition_features = decision_condition_features(feedback_step)
+    preferred_subgoals, unresolved_preferred = resolve_useful_ingredient(
+        preferred_subgoals, decision_candidates
+    )
+    rejected_subgoals, unresolved_rejected = resolve_useful_ingredient(
+        rejected_subgoals, decision_candidates
+    )
+    unresolved_subgoals = [*unresolved_preferred, *unresolved_rejected]
+    # A pairwise preference is a choice between options the agent actually had.
+    # Keep only sides that were in the decision's candidate set; a side that was
+    # never on offer is recorded as not_co_available and produces no label.
+    # (First full LLM corpus, 2026-09-05: 736 of 1 243 task pairs had one side
+    # off-menu and 306 had both -- e.g. PUT_ONION_IN_POT > PUT_TOMATO_IN_POT,
+    # which no state can offer, since the agent holds one thing.)
+    # Coordination options (YIELD / CONTINUE_CURRENT_SUBGOAL) are a binary
+    # domain that is always co-available and never appears in the task
+    # candidate list, so the gate applies to task names only.
+    offered = _offered_names(decision_candidates) | set(COORDINATION_SUBGOALS)
+    named_before_filter = [*preferred_subgoals, *rejected_subgoals]
+    not_co_available: list[str] = []
+    if decision_candidates:
+        kept_pref = [sg for sg in preferred_subgoals if sg in offered]
+        kept_rej = [sg for sg in rejected_subgoals if sg in offered]
+        not_co_available = [
+            sg for sg in [*preferred_subgoals, *rejected_subgoals] if sg not in offered
+        ]
+        preferred_subgoals, rejected_subgoals = kept_pref, kept_rej
+    # Quality flags on the ATTRIBUTION itself, before any training-sample
+    # filter gets a chance to drop it silently.  First live LLM run
+    # (2026-09-05, 7 real feedbacks): one answer paired SERVE_SOUP with YIELD --
+    # a task subgoal against a coordination option -- and one named an
+    # ingredient fetch at a step where the agent held a dish and no ingredient
+    # was in the candidate set.  Both vanished without a trace in the counts.
+    attribution_flags: list[str] = []
+    # Diagnose on what the attributor NAMED, before the availability filter:
+    # "cross-domain" and "off-menu" are different failures and both should show.
+    named = named_before_filter
+    domains = {
+        "coordination" if name in COORDINATION_SUBGOALS else "task" for name in named
+    }
+    if len(domains) > 1:
+        attribution_flags.append("cross_domain_attribution")
+        # A task-vs-coordination pair is not a preference between options the
+        # agent had; it yields no label (and must not be rescued by the
+        # coordination elimination rule after one side is gated out).
+        preferred_subgoals, rejected_subgoals = [], []
+    if unresolved_subgoals:
+        attribution_flags.append("unresolved_subgoal")
+    if preferred_subgoals and not attributed_preferred:
+        attribution_flags.append("preferred_side_lost_in_resolution")
+    if not_co_available:
+        attribution_flags.append("pair_not_co_available")
     event_evidence = event.get("evidence") if event else {}
     explicit_level = (
         event_evidence.get("decision_level")
@@ -189,6 +315,7 @@ def build_provenance_record(
         "target_time_window": attribution.get("target_time_window"),
         "event_evidence": event_evidence,
         "decision_level": decision_level,
+        "preference_source": attribution.get("preference_source"),
         "source_decision_id": (
             event_evidence.get("decision_id")
             if isinstance(event_evidence, dict)
@@ -197,6 +324,16 @@ def build_provenance_record(
         "condition_features": condition_features,
         "preferred_subgoals": preferred_subgoals,
         "rejected_subgoals": rejected_subgoals,
+        "attributed_preferred_subgoals": attributed_preferred,
+        "attributed_rejected_subgoals": attributed_rejected,
+        "unresolved_subgoals": unresolved_subgoals,
+        "not_co_available_subgoals": not_co_available,
+        "decision_anchor": decision_anchor,
+        "attribution_flags": attribution_flags,
+        "decision_candidate_set": [
+            candidate.get("subgoal") if isinstance(candidate, dict) else candidate
+            for candidate in decision_candidates
+        ],
         "confidence": attribution.get("confidence"),
         "needs_clarification": attribution.get("needs_clarification"),
         "clarification_question": attribution.get("clarification_question"),
@@ -211,6 +348,13 @@ def build_provenance_record(
             if review_decision
             else None
         ),
+        "source": attribution.get("source", "unknown"),
+        "label_status": attribution.get("label_status", "automatic"),
+        "protocol_version": attribution.get("protocol_version", "protocol-v2"),
+        "attributor": attribution.get("attributor", "rule_baseline"),
+        "model_id": attribution.get("model_id"),
+        "prompt_hash": attribution.get("prompt_hash"),
+        "attribution_error": attribution.get("attribution_error"),
     }
 
 
@@ -224,14 +368,36 @@ def build_training_samples(
             and not provenance.get("use_for_hu_training")
         ):
             continue
-        if provenance.get("needs_clarification"):
+        if provenance.get("needs_clarification") and not provenance.get(
+            "preference_source"
+        ):
             continue
-        if not provenance.get("target_event"):
+        # A direct policy preference may be valid without an observed event.
+        # Keep event-grounded and event-free labels distinguishable in the
+        # provenance and report them separately during evaluation.
+        if not provenance.get("target_event") and not provenance.get(
+            "preference_source"
+        ):
             continue
         if provenance.get("event_actor") not in {None, "ai"}:
             continue
         preferred = provenance.get("preferred_subgoals") or []
         rejected = provenance.get("rejected_subgoals") or []
+        # Coordination is a binary domain: a single-sided label identifies the
+        # other option as the rejected/preferred side by elimination.
+        if provenance.get("decision_level") == "coordination":
+            if preferred and not rejected:
+                rejected = [
+                    subgoal
+                    for subgoal in COORDINATION_SUBGOALS
+                    if subgoal not in preferred
+                ]
+            elif rejected and not preferred:
+                preferred = [
+                    subgoal
+                    for subgoal in COORDINATION_SUBGOALS
+                    if subgoal not in rejected
+                ]
         if not preferred or not rejected:
             continue
         for preferred_subgoal in preferred:
@@ -276,14 +442,27 @@ def build_training_samples(
                         "preferred_subgoal": preferred_subgoal,
                         "rejected_subgoal": rejected_subgoal,
                         "source_event": provenance.get("target_event"),
+                        "preference_source": provenance.get("preference_source"),
                         "source_feedback_id": provenance.get("feedback_event_id"),
                         "source_decision_id": provenance.get(
                             "source_decision_id"
+                        ),
+                        "source": provenance.get("source", "unknown"),
+                        "attributor": provenance.get("attributor", "rule_baseline"),
+                        "model_id": provenance.get("model_id"),
+                        "prompt_hash": provenance.get("prompt_hash"),
+                        "label_status": (
+                            "reviewed"
+                            if provenance.get("reviewed")
+                            else "automatic"
                         ),
                         "label_source": (
                             "human_review"
                             if provenance.get("reviewed")
                             else "automatic_attribution"
+                        ),
+                        "protocol_version": provenance.get(
+                            "protocol_version", "protocol-v2"
                         ),
                     }
                 )
@@ -410,7 +589,32 @@ def build_hu_dataset(session_dir: Path, *, user_id: str) -> dict[str, int]:
         )
         for attribution in attributions
     ]
-    training_samples = build_training_samples(provenance_records)
+    training_samples, rejected_samples = filter_training_samples(
+        build_training_samples(provenance_records)
+    )
+    if rejected_samples:
+        write_jsonl(
+            session_dir / "hu_subgoal_preferences.rejected.jsonl",
+            [
+                {**sample, "schema_violations": problems}
+                for sample, problems in rejected_samples
+            ],
+        )
+
+    # --- protocol-v2: user isolation check ---
+    foreign_user_ids = {
+        sample["user_id"]
+        for sample in training_samples
+        if sample.get("user_id") != user_id
+    }
+    if foreign_user_ids:
+        raise ValueError(
+            f"User isolation violation in {session_dir}: "
+            f"expected user_id={user_id}, "
+            f"found foreign user_ids={sorted(foreign_user_ids)}. "
+            f"Real human feedback must not be mixed across participants."
+        )
+    # --- end user isolation check ---
 
     provenance_count = write_jsonl(
         session_dir / "hu_attribution_provenance.jsonl",
@@ -427,6 +631,7 @@ def build_hu_dataset(session_dir: Path, *, user_id: str) -> dict[str, int]:
     summary = {
         "session": str(session_dir),
         "user_id": user_id,
+        "protocol_version": "protocol-v2",
         "provenance_records": provenance_count,
         "hu_training_samples": sample_count,
         "schema_updates": schema_update_count,
@@ -440,6 +645,45 @@ def build_hu_dataset(session_dir: Path, *, user_id: str) -> dict[str, int]:
             )
             for record in provenance_records
         ),
+        "attribution_flag_counts": dict(
+            sorted(
+                collections.Counter(
+                    flag
+                    for record in provenance_records
+                    for flag in (record.get("attribution_flags") or [])
+                ).items()
+            )
+        ),
+        "schema_rejected_training_records": len(rejected_samples),
+        "schema_rejection_reasons": rejection_summary(rejected_samples),
+        "event_grounded_training_records": sum(
+            1
+            for sample in training_samples
+            if sample.get("source_event") and not sample.get("preference_source")
+        ),
+        "direct_preference_training_records": sum(
+            1 for sample in training_samples if sample.get("preference_source")
+        ),
+        "source_distribution": {
+            "synthetic_sim_human": sum(
+                1 for r in provenance_records
+                if r.get("source", "") == "synthetic_sim_human"
+            ),
+            "human_feedback": sum(
+                1 for r in provenance_records
+                if r.get("source", "") == "human_feedback"
+            ),
+        },
+        "label_status_distribution": {
+            "reviewed": sum(
+                1 for r in provenance_records
+                if r.get("reviewed")
+            ),
+            "automatic": sum(
+                1 for r in provenance_records
+                if not r.get("reviewed")
+            ),
+        },
     }
     (session_dir / "hu_dataset_summary.json").write_text(
         json.dumps(summary, indent=2, ensure_ascii=False),

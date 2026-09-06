@@ -191,6 +191,19 @@ human_waiting_near_pot
 - condition 应该尽量保持固定 schema，避免每条样本随意长出不同字段。
 - 如果某些字段无法从旧日志中恢复，则用 `null`，而不是硬猜。
 
+**“当时”指决策前的状态（2026-09-03 修正）。** 轨迹每一步有两份快照：`state_before_json`
+（AI 做决策时看到的）和 `state_after_json`（动作执行后）。`extract_condition_features(step)`
+读的是 `state_facts`，而 `session_converter` 把它设成了 **after** 快照——这是"发生了什么"
+的视角，适合事件检测；但 Hu 标签说的是"在 X 条件下应选 A 而非 B"，X 必须是做出 B 那个
+决策时的状态，也就是 **before** 快照，和运行时 `ai_condition_features_json` 记录的完全一致。
+之前二者错开一步，在状态切换点直接自相矛盾：4554 条仿真样本里 2666 条（59%）是
+`GET_DISH/PICKUP_SOUP > PUT_DOWN_OBJECT` 且条件写着 `ai_empty_handed=True`——空手时根本没有
+PUT_DOWN_OBJECT 这个候选。现在所有进入标签的条件都走 `decision_condition_features(step)`：
+优先取运行时记录的 `ai_condition_features`（Hu 打分时实际看到的那份），缺的字段再从
+`extra.state_before` 重算；旧 session 没有 before 快照的，退回 after 并用
+`condition_state_source="state_after_fallback"` 标出，可过滤。事件检测器内部判断"发生了
+什么"仍然用 after 快照，不受影响。
+
 ### Step 3: 程序检测候选事件
 
 入口文件：
@@ -638,7 +651,137 @@ python -m durf.feedback_attribution.demo_offline_attribution `
 - candidate events 成功带上 `condition_features`
 - 因为该 session 没有玩家反馈，所以 Hu 样本为 0，符合预期
 
-## 6. 当前进度与下一步
+## 6. 标签质量审计（2026-09-03）
+
+对 4 人格 × 20 seed 仿真数据的 4554 条 pairwise 样本和冻结的 `outputs/hu_general` 做了一次
+逐条审计，发现三个定义层面的问题，均已修正：
+
+1. **条件错位一步**（见 Step 2）。修法：`decision_condition_features`。
+2. **两个任务域事件检测器系统性误报。** `AI_ignored_ready_or_nearly_ready_pot` 把"锅在煮、
+   AI 正在为下一轮取番茄"当成"无视锅"（抽样 20 个事件 20 个都是这种），仿真人类模板随之
+   说出"the pot is ready, go get a dish"这句事实上不成立的话；
+   `AI_failed_to_prepare_ingredient_while_waiting` 把"正在走向出料口"当成"没在备料"，还会在
+   运行时根本没有 GET_TOMATO/GET_ONION 候选（下一轮原料已全部在台面上）时要求 AI 去取料。
+   由此产生的标签让冻结 `hu_general` 的任务头学到 GET_TOMATO −0.19、GET_ONION −0.16、
+   PUT_DOWN_OBJECT −0.21、GET_DISH/PICKUP_SOUP +0.24——即"别备料、别放下"，纯属检测器伪影。
+   修法：`event_detectors.ai_ignoring_pot`（锅 ready 时只要 AI 没在做 GET_DISH/PICKUP_SOUP/
+   WAIT_NEAR_POT 就算无视；锅只是 cooking 时只有空手 WAIT 且人类没拿盘子才算）、
+   `prep_option_available`（运行时候选集里没有取料项就不算错过机会）；`SimHuman` 的
+   streak 逻辑同步镜像，并把 AI 的 subgoal 和候选集传给它。
+3. **标签词表 ≠ 运行时词表。** `GET_USEFUL_INGREDIENT` 有 201 条 preferred 标签、bias +0.18，
+   但候选生成器只产出 GET_TOMATO/GET_ONION，运行时对未知名字 `except KeyError: hu_score=0`
+   静默吞掉，这条偏好永远到不了决策。修法：它从 `TASK_HU_SUBGOALS` 移除、降为归因层名字
+   （`ATTRIBUTION_ONLY_TASK_SUBGOALS`），`hu_dataset_builder` 在成对之前用该决策步真实的
+   候选集把它解析成 GET_TOMATO/GET_ONION（`resolve_useful_ingredient`），解析不了的记入
+   provenance 的 `unresolved_subgoals` 并丢弃；运行时遇到模型打不了分的候选会在 stderr 警告
+   一次（`warn_unknown_runtime_subgoal`）。
+
+**修正后重跑同一批 80 个仿真 session（`outputs/hu_general_v2_regen/`，未覆盖冻结模型）的结果
+必须如实记录：任务域样本从 3143 条降到 0 条。** 400 条仿真反馈全部是协调域（让路/坚持），
+没有一条任务域反馈——因为 H0 底座根本不犯仿真模板所抱怨的那两种错（锅好了它一定去拿盘子；
+空手等待的 560 个抽样步里 100% 是"下一轮原料已经全在台面上、无料可取"）。这意味着：
+冻结 `hu_general` 的任务头**整体是伪影**，不能再作为任务域先验使用；仿真人格目前只能为
+协调域提供先验（重训后 YIELD/CONTINUE 的 global bias 从 ±0.49 回到 ±0.02，条件权重仍在）。
+任务域的偏好学习要么等真人数据，要么给仿真人格设计真正的"偏好式"任务反馈（例如在
+GET_DISH 与 GET_TOMATO 都可行时说"盘子我来拿"），而不是"纠错式"反馈。
+
+## 7. 仿真人格的任务域偏好反馈（2026-09-03，接 §6）
+
+§6 的结论是"纠错式"模板在这个底座上产不出任务域标签。补的办法不是放宽检测器，而是让
+仿真参与者说**偏好**而不是**纠错**：在两个候选都可行、任务分差 ≤10 的决策点上表达"这件事
+你做还是我做"。任务分差 ≤10 正是 ε-约束规则允许偏好说了算的那条带（§3.3），所以这类
+陈述在定义上不是在指出错误。
+
+实现（`durf/group_a/sim_session.py`）：
+
+- `_preference_opportunity(candidates)` 只认两种机会，都要求前两名候选分差 ≤10：
+  `division_of_labour`（锅在煮、AI 空手：GET_DISH 60 vs GET_TOMATO/GET_ONION 50）和
+  `hold_plate`（无锅在煮、手持盘子：PUT_DOWN_OBJECT 20 vs WAIT_NEAR_POT 10）。
+  手持多余原料时 PUT_DOWN_OBJECT 领先 50 分，不算机会——那是任务退步，不是口味。
+- `PERSONA_TASK_PREFERENCE` 给每个人格加了第二条、与协调性格独立的特质：
+  cooperative/polite = `prep_first`（"盘子我来拿，你去备下一份"），selfish/lenient =
+  `dish_first`（"你去拿盘子，原料我管"）。`--sim-task-preference` 可以单独覆盖。
+  `prep_first` 与 H0 默认相反（H0 选 GET_DISH），`dish_first` 与 H0 一致，天然构成
+  处理组/对照组。
+- 每个 episode 每种机会最多说 2 次（`PREFERENCE_MAX_PER_EPISODE`），不是每步都刷。
+- 措辞由 `infer_explicit_preference_from_text` 解析成成对标签；模板与解析器由
+  `testing/feedback_attribution_test.py::test_every_template_parses_to_the_pair_it_is_meant_to_express`
+  钉在一起，改一边不改另一边会红。
+- 归因侧配套改了一处：事件选择本质是关键词匹配，而一句"你拿 X、我拿 Y"是明确的两侧
+  陈述。因此当事件给出的配对**不完整**或**属于另一个决策域**时，以句子为准，被顶掉的事件
+  记进 `preference_overridden_event` 供审计，条件取反馈发生的那一步。两者同域且事件配对
+  完整时仍以事件为准（事件知道 AI 当时具体在做 GET_TOMATO 还是 GET_ONION，比句子里泛指的
+  "ingredient"更具体）。
+
+重跑 80 个 session（`outputs/hu_general_v3_pref/`）的结果：
+
+| | 数量 |
+|---|---|
+| pairwise 样本总数 | 560 |
+| 协调域 | 400（其中不变量 160 进 Hu_general） |
+| 任务域 | 160（GET_TOMATO>GET_DISH 80 / GET_DISH>GET_TOMATO 80） |
+
+任务域 160 条全部是**人格冲突**样本（audit 的 `conflict_details` 里明确记着四个人格的方向），
+因此按协议不进 Hu_general，而是个体差异信号。**Hu_general 的任务头仍然是空的**，这次是
+正确的空：仿真里不存在"所有人都同意"的任务偏好。`hold_plate` 那种可能是不变量的机会在
+128000 步里一次都没出现（这个布局下 AI 从不会在没有锅在煮时手持盘子），所以没有支撑。
+
+### 7.1 任务域行为确实被偏好改变了（第一次）
+
+按人格各训一个 HierarchicalHu（`outputs/hu_general_v3_pref/personas/<persona>/`，用 seed
+0–15 训、20–23 留出），再用留出 seed 跑仿真：
+
+| 人格 | 特质 | 运行 | 选 GET_DISH | 选备料 | preference_override | 每局分数 |
+|---|---|---|---|---|---|---|
+| cooperative | prep_first | H0（容忍带 0） | 18 | 0 | 0 | 60 |
+| cooperative | prep_first | 自己的模型，容忍带 10 | 0 | 26 | 26 | 20 |
+| polite | prep_first | H0 | 18 | 0 | 0 | 60 |
+| polite | prep_first | 自己的模型，容忍带 10 | 0 | 26 | 26 | 20 |
+| selfish | dish_first | 自己的模型，容忍带 10 | 18 | 0 | 0 | 60 |
+| lenient | dish_first | 自己的模型，容忍带 10 | 18 | 0 | 0 | 60 |
+
+翻转点精确落在容忍带 = 分差：容忍带 9 完全不变，10 全翻。交叉对照（cooperative 的对局用
+selfish 的模型跑）也不变，说明变化来自偏好本身而不是仿真随机数漂移。三个留出 seed 全部
+复现。
+
+**但那个 60→20 不是偏好的代价，是一个被顺带暴露出来的死锁**（下面 §7.1.1 是修掉之后的
+重测结果，结论完全反转）。 逐帧看 cooperative/seed20
+的轨迹：翻转之后局面走到"AI 手持盘子、锅已好、要去锅边"，而人类在 1 格宽的上走廊里
+来回，两人相隔 2 格互相镜像地 east/west 摆动，692 步没有任何进展。协调层从未介入
+（`coordination_decision` 全程为空）——因为两人从不真的争夺同一格，`path_conflict_type`
+不触发；`stalled_escape` 也不管——它只处理"空手 + WAIT + 无动作"。这是机制里一个既有的
+鲁棒性缺口，不是这次改动引入的，只是偏好把对局推进了这个状态。**在修掉它之前，任何
+容忍带标定量到的都是这个死锁，而不是偏好的真实代价。**
+
+#### 7.1.1 死锁修掉之后的重测（2026-09-04）
+
+根因见 `hierarchical_hu_runtime.md` §4.2（路线选择层的闸门/价值混淆，队友的临时位置能
+无声买下绕环 19 步的代价）。修掉之后用同样的三个留出 seed 重测：
+
+| 人格 | 特质 | H0（容忍带 0） | 自己的模型，容忍带 10 |
+|---|---|---|---|
+| cooperative / polite | prep_first | 70–93 次 GET_DISH，每局 240–260 分 | **0 次 GET_DISH，118–120 次备料（全部 preference_override），每局 280 分** |
+| selfish / lenient | dish_first | 70–97 次 GET_DISH，每局 240–260 分 | 不变，每局 240–260 分 |
+
+两个结论都变了，而且都是往好的方向：
+
+1. **行为改变的结论更强了。** 机会点从每局 18 个变成 70–93 个（AI 不再把时间花在绕环上，
+   真的在跑任务循环），翻转依然是 100%。
+2. **honor 这条偏好的任务代价是零，甚至略正。** 之前的 60→20 完全是死锁伪影。
+
+（同时也说明：此前所有基于仿真任务表现的数字都是在测一个瘸腿的基线。）
+
+### 7.2 已知的两个局限（写清楚，别在论文里当成人类证据）
+
+1. **这些标签验证的是机制，不是人类偏好。** 模板是我们自己写的，人格特质是我们自己
+   指派的，然后 Hu 学到了我们指派的东西——这条闭环只能证明"从一句话到行为改变"的管道
+   通了，不能证明任何关于真人偏好的事实。
+2. **仿真人格说的和做的不一致。** 说"盘子我来拿"的人格，它自己的动作仍然由同一个规则
+   教师（`rule_teacher_candidates(state, mp, 1)`）决定，并不会真的去拿盘子。真人说了会做，
+   所以真人实验里honor这条偏好的代价大概率比仿真里小。要修就得让 `SimHuman.choose_action`
+   也按自己的特质在同样的 ≤10 分差带内选边。
+
+## 8. 当前进度与下一步
 
 已用 `20260722_211635` 的 12 条真实语言反馈完成一次 schema-v2 回放：
 

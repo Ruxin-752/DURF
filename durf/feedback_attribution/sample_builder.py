@@ -5,7 +5,11 @@ from __future__ import annotations
 from .event_detectors import DEFAULT_LOOKBACK_STEPS, detect_candidate_events, recent_window
 from .feedback_type_router import polarity_from_feedback, route_feedback_type
 from .schemas import attribution_result
-from .subgoal_preferences import infer_subgoal_preferences
+from .subgoal_preferences import (
+    COORDINATION_SUBGOALS,
+    infer_explicit_preference_from_text,
+    infer_subgoal_preferences,
+)
 
 
 EVENT_KEYWORDS = {
@@ -16,6 +20,34 @@ EVENT_KEYWORDS = {
         "stuck",
         "in my way",
         "path",
+        "pass",
+        "step aside",
+        "move",
+        "let me through",
+        "through",
+    ),
+    "AI_failed_to_yield_or_clear_path": (
+        "blocking",
+        "blocked",
+        "in my way",
+        "in the way",
+        "pass",
+        "move",
+        "step aside",
+        "through",
+    ),
+    "AI_successfully_yielded": (
+        "let me through",
+        "get by",
+        "squeeze past",
+        "thanks",
+    ),
+    "AI_maintained_current_subgoal_during_conflict": (
+        "finish what you were doing",
+        "keep going",
+        "stick with it",
+        "don't mind me",
+        "closer to your task",
     ),
     "AI_ignored_ready_or_nearly_ready_pot": (
         "pot",
@@ -438,6 +470,13 @@ def key_conditions_from_event(event: dict | None) -> dict:
     return evidence
 
 
+def _decision_domain(subgoals: list[str]) -> str:
+    names = {name for name in subgoals if name}
+    if names and names.issubset(set(COORDINATION_SUBGOALS)):
+        return "coordination"
+    return "task"
+
+
 def build_preview_attribution(
     *,
     feedback: dict,
@@ -478,6 +517,53 @@ def build_preview_attribution(
         alternative_subgoals=target.get("alternative_subgoals") if target else None,
         event_valence=target.get("event_valence") if target else None,
     )
+    preference_source = None
+    overridden_event = None
+    (
+        explicit_preferred,
+        explicit_rejected,
+        explicit_source,
+    ) = infer_explicit_preference_from_text(feedback_text)
+    explicit_complete = bool(explicit_preferred and explicit_rejected and explicit_source)
+    event_complete = bool(preferred_subgoals and rejected_subgoals)
+    # Event selection is keyword matching; a two-sided explicit statement
+    # ("you take X, I'll take Y") is not. So the statement wins unless the
+    # event already yields a complete pair in the same decision domain, i.e.
+    # unless the two agree about what kind of choice is being discussed:
+    #   * event pair incomplete -- "grab the dish, i'll handle the next
+    #     ingredient" matches AI_missed_plate_pickup_opportunity, whose default
+    #     names only the preferred side, and the one-sided label is dropped
+    #     later; the sentence names both sides;
+    #   * different domain -- a task preference typed while a passing conflict
+    #     was being resolved must not be filed as a YIELD/CONTINUE label.
+    # The displaced event stays in preference_overridden_event for audit, and
+    # the condition is then taken at the feedback step (where the sentence was
+    # typed) rather than at the event's start.
+    if explicit_complete and not (
+        event_complete
+        and _decision_domain(preferred_subgoals + rejected_subgoals)
+        == _decision_domain(explicit_preferred + explicit_rejected)
+    ):
+        if preferred_subgoals or rejected_subgoals:
+            overridden_event = target_event
+            target = None
+            target_event = None
+            condition_features = {}
+        preferred_subgoals = explicit_preferred
+        rejected_subgoals = explicit_rejected
+        preference_source = explicit_source
+    elif not preferred_subgoals and not rejected_subgoals:
+        preferred_subgoals = explicit_preferred
+        rejected_subgoals = explicit_rejected
+        preference_source = explicit_source
+
+    # An explicit future-policy statement can be useful even when no event was
+    # detected at the feedback timestamp. Keep it as a preference draft rather
+    # than inventing a target event.
+    explicit_preference = bool(preferred_subgoals and rejected_subgoals and preference_source)
+    if explicit_preference:
+        needs_clarification = False
+        confidence = max(confidence, 0.62)
     preference = None
     if target_event and polarity in {"negative", "unknown", "positive"}:
         preference = EVENT_PREFERENCES.get(target_event)
@@ -547,4 +633,15 @@ def build_preview_attribution(
             f"{selection_reason} "
             "This is a deterministic baseline before LLM semantic attribution."
         ),
+        decision_level=(
+            "coordination"
+            if set(preferred_subgoals + rejected_subgoals).issubset(
+                {"YIELD", "CONTINUE_CURRENT_SUBGOAL"}
+            )
+            else "task"
+            if explicit_preference
+            else None
+        ),
+        preference_source=preference_source,
+        preference_overridden_event=overridden_event,
     )

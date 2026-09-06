@@ -54,6 +54,17 @@ WAIT_NEAR_POT
 WAIT
 ```
 
+⚠️ **这是词表，不是每一步都同时可选**——不要把它读成"每步都有全部候选参与竞争"。
+
+✅ **2026-09-03 起，持物分支也已放开为多候选**（`mechanism_blueprint_v1.md` §3 的 P1
+已完成）：5 个持物状态（手持番茄/洋葱且锅需要、手持番茄/洋葱且锅不需要、手持盘子且汤
+已好、手持盘子且汤未好、手持汤）现在各产出 2–4 个候选而不是单一 `return`，且原来
+`recovery_action_override` 的 `AI_HELD_DISH_BEFORE_SOUP_READY` / `AI_HELD_UNNEEDED_INGREDIENT`
+两个强制触发器已随之退休（其历史动作原样变成了对应候选的 task_score 排序结果）。仍然
+只产出单一候选的情形只剩：(a) 该分支唯一有意义的候选本身不可行时的精确历史 fallback
+（例如"没有空闲台面可放"或"没有路径去需要的锅"）；(b) 极少数尚未纳入本次改动的边缘
+分支。详见 `mechanism_blueprint_v1.md` §3.2/§3.3。
+
 当前运行时已经启用的 Coordination 候选是：
 
 ```text
@@ -61,29 +72,119 @@ CONTINUE_CURRENT_SUBGOAL
 YIELD
 ```
 
-`HOLD_POSITION` 和 `REROUTE` 已保留在 Hu 合法词表中，但尚未作为运行时候选启用。原因是它们需要能保持原 task 目标的路径级实现，不能用随意移动代替。
+`HOLD_POSITION` 与 `YIELD` 在动作上重合（都是停在原地），已从词表移除。`REROUTE`
+**不是**新的协调选项——Hu 的协调词表现在和以前一样，永远只有这两个。REROUTE 已经实现，
+但是作为 `YIELD` 选中之后、决定"具体怎么让"的执行层规则（见 §4.1），不是 Hu 要挑选的
+第三个选项。
 
 ## 3. 基础分数与 Hu 分数
 
-Task 层：
+Task 层和 Coordination 层用的是两条**不同**的混合规则，不要套用同一个公式。
+
+**Task 层：ε-约束分层满足式（不是加法）**。`task_score` 和 `hu_score` 单位不同、不可通约，
+从来就不该相加——`task_score` 是研究者标定的任务价值判断，量级是几十到一百；`hu_score`
+来自成对 logistic 排序模型，只有序信息可靠，量级不固定。实际规则是：
 
 ```text
-task_final_score
-= task_score
-+ hu_task_lambda * Hu_task(user, condition, task_subgoal)
+best_task = 可行候选里最高的 task_score
+acceptable = { c | c.task_score >= best_task - hu_task_tolerance }   # 容忍带内的候选
+selected = acceptable 里 hu_score 最高的那个                          # Hu 只在容忍带内挑
+selected.final_score = selected.task_score                           # 不做加法
 ```
 
-Coordination 层：
+`hu_task_tolerance`（原来叫 `hu_lambda`，已改名并改了语义）是"愿意为学到的偏好放弃多少
+任务分"，单位是**任务点数**，不是权重系数。`hu_task_tolerance = 0` 时容忍带只剩任务最优
+一个候选，行为与迁移前的任务底座完全一致。实现见
+`durf/baseline/collect_rule_teacher_dataset.py::choose_task_candidate`。
+
+### 3.1 用"步数"而不是"任务点数"定容忍带（2026-09-04）
+
+`task_score` 的间距是规则教师的优先级编码，没有单位而且很不均匀（10、50、60、70、90），
+"愿意放弃多少任务分"回答不了。`durf/baseline/task_cost.py` 给每个候选估一个同单位的量：
+**若坚持这个 subgoal，本智能体离下一次送餐还差多少步**（贪心串行计划，不建模队友；等待类
+候选记作"最优动作 + 1"）。运行时对每个候选算出 `step_cost` 并落盘到
+`ai_subgoal_candidates_json`；`--hu-step-tolerance N`（> 0 时）把容忍带换成：
 
 ```text
-coord_final_score
-= coordination_prior
-+ hu_coordination_lambda * Hu_coord(user, condition, option)
+task_optimum = 可行候选里 task_score 最高者                 # 排序仍是冻结底座的
+acceptable   = { c | c.step_cost <= task_optimum.step_cost + N }   # 估计的额外步数 ≤ N
 ```
+
+注意两点。第一，**排序没变**：估计器只负责放宽容忍带，永远不替底座挑最优——容忍带为 0
+（或不传）时两种单位下都是底座本身，影子重放 6400 个决策点 0 偏差；哪怕估计器认为某个
+备选比底座的选择更省步（"拿着盘子别放"的情形确实如此），容忍带为 0 时也照旧。第二，
+估计器与底座在 6161 个真实多候选决策点上 99.9% 一致，唯一的分歧就是那个"放盘子还是
+拿着"（8 次），已记在 `test_task_cost.py` 里。
+
+两条守卫规则，都是在把容忍带换成步数之后被真实跑出来的、不是预先设计的：
+
+1. **偏好可以选"怎么做"或"怎么等"，不能选"做不做"。** 容忍带是逐决策评估的，但偏好在每个
+   决策上都会施加一次：等待类候选（WAIT / WAIT_NEAR_POT）让世界原封不动，下一拍同样的
+   "差一步"的选项又摆在面前，逐步的 1 步牺牲累计起来没有上界。任务点数下 WAIT 比所有动作
+   低 50+ 分，这个洞从没暴露；换成步数后等待恰好是"最优 + 1"，任何 ≥1 的容忍带都装得下它——
+   实测是一整局 0 分（一直空手等，不去取料），以及连续 1062 步"拿着不需要的洋葱站在锅边"。
+   因此等待类候选不能顶替一个会改变世界的最优候选；底座自己选的是等待时，怎么等仍然开放。
+   PUT_DOWN_OBJECT **不算**等待——它腾出了手、局面往前走了，代价只付一次。"等我一下"这类
+   偏好属于协调域，YIELD 自带承诺期正是为了给它设上界。
+2. **没有证据就没有意见。** `LinearSubgoalReranker` 原来用 `N(0, 0.01)` 随机初始化条件权重，
+   没在任何标签里出现过的 subgoal 会永久带着一个 ±0.05 的随机"意见"，在零边距 argmax 下
+   足以在容忍带内压过底座——实测是 PUT_TOMATO_IN_POT ↔ PUT_DOWN_OBJECT 之间纯靠初始化噪声
+   驱动的放下/捡起死循环。现在权重零初始化（线性成对模型不需要打破对称），模型记录每个
+   subgoal 参与过多少训练对（`subgoal_support`），运行时给每个候选打上 `hu_supported`；
+   没有证据的候选永远不能成为决策离开底座的理由（底座自己的选择不受此限）。旧模型文件
+   没有这个字段，按"有支持"处理以保持行为不变，但它们仍带着随机初始化残留，应重训。
+
+标定曲线（按人格训的模型，留出 seed，800 步 × 2 局；`est_gap` 是估计器给出的
+"备料比拿盘子多走几步"的分布，中位数 9）：
+
+| 人格 | step_tol | 选 GET_DISH | 选备料 | preference_override | 每局分数 |
+|---|---|---|---|---|---|
+| cooperative（prep_first） | 0 | 93 | 0 | 0 | 260 / 240 |
+| cooperative | 3 | 81 | 12 | 12（均牺牲 2.2 步） | 260 / 240 |
+| cooperative | 8 | 72 | 21 | 21（3.9 步） | 260 / 240 |
+| cooperative | ≥10 | 0 | 120 | 120（7.0 步） | 280 / 280 |
+| selfish（dish_first） | 0–20 | 97 | 0 | 0 | 260 / 240 |
+
+与 H0 一致的人格在任何预算下都纹丝不动，与 H0 相反的人格随预算逐级翻转、翻转点跟着估计
+的步数差走，其他任何决策点上一次 override 都没有——容忍带终于是一个有量纲、可标定的量。
+
+**Coordination 层：同样是满足式（2026-09-04 起，不再是加法）**。原来的
+`prior + hu_coordination_lambda · Hu` 有同一个量纲问题：prior 是 0/1，Hu 是成对 logistic
+输出（只有序可靠，量级是正则化的产物），λ 就是一个谁也说不清的汇率。现在：
+
+```text
+prior_pick  = 可行选项里 base_score 最高者                      # 冲突时 YIELD，贴近目标时 CONTINUE
+acceptable  = { o | o.base_score >= best_prior - hu_coordination_tolerance }
+selected    = acceptable 里 hu_score 最高者（并列回退到 prior）   # Hu 只排序，不相加
+selected.final_score = selected.base_score
+```
+
+prior 只有两档，所以 `--hu-coordination-tolerance` 实际上是一个开关，文档里就按开关说：
+**0 = 按 prior 让/不让；≥ 1 = 由用户的偏好决定让还是不让，prior 只做并列时的裁决。**
+没有像 task 层那样再套一层步数代价——YIELD 自带承诺期（`max_option_steps=3`）和冷却，那
+才是"等我一下"这类偏好的上界，逐决策的代价带在这里加不了什么。同 task 层：Hu 没有标注
+证据的选项永远不能成为离开 prior 的理由（`hu_supported`）；`--hu-coordination-lambda`
+已删除，传了会直接报错指向新参数。
+
+**两边都有界（同日修正）。** 原来只有 YIELD 有承诺期 + 冷却（"别一直让"），CONTINUE 没有
+任何上界。prior 只在离目标一步时才坚持，所以从没暴露；一旦偏好可以在远离目标的迎面冲突里
+选 CONTINUE，就是：动作被挡住、局面不变、同一个决策下一拍又来——实测 cooperative/lenient
+人格的模型 524 步连续 CONTINUE、整局 0 分。现在 CONTINUE 跑满承诺期而冲突未消，也进入
+同样长度的冷却让 YIELD 上场（`continue_cooldown_steps`，默认等于 `yield_cooldown_steps`）；
+一方进冷却时另一方的冷却清零，保证任何时候至少一个选项可行。对 H0 的影响只在"贴近目标却
+被持续挡住 ≥3 步"这一种情形（每局 107 次冲突里约 2 次的让/不让翻转），冲突次数和分数不变。
+
+实测（按人格训的协调头，留出 seed，800 步 × 2 局）：
+
+| 人格 | 学到的倾向 | 容忍带 0（= H0） | 容忍带 1 |
+|---|---|---|---|
+| polite / selfish | 偏让（YIELD +0.38） | 让路率 54–59%，260/240 分 | 让路率 88%，26 次 override，240/240 分 |
+| cooperative / lenient | 偏坚持（global bias 0，条件权重偏 CONTINUE） | 让路率 55%，260/240 分 | 让路率 47–48%，23 次 override，240/240 分（修 CONTINUE 上界前：0%，0 分） |
 
 当 `--hu-apply` 未开启时，Hu 只进行 shadow scoring：记录分数，但不改变选择。
 
-当 Hu 没有 coordination head，或者 `--hu-coordination-lambda 0` 时，系统使用初始协调 prior。当前 prior 在检测到直接路径冲突时优先 `YIELD`，以保持旧版本行为。
+当 Hu 没有 coordination head，或者 `--hu-coordination-tolerance 0` 时，系统使用初始协调
+prior。当前 prior 在检测到直接路径冲突时优先 `YIELD`，以保持旧版本行为。
 
 ## 4. Coordination option 的生命周期
 
@@ -106,6 +207,84 @@ min_commit_steps = 1
 max_option_steps = 3
 yield_cooldown_steps = 2
 ```
+
+### 4.1 `YIELD` 选中之后：WAIT / BACK_OFF / REROUTE
+
+`YIELD` 曾经等价于"原地停住"（`STAY`）。这混淆了两件事：**要不要让路**（Hu 该学的
+偏好）和**让路的具体动作**（该不该往后退一步、该不该干脆换条不经过人的路）。现在这两
+件事分开了：
+
+- Hu 仍然只在 `CONTINUE_CURRENT_SUBGOAL` / `YIELD` 之间选，词表没有变化，训练数据、
+  pairwise 样本、`condition_delta` 维度都不需要重新设计——这正是当初决定"先只拆
+  执行层，不拆 Hu 词表"的原因（数据量在 coordination 维度已经吃紧，见
+  `docs/hierarchical_hu_runtime.md` 历史讨论）。
+- `YIELD` 一旦被选中，一段**规则判断**（不经过 Hu、不训练）决定具体怎么让，按优先级：
+
+  ```text
+  REROUTE   -- 找一条绕开人当前位置和目的地的路，继续推进任务
+              （复用 collect_rule_teacher_dataset.first_action_to_feature，
+              把人的当前格和目的格当成临时障碍）
+  BACK_OFF  -- 找不到能绕开人的路时，退到离人和人的目的地都最远的相邻空格
+              （原来就有的逻辑，但以前只在 2/4 种冲突类型下触发，现在对全部
+              4 种冲突类型都生效）
+  WAIT      -- 两者都不可行时，原地停住（STAY）
+  ```
+
+  实现在 `durf/baseline/coordination.py::choose_reroute_action`，`play_with_baseline.py`
+  和 `sim_session.py` 共用同一份实现（不再各自维护一份重复代码）。
+
+- 这次拆分选中的**具体方式**（`"reroute"` / `"back_off"` / `"wait"`）会写进
+  `YIELD` 候选的 `reason` 字段（例如
+  `yield_during_ai_blocking_human_route_via_back_off`），供审计和后续分析用，
+  但**不会**出现在 `candidate_set` 或 Hu 的决策空间里——`build_coordination_candidates`
+  的 `yield_mode` 参数只影响 `reason` 文本。
+
+⚠️ **实测发现（2026-09-03）**：在默认的 `ring_tomato_onion_10x6_h0_full_task` 环形地图
+上跑了 4 种仿真人格 × 6 个随机种子共 180 次协调冲突，`REROUTE` 一次也没有被选中——全部
+落到 `BACK_OFF`。原因是几何上的：这张图确实是一个环（两条方向都能走到），但冲突发生时
+AI 和人已经贴在一起，绕环一整圈的代价远高于退让一两步；而"人挡住的那两格"通常不在 AI
+已经规划好的最短路径上（最短路径本来就没打算经过人），所以把这两格设成临时障碍对路径
+规划毫无影响。这不代表 `REROUTE` 是死代码——`durf/baseline/test_coordination_yield.py`
+在同一张地图上直接单测了 `choose_reroute_action`，构造了"最短路径确实经过人所在的那条
+窄连接通道"的场景，证明它能正确绕到另一条通道。只是在这张图默认的对局动态下，这个分支
+很少被触发，真人数据或更窄的地图布局可能会改变这个比例。
+
+**补充（2026-09-04）**：`REROUTE` 现在受 `MAX_PARTNER_DETOUR_STEPS`（3 步）约束——绕路
+只有在比直行贵不超过 3 步时才算"绕一下"，否则退回 `BACK_OFF`/`WAIT`。这条约束来自
+§4.2 修掉的镜像摆动死锁：不设上限时"绕开队友"可以买下绕环一整圈（19 步 vs 直行 4 步）
+的代价。单测场景相应换成了 AI 站在离另一条连接通道更近的位置（绕路 13 步 vs 直行 10 步，
+在预算内），并新增一条断言：环形规模的绕路必须被拒绝。
+
+### 4.2 路线选择里的闸门/价值分离（2026-09-04）
+
+`test_candidate_generation.py` 立下的不变式——"队友永远不能决定一个选项是否存在"——在
+路线选择这一层还有个孪生问题：**队友的临时位置也不该无声地买下任意昂贵的绕路**。绕开
+还是走过去当面解决，是协调层的价值判断，而协调层只有在这次相遇真的传上去时才能做这个
+判断。
+
+修之前 `first_action_to_feature` 会不计代价地采纳任何"避开队友"的路线，而且当运动规划器
+找不到避让路线时，末尾的 BFS 兜底会**返回一条绕环的长路**——因为它返回了非 None 的动作，
+`feature_candidate` 的 `route_blocked_by_partner` 标记也就从来没机会点亮，整件事在日志里
+完全看不见。后果是一个稳定复现的两人镜像摆动：AI 手持盘子要去已好的锅，队友在 1 格宽的
+走廊里来回，AI 每一步都在"直行"和"绕环 19 步"之间翻转，692/800 步零进展。冲突检测看不见
+它（两人从不争夺同一格），`stalled_escape` 也看不见（它只覆盖"空手 + WAIT"）。
+
+现在的规则（`route_to_feature` / `route_first_action`）：
+
+- 两条路线都算出**可比较的步数代价**：避让路线和无视队友的直行路线；
+- 只有当避让路线比直行贵不超过 `MAX_PARTNER_DETOUR_STEPS = 3` 步时才走避让路线——这个
+  上限直接取自协调层的有界让行（`max_option_steps=3`）：走过去让协调层决定，最多也就
+  付几步的代价，比这更贵的绕路本身就是更差的买卖；
+- 超预算就走直行路线，并把 `route_blocked_by_partner=True` 记进候选 metadata，让这次相遇
+  按设计走到协调层；
+- `detour_budget=None` 可以恢复旧的无上限行为（回归对比用）。
+
+影子重放（6400 个真实决策点，新旧代码喂同一批 state）：**subgoal 选择 100% 不变**，
+只有 1.3%（82 个）的第一步动作变了，且这 82 个**全部**是新代码点亮 `route_blocked_by_partner`
+的状态——正是这条改动针对的场景，没有任何其他决策受影响。任务表现：同样的 800 步 ×
+2 局，H0 每局分数从 **60 提升到 240–260**（4 倍），最长零得分区间从 599 步降到约 70 步
+（一个正常的烹饪周期）。换句话说，这个底座此前把大部分时间花在绕环躲人上，之前所有
+基于仿真任务表现的数字都是在测一个瘸腿的基线。
 
 ## 5. trajectory 中新增的决策证据
 
@@ -133,7 +312,7 @@ Task 记录示例：
       "subgoal": "GET_ONION",
       "task_score": 70.0,
       "hu_score": 0.8,
-      "final_score": 70.8
+      "final_score": 70.0
     }
   ],
   "selected": "GET_ONION"
@@ -305,10 +484,14 @@ python -m durf.group_a.play_with_baseline `
   --layout ring_tomato_onion_10x6_h0_full_task `
   --hu-model outputs\hu_models\pilot01\hierarchical_hu.json `
   --hu-user-id PILOT01 `
-  --hu-lambda 1.0 `
-  --hu-coordination-lambda 1.0 `
+  --hu-step-tolerance 10.0 `
+  --hu-coordination-tolerance 1 `
   --hu-apply
 ```
+
+`--hu-lambda` 和 `--hu-coordination-lambda` 都已不存在。task 层用 `--hu-step-tolerance`
+（估计的额外步数，见 §3.1；`--hu-task-tolerance` 是旧的任务点数单位，仍可用），coordination
+层用 `--hu-coordination-tolerance`（0 / 1 开关，见 §3）。示例值请按实际标定结果调整。
 
 ## 10. 当前边界
 
@@ -319,11 +502,46 @@ python -m durf.group_a.play_with_baseline `
 - 双头 Hu 训练和旧单头模型兼容；
 - decision-level 日志与 event 溯源；
 - review 标签覆盖自动归因；
-- bounded yield，避免一直退让。
+- bounded yield，避免一直退让；
+- Task 层的 ε-约束分层满足式决策规则，替代了原来量纲不匹配的加法混合（见 §3）；
+- 候选存废与队友位置解耦：队友挡路只影响路线可行性，不再让候选直接消失（见
+  `durf/baseline/collect_rule_teacher_dataset.py::feature_candidate` 的
+  `route_blocked_by_partner` 标记）；
+- 低层执行器正式下线：候选生成器能产出的全部 subgoal 都直接走运动规划器，训练好的
+  keras 执行器网络默认不再加载（`play_with_baseline.py` 和 `sim_session.py` 都新增了
+  `--load-retired-executor` 标志，默认关闭，仅用于回归对比时手动加载）——这两个入口
+  之前不一致：`sim_session.py` 曾经遗漏了这次下线，仍然无条件加载模型、保留一段永远
+  不会命中的白名单分支，现已补齐一致；
+- `PerUserAdapter` 的 task 头默认关闭 `user_bias`（`enable_task_bias=False`）：跨四个
+  sim persona 验证，task 层的无条件个体偏移始终落在噪声范围内（±0.06），而
+  coordination 层的个体偏移是有意义的信号（±0.05 到 ±1.74，随人格单调变化）。这是可逆
+  开关，不是删除，真人数据到手后需要重新检验；
+- YIELD 的语义拆分：Hu 的协调词表不变（仍然只有 `CONTINUE_CURRENT_SUBGOAL` / `YIELD`
+  两个选项），但 `YIELD` 选中之后由规则判断具体怎么让——REROUTE（绕开人、继续推进任务）
+  优先于 BACK_OFF（退到最远的空格，现覆盖全部 4 种冲突类型而非原来的 2 种）优先于 WAIT
+  （原地不动）。选中的方式记录在 `reason` 字段供审计，不进入 Hu 的决策空间（见 §4.1）；
+- 持物分支的候选生成放开：5 个持物状态从单一 `return` 改成 2–4 个带 task_score 的候选，
+  `recovery_action_override` 的两个强制触发器（`AI_HELD_DISH_BEFORE_SOUP_READY` /
+  `AI_HELD_UNNEEDED_INGREDIENT`）随之退休，16000 步影子重放验证 `hu_task_tolerance=0`
+  时动作零变化（`mechanism_blueprint_v1.md` §3）；
 
 仍待真实数据验证：
 
 - 两个 head 是否都有足够 pairwise 样本；
 - Hu 是否在同一 probe condition 下稳定改变候选排序；
 - Hu 改变偏好后是否保持任务完成率；
-- 是否需要正式实现 `HOLD_POSITION` 和保持 task 目标的 `REROUTE`。
+- `PerUserAdapter.enable_task_bias=False` 这个假设在真人数据上是否依然成立；
+- REROUTE 在真人对局里的实际触发率——仿真环形地图上的 180 次冲突里一次都没触发（见
+  §4.1），这是否是地图几何的特例，还是真人协调冲突普遍也是"贴身冲突、绕路不划算"。
+
+仍未开工：
+
+- Coordination 层是否也要从加法混合改成满足式。
+- ~~Coordination 层的 λ 加法是否也换成同样的满足式~~ 已完成（§3）：prior 满足、Hu 排序、
+  不相加；顺带给 CONTINUE 加上了和 YIELD 对称的上界。
+- 是否还需要一个基于"任务无进展"的兜底停滞检测。§4.2 修掉根因之后，最长零得分区间已经
+  回到正常烹饪周期的长度，没有观察到残留死锁，因此没有加——多一层行为覆盖就多一层没有
+  实证需求的接管逻辑。真人数据里若再出现僵持，再按证据补。
+
+（持物分支的候选生成放开已于 2026-09-03 完成，见上方"已经完成"列表末尾一条及
+`mechanism_blueprint_v1.md` §3。）

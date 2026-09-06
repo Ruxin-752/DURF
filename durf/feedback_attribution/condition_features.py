@@ -92,6 +92,11 @@ CONDITION_CONTEXT_KEYS = (
     "matching_dispenser_pot_distance",
     "matching_dispenser_total_task_distance",
     "ai_current_subgoal",
+    # Which snapshot a *decision* condition was computed from (see
+    # decision_condition_features): "state_before" is the runtime-faithful
+    # view; "state_after_fallback" marks legacy sessions without a pre-action
+    # snapshot, whose labels are shifted by one step.
+    "condition_state_source",
 )
 
 RING_TOMATO_ONION_RECIPE = ("tomato", "tomato", "onion")
@@ -571,6 +576,11 @@ def extract_condition_features(step: dict[str, Any] | None) -> dict[str, Any]:
     if delta and human_before is not None and human_after is not None:
         attempted_target = add_pos(human_before, delta)
         target_was_ai = attempted_target in {ai_before, ai_after}
+        # Both features are derived from the attempted move: "trying to pass"
+        # is the active intent, "on the path" the geometric blocking fact.
+        # Online sim sessions further decouple these (path blocking persists
+        # across stationary steps); offline replay cannot reconstruct the
+        # human's last movement direction, so the two stay equal here.
         features["human_trying_to_pass"] = target_was_ai
         features["ai_on_human_path"] = target_was_ai
         terrain = (before.get("layout_features") or {}).get("terrain") or []
@@ -588,6 +598,51 @@ def extract_condition_features(step: dict[str, Any] | None) -> dict[str, Any]:
             if key in features and features[key] is None:
                 features[key] = value
 
+    return features
+
+
+def decision_condition_features(step: dict[str, Any] | None) -> dict[str, Any]:
+    """Condition features of the decision made AT this step.
+
+    ``extract_condition_features(step)`` describes the world AFTER the step's
+    action (``state_facts`` is the post-action snapshot) -- the right view for
+    detecting what happened.  A Hu label, however, is about the decision that
+    *produced* the step, so its condition must be the state the decision
+    layer actually saw: the pre-action snapshot.  Using the post-action view
+    here silently shifts every label by one step and, at transitions, makes
+    it self-contradictory (e.g. ``ai_empty_handed=True`` attached to a
+    rejected ``PUT_DOWN_OBJECT``, which cannot even be a candidate when
+    empty-handed).
+
+    The runtime records the exact feature dict it scored with
+    (``ai_condition_features``), so that is the primary source; anything it
+    did not record is recomputed from ``extra.state_before``.  Older sessions
+    without a pre-action snapshot fall back to the post-action view and are
+    flagged via ``condition_state_source`` so they can be filtered.
+    """
+    if not step:
+        features = null_condition_features()
+        features["condition_state_source"] = None
+        return features
+    recorded = step.get("ai_condition_features")
+    recorded = recorded if isinstance(recorded, dict) else {}
+    before = (step.get("extra") or {}).get("state_before")
+    if before:
+        base_step = {
+            **step,
+            "state_facts": before,
+            "ai_condition_features": {},
+            "extra": {**(step.get("extra") or {}), "state_before": before},
+        }
+        features = extract_condition_features(base_step)
+        source = "state_before"
+    else:
+        features = extract_condition_features({**step, "ai_condition_features": {}})
+        source = "state_after_fallback"
+    for key, value in recorded.items():
+        if value is not None and key in features:
+            features[key] = value
+    features["condition_state_source"] = source
     return features
 
 
