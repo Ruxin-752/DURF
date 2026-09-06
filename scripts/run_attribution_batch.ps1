@@ -2,11 +2,15 @@
 # For each sim session directory, runs:
 #   1. session_converter  (CSV -> trajectory.jsonl + feedback_events.jsonl)
 #   2. generate_candidate_events
-#   3. sample_builder/deterministic attribution
+#   3. LLM semantic attribution (DeepSeek), rule baseline as labelled stand-in
 #   4. hu_dataset_builder + probe_state_detector
 #
-# Uses deterministic attribution (no LLM call) since sim feedback is
-# template-based with known keywords.
+# 2026-09-05: the LLM is ON.  Until now this script ran the keyword baseline
+# only ("sim feedback is template-based with known keywords"), which is why
+# 4 538 of the 4 554 pairwise labels in the corpus never touched the LLM the
+# paper is about.  Every label now carries an `attributor` field; to run the
+# baseline deliberately, pass --no-llm to demo_offline_attribution and expect
+# attributor=rule_baseline everywhere.  Requires DEEPSEEK_API_KEY.
 
 $ErrorActionPreference = "Continue"
 
@@ -16,6 +20,7 @@ $allDirs = Get-ChildItem -Path $sessionBase -Directory | Sort-Object Name
 $total = 0
 $done = 0
 $failed = @()
+$withFallbacks = @()
 
 # Find sim sessions from the batch run (data_source = synthetic_sim_human)
 Write-Host "Scanning for sim sessions ..."
@@ -66,7 +71,15 @@ foreach ($dir in $allDirs) {
         # Also run probe state detector
         & python -m durf.feedback_attribution.probe_state_detector `
             --session $dir.FullName --no-convert 2>&1 | Out-Null
-        Write-Host " OK"
+        # An LLM outage is not a success: surface it and count it.
+        $warn = $result | Select-String -Pattern "WARNING: LLM failed"
+        if ($warn) {
+            Write-Host " OK (with LLM fallbacks)"
+            Write-Host "    $($warn.Line)"
+            $withFallbacks += $sessionId
+        } else {
+            Write-Host " OK"
+        }
     } else {
         Write-Host " FAILED"
         $failed += $sessionId
@@ -83,4 +96,10 @@ if ($failed.Count -gt 0) {
     }
 } else {
     Write-Host "All sessions succeeded."
+}
+if ($withFallbacks.Count -gt 0) {
+    Write-Host "LLM FALLBACKS in $($withFallbacks.Count) sessions (labels marked rule_fallback_after_llm_error):"
+    foreach ($sid in $withFallbacks) {
+        Write-Host "  $sid"
+    }
 }

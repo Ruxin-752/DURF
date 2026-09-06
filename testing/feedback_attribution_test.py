@@ -505,6 +505,105 @@ class ReviewedDatasetTests(unittest.TestCase):
         self.assertEqual(build_training_samples([provenance]), [])
 
 
+class AttributorProvenanceTests(unittest.TestCase):
+    """Every label must say who produced it.  Until 2026-09-05 nothing did,
+    and 4 538 of 4 554 pairwise labels turned out to come from the keyword
+    baseline with the LLM never called -- unrecoverable from the records."""
+
+    def _attribution(self, **overrides):
+        base = {
+            "feedback_event_id": "feedback:7",
+            "target_event": "AI_missed_useful_ingredient_pickup",
+            "target_time_window": [8, 10],
+            "condition_features": {"pot_empty": True},
+            "preferred_subgoals": ["GET_TOMATO"],
+            "rejected_subgoals": ["WAIT"],
+            "needs_clarification": False,
+            "candidate_events": [],
+        }
+        base.update(overrides)
+        return base
+
+    def test_rule_baseline_is_the_default_and_travels_into_the_training_sample(self):
+        from durf.feedback_attribution.schemas import ATTRIBUTOR_RULE_BASELINE
+
+        provenance = build_provenance_record(
+            attribution=self._attribution(),
+            feedback=None, trajectory=[], user_id="PILOT01", review_decision=None,
+        )
+        samples = build_training_samples([provenance])
+        self.assertEqual(provenance["attributor"], ATTRIBUTOR_RULE_BASELINE)
+        self.assertEqual(len(samples), 1)
+        self.assertEqual(samples[0]["attributor"], ATTRIBUTOR_RULE_BASELINE)
+        self.assertIsNone(samples[0]["model_id"])
+
+    def test_llm_attribution_carries_model_and_prompt_hash(self):
+        from durf.feedback_attribution.schemas import ATTRIBUTOR_LLM
+
+        provenance = build_provenance_record(
+            attribution=self._attribution(
+                attributor=ATTRIBUTOR_LLM,
+                model_id="deepseek-chat-2026-03-01",
+                prompt_hash="abc123",
+            ),
+            feedback=None, trajectory=[], user_id="PILOT01", review_decision=None,
+        )
+        samples = build_training_samples([provenance])
+        self.assertEqual(samples[0]["attributor"], ATTRIBUTOR_LLM)
+        self.assertEqual(samples[0]["model_id"], "deepseek-chat-2026-03-01")
+        self.assertEqual(samples[0]["prompt_hash"], "abc123")
+
+    def test_llm_failure_is_labelled_as_a_stand_in_not_as_a_normal_label(self):
+        """An outage must not be able to masquerade as a healthy run."""
+        from durf.feedback_attribution.schemas import (
+            ATTRIBUTOR_RULE_BASELINE, ATTRIBUTOR_RULE_FALLBACK,
+        )
+
+        provenance = build_provenance_record(
+            attribution=self._attribution(
+                attributor=ATTRIBUTOR_RULE_FALLBACK,
+                attribution_error="DeepSeek HTTP 503: busy",
+            ),
+            feedback=None, trajectory=[], user_id="PILOT01", review_decision=None,
+        )
+        samples = build_training_samples([provenance])
+        self.assertEqual(samples[0]["attributor"], ATTRIBUTOR_RULE_FALLBACK)
+        self.assertNotEqual(samples[0]["attributor"], ATTRIBUTOR_RULE_BASELINE)
+        self.assertEqual(provenance["attribution_error"], "DeepSeek HTTP 503: busy")
+
+    def test_run_demo_marks_fallbacks_when_the_llm_raises(self):
+        """demo_offline_attribution's except-branch used to silently append
+        the baseline; it must now label it and count it."""
+        import tempfile
+        from pathlib import Path
+        from unittest import mock
+        from durf.feedback_attribution import demo_offline_attribution as demo
+        from durf.feedback_attribution.schemas import ATTRIBUTOR_RULE_FALLBACK
+
+        baseline = self._attribution()
+        with tempfile.TemporaryDirectory() as tmp, \
+             mock.patch.object(demo, "convert_session", return_value={"trajectory": 0, "feedback": 1}), \
+             mock.patch.object(demo, "generate_candidate_events", return_value={"candidate_events": 0}), \
+             mock.patch.object(demo, "read_jsonl", side_effect=lambda p: [{"feedback_text": "x"}] if "feedback" in str(p) else []), \
+             mock.patch.object(demo, "build_preview_attribution", return_value=baseline), \
+             mock.patch.object(demo, "run_llm_attribution", side_effect=RuntimeError("DeepSeek HTTP 503")), \
+             mock.patch.object(demo, "build_hu_dataset", return_value={
+                 "provenance_records": 0, "hu_training_samples": 0, "schema_updates": 0,
+                 "review_decisions_consumed": 0, "reviewed_training_records": 0}), \
+             mock.patch.object(demo, "generate_probe_hits", return_value={"probe_hits": 0}):
+            written = {}
+            def fake_write(path, rows):
+                written[Path(path).name] = list(rows)
+                return len(rows)
+            with mock.patch.object(demo, "write_jsonl", side_effect=fake_write):
+                counts = demo.run_demo(Path(tmp), 30, user_id="PILOT01", use_llm=True)
+        self.assertEqual(counts["llm_fallbacks"], 1)
+        record = written["attribution_preview.jsonl"][0]
+        self.assertEqual(record["attributor"], ATTRIBUTOR_RULE_FALLBACK)
+        self.assertIn("503", record["attribution_error"])
+        self.assertEqual(written["llm_attribution_audit.jsonl"][0]["status"], "fallback_to_baseline")
+
+
 class CandidateEventTests(unittest.TestCase):
     def test_explicit_coordination_decision_becomes_neutral_event(self):
         step = make_step(10, ai_subgoal="GET_TOMATO")
@@ -1412,7 +1511,29 @@ class SimTaskPreferenceTests(unittest.TestCase):
             {"subgoal": "WAIT_NEAR_POT", "task_score": 10.0},
             {"subgoal": "WAIT", "task_score": 5.0},
         ]
-        self.assertEqual(_preference_opportunity(no_pot_cooking), "hold_plate")
+        self.assertEqual(_preference_opportunity(no_pot_cooking), "plate_wait")
+
+        # New with the enumerating generator: both ingredients offered.
+        from durf.group_a.sim_session import _preference_opportunities
+        two_ingredients = [
+            {"subgoal": "GET_TOMATO", "task_score": 70.0},
+            {"subgoal": "GET_ONION", "task_score": 65.0},
+            {"subgoal": "WAIT", "task_score": 0.0},
+        ]
+        self.assertEqual(_preference_opportunities(two_ingredients), ["ingredient_order"])
+
+        # Partner already holds a dish: GET_DISH is offered below WAIT, and
+        # that negative score -- not closeness -- is what flags the dimension.
+        partner_has_dish = [
+            {"subgoal": "GET_DISH", "task_score": -5.0},
+            {"subgoal": "GET_TOMATO", "task_score": 50.0},
+            {"subgoal": "GET_ONION", "task_score": 47.0},
+            {"subgoal": "WAIT", "task_score": 0.0},
+        ]
+        self.assertEqual(
+            sorted(_preference_opportunities(partner_has_dish)),
+            ["backup_dish", "ingredient_order"],
+        )
 
         # Holding an unneeded ingredient: dropping it is 50 points better, so
         # "hold on to it" would be a task regression, not a preference.
@@ -1423,19 +1544,47 @@ class SimTaskPreferenceTests(unittest.TestCase):
         self.assertIsNone(_preference_opportunity(unneeded))
         self.assertIsNone(_preference_opportunity([{"subgoal": "WAIT", "task_score": 0.0}]))
 
-    def test_every_template_parses_to_the_pair_it_is_meant_to_express(self):
-        from durf.group_a import sim_session as ss
+    EXPECTED_PAIRS = None  # filled lazily below
 
-        expected = [
-            (ss._TASK_PREF_PREP_FIRST, ["GET_USEFUL_INGREDIENT"], ["GET_DISH"]),
-            (ss._TASK_PREF_DISH_FIRST, ["GET_DISH"], ["GET_USEFUL_INGREDIENT"]),
-            (ss._TASK_PREF_HOLD_PLATE, ["WAIT_NEAR_POT"], ["PUT_DOWN_OBJECT"]),
+    @staticmethod
+    def _expected_pairs(bank):
+        return [
+            (bank["division_of_labour"]["prep_first"], ["GET_USEFUL_INGREDIENT"], ["GET_DISH"]),
+            (bank["division_of_labour"]["dish_first"], ["GET_DISH"], ["GET_USEFUL_INGREDIENT"]),
+            (bank["plate_wait"]["hold_plate"], ["WAIT_NEAR_POT"], ["PUT_DOWN_OBJECT"]),
+            (bank["plate_wait"]["free_hands"], ["PUT_DOWN_OBJECT"], ["WAIT_NEAR_POT"]),
+            (bank["ingredient_order"]["onion_first"], ["GET_ONION"], ["GET_TOMATO"]),
+            (bank["ingredient_order"]["tomato_first"], ["GET_TOMATO"], ["GET_ONION"]),
+            (bank["backup_dish"]["take_backup"], ["GET_DISH"], ["GET_TOMATO", "GET_ONION"]),
+            (bank["backup_dish"]["no_backup"], ["GET_TOMATO", "GET_ONION"], ["GET_DISH"]),
         ]
-        for templates, preferred, rejected in expected:
+
+    def test_every_seed_parses_to_the_pair_it_is_meant_to_express(self):
+        """The hand-written SEEDS are the guarantee: each is readable by the
+        keyword fallback as exactly the preference it encodes, so a sim run
+        with the LLM down still produces correct labels from them."""
+        from durf.group_a.persona_utterances import UTTERANCE_SEEDS
+
+        for templates, preferred, rejected in self._expected_pairs(UTTERANCE_SEEDS):
             for text in templates:
                 got_preferred, got_rejected, source = infer_explicit_preference_from_text(text)
                 self.assertEqual((got_preferred, got_rejected), (preferred, rejected), text)
                 self.assertEqual(source, "explicit_text_fallback", text)
+
+    def test_no_bank_sentence_is_read_by_the_fallback_with_the_wrong_polarity(self):
+        """The LLM-generated bank is the primary corpus and the LLM attributor
+        its primary reader, so the keyword fallback may fail to read a
+        sentence -- but it must never read one BACKWARDS.  First bank shipped
+        with six: "don't bother with another dish" parsed as wanting a backup."""
+        from durf.group_a.persona_utterances import UTTERANCE_BANK
+
+        wrong = []
+        for templates, preferred, rejected in self._expected_pairs(UTTERANCE_BANK):
+            for text in templates:
+                got_preferred, got_rejected, _ = infer_explicit_preference_from_text(text)
+                if got_preferred and (got_preferred, got_rejected) != (preferred, rejected):
+                    wrong.append((text, got_preferred, got_rejected))
+        self.assertEqual(wrong, [])
 
     def test_personas_disagree_on_the_division_of_labour_and_repeat_is_capped(self):
         from durf.group_a import sim_session as ss
@@ -1444,17 +1593,49 @@ class SimTaskPreferenceTests(unittest.TestCase):
             {"subgoal": "GET_DISH", "task_score": 60.0},
             {"subgoal": "GET_TOMATO", "task_score": 50.0},
         ]
+        bank = ss.UTTERANCE_BANK["division_of_labour"]
         said = {}
         for persona in ("cooperative", "polite", "selfish", "lenient"):
             human = ss.SimHuman(ss.SimHumanConfig(persona=persona, seed=1))
             text = human._voice_task_preference(candidates)
             self.assertIsNotNone(text)
-            preferred, rejected, _ = infer_explicit_preference_from_text(text)
-            said[persona] = (preferred[0], rejected[0])
-        self.assertEqual(said["cooperative"], ("GET_USEFUL_INGREDIENT", "GET_DISH"))
-        self.assertEqual(said["polite"], ("GET_USEFUL_INGREDIENT", "GET_DISH"))
-        self.assertEqual(said["selfish"], ("GET_DISH", "GET_USEFUL_INGREDIENT"))
-        self.assertEqual(said["lenient"], ("GET_DISH", "GET_USEFUL_INGREDIENT"))
+            # Which preference did it voice?  Look up the sentence in the bank
+            # rather than parsing it: the bank is LLM-generated and the keyword
+            # fallback is not guaranteed to read every sentence.
+            said[persona] = next(pref for pref, sents in bank.items() if text in sents)
+        self.assertEqual(said["cooperative"], "prep_first")
+        self.assertEqual(said["polite"], "prep_first")
+        self.assertEqual(said["selfish"], "dish_first")
+        self.assertEqual(said["lenient"], "dish_first")
+
+        # The profile table's two design rules (docs/persona_disagreement_v1):
+        # every dimension has two personas on opposite sides, and any two
+        # personas differ on at least two dimensions.  A dimension every persona
+        # shares cannot show up as personalisation.
+        profiles = ss.PERSONA_PROFILES
+        for dim in ss.TASK_PREFERENCE_DIMENSIONS:
+            values = {p.value(dim) for p in profiles.values()} - {None}
+            self.assertGreaterEqual(len(values), 2, dim)
+        names = list(profiles)
+        for i, a in enumerate(names):
+            for b in names[i + 1:]:
+                differing = sum(
+                    1 for dim in ss.TASK_PREFERENCE_DIMENSIONS + ("yield_stance", "criticises_persistence")
+                    if profiles[a].value(dim) != profiles[b].value(dim)
+                )
+                self.assertGreaterEqual(differing, 2, (a, b))
+
+        # A persona with no opinion on a dimension stays silent there.
+        two_ingredients = [
+            {"subgoal": "GET_TOMATO", "task_score": 70.0},
+            {"subgoal": "GET_ONION", "task_score": 65.0},
+        ]
+        polite = ss.SimHuman(ss.SimHumanConfig(persona="polite", seed=1))
+        self.assertIsNone(polite._voice_task_preference(two_ingredients))
+        cooperative = ss.SimHuman(ss.SimHumanConfig(persona="cooperative", seed=1))
+        text = cooperative._voice_task_preference(two_ingredients)
+        self.assertIsNotNone(text)
+        self.assertIn(text, ss.UTTERANCE_BANK["ingredient_order"]["onion_first"])
 
         # A standing preference is stated a couple of times per round, not on
         # every one of the ~200 steps the opportunity is open.

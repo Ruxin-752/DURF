@@ -148,6 +148,14 @@ def candidate_event(
     }
 
 
+ATTRIBUTOR_RULE_BASELINE = "rule_baseline"
+ATTRIBUTOR_LLM = "llm"
+# The LLM was asked and failed; the rule baseline stands in.  Distinct from
+# rule_baseline so that an outage cannot masquerade as a normal run, and so the
+# evaluation layer can exclude these from M1-1's numerator.
+ATTRIBUTOR_RULE_FALLBACK = "rule_fallback_after_llm_error"
+
+
 def attribution_result(
     *,
     feedback_event_id: str,
@@ -173,6 +181,10 @@ def attribution_result(
     preference_source: str | None = None,
     preference_overridden_event: str | None = None,
     protocol_version: str = "protocol-v2",
+    attributor: str = ATTRIBUTOR_RULE_BASELINE,
+    model_id: str | None = None,
+    prompt_hash: str | None = None,
+    attribution_error: str | None = None,
 ) -> dict[str, Any]:
     return {
         "record_type": "attribution_result",
@@ -203,4 +215,13 @@ def attribution_result(
         # domains (see sample_builder.build_preview_attribution).
         "preference_overridden_event": preference_overridden_event,
         "protocol_version": protocol_version,
+        # Who produced this attribution.  Until 2026-09-05 nothing recorded
+        # it, and 4 538 of 4 554 pairwise labels in the corpus turned out to
+        # come from the keyword baseline with the LLM never called -- a fact
+        # that could not be recovered from the records themselves.  A label's
+        # attributor now travels with it all the way into the training set.
+        "attributor": attributor,
+        "model_id": model_id,
+        "prompt_hash": prompt_hash,
+        "attribution_error": attribution_error,
     }

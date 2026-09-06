@@ -8,6 +8,8 @@ This module separates two representations:
 
 from __future__ import annotations
 
+import collections
+
 import argparse
 import json
 from pathlib import Path
@@ -19,6 +21,7 @@ from .condition_features import (
     null_condition_features,
 )
 from .io_utils import read_jsonl, write_jsonl
+from .label_validator import filter_training_samples, rejection_summary
 from .review_io import read_review_decisions
 from .sample_builder import feedback_event_id
 from .subgoal_preferences import (
@@ -207,6 +210,55 @@ def build_provenance_record(
         rejected_subgoals, decision_candidates
     )
     unresolved_subgoals = [*unresolved_preferred, *unresolved_rejected]
+    # A pairwise preference is a choice between options the agent actually had.
+    # Keep only sides that were in the decision's candidate set; a side that was
+    # never on offer is recorded as not_co_available and produces no label.
+    # (First full LLM corpus, 2026-09-05: 736 of 1 243 task pairs had one side
+    # off-menu and 306 had both -- e.g. PUT_ONION_IN_POT > PUT_TOMATO_IN_POT,
+    # which no state can offer, since the agent holds one thing.)
+    # Coordination options (YIELD / CONTINUE_CURRENT_SUBGOAL) are a binary
+    # domain that is always co-available and never appears in the task
+    # candidate list, so the gate applies to task names only.
+    offered = {
+        c.get("subgoal") if isinstance(c, dict) else c
+        for c in decision_candidates
+        if (c.get("feasible", True) if isinstance(c, dict) else True)
+    }
+    offered |= set(COORDINATION_SUBGOALS)
+    named_before_filter = [*preferred_subgoals, *rejected_subgoals]
+    not_co_available: list[str] = []
+    if decision_candidates:
+        kept_pref = [sg for sg in preferred_subgoals if sg in offered]
+        kept_rej = [sg for sg in rejected_subgoals if sg in offered]
+        not_co_available = [
+            sg for sg in [*preferred_subgoals, *rejected_subgoals] if sg not in offered
+        ]
+        preferred_subgoals, rejected_subgoals = kept_pref, kept_rej
+    # Quality flags on the ATTRIBUTION itself, before any training-sample
+    # filter gets a chance to drop it silently.  First live LLM run
+    # (2026-09-05, 7 real feedbacks): one answer paired SERVE_SOUP with YIELD --
+    # a task subgoal against a coordination option -- and one named an
+    # ingredient fetch at a step where the agent held a dish and no ingredient
+    # was in the candidate set.  Both vanished without a trace in the counts.
+    attribution_flags: list[str] = []
+    # Diagnose on what the attributor NAMED, before the availability filter:
+    # "cross-domain" and "off-menu" are different failures and both should show.
+    named = named_before_filter
+    domains = {
+        "coordination" if name in COORDINATION_SUBGOALS else "task" for name in named
+    }
+    if len(domains) > 1:
+        attribution_flags.append("cross_domain_attribution")
+        # A task-vs-coordination pair is not a preference between options the
+        # agent had; it yields no label (and must not be rescued by the
+        # coordination elimination rule after one side is gated out).
+        preferred_subgoals, rejected_subgoals = [], []
+    if unresolved_subgoals:
+        attribution_flags.append("unresolved_subgoal")
+    if preferred_subgoals and not attributed_preferred:
+        attribution_flags.append("preferred_side_lost_in_resolution")
+    if not_co_available:
+        attribution_flags.append("pair_not_co_available")
     event_evidence = event.get("evidence") if event else {}
     explicit_level = (
         event_evidence.get("decision_level")
@@ -250,6 +302,8 @@ def build_provenance_record(
         "attributed_preferred_subgoals": attributed_preferred,
         "attributed_rejected_subgoals": attributed_rejected,
         "unresolved_subgoals": unresolved_subgoals,
+        "not_co_available_subgoals": not_co_available,
+        "attribution_flags": attribution_flags,
         "decision_candidate_set": [
             candidate.get("subgoal") if isinstance(candidate, dict) else candidate
             for candidate in decision_candidates
@@ -271,6 +325,10 @@ def build_provenance_record(
         "source": attribution.get("source", "unknown"),
         "label_status": attribution.get("label_status", "automatic"),
         "protocol_version": attribution.get("protocol_version", "protocol-v2"),
+        "attributor": attribution.get("attributor", "rule_baseline"),
+        "model_id": attribution.get("model_id"),
+        "prompt_hash": attribution.get("prompt_hash"),
+        "attribution_error": attribution.get("attribution_error"),
     }
 
 
@@ -364,6 +422,9 @@ def build_training_samples(
                             "source_decision_id"
                         ),
                         "source": provenance.get("source", "unknown"),
+                        "attributor": provenance.get("attributor", "rule_baseline"),
+                        "model_id": provenance.get("model_id"),
+                        "prompt_hash": provenance.get("prompt_hash"),
                         "label_status": (
                             "reviewed"
                             if provenance.get("reviewed")
@@ -502,7 +563,17 @@ def build_hu_dataset(session_dir: Path, *, user_id: str) -> dict[str, int]:
         )
         for attribution in attributions
     ]
-    training_samples = build_training_samples(provenance_records)
+    training_samples, rejected_samples = filter_training_samples(
+        build_training_samples(provenance_records)
+    )
+    if rejected_samples:
+        write_jsonl(
+            session_dir / "hu_subgoal_preferences.rejected.jsonl",
+            [
+                {**sample, "schema_violations": problems}
+                for sample, problems in rejected_samples
+            ],
+        )
 
     # --- protocol-v2: user isolation check ---
     foreign_user_ids = {
@@ -548,6 +619,17 @@ def build_hu_dataset(session_dir: Path, *, user_id: str) -> dict[str, int]:
             )
             for record in provenance_records
         ),
+        "attribution_flag_counts": dict(
+            sorted(
+                collections.Counter(
+                    flag
+                    for record in provenance_records
+                    for flag in (record.get("attribution_flags") or [])
+                ).items()
+            )
+        ),
+        "schema_rejected_training_records": len(rejected_samples),
+        "schema_rejection_reasons": rejection_summary(rejected_samples),
         "event_grounded_training_records": sum(
             1
             for sample in training_samples

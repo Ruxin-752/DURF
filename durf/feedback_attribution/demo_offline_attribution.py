@@ -23,6 +23,7 @@ from .llm_attributor import run_llm_attribution
 from .event_detectors import DEFAULT_LOOKBACK_STEPS
 from .generate_candidate_events import generate_candidate_events
 from .hu_dataset_builder import build_hu_dataset
+from .schemas import ATTRIBUTOR_RULE_FALLBACK
 from .io_utils import read_jsonl, write_jsonl
 from .probe_state_detector import generate_probe_hits
 from .sample_builder import build_preview_attribution
@@ -47,6 +48,7 @@ def run_demo(
     candidate_events = read_jsonl(session_dir / "candidate_events.jsonl")
     attributions = []
     llm_audits = []
+    llm_fallbacks = 0
     for feedback in feedback_events:
         baseline = build_preview_attribution(
             feedback=feedback,
@@ -68,11 +70,19 @@ def run_demo(
             attributions.append(llm_attribution)
             llm_audits.append(audit)
         except Exception as exc:
-            attributions.append(baseline)
+            # The LLM failed; the rule baseline stands in -- but LABELLED as a
+            # stand-in.  A silent substitution here is how an outage would
+            # score a healthy feedback-conversion rate.
+            fallback = dict(baseline)
+            fallback["attributor"] = ATTRIBUTOR_RULE_FALLBACK
+            fallback["attribution_error"] = str(exc)
+            attributions.append(fallback)
+            llm_fallbacks += 1
             llm_audits.append(
                 {
                     "feedback_event_id": baseline.get("feedback_event_id"),
                     "status": "fallback_to_baseline",
+                    "attributor": ATTRIBUTOR_RULE_FALLBACK,
                     "error": str(exc),
                 }
             )
@@ -98,6 +108,7 @@ def run_demo(
         "schema_updates": hu_counts["schema_updates"],
         "probe_hits": probe_counts["probe_hits"],
         "review_decisions_consumed": hu_counts["review_decisions_consumed"],
+        "llm_fallbacks": llm_fallbacks,
         "reviewed_training_records": hu_counts["reviewed_training_records"],
     }
 
@@ -107,10 +118,22 @@ def main() -> int:
     parser.add_argument("--session", required=True, type=Path)
     parser.add_argument("--user-id", default="PILOT01")
     parser.add_argument("--lookback-steps", type=int, default=DEFAULT_LOOKBACK_STEPS)
-    parser.add_argument(
+    llm = parser.add_mutually_exclusive_group()
+    llm.add_argument(
         "--use-llm",
+        dest="use_llm",
         action="store_true",
-        help="Call DeepSeek for semantic attribution. Falls back to rule baseline on error.",
+        default=True,
+        help="Call DeepSeek for semantic attribution (DEFAULT since 2026-09-05). "
+             "On error the rule baseline stands in, labelled attributor="
+             "rule_fallback_after_llm_error.",
+    )
+    llm.add_argument(
+        "--no-llm",
+        dest="use_llm",
+        action="store_false",
+        help="Deterministic keyword baseline only. Labels carry attributor="
+             "rule_baseline and cannot support any claim about the LLM.",
     )
     args = parser.parse_args()
 
@@ -134,8 +157,26 @@ def main() -> int:
         f"{counts['review_decisions_consumed']} "
         f"(training={counts['reviewed_training_records']})"
     )
+    summary_path = args.session / "hu_dataset_summary.json"
+    if summary_path.exists():
+        import json
+
+        summary = json.loads(summary_path.read_text(encoding="utf-8"))
+        print(
+            "training label split: "
+            f"event-grounded={summary.get('event_grounded_training_records', 0)}, "
+            f"direct-preference={summary.get('direct_preference_training_records', 0)}"
+        )
     if args.use_llm:
         print(f"llm_attribution_audit.jsonl records: {counts['llm_audits']}")
+        if counts["llm_fallbacks"]:
+            print(
+                f"WARNING: LLM failed on {counts['llm_fallbacks']}/{counts['feedback']} "
+                "feedback events; those labels carry attributor="
+                "rule_fallback_after_llm_error and must not be counted as LLM output."
+            )
+    else:
+        print("NOTE: --no-llm: every label carries attributor=rule_baseline.")
     return 0
 
 
