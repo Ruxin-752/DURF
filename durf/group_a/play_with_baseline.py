@@ -194,7 +194,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--ai-mode",
         choices=("ppo", "random", "subgoal_executor"),
-        default="ppo",
+        # subgoal_executor is the experiment's H0 chain (rule teacher -> motion
+        # planner); ppo is the cramped_room demo agent and cannot run the ring.
+        default="subgoal_executor",
         help=(
             "Use the selected PPO agent, a uniformly random collaborator, or "
             "the rule-planner + learned subgoal executor backbone."
@@ -221,11 +223,13 @@ def parse_args() -> argparse.Namespace:
         ),
         help="Keras executor used when --ai-mode subgoal_executor.",
     )
-    parser.add_argument("--layout", default="cramped_room")
+    parser.add_argument("--layout", default=STANDARD_LAYOUT)
     parser.add_argument(
         "--layouts",
         nargs="+",
-        default=list(DEFAULT_PLAYABLE_LAYOUTS),
+        # In an experiment session the number keys must not be able to switch
+        # the participant onto another map; pass the full list for demos.
+        default=[STANDARD_LAYOUT],
         help="Layouts available for hot switching with 1-4 or N/M.",
     )
     parser.add_argument("--seed", type=int, default=42)
@@ -327,6 +331,20 @@ def parse_args() -> argparse.Namespace:
         ),
     )
     parser.add_argument("--hu-coordination-lambda", type=float, default=None, help=argparse.SUPPRESS)
+    parser.add_argument(
+        "--hu-live", action="store_true",
+        help="Learn from feedback DURING the session: attribute each chat/annotation, "
+             "retrain the per-user adapter in place, archive F0/F5/F10/F15 checkpoints.",
+    )
+    parser.add_argument(
+        "--hu-live-no-llm", action="store_true",
+        help="With --hu-live: keyword baseline only (labels carry attributor=rule_baseline).",
+    )
+    parser.add_argument(
+        "--allow-nonstandard-setup", action="store_true",
+        help=f"Permit a map other than {STANDARD_LAYOUT} or a horizon other than "
+             f"{STANDARD_HORIZON} (demo / smoke runs only; such sessions cannot be pooled).",
+    )
     parser.add_argument(
         "--hu-apply",
         action="store_true",
@@ -434,92 +452,18 @@ def write_crash_log(exc: BaseException) -> Path:
     return crash_path
 
 
-def to_jsonable(value):
-    if value is None or isinstance(value, (str, int, float, bool)):
-        return value
-    if isinstance(value, tuple):
-        return [to_jsonable(item) for item in value]
-    if isinstance(value, list):
-        return [to_jsonable(item) for item in value]
-    if isinstance(value, dict):
-        return {str(key): to_jsonable(item) for key, item in value.items()}
-    if hasattr(value, "tolist"):
-        return value.tolist()
-    if hasattr(value, "name"):
-        return str(value.name)
-    return str(value)
-
-
-def object_summary(obj):
-    if obj is None:
-        return None
-    summary = {
-        "type": type(obj).__name__,
-        "name": getattr(obj, "name", None),
-        "position": to_jsonable(getattr(obj, "position", None)),
-    }
-    for attr in (
-        "ingredients",
-        "cooking_tick",
-        "is_cooking",
-        "is_ready",
-        "is_idle",
-        "is_full",
-    ):
-        if hasattr(obj, attr):
-            value = getattr(obj, attr)
-            summary[attr] = to_jsonable(value() if callable(value) else value)
-    return {key: value for key, value in summary.items() if value is not None}
-
-
-def player_summary(player):
-    return {
-        "position": to_jsonable(getattr(player, "position", None)),
-        "orientation": to_jsonable(getattr(player, "orientation", None)),
-        "held_object": object_summary(getattr(player, "held_object", None)),
-    }
-
-
-def terrain_rows(mdp) -> list[str]:
-    rows = getattr(mdp, "terrain_mtx", [])
-    return ["".join(row) for row in rows]
-
-
-def pot_state_summary(mdp, state):
-    if not hasattr(mdp, "get_pot_states"):
-        return None
-    try:
-        return to_jsonable(mdp.get_pot_states(state))
-    except Exception as exc:
-        return {"error": f"get_pot_states failed: {exc}"}
-
-
-def state_facts(env) -> dict:
-    state = env.base_env.state
-    mdp = env.base_env.mdp
-    players = list(getattr(state, "players", []))
-    ai_player = players[0] if len(players) > 0 else None
-    human_player = players[1] if len(players) > 1 else None
-    objects = getattr(state, "objects", {})
-    return {
-        "ai_pos": to_jsonable(getattr(ai_player, "position", None)),
-        "human_pos": to_jsonable(getattr(human_player, "position", None)),
-        "ai_held_object": object_summary(getattr(ai_player, "held_object", None)),
-        "human_held_object": object_summary(getattr(human_player, "held_object", None)),
-        "players": [player_summary(player) for player in players],
-        "objects": [
-            {
-                "position": to_jsonable(position),
-                "object": object_summary(obj),
-            }
-            for position, obj in getattr(objects, "items", lambda: [])()
-        ],
-        "pot_states": pot_state_summary(mdp, state),
-        "layout_features": {
-            "layout_name": getattr(env, "layout_name", None),
-            "terrain": terrain_rows(mdp),
-        },
-    }
+from durf.baseline.version import STANDARD_HORIZON, STANDARD_LAYOUT, version_stamp  # noqa: E402
+from durf.feedback_attribution.schemas import feedback_event, trajectory_step  # noqa: E402
+from durf.hu.live_learner import LiveLearner  # noqa: E402
+from durf.hu.subgoal_reranker import HierarchicalHu, PerUserAdapter  # noqa: E402
+from durf.group_a.state_summary import (  # noqa: E402  (shared with sim_session)
+    object_summary,
+    player_summary,
+    pot_state_summary,
+    state_facts,
+    terrain_rows,
+    to_jsonable,
+)
 
 
 def json_dumps(value) -> str:
@@ -805,7 +749,7 @@ def main() -> int:
         ensure_agent_layout(args.agent, args.layout)
         layouts = filter_compatible_layouts(args.agent, requested_layouts)
     elif args.ai_mode == "subgoal_executor":
-        if not args.subgoal_executor.exists():
+        if args.load_retired_executor and not args.subgoal_executor.exists():
             raise FileNotFoundError(f"Subgoal executor not found: {args.subgoal_executor}")
         # The learned executor is trained for the H0 ring observation/subgoal space.
         # Keep hot-switching disabled in this mode so a test cannot silently jump
@@ -829,6 +773,24 @@ def main() -> int:
         else None
     )
     hu_model = load_runtime_hu(args.hu_model) if args.hu_model else None
+    if not args.allow_nonstandard_setup:
+        if args.horizon != STANDARD_HORIZON:
+            raise ValueError(
+                f"--horizon {args.horizon} differs from the frozen experiment horizon "
+                f"{STANDARD_HORIZON}. Recorded sessions already mix 800 and 1200 and cannot "
+                f"be pooled; pass --allow-nonstandard-setup for a smoke run."
+            )
+        if args.ai_mode != "subgoal_executor":
+            raise ValueError(
+                f"--ai-mode {args.ai_mode} is not the experiment's H0 chain (subgoal_executor); "
+                f"pass --allow-nonstandard-setup for a demo run."
+            )
+        if args.layout != STANDARD_LAYOUT or list(args.layouts) != [STANDARD_LAYOUT]:
+            raise ValueError(
+                f"--layout {args.layout} / --layouts {list(args.layouts)} differ from the "
+                f"frozen experiment map {STANDARD_LAYOUT}; pass --allow-nonstandard-setup "
+                f"for a demo run."
+            )
     if args.hu_task_tolerance < 0:
         raise ValueError("--hu-task-tolerance cannot be negative")
     if args.hu_step_tolerance is not None and args.hu_step_tolerance < 0:
@@ -860,6 +822,24 @@ def main() -> int:
     }
     session_dir = new_session_dir(args.output_dir)
 
+    live_learner = None
+    if args.hu_live:
+        prior = hu_model.hu_general if isinstance(hu_model, PerUserAdapter) else hu_model
+        if prior is not None and not isinstance(prior, HierarchicalHu):
+            raise ValueError("--hu-live needs a HierarchicalHu prior (or no --hu-model)")
+        live_learner = LiveLearner(
+            user_id=args.hu_user_id,
+            session_dir=session_dir,
+            hu_general=prior,
+            layout=args.layout,
+            use_llm=not args.hu_live_no_llm,
+        )
+        # Every closure below reads `hu_model` by name at call time, so this
+        # rebinding is what makes the runtime score with the learner's
+        # adapter -- the same object for the whole session, retrained in place.
+        hu_model = live_learner.model
+    live_update_queue: queue.Queue = queue.Queue()
+
     trajectory_path = session_dir / "trajectory.csv"
     chat_path = session_dir / "chat_messages.csv"
     annotation_path = session_dir / "annotations.csv"
@@ -868,6 +848,9 @@ def main() -> int:
         json.dumps(
             {
                 "build_id": BUILD_ID,
+                **version_stamp(),
+                "hu_live": bool(args.hu_live),
+                "hu_live_use_llm": bool(args.hu_live and not args.hu_live_no_llm),
                 "agent": str(agent_dir) if agent_dir else None,
                 "ai_mode": args.ai_mode,
                 "subgoal_executor": (
@@ -1394,6 +1377,39 @@ def main() -> int:
         reset_episode(new_layout_index)
         return True
 
+    def submit_live_feedback(text: str, role: str) -> None:
+        """Hand one piece of human feedback to the live learner.
+
+        The slow half (event detection + LLM attribution) runs in a worker
+        thread; the fast half (retrain the adapter in place) is applied on the
+        game loop's own thread when the result comes back, so a step never
+        scores with a half-written weight matrix.  Until it lands, the agent
+        keeps playing with the previous model -- that latency is recorded per
+        feedback (update_latency_ms), it is not hidden.
+        """
+        if live_learner is None:
+            return
+        event = feedback_event(
+            source="live",
+            timestamp_utc=utc_timestamp(),
+            episode=episode,
+            episode_step=episode_step,
+            total_step=total_step,
+            feedback_text=text,
+            feedback_value=None,
+            role=role,
+            extra={"layout": current_layout},
+            user_id=args.hu_user_id,
+        )
+
+        def worker() -> None:
+            try:
+                live_update_queue.put(("pending", live_learner.attribute(event)))
+            except Exception as exc:  # noqa: BLE001
+                live_update_queue.put(("error", f"live attribution failed: {exc}"))
+
+        threading.Thread(target=worker, daemon=True).start()
+
     def log_chat_message(role: str, content: str) -> None:
         write_row(
             chat_writer,
@@ -1435,6 +1451,7 @@ def main() -> int:
             },
         )
         log_chat_message("human_annotation", content)
+        submit_live_feedback(content, "human_annotation")
 
     def open_annotation_prompt() -> None:
         nonlocal annotation_pending
@@ -1498,6 +1515,7 @@ def main() -> int:
 
         chat_messages.append({"role": "user", "content": prompt})
         log_chat_message("user", prompt)
+        submit_live_feedback(prompt, "human_language")
         chat_pending = True
         chat_status = ""
         history = [
@@ -1553,6 +1571,20 @@ def main() -> int:
 
     try:
         while running:
+            while not live_update_queue.empty():
+                kind, payload = live_update_queue.get()
+                if kind == "pending" and live_learner is not None:
+                    update = live_learner.apply(payload)
+                    note = (
+                        f"[preference] +{update.labels_added} label(s) via {update.attributor}, "
+                        f"{update.update_latency_ms:.0f} ms"
+                        + (f", checkpoint {Path(update.checkpoint_written).name}"
+                           if update.checkpoint_written else "")
+                    )
+                    log_chat_message("system", note)
+                else:
+                    log_chat_message("system", f"[preference] {payload}")
+
             while not chat_result_queue.empty():
                 role, content = chat_result_queue.get()
                 chat_pending = False
@@ -1874,6 +1906,36 @@ def main() -> int:
                     },
                     flush=total_step % 10 == 0 or bool(done),
                 )
+                if live_learner is not None:
+                    live_learner.observe_step(
+                        trajectory_step(
+                            source="live",
+                            timestamp_utc=utc_timestamp(),
+                            episode=episode,
+                            episode_step=episode_step,
+                            total_step=total_step,
+                            layout=current_layout,
+                            ai_action=int(ai_action),
+                            ai_action_name=ACTION_NAMES[ai_action],
+                            human_action=int(human_action),
+                            human_action_name=ACTION_NAMES[human_action],
+                            environment_reward=float(reward),
+                            episode_reward=episode_reward,
+                            done=bool(done),
+                            ai_subgoal=current_ai_subgoal,
+                            ai_event=current_ai_event,
+                            ai_condition_features=current_ai_condition_features,
+                            ai_subgoal_candidates=current_ai_subgoal_candidates,
+                            task_decision=current_task_decision,
+                            coordination_decision=current_coordination_decision,
+                            state_facts=state_after,
+                            extra={
+                                "predict_ms": round(last_predict_ms, 3),
+                                "environment_step_ms": round(last_environment_step_ms, 3),
+                                "state_before": state_before,
+                            },
+                        )
+                    )
                 game_surface = render_game_surface(
                     visualizer,
                     env,
@@ -2028,6 +2090,23 @@ def main() -> int:
         pygame.key.stop_text_input()
         pygame.quit()
 
+    if live_learner is not None:
+        # Apply anything that came back after the loop stopped, then summarise.
+        while not live_update_queue.empty():
+            kind, payload = live_update_queue.get()
+            if kind == "pending":
+                live_learner.apply(payload)
+        summary = live_learner.summary()
+        (session_dir / "live_learning_summary.json").write_text(
+            json.dumps(summary, indent=2, ensure_ascii=False), encoding="utf-8"
+        )
+        print(
+            "Live learning: "
+            f"{summary['feedback_events']} feedback, {summary['accepted_feedback_count']} accepted, "
+            f"{summary['labels']} labels, fallbacks={summary['llm_fallbacks']}, "
+            f"median latency {summary['median_update_latency_ms']} ms, "
+            f"checkpoints={summary['checkpoints']}"
+        )
     print(f"Trajectory: {trajectory_path}")
     print(f"Chat messages: {chat_path}")
     print(f"Pause events: {pause_path}")

@@ -102,6 +102,40 @@ def infer_decision_level(
     return None
 
 
+def pairwise_sample_from_record(record: dict[str, Any]) -> PairwiseSample | None:
+    """One hu_pairwise_subgoal_preference record -> PairwiseSample, or None.
+
+    The single conversion used both when loading a corpus from disk and when
+    a label arrives live during a session, so the two paths cannot drift.
+    """
+    if record.get("record_type") != "hu_pairwise_subgoal_preference":
+        return None
+    preferred = str(record.get("preferred_subgoal") or "")
+    rejected = str(record.get("rejected_subgoal") or "")
+    if not preferred or not rejected or preferred == rejected:
+        return None
+    if preferred not in HU_SUBGOALS or rejected not in HU_SUBGOALS:
+        return None
+    decision_level = infer_decision_level(
+        preferred,
+        rejected,
+        record.get("decision_level"),
+    )
+    if decision_level is None:
+        return None
+    return PairwiseSample(
+        user_id=str(record.get("user_id") or "UNKNOWN_USER"),
+        layout=record.get("layout"),
+        condition_features=dict(record.get("condition_features") or {}),
+        preferred_subgoal=preferred,
+        rejected_subgoal=rejected,
+        decision_level=decision_level,
+        source_feedback_id=record.get("source_feedback_id"),
+        source_event=record.get("source_event"),
+        source_decision_id=record.get("source_decision_id"),
+    )
+
+
 def load_pairwise_samples(paths: list[Path]) -> list[PairwiseSample]:
     samples: list[PairwiseSample] = []
     for raw_path in paths:
@@ -109,34 +143,9 @@ def load_pairwise_samples(paths: list[Path]) -> list[PairwiseSample]:
         if not path.exists():
             raise FileNotFoundError(path)
         for record in read_jsonl(path):
-            if record.get("record_type") != "hu_pairwise_subgoal_preference":
-                continue
-            preferred = str(record.get("preferred_subgoal") or "")
-            rejected = str(record.get("rejected_subgoal") or "")
-            if not preferred or not rejected or preferred == rejected:
-                continue
-            if preferred not in HU_SUBGOALS or rejected not in HU_SUBGOALS:
-                continue
-            decision_level = infer_decision_level(
-                preferred,
-                rejected,
-                record.get("decision_level"),
-            )
-            if decision_level is None:
-                continue
-            samples.append(
-                PairwiseSample(
-                    user_id=str(record.get("user_id") or "UNKNOWN_USER"),
-                    layout=record.get("layout"),
-                    condition_features=dict(record.get("condition_features") or {}),
-                    preferred_subgoal=preferred,
-                    rejected_subgoal=rejected,
-                    decision_level=decision_level,
-                    source_feedback_id=record.get("source_feedback_id"),
-                    source_event=record.get("source_event"),
-                    source_decision_id=record.get("source_decision_id"),
-                )
-            )
+            sample = pairwise_sample_from_record(record)
+            if sample is not None:
+                samples.append(sample)
     return samples
 
 
@@ -654,6 +663,27 @@ class PerUserAdapter:
         # tracking: which subgoals this user's own feedback has labelled
         self.observed_subgoals_task: set[str] = set()
         self.observed_subgoals_coord: set[str] = set()
+
+    def reset(self) -> None:
+        """Forget everything this user taught us; keep the frozen prior.
+
+        The live learner retrains from scratch on the cumulative label set
+        after every accepted feedback instead of continuing SGD from the
+        current weights: the result is then a deterministic function of the
+        labels so far (checkpoint F5 == "trained on the first five"), with no
+        dependence on the order updates happened to arrive in.  Mutating in
+        place matters -- the runtime holds a reference to this object in
+        several closures, and swapping the object would leave them scoring
+        with a stale model.
+        """
+        self.user_bias_task[:] = 0.0
+        self.user_bias_coord[:] = 0.0
+        self.condition_delta_task[:] = 0.0
+        self.condition_delta_coord[:] = 0.0
+        self.observed_conditions_task.clear()
+        self.observed_conditions_coord.clear()
+        self.observed_subgoals_task.clear()
+        self.observed_subgoals_coord.clear()
 
     def has_support(self, decision_level: str, subgoal: str) -> bool | None:
         """Evidence for a subgoal from the general prior OR this user's own
