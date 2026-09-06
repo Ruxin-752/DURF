@@ -48,6 +48,11 @@ from durf.baseline.collect_rule_teacher_dataset import (
     rule_teacher_candidates,
 )
 from durf.baseline.task_cost import attach_step_costs, build_feature_map
+from durf.group_a.state_summary import state_facts
+from durf.baseline.version import STANDARD_HORIZON, STANDARD_LAYOUT, version_stamp
+from durf.feedback_attribution.schemas import feedback_event, trajectory_step
+from durf.hu.live_learner import LiveLearner
+from durf.hu.subgoal_reranker import HierarchicalHu, PerUserAdapter
 from durf.baseline.coordination import (
     choose_reroute_action,
     CONTINUE_CURRENT_SUBGOAL,
@@ -191,40 +196,92 @@ _TASK_NEG_PREP_WAIT = [
 ]
 
 
-# Task-domain PREFERENCE feedback (not correction).  Emitted only at decision
-# points where two candidates are both feasible and within 10 task points of
-# each other, i.e. exactly the band a preference is allowed to decide under
-# the epsilon-constraint rule.  Wording is matched by
-# subgoal_preferences.infer_explicit_preference_from_text; the templates and
-# that matcher are pinned together by a test.
-_TASK_PREF_PREP_FIRST = [
-    "i'll get the plate, you start the next ingredient",
-    "leave the plate to me, keep prepping the next batch",
-]
-_TASK_PREF_DISH_FIRST = [
-    "you get the plate, i'll take care of the ingredients",
-    "grab the dish now, i'll handle the next ingredient",
-]
-_TASK_PREF_HOLD_PLATE = [
-    "don't put the plate down, wait by the pot with it",
-    "keep hold of the plate and stand by the pot",
-]
+# ---------------------------------------------------------------- personas
+# A persona is a whole participant: several independent traits, each mapped to
+# a choice the agent really faces.  Design and rationale: docs/persona_
+# disagreement_v1.draft.md.  Two rules that table has to satisfy, and that
+# test_sim_personas.py checks:
+#   * every dimension has at least two personas on opposite sides -- a
+#     preference every persona shares cannot, by definition, show up as
+#     personalisation (one such shared preference used to produce 59% of the
+#     pairwise corpus);
+#   * any two personas differ on at least two dimensions.
+# "H0 default" marks the side the backbone already takes without any
+# preference; only the OTHER side needs tolerance to be expressed, so only the
+# other side can show learning.
+#
+# Dimension       choice the agent faces                      H0 default
+# ingredient_order  GET_TOMATO vs GET_ONION (70/65, 50/47)     tomato_first
+# division_of_labour GET_DISH(60) vs GET_<ingredient>(50)      dish_first
+# backup_dish      GET_DISH(-5, partner has dish) vs fetch     no_backup
+# plate_wait       WAIT_NEAR_POT vs PUT_DOWN_OBJECT (dish held) hold_plate if a
+#                                                             pot is cooking
+# Coordination traits (yield tolerance, whether persistence is criticised) are
+# encoded per persona in _evaluate_coordination and listed here for the record.
 
-# Which side of the division of labour each synthetic participant wants.  This
-# is a second, independent trait from the coordination personality above: a
-# persona is a whole participant, not only a blocking-tolerance profile.
-# prep_first opposes the H0 default (GET_DISH 60 > GET_TOMATO 50), so it only
-# changes behaviour once hu_task_tolerance >= 10; dish_first agrees with H0
-# and acts as the control side of the pair.
-PERSONA_TASK_PREFERENCE = {
-    "cooperative": "prep_first",
-    "polite": "prep_first",
-    "selfish": "dish_first",
-    "lenient": "dish_first",
+TASK_PREFERENCE_DIMENSIONS = (
+    "ingredient_order",
+    "division_of_labour",
+    "backup_dish",
+    "plate_wait",
+)
+
+
+@dataclass(frozen=True)
+class PersonaProfile:
+    ingredient_order: str | None      # "onion_first" | "tomato_first" | None (no opinion)
+    division_of_labour: str           # "prep_first" | "dish_first"
+    backup_dish: str                  # "take_backup" | "no_backup"
+    plate_wait: str                   # "hold_plate" | "free_hands"
+    yield_stance: str                 # "tolerate_persistence" | "demand_passage"
+    criticises_persistence: bool
+
+    def value(self, dimension: str) -> str | None:
+        return getattr(self, dimension)
+
+
+PERSONA_PROFILES: dict[str, PersonaProfile] = {
+    "cooperative": PersonaProfile(
+        ingredient_order="onion_first", division_of_labour="prep_first",
+        backup_dish="no_backup", plate_wait="hold_plate",
+        yield_stance="tolerate_persistence", criticises_persistence=True,
+    ),
+    "selfish": PersonaProfile(
+        ingredient_order="tomato_first", division_of_labour="dish_first",
+        backup_dish="no_backup", plate_wait="free_hands",
+        yield_stance="demand_passage", criticises_persistence=True,
+    ),
+    "polite": PersonaProfile(
+        ingredient_order=None, division_of_labour="prep_first",
+        backup_dish="take_backup", plate_wait="hold_plate",
+        yield_stance="demand_passage", criticises_persistence=True,
+    ),
+    "lenient": PersonaProfile(
+        ingredient_order="onion_first", division_of_labour="dish_first",
+        backup_dish="take_backup", plate_wait="free_hands",
+        yield_stance="tolerate_persistence", criticises_persistence=False,
+    ),
 }
-# Every persona wants the plate kept rather than dropped while the soup is not
-# ready: an invariant preference, and one the H0 backbone gets wrong by
-# default (PUT_DOWN_OBJECT 20 > WAIT_NEAR_POT 10 when no pot is cooking).
+
+# Backward-compatible view for --sim-task-preference and older callers.
+PERSONA_TASK_PREFERENCE = {
+    name: profile.division_of_labour for name, profile in PERSONA_PROFILES.items()
+}
+
+# What each preference sounds like lives in persona_utterances.py (stdlib-only,
+# so the paraphrase generator can import it without the game runtime).
+from durf.group_a.persona_utterances import (  # noqa: E402
+    UTTERANCE_BANK,
+    UTTERANCE_SEEDS as _UTTERANCE_SEEDS,
+)
+
+# Kept as names for older imports; the bank above is the source of truth.
+_TASK_PREF_PREP_FIRST = UTTERANCE_BANK["division_of_labour"]["prep_first"]
+_TASK_PREF_DISH_FIRST = UTTERANCE_BANK["division_of_labour"]["dish_first"]
+_TASK_PREF_HOLD_PLATE = UTTERANCE_BANK["plate_wait"]["hold_plate"]
+
+# Per dimension per episode: a participant states a standing preference a
+# couple of times, not at every eligible step.
 PREFERENCE_MAX_PER_EPISODE = 2
 
 
@@ -232,35 +289,44 @@ def _pick(templates: list[str], rng: np.random.Generator) -> str:
     return str(rng.choice(templates))
 
 
-def _preference_opportunity(candidates: list[dict] | None) -> str | None:
-    """Name the preference opportunity this decision offers, if any.
+def _preference_opportunities(candidates: list[dict] | None) -> list[str]:
+    """Name every preference dimension this decision point actually offers.
 
-    Both recognised opportunities are pairs of feasible candidates within 10
-    task points, so the choice between them is genuinely a matter of taste
-    rather than task competence:
-
-    * ``division_of_labour`` -- fetch the plate now (60) or start the next
-      batch (50) while the pot cooks;
-    * ``hold_plate`` -- put the plate down (20) or keep it and wait by the pot
-      (10) while no pot is cooking.
+    A dimension is offered when the two options it is about are both feasible
+    and close in task points (within 10) -- the band where a preference, not
+    task competence, decides.  ``backup_dish`` is the exception: its option is
+    scored BELOW waiting on purpose (see collect_rule_teacher_dataset), so it
+    is detected by that negative score rather than by closeness.
     """
     scored = [
         (float(candidate.get("task_score") or 0.0), str(candidate.get("subgoal")))
         for candidate in candidates or []
-        if candidate.get("subgoal")
+        if candidate.get("subgoal") and candidate.get("feasible", True)
     ]
-    if len(scored) < 2:
-        return None
-    scored.sort(key=lambda item: -item[0])
-    (top_score, top), (second_score, second) = scored[0], scored[1]
-    if top_score - second_score > 10.0:
-        return None
-    pair = {top, second}
-    if top == "GET_DISH" and second in {"GET_TOMATO", "GET_ONION"}:
-        return "division_of_labour"
-    if pair == {"PUT_DOWN_OBJECT", "WAIT_NEAR_POT"}:
-        return "hold_plate"
-    return None
+    if not scored:
+        return []
+    found: list[str] = []
+    by_name = {name: score for score, name in scored}
+    if by_name.get("GET_DISH", 0.0) < 0.0:
+        found.append("backup_dish")
+    ranked = sorted(scored, key=lambda item: -item[0])
+    if len(ranked) >= 2:
+        (top_score, top), (second_score, second) = ranked[0], ranked[1]
+        close = top_score - second_score <= 10.0
+        pair = {top, second}
+        if close and pair == {"GET_TOMATO", "GET_ONION"}:
+            found.append("ingredient_order")
+        elif close and top == "GET_DISH" and second in {"GET_TOMATO", "GET_ONION"}:
+            found.append("division_of_labour")
+        elif close and pair == {"PUT_DOWN_OBJECT", "WAIT_NEAR_POT"}:
+            found.append("plate_wait")
+    return found
+
+
+def _preference_opportunity(candidates: list[dict] | None) -> str | None:
+    """First offered dimension, for callers that want a single name."""
+    found = _preference_opportunities(candidates)
+    return found[0] if found else None
 
 
 @dataclass
@@ -278,6 +344,20 @@ class SimHumanConfig:
         if self.task_preference != "auto":
             return self.task_preference
         return PERSONA_TASK_PREFERENCE.get(self.persona, "dish_first")
+
+    def profile(self) -> PersonaProfile:
+        base = PERSONA_PROFILES.get(self.persona, PERSONA_PROFILES["cooperative"])
+        if self.task_preference == "auto":
+            return base
+        # --sim-task-preference overrides one dimension for ablations.
+        return PersonaProfile(
+            ingredient_order=base.ingredient_order,
+            division_of_labour=self.task_preference,
+            backup_dish=base.backup_dish,
+            plate_wait=base.plate_wait,
+            yield_stance=base.yield_stance,
+            criticises_persistence=base.criticises_persistence,
+        )
 
 
 class SimHuman:
@@ -384,27 +464,29 @@ class SimHuman:
         preference actually applies to.
 
         Deliberately NOT a correction: the AI has done nothing wrong at these
-        steps, and both options stay within 10 task points.  This is the only
-        way a sim persona can produce a task-domain Hu label at all -- the
+        steps, and both options are within the preference band.  This is the
+        only way a sim persona can produce a task-domain Hu label at all -- the
         rule-teacher backbone never commits the task mistakes the corrective
         templates complain about (see docs/hu_feedback_data_flow.md S6).
+
+        A persona with no opinion on a dimension (profile value None) says
+        nothing there.  That is a feature: it tests whether the model can learn
+        the ABSENCE of a preference instead of inventing one.
         """
-        opportunity = _preference_opportunity(ai_candidates)
-        if opportunity is None:
+        profile = self.config.profile()
+        offered = [
+            dim for dim in _preference_opportunities(ai_candidates)
+            if profile.value(dim) is not None
+            and self._preferences_voiced.get(dim, 0) < PREFERENCE_MAX_PER_EPISODE
+        ]
+        if not offered:
             return None
-        if self._preferences_voiced.get(opportunity, 0) >= PREFERENCE_MAX_PER_EPISODE:
+        dimension = offered[0] if len(offered) == 1 else str(self.rng.choice(offered))
+        value = profile.value(dimension)
+        templates = UTTERANCE_BANK.get(dimension, {}).get(value)
+        if not templates:
             return None
-        if opportunity == "division_of_labour":
-            templates = (
-                _TASK_PREF_PREP_FIRST
-                if self.config.resolved_task_preference() == "prep_first"
-                else _TASK_PREF_DISH_FIRST
-            )
-        else:
-            templates = _TASK_PREF_HOLD_PLATE
-        self._preferences_voiced[opportunity] = (
-            self._preferences_voiced.get(opportunity, 0) + 1
-        )
+        self._preferences_voiced[dimension] = self._preferences_voiced.get(dimension, 0) + 1
         return _pick(templates, self.rng)
 
     # -- feedback generation ------------------------------------------------
@@ -434,14 +516,16 @@ class SimHuman:
         #   selfish    : never tolerates blocking
         #   polite     : polite behavior, strict polarity (never tolerates)
         #   lenient    : polite behavior, never criticizes persistence
+        # Read from the profile table so PERSONA_PROFILES is the single source
+        # of truth (the four persona names above map onto two traits):
+        #   yield_stance == tolerate_persistence  -> ok when one step from goal
+        #   criticises_persistence == False       -> ok even when far from goal
+        profile = self.config.profile()
         if human_trying_to_pass:
             if ai_adjacent_target:
-                continue_ok = self.config.persona in (
-                    "cooperative",
-                    "lenient",
-                )
+                continue_ok = profile.yield_stance == "tolerate_persistence"
             else:
-                continue_ok = self.config.persona == "lenient"
+                continue_ok = not profile.criticises_persistence
             if continue_ok:
                 return _pick(_COORD_POS_CONTINUE, self.rng)
             return _pick(_COORD_NEG_CONTINUE, self.rng)
@@ -1154,66 +1238,11 @@ class AiRuntime:
 
 
 def _state_facts(env) -> dict[str, Any]:
-    state = env.base_env.state
-    mdp = env.base_env.mdp
-    players = list(getattr(state, "players", []))
-    ai_player = players[0] if len(players) > 0 else None
-    human_player = players[1] if len(players) > 1 else None
-    objects = getattr(state, "objects", {})
-
-    def player_summary(player):
-        if player is None:
-            return None
-        return {
-            "position": list(player.position),
-            "orientation": list(player.orientation),
-            "held_object": object_summary(getattr(player, "held_object", None)),
-        }
-
-    def object_summary(obj):
-        if obj is None:
-            return None
-        if hasattr(obj, "name"):
-            return {"name": obj.name}
-        return None
-
-    def pot_state_summary():
-        if not hasattr(mdp, "get_pot_states"):
-            return None
-        try:
-            raw = mdp.get_pot_states(state)
-            return {
-                str(key): [list(position) for position in values]
-                for key, values in raw.items()
-            }
-        except Exception:
-            return None
-
-    return {
-        "ai_pos": list(ai_player.position) if ai_player else None,
-        "human_pos": list(human_player.position) if human_player else None,
-        "ai_held_object": object_summary(
-            getattr(ai_player, "held_object", None)
-        ),
-        "human_held_object": object_summary(
-            getattr(human_player, "held_object", None)
-        ),
-        "players": [
-            player_summary(player) for player in players if player is not None
-        ],
-        "objects": [
-            {
-                "position": list(position),
-                "object": object_summary(obj),
-            }
-            for position, obj in getattr(objects, "items", lambda: [])()
-        ],
-        "pot_states": pot_state_summary(),
-        "layout_features": {
-            "layout_name": getattr(env, "layout_name", None),
-            "terrain": ["".join(row) for row in getattr(mdp, "terrain_mtx", [])],
-        },
-    }
+    """Same shape as play_with_baseline's recorder -- by construction, not by
+    hand-copying.  The previous local copy summarised a pot as ``{"name":
+    "soup"}`` and lost its ingredients and cooking tick, which made every sim
+    session unreplayable (see durf/group_a/state_summary.py)."""
+    return state_facts(env)
 
 
 def _json_dumps(value) -> str:
@@ -1223,6 +1252,12 @@ def _json_dumps(value) -> str:
 def _write_row(writer: csv.DictWriter, handle, row: dict) -> None:
     writer.writerow(row)
     handle.flush()
+
+
+def _pending_session_dir(root: Path) -> Path:
+    """Create the session directory up front so the live learner can write
+    checkpoints into it before the first step."""
+    return _new_session_dir(root)
 
 
 def _new_session_dir(output_dir: str | Path) -> Path:
@@ -1346,6 +1381,20 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--hu-coordination-lambda", type=float, default=None, help=argparse.SUPPRESS)
     parser.add_argument("--hu-apply", action="store_true")
+    parser.add_argument(
+        "--hu-live", action="store_true",
+        help="Learn from feedback DURING the session: attribute each feedback, "
+             "retrain the per-user adapter in place, archive F0/F5/F10/F15 checkpoints.",
+    )
+    parser.add_argument(
+        "--hu-live-no-llm", action="store_true",
+        help="With --hu-live: keyword baseline only (labels carry attributor=rule_baseline).",
+    )
+    parser.add_argument(
+        "--allow-nonstandard-setup", action="store_true",
+        help=f"Permit a map other than {STANDARD_LAYOUT} or a horizon other than "
+             f"{STANDARD_HORIZON} (smoke runs only; such sessions cannot be pooled).",
+    )
     parser.add_argument("--output-dir", default=str(REPO_ROOT / "outputs" / "human_ai_sessions"))
     return parser.parse_args()
 
@@ -1363,7 +1412,33 @@ def run_sim_session(args: argparse.Namespace) -> Path:
 
         subgoal_model = tf.keras.models.load_model(args.subgoal_executor)
 
+    if not args.allow_nonstandard_setup:
+        if args.horizon != STANDARD_HORIZON:
+            raise ValueError(
+                f"--horizon {args.horizon} differs from the frozen experiment horizon "
+                f"{STANDARD_HORIZON}; pass --allow-nonstandard-setup for a smoke run."
+            )
+        if args.layout != STANDARD_LAYOUT:
+            raise ValueError(
+                f"--layout {args.layout} differs from the frozen experiment map "
+                f"{STANDARD_LAYOUT}; pass --allow-nonstandard-setup for a smoke run."
+            )
     hu_model = load_runtime_hu(args.hu_model) if args.hu_model else None
+    live_learner = None
+    if args.hu_live:
+        # The prior is the frozen Hu_general.  If a per-user file was given,
+        # take its frozen prior and learn this session's user on top.
+        prior = hu_model.hu_general if isinstance(hu_model, PerUserAdapter) else hu_model
+        if prior is not None and not isinstance(prior, HierarchicalHu):
+            raise ValueError("--hu-live needs a HierarchicalHu prior (or no --hu-model)")
+        live_learner = LiveLearner(
+            user_id=args.hu_user_id,
+            session_dir=_pending_session_dir(args.output_dir),
+            hu_general=prior,
+            layout=args.layout,
+            use_llm=not args.hu_live_no_llm,
+        )
+        hu_model = live_learner.model
     if args.hu_step_tolerance is not None and args.hu_step_tolerance < 0:
         raise ValueError("--hu-step-tolerance cannot be negative")
     if args.hu_coordination_lambda is not None:
@@ -1400,7 +1475,7 @@ def run_sim_session(args: argparse.Namespace) -> Path:
         )
     )
 
-    session_dir = _new_session_dir(args.output_dir)
+    session_dir = live_learner.session_dir if live_learner else _new_session_dir(args.output_dir)
     trajectory_path = session_dir / "trajectory.csv"
     chat_path = session_dir / "chat_messages.csv"
     pause_path = session_dir / "pause_events.csv"
@@ -1409,6 +1484,9 @@ def run_sim_session(args: argparse.Namespace) -> Path:
         json.dumps(
             {
                 "build_id": "sim-human-v1",
+                **version_stamp(),
+                "hu_live": bool(args.hu_live),
+                "hu_live_use_llm": bool(args.hu_live and not args.hu_live_no_llm),
                 "agent": None,
                 "ai_mode": "subgoal_executor",
                 "subgoal_executor": str(args.subgoal_executor),
@@ -1511,6 +1589,34 @@ def run_sim_session(args: argparse.Namespace) -> Path:
                 },
             )
 
+            if live_learner is not None:
+                live_learner.observe_step(
+                    trajectory_step(
+                        source="live",
+                        timestamp_utc=_utc_timestamp(),
+                        episode=episode,
+                        episode_step=episode_step,
+                        total_step=total_step,
+                        layout=args.layout,
+                        ai_action=int(decision["action"]),
+                        ai_action_name=ACTION_NAMES[decision["action"]],
+                        human_action=int(human_action),
+                        human_action_name=ACTION_NAMES[human_action],
+                        environment_reward=float(reward),
+                        episode_reward=episode_reward,
+                        done=bool(done),
+                        ai_subgoal=decision["subgoal"],
+                        ai_event=decision["event"],
+                        ai_condition_features=decision["condition_features"],
+                        ai_subgoal_candidates=decision["subgoal_candidates"],
+                        task_decision=decision["task_decision"],
+                        coordination_decision=decision["coordination_decision"],
+                        state_facts=state_after,
+                        extra={"predict_ms": 0.0, "environment_step_ms": 0.0,
+                               "state_before": state_before},
+                    )
+                )
+
             feedback_text = sim_human.maybe_feedback(
                 coordination_decision=decision["coordination_decision"],
                 condition_features=decision["condition_features"],
@@ -1533,6 +1639,21 @@ def run_sim_session(args: argparse.Namespace) -> Path:
                         "content": feedback_text,
                     },
                 )
+                if live_learner is not None:
+                    live_learner.on_feedback(
+                        feedback_event(
+                            source="live",
+                            timestamp_utc=_utc_timestamp(),
+                            episode=episode,
+                            episode_step=episode_step,
+                            total_step=total_step,
+                            feedback_text=feedback_text,
+                            feedback_value=None,
+                            role="human_language",
+                            extra={"layout": args.layout},
+                            user_id=args.hu_user_id,
+                        )
+                    )
 
             if args.max_steps is not None and total_step >= args.max_steps:
                 print(f"stopped at max steps ({total_step})")
@@ -1556,6 +1677,18 @@ def run_sim_session(args: argparse.Namespace) -> Path:
         pause_handle.close()
         env.close()
 
+    if live_learner is not None:
+        summary = live_learner.summary()
+        (session_dir / "live_learning_summary.json").write_text(
+            json.dumps(summary, indent=2, ensure_ascii=False), encoding="utf-8"
+        )
+        print(
+            "live learning: "
+            f"{summary['feedback_events']} feedback, {summary['accepted_feedback_count']} accepted, "
+            f"{summary['labels']} labels, fallbacks={summary['llm_fallbacks']}, "
+            f"median latency {summary['median_update_latency_ms']} ms, "
+            f"checkpoints={summary['checkpoints']}"
+        )
     print(f"Session: {session_dir}")
     return session_dir
 
