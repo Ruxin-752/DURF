@@ -281,6 +281,29 @@ def next_needed_ingredient(state, mdp) -> str | None:
     return needed[0] if needed else None
 
 
+def teammate_carries_last_needed_ingredient(state, mdp, player_index: int) -> bool:
+    """True when the most-filled unfinished pot is exactly one ingredient short
+    and the teammate is holding that ingredient."""
+    recipe = target_recipe(mdp)
+    best_missing: list[str] | None = None
+    best_filled = -1
+    for pot_pos in mdp.get_pot_locations():
+        if state.has_object(pot_pos):
+            obj = state.get_object(pot_pos)
+            if getattr(obj, "name", None) != "soup":
+                continue
+            if getattr(obj, "is_ready", False) or getattr(obj, "is_cooking", False):
+                continue
+        current = pot_ingredients(state, pot_pos)
+        missing = missing_ingredients(recipe, current)
+        if missing and len(current) > best_filled:
+            best_missing = missing
+            best_filled = len(current)
+    if not best_missing or len(best_missing) != 1:
+        return False
+    return teammate_holding(state, player_index, best_missing[0])
+
+
 def teammate_holding(state, player_index: int, object_name_: str) -> bool:
     for index, other in enumerate(state.players):
         if index == player_index:
@@ -422,6 +445,13 @@ PREP_ALTERNATIVE_STEP = 3.0     # 50 -> 47 -> 44 ... (prep for the next cycle)
 # standing still, task-wise.  Scoring it below WAIT (0.0) is what makes it
 # impossible for the task optimum to land on it.
 TEAMMATE_ALREADY_HAS_DISH_SCORE = -5.0
+# The partner is carrying the LAST ingredient the pot needs: it will be
+# cooking in a moment, and "you get the plate, I've got this" is a real
+# division-of-labour choice.  The generator used to offer GET_DISH only once
+# the pot was actually cooking, one step too late for that preference to be
+# expressible (first full LLM corpus: 63 such feedbacks, all off-menu).  Well
+# below the 70 of fetching an ingredient, so H0's pick is unchanged.
+TEAMMATE_CARRIES_LAST_INGREDIENT_DISH_SCORE = 40.0
 
 
 def route_to_feature(
@@ -1060,6 +1090,23 @@ def generate_candidate_subgoals(
                 # backbone never had, so drop the whole prep group -- exactly
                 # what the old single-candidate code did.
                 break
+
+    if (
+        not cooking_pots
+        and not ready_pots
+        and teammate_carries_last_needed_ingredient(state, mdp, player_index)
+    ):
+        candidate = feature_candidate(
+            subgoal="GET_DISH",
+            task_score=TEAMMATE_CARRIES_LAST_INGREDIENT_DISH_SCORE,
+            reason="teammate_carries_last_ingredient_prepare_dish",
+            motion_planner=motion_planner,
+            player=player,
+            feature_positions=mdp.get_dish_dispenser_locations(),
+            blocked_positions=blocked_positions,
+        )
+        if candidate:
+            candidates.append(candidate)
 
     for rank, needed in enumerate(next_needed_ingredients(state, mdp)):
         subgoal = "GET_TOMATO" if needed == "tomato" else "GET_ONION"

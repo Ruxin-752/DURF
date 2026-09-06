@@ -19,7 +19,10 @@ from pathlib import Path
 #   rule-cascade-v1          -- through commit 9d136cc
 #   enumerating-v1 (2026-09-05) -- both missing ingredients, prep alternatives,
 #                                GET_DISH scored (-5) instead of deleted
-CANDIDATE_GENERATOR_VERSION = "enumerating-v1"
+#   enumerating-v2 (2026-09-06) -- GET_DISH (40) offered when the partner carries
+#                                the last ingredient the pot needs; H0 unchanged
+#                                (0/13 009 shadow-corpus mismatches)
+CANDIDATE_GENERATOR_VERSION = "enumerating-v2"
 STANDARD_HORIZON = 800
 # The experiment runs on exactly one map.  play_with_baseline used to default to
 # cramped_room (the demo map) while sim_session defaulted to the ring -- the

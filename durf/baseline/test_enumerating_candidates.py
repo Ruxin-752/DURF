@@ -179,6 +179,35 @@ class EnumeratingGeneratorTest(unittest.TestCase):
         self.assertEqual(self._menu(state)["GET_DISH"], 60.0)
 
     # ------------------------------------------------------ the prep branch
+    # ------------------------------------------- partner carries the last one
+    def test_partner_carrying_last_ingredient_puts_dish_on_the_menu(self) -> None:
+        """Pot needs one onion, the human is carrying it: the pot cooks next.
+        GET_DISH becomes an option (division of labour), well below GET_ONION
+        so H0 still fetches the onion."""
+        state = _state(
+            soup=_soup(["tomato", "tomato"]),
+            human_held=ObjectState("onion", HUMAN),
+        )
+        menu = self._menu(state)
+        self.assertEqual(menu["GET_ONION"], 70.0)
+        self.assertEqual(menu["GET_DISH"], 40.0)
+        self.assertEqual(
+            choose_task_candidate(
+                generate_candidate_subgoals(state, self.planner, 0), task_tolerance=0.0
+            ).subgoal,
+            "GET_ONION",
+        )
+
+    def test_partner_carrying_a_non_last_ingredient_adds_nothing(self) -> None:
+        state = _state(soup=_soup(["tomato"]), human_held=ObjectState("onion", HUMAN))
+        self.assertNotIn("GET_DISH", self._menu(state))
+
+    def test_partner_carrying_the_wrong_ingredient_adds_nothing(self) -> None:
+        state = _state(
+            soup=_soup(["tomato", "tomato"]), human_held=ObjectState("tomato", HUMAN)
+        )
+        self.assertNotIn("GET_DISH", self._menu(state))
+
     def test_prep_branch_offers_the_other_ingredient_just_below(self) -> None:
         state = _state(soup=_soup(["tomato", "tomato", "onion"], cooking_tick=3))
         menu = self._menu(state)
