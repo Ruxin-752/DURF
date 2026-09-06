@@ -253,14 +253,45 @@ def _estimate_active(subgoal, *, features, motion_planner, player, state, mdp):
 def attach_step_costs(
     candidates, *, features, motion_planner, player, state, mdp
 ) -> None:
-    """Set ``candidate.step_cost`` on each CandidateSubgoal in place."""
+    """Set ``candidate.step_cost`` on each CandidateSubgoal in place.
+
+    Idle candidates are priced off the cheapest *real* action (see
+    ``estimate_candidate_costs``).  A candidate the task layer itself rates
+    below waiting -- negative ``task_score``, e.g. a second dish while the
+    partner already carries one -- is not a real action by the task's own
+    judgement, so it must not become the anchor that makes waiting look cheap.
+    It still gets its own cost so a preference can reach it through the band.
+    """
+    anchored = [c for c in candidates if float(c.task_score) >= 0.0]
     costs = estimate_candidate_costs(
-        [candidate.subgoal for candidate in candidates],
+        [candidate.subgoal for candidate in anchored],
         features=features, motion_planner=motion_planner,
         player=player, state=state, mdp=mdp,
     )
+    active_costs = [v for k, v in costs.items() if k not in IDLE_SUBGOALS and v is not None]
+    best_active = min(active_costs) if active_costs else None
     for candidate in candidates:
-        value = costs.get(candidate.subgoal)
+        if float(candidate.task_score) < 0.0 and candidate.subgoal not in IDLE_SUBGOALS:
+            # A candidate the task layer rates below waiting is REDUNDANT work:
+            # a second dish while the partner already carries one.  The
+            # partner-blind estimator prices it as if it led to the next
+            # delivery (28 steps in the first live session -- cheaper than the
+            # real optimum at 38), which put it inside the tolerance band and
+            # sent the agent for a second plate after one generic "go get the
+            # plate".  Price it like PUT_DOWN_OBJECT instead: its own steps,
+            # and then the whole real job is still ahead.
+            own = _estimate_active(
+                candidate.subgoal, features=features, motion_planner=motion_planner,
+                player=player, state=state, mdp=mdp,
+            )
+            if own is None:
+                value = None
+            elif best_active is None:
+                value = own
+            else:
+                value = float(own) + float(best_active)
+        else:
+            value = costs.get(candidate.subgoal)
         candidate.step_cost = float(value) if value is not None else None
 
 

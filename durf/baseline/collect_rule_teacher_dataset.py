@@ -20,7 +20,7 @@ import numpy as np
 
 from durf.baseline.evaluate_baseline import count_event_value
 from durf.baseline.runtime import make_direct_multi_env, resolve_agent_dir
-from durf.baseline.task_logic import next_unstaged_ingredient
+from durf.baseline.task_logic import next_unstaged_ingredient, unstaged_ingredients
 from durf.baseline.task_cost import WAITING_SUBGOALS
 from human_aware_rl.rllib.rllib import load_trainer
 from overcooked_ai_py.mdp.actions import Action
@@ -245,7 +245,15 @@ def pots_needing_ingredient(state, mdp, ingredient: str) -> list[tuple[int, int]
     return targets
 
 
-def next_needed_ingredient(state, mdp) -> str | None:
+def next_needed_ingredients(state, mdp) -> list[str]:
+    """Every distinct ingredient the most-filled unfinished pot still needs.
+
+    Returned in recipe order, most-urgent-first.  ``next_needed_ingredient``
+    is the head of this list and used to be the only thing the candidate
+    generator could see -- which silently turned "tomato first or onion
+    first?" into a non-choice on the 63.7% of steps where the pot was missing
+    more than one kind.
+    """
     recipe = target_recipe(mdp)
     best_missing: list[str] = []
     best_filled = -1
@@ -261,7 +269,16 @@ def next_needed_ingredient(state, mdp) -> str | None:
         if missing and len(current) > best_filled:
             best_missing = missing
             best_filled = len(current)
-    return best_missing[0] if best_missing else None
+    out: list[str] = []
+    for ingredient in best_missing:
+        if ingredient not in out:
+            out.append(ingredient)
+    return out
+
+
+def next_needed_ingredient(state, mdp) -> str | None:
+    needed = next_needed_ingredients(state, mdp)
+    return needed[0] if needed else None
 
 
 def teammate_holding(state, player_index: int, object_name_: str) -> bool:
@@ -393,6 +410,18 @@ def bfs_route_to_feature(
 # the pair mirrors each other indefinitely -- observed as a 692/800-step
 # livelock that no conflict type and no stall escape could see.
 MAX_PARTNER_DETOUR_STEPS = 3
+
+# Alternatives added by the enumerating generator (2026-09-05).  Each sits
+# strictly below the historical primary of its own branch, so the task optimum
+# -- and therefore H0 at tolerance 0 -- is bit-for-bit unchanged; they exist so
+# that a preference with a non-zero tolerance has something to choose BETWEEN.
+# Verified by shadow replay over 13 009 distinct states: 0 action mismatches.
+NEEDED_ALTERNATIVE_STEP = 5.0   # 70 -> 65 -> 60 ... (pot needs this ingredient)
+PREP_ALTERNATIVE_STEP = 3.0     # 50 -> 47 -> 44 ... (prep for the next cycle)
+# Fetching a second dish when the partner already carries one is worse than
+# standing still, task-wise.  Scoring it below WAIT (0.0) is what makes it
+# impossible for the task optimum to land on it.
+TEAMMATE_ALREADY_HAS_DISH_SCORE = -5.0
 
 
 def route_to_feature(
@@ -952,30 +981,65 @@ def generate_candidate_subgoals(
 
     cooking_pots = mdp.get_cooking_pots(pot_states)
     if cooking_pots:
-        if not teammate_holding(state, player_index, "dish"):
-            candidate = feature_candidate(
-                subgoal="GET_DISH",
-                task_score=60.0,
-                reason="soup_cooking_prepare_dish",
-                motion_planner=motion_planner,
-                player=player,
-                feature_positions=mdp.get_dish_dispenser_locations(),
-                blocked_positions=blocked_positions,
-            )
-            if candidate:
-                candidates.append(candidate)
+        # The partner never decides whether an option EXISTS -- only what it is
+        # worth.  This used to delete GET_DISH outright whenever the teammate
+        # was already carrying a dish, so "I'll get one too" was invisible to
+        # the preference layer and no feedback could ever ask for it.
+        #
+        # It is now scored instead of deleted.  Below WAIT deliberately: that
+        # is what makes it provably impossible for H0 (tolerance 0 = argmax of
+        # task_score) to pick it.
+        #
+        # What the negative score does NOT do: keep it out of the step band.
+        # The step estimator is partner-blind, so it prices "fetch a dish" as
+        # if the dish were useful and rates it CHEAPER than the optimum in every
+        # such state observed (439/439 in the shadow corpus).  Under any
+        # step_tolerance > 0 it is therefore inside the band, and a preference
+        # with labelled support for GET_DISH will reach it every time.  That is
+        # the intended reachability -- the user asked for it -- but it means
+        # the tolerance is not what bounds this particular sacrifice; the
+        # partner-blind estimator is a documented limitation (task_cost.py).
+        # It is also excluded from anchoring the idle costs (attach_step_costs).
+        dish_score = (
+            60.0 if not teammate_holding(state, player_index, "dish")
+            else TEAMMATE_ALREADY_HAS_DISH_SCORE
+        )
+        candidate = feature_candidate(
+            subgoal="GET_DISH",
+            task_score=dish_score,
+            reason=(
+                "soup_cooking_prepare_dish" if dish_score > 0
+                else "soup_cooking_second_dish_teammate_already_has_one"
+            ),
+            motion_planner=motion_planner,
+            player=player,
+            feature_positions=mdp.get_dish_dispenser_locations(),
+            blocked_positions=blocked_positions,
+        )
+        if candidate:
+            candidates.append(candidate)
 
         recipe = target_recipe(mdp)
-        prep_ingredient = next_unstaged_ingredient(
-            recipe,
-            staged_ingredients_for_next_cycle(state),
-        )
-        if prep_ingredient in ("tomato", "onion"):
+        prep_pending = [
+            ingredient
+            for ingredient in unstaged_ingredients(
+                recipe, staged_ingredients_for_next_cycle(state)
+            )
+            if ingredient in ("tomato", "onion")
+        ]
+        for rank, prep_ingredient in enumerate(prep_pending):
             subgoal = "GET_TOMATO" if prep_ingredient == "tomato" else "GET_ONION"
             candidate = feature_candidate(
                 subgoal=subgoal,
-                task_score=50.0,
-                reason="soup_cooking_prepare_unstaged_next_cycle_ingredient",
+                # rank 0 keeps the historical 50; the alternatives sit just
+                # below it so the backbone's pick is unchanged while "prep the
+                # other one first" becomes visible to the preference layer.
+                task_score=50.0 - PREP_ALTERNATIVE_STEP * rank,
+                reason=(
+                    "soup_cooking_prepare_unstaged_next_cycle_ingredient"
+                    if rank == 0
+                    else "soup_cooking_prepare_alternative_next_cycle_ingredient"
+                ),
                 motion_planner=motion_planner,
                 player=player,
                 # Loose ingredients are already counted as staged. Fetch a new
@@ -990,14 +1054,27 @@ def generate_candidate_subgoals(
             )
             if candidate:
                 candidates.append(candidate)
+            elif rank == 0:
+                # The historical primary was infeasible.  Offering only the
+                # alternatives here would hand the top score to an option the
+                # backbone never had, so drop the whole prep group -- exactly
+                # what the old single-candidate code did.
+                break
 
-    needed = next_needed_ingredient(state, mdp)
-    if needed is not None:
+    for rank, needed in enumerate(next_needed_ingredients(state, mdp)):
         subgoal = "GET_TOMATO" if needed == "tomato" else "GET_ONION"
         candidate = feature_candidate(
             subgoal=subgoal,
-            task_score=70.0,
-            reason="pot_needs_ingredient",
+            # rank 0 is the historical 70.  The pot needs BOTH kinds on 63.7%
+            # of steps; the generator used to emit only the first, so "fetch
+            # the onion first instead" was not a losing option -- it was not an
+            # option at all.  The alternatives sit below the primary so the
+            # backbone's winner is untouched.
+            task_score=70.0 - NEEDED_ALTERNATIVE_STEP * rank,
+            reason=(
+                "pot_needs_ingredient" if rank == 0
+                else "pot_needs_alternative_ingredient"
+            ),
             motion_planner=motion_planner,
             player=player,
             feature_positions=ingredient_pickup_locations(state, mdp, needed),
@@ -1006,59 +1083,60 @@ def generate_candidate_subgoals(
         )
         if candidate:
             candidates.append(candidate)
+        elif rank == 0:
+            # See the prep group above: without the historical primary, an
+            # alternative would become a winner the backbone never had.
+            break
 
     candidates.append(stay_candidate("fallback_wait", task_score=0.0))
     return candidates
 
 
-def choose_task_candidate(
+@dataclass
+class AcceptableSet:
+    """The epsilon-satisficing band around the task optimum.
+
+    Split out of ``choose_task_candidate`` so the band has exactly ONE
+    definition.  M2-10's matched replay (durf/evaluation/matched_replay.py)
+    needs to know which decision points actually offered a choice -- its
+    sampling filter is "acceptable set of at least two" -- and a second copy of
+    this logic over there would drift from the one the runtime really uses.
+
+    ``task_optimum`` is ``None`` only when nothing is feasible.
+    """
+
+    feasible: list[CandidateSubgoal]
+    task_optimum: CandidateSubgoal | None
+    acceptable: list[CandidateSubgoal]
+    tolerance: float
+    use_steps: bool
+
+    @property
+    def size(self) -> int:
+        return len(self.acceptable)
+
+
+def acceptable_candidates(
     candidates: list[CandidateSubgoal],
     *,
     task_tolerance: float = 0.0,
     step_tolerance: float | None = None,
-) -> CandidateSubgoal:
-    """Satisfice on the task, then let the learned preference choose.
+) -> AcceptableSet:
+    """Return the band the preference is allowed to reorder, and nothing more.
 
-    Task score and Hu score are not commensurable, so they are never added.
-    ``task_score`` is in task points and its gaps carry real information (100 vs
-    0 for "deliver the soup" is not the same kind of decision as 90 vs 70 for
-    "dish first or tomato first"); ``hu_score`` comes out of a pairwise logistic
-    fit, where only the ORDER is meaningful and the magnitude is an artefact of
-    regularization.  Adding them would require an exchange rate nobody can state.
-
-    So instead: keep every candidate within ``task_tolerance`` points of the task
-    optimum, and among those pick the one the user prefers.
-
-    * ``task_tolerance`` is in task points and answers a question a researcher
-      can actually answer: how much task performance are we willing to give up
-      for personalization?  It is the same quantity as the non-inferiority
-      margin used to accept the task-competence result.
-    * Only the ordering of ``hu_score`` is used, so Hu's arbitrary output scale
-      never has to be calibrated.
-    * ``task_tolerance = 0`` reduces to the frozen task backbone exactly.
-
-    ``step_tolerance`` (2026-09-04) denominates the band in a quantity that
-    means something: estimated extra steps to the next delivery
-    (``CandidateSubgoal.step_cost``, from durf/baseline/task_cost.py).  The
-    task-point gaps are a priority encoding lifted from the rule teacher --
-    lumpy (10, 50, 60, 70, 90) and unitless -- so "how many task points may
-    we give up?" has no answerable form, whereas "how many extra steps may
-    the agent spend to honour the user's preference?" does.
-
-    The ORDERING stays the rule teacher's: the task optimum is still the
-    highest ``task_score`` (the frozen backbone), and ``step_tolerance``
-    only widens the acceptable set around it -- to every feasible candidate
-    whose estimated cost is within ``step_tolerance`` steps of the optimum's,
-    including candidates the estimator thinks are cheaper than the optimum
-    (the estimator is a greedy serial approximation with no partner model,
-    so it is allowed to widen the band but never to overrule the backbone's
-    pick at tolerance 0).  ``step_tolerance=None`` or ``0`` falls back to the
-    task-point rule, so tolerance 0 is the backbone exactly in both units.
+    Pure: it neither ranks by preference nor writes metadata, so it can be
+    called for measurement without touching the candidates the runtime uses.
     """
 
     feasible = [candidate for candidate in candidates if candidate.feasible]
     if not feasible:
-        return stay_candidate("no_feasible_candidate")
+        return AcceptableSet(
+            feasible=[],
+            task_optimum=None,
+            acceptable=[],
+            tolerance=max(0.0, float(task_tolerance)),
+            use_steps=False,
+        )
 
     tolerance = max(0.0, float(task_tolerance))
     best_task = max(candidate.task_score for candidate in feasible)
@@ -1108,19 +1186,95 @@ def choose_task_candidate(
             if candidate.subgoal not in WAITING_SUBGOALS
         ]
 
+    return AcceptableSet(
+        feasible=feasible,
+        task_optimum=task_optimum,
+        acceptable=acceptable,
+        tolerance=tolerance,
+        use_steps=use_steps,
+    )
+
+
+def rank_acceptable(band: AcceptableSet) -> CandidateSubgoal:
+    """Pick from the band by preference; ties fall back to the task prior.
+
+    Pure (no metadata writes), so the measurement side (matched_replay) can call
+    the SAME rule the runtime uses instead of carrying its own copy.  Only
+    candidates Hu has evidence about may displace the backbone's pick; the pick
+    itself is always eligible, so an unlabelled optimum is simply kept.
+    """
+    assert band.task_optimum is not None
+    pool = [band.task_optimum] + [
+        candidate
+        for candidate in band.acceptable
+        if candidate is not band.task_optimum and candidate.hu_supported
+    ]
+    return max(pool, key=lambda c: (c.hu_score, c.task_score))
+
+
+def choose_task_candidate(
+    candidates: list[CandidateSubgoal],
+    *,
+    task_tolerance: float = 0.0,
+    step_tolerance: float | None = None,
+) -> CandidateSubgoal:
+    """Satisfice on the task, then let the learned preference choose.
+
+    Task score and Hu score are not commensurable, so they are never added.
+    ``task_score`` is in task points and its gaps carry real information (100 vs
+    0 for "deliver the soup" is not the same kind of decision as 90 vs 70 for
+    "dish first or tomato first"); ``hu_score`` comes out of a pairwise logistic
+    fit, where only the ORDER is meaningful and the magnitude is an artefact of
+    regularization.  Adding them would require an exchange rate nobody can state.
+
+    So instead: keep every candidate within ``task_tolerance`` points of the task
+    optimum, and among those pick the one the user prefers.
+
+    * ``task_tolerance`` is in task points and answers a question a researcher
+      can actually answer: how much task performance are we willing to give up
+      for personalization?  It is the same quantity as the non-inferiority
+      margin used to accept the task-competence result.
+    * Only the ordering of ``hu_score`` is used, so Hu's arbitrary output scale
+      never has to be calibrated.
+    * ``task_tolerance = 0`` reduces to the frozen task backbone exactly.
+
+    ``step_tolerance`` (2026-09-04) denominates the band in a quantity that
+    means something: estimated extra steps to the next delivery
+    (``CandidateSubgoal.step_cost``, from durf/baseline/task_cost.py).  The
+    task-point gaps are a priority encoding lifted from the rule teacher --
+    lumpy (10, 50, 60, 70, 90) and unitless -- so "how many task points may
+    we give up?" has no answerable form, whereas "how many extra steps may
+    the agent spend to honour the user's preference?" does.
+
+    The ORDERING stays the rule teacher's: the task optimum is still the
+    highest ``task_score`` (the frozen backbone), and ``step_tolerance``
+    only widens the acceptable set around it -- to every feasible candidate
+    whose estimated cost is within ``step_tolerance`` steps of the optimum's,
+    including candidates the estimator thinks are cheaper than the optimum
+    (the estimator is a greedy serial approximation with no partner model,
+    so it is allowed to widen the band but never to overrule the backbone's
+    pick at tolerance 0).  ``step_tolerance=None`` or ``0`` falls back to the
+    task-point rule, so tolerance 0 is the backbone exactly in both units.
+    """
+
+    band = acceptable_candidates(
+        candidates,
+        task_tolerance=task_tolerance,
+        step_tolerance=step_tolerance,
+    )
+    if band.task_optimum is None:
+        return stay_candidate("no_feasible_candidate")
+    feasible = band.feasible
+    task_optimum = band.task_optimum
+    acceptable = band.acceptable
+    tolerance = band.tolerance
+    use_steps = band.use_steps
+
     # Rank inside the acceptable set by preference; ties fall back to the task
     # prior so the result stays deterministic.  Only candidates Hu actually
     # has evidence about may displace the backbone's pick (the pick itself is
     # always eligible, so an unlabelled optimum is simply kept).
-    pool = [task_optimum] + [
-        candidate
-        for candidate in acceptable
-        if candidate is not task_optimum and candidate.hu_supported
-    ]
-    chosen = max(
-        pool,
-        key=lambda candidate: (candidate.hu_score, candidate.task_score),
-    )
+    chosen = rank_acceptable(band)
     for candidate in feasible:
         candidate.final_score = candidate.task_score
 
