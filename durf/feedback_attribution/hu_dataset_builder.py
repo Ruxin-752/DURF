@@ -149,6 +149,14 @@ def condition_for_attribution(
     )
 
 
+def _offered_names(candidates: list) -> set[str]:
+    return {
+        c.get("subgoal") if isinstance(c, dict) else c
+        for c in candidates
+        if (c.get("feasible", True) if isinstance(c, dict) else True)
+    }
+
+
 def decision_step_for_attribution(
     attribution: dict[str, Any],
     event: dict[str, Any] | None,
@@ -200,9 +208,31 @@ def build_provenance_record(
     attributed_preferred = list(preferred_subgoals)
     attributed_rejected = list(rejected_subgoals)
     decision_step = decision_step_for_attribution(attribution, event, feedback, trajectory)
+    decision_anchor = "event_step" if (event and event.get("start_timestep") is not None) else "feedback_step"
     decision_candidates = (
         (decision_step or {}).get("ai_subgoal_candidates") or []
     )
+    # Two anchors, both with a meaning: the event's first step (the label is
+    # about what the agent did there) or the feedback step (the participant
+    # is talking about the decision they just watched).  When the LLM names a
+    # task pair that the event step never offered but the feedback step did,
+    # the sentence was about the feedback step -- first full LLM corpus: 186
+    # of 303 off-menu pairs were "you take the dish, I'll do ingredients" said
+    # at a dish-vs-ingredient decision but hung on an earlier event whose
+    # step offered only [GET_ONION, WAIT].  Condition features move with the
+    # anchor so condition and candidate set describe one decision.
+    if decision_anchor == "event_step" and feedback and feedback.get("total_step") is not None:
+        named_task = [
+            sg for sg in [*preferred_subgoals, *rejected_subgoals]
+            if sg not in COORDINATION_SUBGOALS and sg != "GET_USEFUL_INGREDIENT"
+        ]
+        if named_task and not all(sg in _offered_names(decision_candidates) for sg in named_task):
+            feedback_step = latest_step_at_or_before(trajectory, int(feedback["total_step"]))
+            feedback_candidates = (feedback_step or {}).get("ai_subgoal_candidates") or []
+            if all(sg in _offered_names(feedback_candidates) for sg in named_task):
+                decision_step, decision_candidates = feedback_step, feedback_candidates
+                decision_anchor = "feedback_step_realigned"
+                condition_features = decision_condition_features(feedback_step)
     preferred_subgoals, unresolved_preferred = resolve_useful_ingredient(
         preferred_subgoals, decision_candidates
     )
@@ -219,12 +249,7 @@ def build_provenance_record(
     # Coordination options (YIELD / CONTINUE_CURRENT_SUBGOAL) are a binary
     # domain that is always co-available and never appears in the task
     # candidate list, so the gate applies to task names only.
-    offered = {
-        c.get("subgoal") if isinstance(c, dict) else c
-        for c in decision_candidates
-        if (c.get("feasible", True) if isinstance(c, dict) else True)
-    }
-    offered |= set(COORDINATION_SUBGOALS)
+    offered = _offered_names(decision_candidates) | set(COORDINATION_SUBGOALS)
     named_before_filter = [*preferred_subgoals, *rejected_subgoals]
     not_co_available: list[str] = []
     if decision_candidates:
@@ -303,6 +328,7 @@ def build_provenance_record(
         "attributed_rejected_subgoals": attributed_rejected,
         "unresolved_subgoals": unresolved_subgoals,
         "not_co_available_subgoals": not_co_available,
+        "decision_anchor": decision_anchor,
         "attribution_flags": attribution_flags,
         "decision_candidate_set": [
             candidate.get("subgoal") if isinstance(candidate, dict) else candidate

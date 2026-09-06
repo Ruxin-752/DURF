@@ -553,6 +553,58 @@ class AttributorProvenanceTests(unittest.TestCase):
         self.assertEqual(samples[0]["model_id"], "deepseek-chat-2026-03-01")
         self.assertEqual(samples[0]["prompt_hash"], "abc123")
 
+    def test_named_pair_off_menu_at_event_step_realigns_to_feedback_step(self):
+        """First full LLM corpus: "you take the dish, I'll do ingredients" was
+        said at a dish-vs-ingredient decision but hung on an earlier event
+        whose step offered only [GET_ONION, WAIT].  186 of 303 off-menu pairs.
+        The label is about the decision the participant just watched."""
+        event = {
+            "event_type": "AI_missed_labor_division_opportunity",
+            "start_timestep": 92, "end_timestep": 94,
+            "condition_features": {"pot_empty": False},
+        }
+        trajectory = [
+            {"total_step": 92, "ai_subgoal_candidates": [
+                {"subgoal": "GET_ONION", "feasible": True}, {"subgoal": "WAIT", "feasible": True}],
+             "ai_condition_features": {"pot_empty": False}},
+            {"total_step": 96, "ai_subgoal_candidates": [
+                {"subgoal": "GET_DISH", "feasible": True}, {"subgoal": "GET_ONION", "feasible": True},
+                {"subgoal": "WAIT", "feasible": True}],
+             "ai_condition_features": {"pot_empty": True}},
+        ]
+        provenance = build_provenance_record(
+            attribution=self._attribution(
+                target_event=event["event_type"], target_time_window=[92, 94],
+                candidate_events=[event], condition_features={},
+                preferred_subgoals=["GET_DISH"], rejected_subgoals=["GET_ONION"],
+            ),
+            feedback={"total_step": 96, "feedback_text": "you take the dish"},
+            trajectory=trajectory, user_id="PILOT01", review_decision=None,
+        )
+        self.assertEqual(provenance["decision_anchor"], "feedback_step_realigned")
+        self.assertEqual(provenance["decision_candidate_set"], ["GET_DISH", "GET_ONION", "WAIT"])
+        self.assertEqual(provenance["not_co_available_subgoals"], [])
+        self.assertEqual(len(build_training_samples([provenance])), 1)
+
+    def test_named_pair_on_menu_at_event_step_stays_there(self):
+        event = {
+            "event_type": "AI_missed_labor_division_opportunity",
+            "start_timestep": 92, "end_timestep": 94, "condition_features": {},
+        }
+        trajectory = [
+            {"total_step": 92, "ai_subgoal_candidates": [
+                {"subgoal": "GET_DISH", "feasible": True}, {"subgoal": "GET_ONION", "feasible": True}]},
+            {"total_step": 96, "ai_subgoal_candidates": [{"subgoal": "WAIT", "feasible": True}]},
+        ]
+        provenance = build_provenance_record(
+            attribution=self._attribution(
+                target_event=event["event_type"], target_time_window=[92, 94],
+                candidate_events=[event], preferred_subgoals=["GET_DISH"], rejected_subgoals=["GET_ONION"],
+            ),
+            feedback={"total_step": 96}, trajectory=trajectory, user_id="PILOT01", review_decision=None,
+        )
+        self.assertEqual(provenance["decision_anchor"], "event_step")
+
     def test_llm_failure_is_labelled_as_a_stand_in_not_as_a_normal_label(self):
         """An outage must not be able to masquerade as a healthy run."""
         from durf.feedback_attribution.schemas import (
