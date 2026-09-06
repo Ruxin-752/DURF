@@ -556,14 +556,22 @@ button:not(:disabled):active {
 
 .notice-error { border-color: #a9463c; background: #f9d2bd; }
 
-.experimental-classifier-notice {
+.feedback-status {
   align-items: flex-start;
   flex-direction: column;
   gap: 4px;
 }
 
-.experimental-classifier-notice code {
-  overflow-wrap: anywhere;
+.feedback-status.feedback-accepted {
+  border-color: #668459;
+  background: #e4efd8;
+  color: #31533b;
+}
+
+.feedback-status.feedback-rejected {
+  border-color: #a9463c;
+  background: #f9d2bd;
+  color: #78352f;
 }
 
 .pixel-loader {
@@ -738,19 +746,10 @@ button:not(:disabled):active {
 
 .chef {
   --chef-outline: #3c2520;
-  --chef-skin: #dfa06f;
-  --chef-skin-shadow: #bd724f;
-  --chef-blush: #d96e65;
-  --chef-hair-color: #67372d;
-  --chef-hair-light: #8b5140;
+  --chef-skin: #e2a475;
   --chef-coat: #d65b3d;
-  --chef-coat-dark: #8e392f;
-  --chef-coat-light: #ee8056;
-  --chef-accent: #efbd55;
-  --chef-apron-color: #fff0c5;
-  --chef-pocket: #c84437;
+  --chef-apron: #fff1cf;
   --chef-hat: #fff7dc;
-  --chef-hat-shadow: #d9cfb0;
   --chef-hat-band: #c94d3a;
   --chef-shoe: #4a2926;
   position: absolute;
@@ -760,274 +759,142 @@ button:not(:disabled):active {
   width: 72%;
   height: 88%;
   isolation: isolate;
-  filter: drop-shadow(2px 3px 0 rgb(55 29 22 / 42%));
+  filter: drop-shadow(1px 2px 0 rgb(55 29 22 / 38%));
   image-rendering: pixelated;
   pointer-events: none;
 }
 
 .chef-partner {
   --chef-skin: #c98963;
-  --chef-skin-shadow: #a65f47;
-  --chef-blush: #bd5f65;
-  --chef-hair-color: #293749;
-  --chef-hair-light: #465b70;
   --chef-coat: #4f967e;
-  --chef-coat-dark: #2d6656;
-  --chef-coat-light: #72b7a0;
-  --chef-accent: #7f77b8;
-  --chef-apron-color: #d8ede0;
-  --chef-pocket: #5276a2;
+  --chef-apron: #e1f0e7;
   --chef-hat: #f2f4db;
-  --chef-hat-shadow: #c3cdb6;
   --chef-hat-band: #408772;
   --chef-shoe: #273747;
   z-index: 5;
   left: 17%;
 }
 
-.chef-feet,
-.chef-arms {
-  position: absolute;
-  z-index: 3;
-  inset: 0;
-}
-
-.chef-feet::before,
-.chef-feet::after {
-  content: '';
-  position: absolute;
-  z-index: 4;
-  bottom: 0;
-  width: 24%;
-  height: 10%;
-  border: max(1px, .11vw) solid var(--chef-outline);
-  background: var(--chef-shoe);
-  box-shadow: inset 0 max(1px, .12vw) rgb(255 255 255 / 18%);
-}
-
-.chef-feet::before { left: 20%; }
-.chef-feet::after { right: 20%; }
-
 .chef-body {
   position: absolute;
   z-index: 2;
-  bottom: 4%;
-  left: 17%;
-  width: 68%;
-  height: 44%;
+  bottom: 7%;
+  left: 19%;
+  width: 62%;
+  height: 36%;
   border: max(1px, .14vw) solid var(--chef-outline);
-  background:
-    linear-gradient(90deg, var(--chef-coat-dark) 0 12%, transparent 12% 88%, var(--chef-coat-dark) 88%),
-    var(--chef-coat);
-  box-shadow:
-    inset 0 max(2px, .32vw) var(--chef-coat-light),
-    inset 0 min(-3px, -.5vw) var(--chef-coat-dark);
+  border-radius: 38% 38% 14% 14%;
+  background: var(--chef-coat);
 }
 
 .chef-body::before {
   content: '';
   position: absolute;
-  top: 13%;
-  left: 47%;
-  width: 7%;
+  left: 24%;
+  bottom: -1px;
+  width: 52%;
   height: 67%;
-  background: #fff1cf;
-  box-shadow: 0 clamp(4px, .55vw, 8px) 0 var(--chef-outline);
+  border-radius: 38% 38% 8% 8%;
+  background: var(--chef-apron);
 }
 
 .chef-body::after {
   content: '';
   position: absolute;
-  right: 13%;
-  bottom: 12%;
-  width: 8%;
-  height: 12%;
-  background: var(--chef-outline);
-  box-shadow: 0 min(-5px, -.48vw) var(--chef-outline);
-}
-
-.chef-arms::before,
-.chef-arms::after {
-  content: '';
-  position: absolute;
-  z-index: 3;
-  top: 62%;
-  width: 20%;
-  height: 25%;
-  border: max(1px, .12vw) solid var(--chef-outline);
-  background: var(--chef-coat);
-  box-shadow: inset 0 min(-3px, -.34vw) var(--chef-coat-dark);
-}
-
-.chef-arms::before { left: 5%; }
-.chef-arms::after { right: 5%; }
-
-.chef-apron {
-  position: absolute;
-  z-index: 4;
-  bottom: 5%;
-  left: 31%;
-  width: 40%;
-  height: 34%;
-  border: max(1px, .11vw) solid var(--chef-outline);
-  background:
-    linear-gradient(90deg, transparent 0 14%, rgb(255 255 255 / 34%) 14% 25%, transparent 25%),
-    var(--chef-apron-color);
-  box-shadow: inset 0 min(-3px, -.35vw) rgb(86 57 43 / 23%);
-}
-
-.chef-apron::before {
-  content: '';
-  position: absolute;
-  right: 17%;
-  bottom: 13%;
-  width: 42%;
-  height: 28%;
-  border: max(1px, .09vw) solid var(--chef-outline);
-  background: var(--chef-pocket);
-}
-
-.chef-apron::after {
-  content: '';
-  position: absolute;
-  top: 14%;
-  left: 13%;
-  width: 10%;
-  height: 10%;
-  background: var(--chef-accent);
-  box-shadow: clamp(5px, .7vw, 10px) 0 var(--chef-accent);
-}
-
-.chef-hair {
-  position: absolute;
-  z-index: 3;
-  top: 24%;
-  left: 23%;
-  width: 57%;
-  height: 35%;
-  border: max(1px, .13vw) solid var(--chef-outline);
-  background: var(--chef-hair-color);
-  box-shadow: inset 0 max(2px, .24vw) var(--chef-hair-light);
-}
-
-.chef-hair::after {
-  content: '';
-  position: absolute;
-  z-index: 2;
-  top: 0;
-  left: 18%;
-  width: 60%;
-  height: 31%;
-  background:
-    linear-gradient(90deg, var(--chef-hair-light) 0 29%, transparent 29% 44%, var(--chef-hair-color) 44% 73%, transparent 73%);
-}
-
-.chef-partner .chef-hair::after {
-  left: 9%;
-  width: 78%;
-  height: 38%;
-  background:
-    linear-gradient(90deg, var(--chef-hair-color) 0 22%, transparent 22% 36%, var(--chef-hair-light) 36% 68%, transparent 68%);
+  left: 12%;
+  bottom: -21%;
+  width: 76%;
+  height: 22%;
+  border-radius: 50%;
+  background: linear-gradient(
+    90deg,
+    var(--chef-shoe) 0 31%,
+    transparent 31% 69%,
+    var(--chef-shoe) 69%
+  );
 }
 
 .chef-hat {
   position: absolute;
-  z-index: 8;
-  top: 2%;
-  left: 23%;
-  width: 57%;
-  height: 23%;
+  z-index: 6;
+  top: 3%;
+  left: 18%;
+  width: 64%;
+  height: 28%;
   border: max(1px, .14vw) solid var(--chef-outline);
+  border-radius: 48% 48% 16% 16%;
   background: var(--chef-hat);
-  box-shadow: inset 0 min(-3px, -.33vw) var(--chef-hat-shadow);
 }
 
 .chef-hat::before {
   content: '';
   position: absolute;
-  top: -28%;
-  left: 5%;
-  width: 28%;
-  height: 57%;
-  border: max(1px, .11vw) solid var(--chef-outline);
+  top: -38%;
+  left: 9%;
+  width: 30%;
+  height: 65%;
+  border-radius: 50%;
   background: var(--chef-hat);
   box-shadow:
-    clamp(6px, .72vw, 11px) min(-2px, -.16vw) 0 max(-1px, -.08vw) var(--chef-hat),
-    clamp(12px, 1.4vw, 21px) 1px 0 max(-1px, -.08vw) var(--chef-hat);
+    clamp(7px, .8vw, 12px) min(-2px, -.18vw) 0 max(-1px, -.08vw) var(--chef-hat),
+    clamp(14px, 1.55vw, 23px) 0 0 max(-1px, -.08vw) var(--chef-hat);
 }
 
 .chef-hat::after {
   content: '';
   position: absolute;
-  right: -10%;
-  bottom: -24%;
-  width: 120%;
-  height: 29%;
-  border: max(1px, .12vw) solid var(--chef-outline);
+  right: -1px;
+  bottom: -1px;
+  left: -1px;
+  height: 27%;
+  border-top: max(1px, .1vw) solid var(--chef-outline);
+  border-radius: 0 0 16% 16%;
   background: var(--chef-hat-band);
-  box-shadow: inset 0 min(-2px, -.2vw) rgb(59 34 31 / 24%);
 }
 
 .chef-face {
   position: absolute;
   z-index: 5;
-  top: 29%;
-  left: 28%;
-  width: 47%;
-  height: 29%;
+  top: 28%;
+  left: 27%;
+  width: 46%;
+  height: 36%;
   border: max(1px, .14vw) solid var(--chef-outline);
+  border-radius: 48% 48% 42% 42%;
   background: var(--chef-skin);
-  box-shadow: inset 0 min(-3px, -.32vw) var(--chef-skin-shadow);
 }
 
 .chef-face::before,
 .chef-face::after {
   content: '';
   position: absolute;
-  left: 14%;
-  width: 72%;
 }
 
 .chef-face::before {
-  top: 38%;
-  height: 13%;
-  background: linear-gradient(90deg, var(--chef-outline) 0 16%, transparent 16% 82%, var(--chef-outline) 82%);
+  top: 40%;
+  left: 17%;
+  width: 66%;
+  height: 12%;
+  background: linear-gradient(
+    90deg,
+    var(--chef-outline) 0 17%,
+    transparent 17% 83%,
+    var(--chef-outline) 83%
+  );
 }
 
 .chef-face::after {
-  top: 64%;
-  height: 18%;
-  background:
-    linear-gradient(90deg, var(--chef-blush) 0 20%, transparent 20% 80%, var(--chef-blush) 80%),
-    linear-gradient(90deg, transparent 41%, var(--chef-outline) 41% 59%, transparent 59%);
+  bottom: 17%;
+  left: 41%;
+  width: 18%;
+  height: 8%;
+  border-bottom: max(1px, .09vw) solid var(--chef-outline);
+  border-radius: 50%;
 }
 
 .chef[data-facing='left'] .chef-face::before { transform: translateX(-6%); }
 .chef[data-facing='right'] .chef-face::before { transform: translateX(6%); }
 .chef[data-facing='up'] .chef-face::before { top: 31%; }
-
-.chef-scarf {
-  position: absolute;
-  z-index: 6;
-  top: 52%;
-  left: 25%;
-  width: 54%;
-  height: 10%;
-  border: max(1px, .11vw) solid var(--chef-outline);
-  background: var(--chef-accent);
-  box-shadow: inset 0 min(-2px, -.2vw) rgb(69 39 34 / 25%);
-}
-
-.chef-scarf::after {
-  content: '';
-  position: absolute;
-  right: 8%;
-  bottom: -55%;
-  width: 18%;
-  height: 75%;
-  border: max(1px, .09vw) solid var(--chef-outline);
-  background: var(--chef-accent);
-}
 
 .chef-name {
   position: absolute;
@@ -1398,8 +1265,7 @@ kbd {
   height: 100%;
 }
 
-.confidence-warning,
-.confidence-ok {
+.confidence-warning {
   margin: 8px 0 0;
   padding: 5px 6px;
   overflow-wrap: anywhere;
@@ -1408,7 +1274,6 @@ kbd {
 }
 
 .confidence-warning { background: #f4c0a4; color: #8a322e; }
-.confidence-ok { background: #dce8cf; color: #38624d; }
 
 footer {
   display: flex;

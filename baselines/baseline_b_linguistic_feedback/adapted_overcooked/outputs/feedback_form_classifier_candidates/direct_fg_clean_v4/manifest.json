@@ -1,0 +1,89 @@
+{
+  "confidence_ready_for_player_ui": false,
+  "dependencies": {
+    "external_dependencies": {
+      "joblib": {
+        "module_file": "E:\\miniconda\\envs\\pantheonrl_env\\Lib\\site-packages\\joblib\\__init__.py",
+        "module_file_sha256": "5bed10f143569bbad2266640f5eabe8a172428ce8944abce9b597c48de38a624",
+        "version": "1.5.3"
+      },
+      "numpy": {
+        "module_file": "E:\\miniconda\\envs\\pantheonrl_env\\Lib\\site-packages\\numpy\\__init__.py",
+        "module_file_sha256": "150b19558caf78c0e3cc6994ec652399e972595ca649cea1a69c801ef23e4b1c",
+        "version": "1.26.4"
+      },
+      "sklearn": {
+        "module_file": "E:\\miniconda\\envs\\pantheonrl_env\\Lib\\site-packages\\sklearn\\__init__.py",
+        "module_file_sha256": "74ec19c08428cc2bc2e3aa1256e075cdaf1aad93440e4469c82bb7a9e5ae3562",
+        "version": "1.7.2"
+      }
+    },
+    "local_code": {
+      "reused_v3_training_algorithms": {
+        "path": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\scripts\\train_direct_fg_classifier_clean_v3.py",
+        "sha256": "bef16d640f75f74b285888186d6696ffa177f7b40d0bf658287d8c0963a0ff1e"
+      },
+      "reused_v3_typed_generator": {
+        "path": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\scripts\\generate_direct_fg_clean_v3.py",
+        "sha256": "dec51e2bda26e33440ca1d655f6deb62cc5be120978a81d827cc7b717377cb2c"
+      },
+      "v4_generator": {
+        "path": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\scripts\\generate_direct_fg_clean_v4.py",
+        "sha256": "eee0395ae0307cd08b4df7ce0d32fea5e31a5b20c8555c6e8056b24924e99f00"
+      },
+      "v4_trainer": {
+        "path": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\scripts\\train_direct_fg_classifier_clean_v4.py",
+        "sha256": "9b429d609bc7fb328c40bc655492fb3e155376cb16f8c66a6cbfee65cefea1b0"
+      }
+    },
+    "python": {
+      "executable": "E:\\miniconda\\envs\\pantheonrl_env\\python.exe",
+      "platform": "Windows-10-10.0.26200-SP0",
+      "version": "3.10.20 | packaged by Anaconda, Inc. | (main, Mar 11 2026, 17:42:35) [MSC v.1942 64 bit (AMD64)]"
+    }
+  },
+  "final_eval_protocol": {
+    "execution_count": 1,
+    "model_frozen_before_read": true,
+    "used_for_calibration": false,
+    "used_for_selection": false
+  },
+  "outputs": {
+    "corpus": {
+      "path": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\feedback_form_classifier_candidates\\direct_fg_clean_v4\\corpus.json",
+      "sha256": "e0193f2399c4e0172c95389963aea20e6e438af45c46a245ca99896dec90c075"
+    },
+    "model": {
+      "path": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\feedback_form_classifier_candidates\\direct_fg_clean_v4\\model.joblib",
+      "sha256": "ec22916795d58583caf746d8dca61fab49b75a7f1d60d9db91411c02e8c04be7"
+    },
+    "report": {
+      "path": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\feedback_form_classifier_candidates\\direct_fg_clean_v4\\evaluation_report.json",
+      "sha256": "a4669257f62bb144ce00c9cc416056fa247e990b21fee412001e0c4c91051d49"
+    }
+  },
+  "production_promotion_eligible": false,
+  "provenance": {
+    "ai_assisted": true,
+    "dev_test_frozen_membership_files_read": 0,
+    "five_class_reference_classifier_used_as_target": false,
+    "human_gold": false,
+    "human_rows_read": 0,
+    "independent_human_semantic_audit": false,
+    "old_synthetic_rows_read": 0,
+    "prior_error_informed": true,
+    "reference_type_used_as_target": false,
+    "v3_artifact_files_read": 0,
+    "v3_natural_probe_error_informed": true
+  },
+  "research_candidate_only": true,
+  "seed": 73129,
+  "selected_hyperparameters": {
+    "C": 0.5,
+    "class_weight": null,
+    "min_df": 2
+  },
+  "status": "failed_research_candidate",
+  "temperature": 0.2,
+  "version": "direct-fg-clean-v4-research-candidate-v1"
+}

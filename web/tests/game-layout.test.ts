@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
@@ -33,15 +34,9 @@ const fixturePath = join(
   'fixtures',
   'ring_tomato_onion_10x6_h0_full_task.layout',
 );
-const repositoryLayoutPath = join(
-  webRoot,
-  '..',
-  'src',
-  'overcooked_ai_py',
-  'data',
-  'layouts',
-  'ring_tomato_onion_10x6_h0_full_task.layout',
-);
+// Verified from src/overcooked_ai_py/data/layouts in the research checkout.
+// Pin the original content so a standalone Sites checkout can run this guard.
+const ORIGINAL_LAYOUT_SHA256 = '4a09a8bda57070057d03e60391fb4bf64e26fadb4fb15bf8b75d4b6f077137c7';
 
 function normalizeNewlines(value: string): string {
   return value.replace(/\r\n/gu, '\n').trimEnd();
@@ -49,9 +44,8 @@ function normalizeNewlines(value: string): string {
 
 describe('immutable original Overcooked layout geometry', () => {
   it('keeps the deployed fixture content-equivalent apart from platform newlines', () => {
-    expect(normalizeNewlines(readFileSync(fixturePath, 'utf8'))).toBe(
-      normalizeNewlines(readFileSync(repositoryLayoutPath, 'utf8')),
-    );
+    const content = normalizeNewlines(readFileSync(fixturePath, 'utf8'));
+    expect(createHash('sha256').update(content).digest('hex')).toBe(ORIGINAL_LAYOUT_SHA256);
   });
 
   it('keeps every source and terrain row character in the original 10x6 position', () => {

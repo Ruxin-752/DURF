@@ -1,3 +1,16 @@
+import {
+  SUBGOALS,
+  buildSubgoalContext,
+  chooseRewardSubgoal,
+  enumerateFeasibleSubgoals,
+  passiveCookingWaitIsValid,
+  type PathEffect,
+  type RewardSubgoalDecision,
+  type RewardWeights,
+  type Subgoal,
+  type SubgoalContext,
+} from './subgoal-policy';
+
 export const SOURCE_LAYOUT_NAME = 'ring_tomato_onion_10x6_h0_full_task';
 
 // Exact grid characters from src/overcooked_ai_py/data/layouts/
@@ -24,6 +37,8 @@ export const GAME_STEP_INTERVAL_MS = 1_000 / STEPS_PER_SECOND;
 export const ROUND_SECONDS = ROUND_STEPS / STEPS_PER_SECOND;
 export const COOK_TIME_STEPS = 20;
 export const CORRECT_SOUP_REWARD = 20;
+export const AI_LIVENESS_CONTRACT_VERSION = 'durf-web-ai-liveness-v1';
+export const MAX_CONSECUTIVE_WAIT_STEPS = 3;
 
 export type GameStatus = 'waiting' | 'running' | 'paused' | 'finished';
 export type Ingredient = 'tomato' | 'onion';
@@ -110,6 +125,20 @@ export interface PotState {
   onions: number;
 }
 
+type AiObjectTransferKind = 'get' | 'stash';
+
+export interface AiObjectTransfer {
+  kind: AiObjectTransferKind;
+  item: Exclude<HeldItem, null>;
+}
+
+export interface AiPolicyLiveness {
+  contractVersion: typeof AI_LIVENESS_CONTRACT_VERSION;
+  consecutiveWaitSteps: number;
+  recentObjectTransfer: AiObjectTransfer | null;
+  cycleBlockedStashItem: Exclude<HeldItem, null> | null;
+}
+
 export interface KitchenOrder {
   id: string;
   recipe: 'two-tomato-one-onion-soup';
@@ -138,6 +167,7 @@ export interface GameState {
   lastAction: string;
   lastEventCode: GameEventCode;
   lastStepEvents: GameEvent[];
+  aiPolicyLiveness: AiPolicyLiveness;
 }
 
 const DIRECTION_DELTAS: Record<Direction, Point> = {
@@ -203,6 +233,12 @@ export function createGameState(status: GameStatus = 'waiting'): GameState {
     lastAction: initialEvent.message,
     lastEventCode: initialEvent.code,
     lastStepEvents: [initialEvent],
+    aiPolicyLiveness: {
+      contractVersion: AI_LIVENESS_CONTRACT_VERSION,
+      consecutiveWaitSteps: 0,
+      recentObjectTransfer: null,
+      cycleBlockedStashItem: null,
+    },
   };
 }
 
@@ -577,6 +613,67 @@ function applyEnvironmentEffects(
   };
 }
 
+function aiObjectTransfer(events: readonly GameEvent[]): AiObjectTransfer | null {
+  const aiEvent = events.find(
+    (item) =>
+      item.actor === 'ai' &&
+      ['pick_tomato', 'pick_onion', 'pick_dish', 'pick_soup', 'pickup_counter', 'drop_counter'].includes(
+        item.code,
+      ),
+  );
+  if (!aiEvent?.item) return null;
+  return {
+    kind: aiEvent.code === 'drop_counter' ? 'stash' : 'get',
+    item: aiEvent.item,
+  };
+}
+
+function updateAiPolicyLiveness(
+  previous: GameState,
+  aiAction: GameAction,
+  events: readonly GameEvent[],
+): AiPolicyLiveness {
+  const prior = previous.aiPolicyLiveness ?? {
+    contractVersion: AI_LIVENESS_CONTRACT_VERSION,
+    consecutiveWaitSteps: 0,
+    recentObjectTransfer: null,
+    cycleBlockedStashItem: null,
+  };
+  const taskProgressed = events.some((item) =>
+    [
+      'pot_tomato',
+      'pot_onion',
+      'pick_soup',
+      'serve_correct_soup',
+      'serve_wrong_soup',
+      'cooking_started',
+      'soup_ready',
+    ].includes(item.code),
+  );
+  const transfer = aiObjectTransfer(events);
+  const completedGetStashCycle = Boolean(
+    transfer?.kind === 'stash' &&
+      prior.recentObjectTransfer?.kind === 'get' &&
+      transfer.item === prior.recentObjectTransfer.item,
+  );
+
+  return {
+    contractVersion: AI_LIVENESS_CONTRACT_VERSION,
+    consecutiveWaitSteps:
+      aiAction === 'stay' && !taskProgressed
+        ? prior.consecutiveWaitSteps + 1
+        : 0,
+    recentObjectTransfer: taskProgressed
+      ? null
+      : transfer ?? prior.recentObjectTransfer,
+    cycleBlockedStashItem: taskProgressed
+      ? null
+      : completedGetStashCycle
+        ? transfer!.item
+        : prior.cycleBlockedStashItem,
+  };
+}
+
 /**
  * Apply one authoritative Overcooked environment step.
  *
@@ -611,6 +708,10 @@ export function stepGame(
   const environment = applyEnvironmentEffects(next);
   next = environment.state;
   events.push(...environment.events);
+  next = {
+    ...next,
+    aiPolicyLiveness: updateAiPolicyLiveness(state, aiAction, events),
+  };
   return withEvents(next, events);
 }
 
@@ -637,7 +738,7 @@ interface InteractionGoal {
   facing: Direction;
 }
 
-function pathDistance(start: Point, target: Point, blocked: Point): number {
+function pathDistance(start: Point, target: Point, blocked: Point | null): number {
   if (isSamePoint(start, target)) return 0;
   const key = (point: Point) => counterKey(point);
   const queue: Array<{ point: Point; distance: number }> = [{ point: start, distance: 0 }];
@@ -646,7 +747,11 @@ function pathDistance(start: Point, target: Point, blocked: Point): number {
     const current = queue.shift()!;
     for (const [, delta] of DIRECTIONS) {
       const point = { x: current.point.x + delta.x, y: current.point.y + delta.y };
-      if (!isWalkable(point) || isSamePoint(point, blocked) || visited.has(key(point))) continue;
+      if (
+        !isWalkable(point) ||
+        (blocked !== null && isSamePoint(point, blocked)) ||
+        visited.has(key(point))
+      ) continue;
       if (isSamePoint(point, target)) return current.distance + 1;
       visited.add(key(point));
       queue.push({ point, distance: current.distance + 1 });
@@ -738,49 +843,363 @@ function firstCounterGoal(
   return counterGoals(state, predicate)[0] ?? null;
 }
 
-export function chooseAiAction(state: GameState): GameAction {
-  if (state.status !== 'running') return 'stay';
-  const held = state.partner.held;
-  const totalIngredients = state.pot.tomatoes + state.pot.onions;
-  const needsTomato = totalIngredients < 3 && state.pot.tomatoes < 2;
-  const needsOnion = totalIngredients < 3 && state.pot.onions < 1;
+function stationPosition(kind: StationKind): Point | null {
+  return STATIONS.find((station) => station.kind === kind)?.position ?? null;
+}
 
-  if (held === 'soup') return actionTowardGoal(state, stationGoal(state, 'serve'));
-  if (held === 'dish') {
-    if (state.pot.stage === 'ready') {
-      return actionTowardGoal(state, stationGoal(state, 'pot'));
+function interactionDistance(
+  start: Point,
+  target: Point,
+  blocked: Point | null,
+): number {
+  let best = Number.POSITIVE_INFINITY;
+  for (const [, delta] of DIRECTIONS) {
+    const access = { x: target.x - delta.x, y: target.y - delta.y };
+    if (!isWalkable(access) || (blocked !== null && isSamePoint(access, blocked))) continue;
+    best = Math.min(best, pathDistance(start, access, blocked));
+  }
+  return best;
+}
+
+function targetForAiSubgoal(state: GameState, subgoal: Subgoal): Point | null {
+  switch (subgoal) {
+    case 'GET_TOMATO':
+      return (
+        firstCounterGoal(state, (object) => object?.item === 'tomato')?.target ??
+        stationPosition('tomato')
+      );
+    case 'PUT_TOMATO_IN_POT':
+    case 'PUT_ONION_IN_POT':
+      return stationPosition('pot');
+    case 'GET_ONION':
+      return (
+        firstCounterGoal(state, (object) => object?.item === 'onion')?.target ??
+        stationPosition('onion')
+      );
+    case 'GET_DISH':
+      return (
+        firstCounterGoal(state, (object) => object?.item === 'dish')?.target ??
+        stationPosition('dish')
+      );
+    case 'PICKUP_SOUP':
+      return state.partner.held === 'dish'
+        ? stationPosition('pot')
+        : firstCounterGoal(state, (object) => object?.item === 'soup')?.target ?? null;
+    case 'SERVE_SOUP':
+      return stationPosition('serve');
+    case 'STASH_HELD_OBJECT':
+      return firstCounterGoal(state, (object) => object === undefined)?.target ?? null;
+    case 'YIELD_PATH':
+    case 'WAIT':
+      return null;
+  }
+}
+
+function humanTargetFromState(state: GameState): { resource: string; target: Point } | null {
+  switch (state.player.held) {
+    case 'tomato':
+      return { resource: 'tomato', target: stationPosition('pot')! };
+    case 'onion':
+      return { resource: 'onion', target: stationPosition('pot')! };
+    case 'dish':
+      return { resource: 'dish', target: stationPosition('pot')! };
+    case 'soup':
+      return { resource: 'soup', target: stationPosition('serve')! };
+    default: {
+      // With no action history in GameState, only infer pickup intent when the
+      // human is already adjacent to and facing an immediately interactable
+      // object. This makes target-stealing live without guessing from position
+      // alone or treating a stale movement direction as intent.
+      const target = pointAhead(state.player);
+      const counterObject = isCounter(target)
+        ? state.counterObjects[counterKey(target)]
+        : undefined;
+      if (counterObject) return { resource: counterObject.item, target };
+
+      const station = STATIONS.find((item) => isSamePoint(item.position, target));
+      if (
+        station?.kind === 'tomato' ||
+        station?.kind === 'onion' ||
+        station?.kind === 'dish'
+      ) {
+        return { resource: station.kind, target };
+      }
+      return null;
     }
-    if (state.pot.stage === 'cooking') return 'stay';
-    return actionTowardGoal(state, firstCounterGoal(state, (object) => object === undefined));
   }
-  if (held === 'tomato' || held === 'onion') {
-    const ingredientNeeded = held === 'tomato' ? needsTomato : needsOnion;
-    if (
-      ingredientNeeded &&
-      (state.pot.stage === 'empty' || state.pot.stage === 'filling')
-    ) {
-      return actionTowardGoal(state, stationGoal(state, 'pot'));
+}
+
+function intendedSoloPosition(state: GameState, action: GameAction): Point {
+  if (!(action in DIRECTION_DELTAS)) return state.partner;
+  const delta = DIRECTION_DELTAS[action as Direction];
+  const target = { x: state.partner.x + delta.x, y: state.partner.y + delta.y };
+  return isWalkable(target) && !isSamePoint(target, state.player)
+    ? target
+    : state.partner;
+}
+
+function computeYieldPathAction(state: GameState): Direction | null {
+  const humanTarget = humanTargetFromState(state);
+  if (!humanTarget) return null;
+  const currentDistance = interactionDistance(
+    state.player,
+    humanTarget.target,
+    state.partner,
+  );
+  const candidates = DIRECTIONS.flatMap(([direction, delta]) => {
+    const destination = {
+      x: state.partner.x + delta.x,
+      y: state.partner.y + delta.y,
+    };
+    if (!isWalkable(destination) || isSamePoint(destination, state.player)) return [];
+    const resultingDistance = interactionDistance(
+      state.player,
+      humanTarget.target,
+      destination,
+    );
+    // YIELD_PATH is the shortest-path clearing subgoal. Merely stepping out of
+    // the cell the human faces is not enough to claim it; the move must reduce
+    // the human's actual route distance to the inferred interaction target.
+    if (!(resultingDistance < currentDistance)) return [];
+    return [{ direction, resultingDistance }];
+  });
+  candidates.sort(
+    (left, right) => left.resultingDistance - right.resultingDistance,
+  );
+  return candidates[0]?.direction ?? null;
+}
+
+export interface LivePolicyGeometry {
+  candidatePathEffects: Readonly<Partial<Record<Subgoal, PathEffect>>>;
+  candidateTargetOverlapsHuman: Readonly<Partial<Record<Subgoal, boolean>>>;
+  humanIntent: string | null;
+  yieldAction: Direction | null;
+}
+
+/** Pure state geometry shared by live feasibility and reward featurization. */
+export function computeLivePolicyGeometry(state: GameState): LivePolicyGeometry {
+  const humanTarget = humanTargetFromState(state);
+  const baselineDistance = humanTarget
+    ? interactionDistance(state.player, humanTarget.target, null)
+    : Number.POSITIVE_INFINITY;
+  const currentDistance = humanTarget
+    ? interactionDistance(state.player, humanTarget.target, state.partner)
+    : Number.POSITIVE_INFINITY;
+  const candidatePathEffects: Partial<Record<Subgoal, PathEffect>> = {};
+  const candidateTargetOverlapsHuman: Partial<Record<Subgoal, boolean>> = {};
+  const yieldAction = computeYieldPathAction(state);
+
+  for (const subgoal of SUBGOALS) {
+    const target = targetForAiSubgoal(state, subgoal);
+    if (humanTarget && target) {
+      candidateTargetOverlapsHuman[subgoal] = isSamePoint(target, humanTarget.target);
     }
-    return actionTowardGoal(state, firstCounterGoal(state, (object) => object === undefined));
+    const action = subgoal === 'YIELD_PATH'
+      ? yieldAction ?? 'stay'
+      : actionForAiSubgoal(state, subgoal);
+    const nextPosition = intendedSoloPosition(state, action);
+    if (humanTarget) {
+      const nextDistance = interactionDistance(
+        state.player,
+        humanTarget.target,
+        nextPosition,
+      );
+      if (nextDistance < currentDistance) {
+        candidatePathEffects[subgoal] = 'clears';
+      } else if (nextDistance > currentDistance) {
+        candidatePathEffects[subgoal] = currentDistance <= baselineDistance
+          ? 'enters'
+          : 'blocks';
+      } else if (currentDistance > baselineDistance) {
+        candidatePathEffects[subgoal] = 'blocks';
+      }
+    }
+  }
+  if (yieldAction) candidatePathEffects.YIELD_PATH = 'clears';
+
+  return {
+    candidatePathEffects,
+    candidateTargetOverlapsHuman,
+    humanIntent: humanTarget?.resource ?? null,
+    yieldAction,
+  };
+}
+
+export function actionForAiSubgoal(state: GameState, subgoal: Subgoal): GameAction {
+  switch (subgoal) {
+    case 'GET_TOMATO':
+      return actionTowardGoal(
+        state,
+        firstCounterGoal(state, (object) => object?.item === 'tomato') ??
+          stationGoal(state, 'tomato'),
+      );
+    case 'PUT_TOMATO_IN_POT':
+    case 'PUT_ONION_IN_POT':
+      return actionTowardGoal(state, stationGoal(state, 'pot'));
+    case 'GET_ONION':
+      return actionTowardGoal(
+        state,
+        firstCounterGoal(state, (object) => object?.item === 'onion') ??
+          stationGoal(state, 'onion'),
+      );
+    case 'GET_DISH':
+      return actionTowardGoal(
+        state,
+        firstCounterGoal(state, (object) => object?.item === 'dish') ??
+          stationGoal(state, 'dish'),
+      );
+    case 'PICKUP_SOUP':
+      return actionTowardGoal(
+        state,
+        state.partner.held === 'dish'
+          ? stationGoal(state, 'pot')
+          : firstCounterGoal(state, (object) => object?.item === 'soup'),
+      );
+    case 'SERVE_SOUP':
+      return actionTowardGoal(state, stationGoal(state, 'serve'));
+    case 'STASH_HELD_OBJECT':
+      return actionTowardGoal(
+        state,
+        firstCounterGoal(state, (object) => object === undefined),
+      );
+    case 'YIELD_PATH':
+      return computeYieldPathAction(state) ?? 'stay';
+    case 'WAIT':
+      return 'stay';
+  }
+}
+
+export interface AiDecision extends RewardSubgoalDecision {
+  action: GameAction;
+  candidateActions: Readonly<Partial<Record<Subgoal, GameAction>>>;
+  candidatePathEffects: Readonly<Partial<Record<Subgoal, PathEffect>>>;
+  candidateTargetOverlapsHuman: Readonly<Partial<Record<Subgoal, boolean>>>;
+  yieldAction: Direction | null;
+  motionFeasibilityFilterApplied: boolean;
+  motionUnexecutableSubgoals: readonly Subgoal[];
+  waitGuardApplied: boolean;
+  livenessReason:
+    | 'stalled_wait_infeasible'
+    | 'passive_cooking_wait_exempt'
+    | 'get_stash_cycle_infeasible'
+    | 'stall_threshold_not_reached'
+    | 'no_executable_productive_alternative';
+  livenessRemovedSubgoals: readonly Subgoal[];
+  getStashCycleGuardApplied: boolean;
+  getStashCycleBlockedItem: Exclude<HeldItem, null> | null;
+}
+
+/** Task-valid subgoals are ranked by the active posterior mean via w · phi. */
+export function chooseAiDecision(
+  state: GameState,
+  weights: RewardWeights = {},
+): AiDecision {
+  const geometry = computeLivePolicyGeometry(state);
+  const contextOverrides: Partial<SubgoalContext> = {
+    humanIntent: geometry.humanIntent,
+    candidatePathEffects: geometry.candidatePathEffects,
+    candidateTargetOverlapsHuman: geometry.candidateTargetOverlapsHuman,
+  };
+  const context = buildSubgoalContext(state, contextOverrides);
+  const taskFeasible = enumerateFeasibleSubgoals(context);
+  const candidateActions: Partial<Record<Subgoal, GameAction>> = {};
+  for (const subgoal of taskFeasible) {
+    candidateActions[subgoal] = subgoal === 'YIELD_PATH'
+      ? geometry.yieldAction ?? 'stay'
+      : actionForAiSubgoal(state, subgoal);
   }
 
-  const soupOnCounter = firstCounterGoal(state, (object) => object?.item === 'soup');
-  if (soupOnCounter) return actionTowardGoal(state, soupOnCounter);
-  if (state.pot.stage === 'ready') {
-    const dishOnCounter = firstCounterGoal(state, (object) => object?.item === 'dish');
-    return actionTowardGoal(state, dishOnCounter ?? stationGoal(state, 'dish'));
-  }
-  if (state.pot.stage === 'cooking') return 'stay';
+  const motionUnexecutableSubgoals = taskFeasible.filter(
+    (subgoal) => subgoal !== 'WAIT' && candidateActions[subgoal] === 'stay',
+  );
+  let feasible = taskFeasible.filter(
+    (subgoal) => subgoal === 'WAIT' || candidateActions[subgoal] !== 'stay',
+  );
+  if (feasible.length === 0) feasible = ['WAIT'];
 
-  if (needsTomato) {
-    const tomatoOnCounter = firstCounterGoal(state, (object) => object?.item === 'tomato');
-    return actionTowardGoal(state, tomatoOnCounter ?? stationGoal(state, 'tomato'));
+  const livenessRemoved = new Set<Subgoal>(motionUnexecutableSubgoals);
+  const blockedItem = state.aiPolicyLiveness?.cycleBlockedStashItem ?? null;
+  const requiredPutSubgoal = blockedItem === 'tomato'
+    ? 'PUT_TOMATO_IN_POT'
+    : blockedItem === 'onion'
+      ? 'PUT_ONION_IN_POT'
+      : null;
+  const getStashCycleGuardApplied = Boolean(
+    blockedItem !== null &&
+      state.partner.held === blockedItem &&
+      requiredPutSubgoal !== null &&
+      feasible.includes('STASH_HELD_OBJECT') &&
+      feasible.includes(requiredPutSubgoal) &&
+      candidateActions[requiredPutSubgoal] !== 'stay',
+  );
+  if (getStashCycleGuardApplied) {
+    feasible = feasible.filter(
+      (subgoal) => subgoal !== 'STASH_HELD_OBJECT' && subgoal !== 'WAIT',
+    );
+    livenessRemoved.add('STASH_HELD_OBJECT');
+    livenessRemoved.add('WAIT');
   }
-  if (needsOnion) {
-    const onionOnCounter = firstCounterGoal(state, (object) => object?.item === 'onion');
-    return actionTowardGoal(state, onionOnCounter ?? stationGoal(state, 'onion'));
+
+  const executableProductive = feasible.filter(
+    (subgoal) => subgoal !== 'WAIT' && candidateActions[subgoal] !== 'stay',
+  );
+  const stalledWaitThresholdReached =
+    (state.aiPolicyLiveness?.consecutiveWaitSteps ?? 0) >=
+    MAX_CONSECUTIVE_WAIT_STEPS;
+  const passiveCookingWait =
+    passiveCookingWaitIsValid(context) &&
+    geometry.candidatePathEffects.WAIT !== 'blocks';
+  const waitGuardApplied = Boolean(
+    !getStashCycleGuardApplied &&
+      stalledWaitThresholdReached &&
+      executableProductive.length > 0 &&
+      !passiveCookingWait &&
+      feasible.includes('WAIT'),
+  );
+  if (waitGuardApplied) {
+    feasible = feasible.filter((subgoal) => subgoal !== 'WAIT');
+    livenessRemoved.add('WAIT');
   }
-  return 'stay';
+
+  const rewardDecision = chooseRewardSubgoal(state, weights, {
+    contextOverrides,
+    feasibleSubgoals: feasible,
+  });
+  const action = state.status === 'running'
+    ? candidateActions[rewardDecision.chosenSubgoal] ??
+      actionForAiSubgoal(state, rewardDecision.chosenSubgoal)
+    : 'stay';
+  const livenessReason = getStashCycleGuardApplied
+    ? 'get_stash_cycle_infeasible'
+    : waitGuardApplied
+      ? 'stalled_wait_infeasible'
+      : passiveCookingWait && stalledWaitThresholdReached
+        ? 'passive_cooking_wait_exempt'
+        : executableProductive.length === 0
+          ? 'no_executable_productive_alternative'
+          : 'stall_threshold_not_reached';
+  return {
+    ...rewardDecision,
+    action,
+    candidateActions,
+    candidatePathEffects: geometry.candidatePathEffects,
+    candidateTargetOverlapsHuman: geometry.candidateTargetOverlapsHuman,
+    yieldAction: geometry.yieldAction,
+    motionFeasibilityFilterApplied: motionUnexecutableSubgoals.length > 0,
+    motionUnexecutableSubgoals,
+    waitGuardApplied,
+    livenessReason,
+    livenessRemovedSubgoals: [...livenessRemoved],
+    getStashCycleGuardApplied,
+    getStashCycleBlockedItem: blockedItem,
+  };
+}
+
+export function chooseAiAction(
+  state: GameState,
+  weights: RewardWeights = {},
+): GameAction {
+  return chooseAiDecision(state, weights).action;
 }
 
 /**

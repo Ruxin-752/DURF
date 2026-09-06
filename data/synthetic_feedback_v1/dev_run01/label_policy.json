@@ -1,0 +1,21 @@
+{
+  "ambiguity": "No rule guarantees ambiguity has low softmax. Runtime must abstain on low scores, empty/OOV/unsupported input; short context-dependent or mixed clauses may still be wrong. Explicit labels represent the intended synthetic reading.",
+  "grounding": {
+    "action": "An identifiable local action, current/recent action, requested next action, or counterfactual alternative action.",
+    "feature": "A kitchen state/property, resource, spatial fact, objective, or explicitly valued feature, independent of a particular executed action.",
+    "trajectory": "Overall performance, teamwork, strategy, total episode outcome, or underspecified praise/criticism of the recent behavior as a whole."
+  },
+  "language": "English only",
+  "limitations": "Synthetic family evaluation is not human accuracy. English only; no human training or testing data is read. This uses the paper's classifier family, not a claim of exact original-domain reproduction.",
+  "score_policy": {
+    "kind": "raw_model_softmax_score",
+    "probability_of_correctness": false,
+    "temperature": 1
+  },
+  "speech_act": {
+    "descriptive": "A neutral factual assertion about state, observed action, score, or declared speaker plan; no requested change or value judgment.",
+    "evaluative": "Praise, criticism, value/preference judgments, or retrospective counterfactual criticism. 'You should have done X' evaluates a past choice.",
+    "imperative": "An instruction, request, prohibition, or actionable suggestion about future behavior. Polite questions and 'You should do X' are requests."
+  },
+  "unit": "One clause with a dominant communicative purpose; split multi-purpose feedback before classification."
+}

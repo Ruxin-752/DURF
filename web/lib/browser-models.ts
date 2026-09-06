@@ -1,5 +1,5 @@
 export type FeedbackLabel = "evaluative" | "imperative" | "descriptive";
-export type FeedbackClassifierVariant = "production" | "boundary-shadow-v1";
+export type FeedbackClassifierVariant = "production" | "boundary-shadow-raw-v2";
 
 export interface FeedbackFormPrediction {
   label: FeedbackLabel;
@@ -12,13 +12,86 @@ export interface FeedbackFormPrediction {
   independentlyCalibrated: boolean;
   calibrationVersion: string | null;
   modelHash: string;
+  thresholdPolicy?: 'synthetic_dev_threshold_v1';
   scoreKind:
     | "temperature_scaled_selection_dev_probability"
     | "temperature_scaled_train_oof_probability"
+    | "raw_model_softmax_score"
     | "raw_probability";
 }
 
-interface TfidfTransformerArtifact {
+export interface ClassifierEvidence {
+  trained: true;
+  frozen: true;
+  modelVersion: string;
+  modelHash: string;
+  releaseStatus: string;
+  promotionEligible: boolean;
+  promotionReason: string;
+  defaultEligible: boolean;
+  independentCurrentPlayerAccuracy: number | null;
+  diagnosticAccuracy: number | null;
+  diagnosticRows: number | null;
+  diagnosticScope: string;
+  requestedAccuracyTarget: number | null;
+  targetPassed: boolean | null;
+  diagnosticPreviouslyExposed: boolean;
+}
+
+interface FeedbackReleaseMetadata {
+  channel: "production" | "shadow-preview";
+  status: string;
+  default_eligible: boolean;
+  promotion_eligible: boolean;
+  promotion_status: string;
+  promotion_reason: string;
+}
+
+interface ModelCardReport {
+  id: string;
+  role: string;
+  report_sha256: string;
+  source_model_sha256: string;
+  binding_fields: string[];
+}
+
+interface ModelCardEvidence {
+  id: string;
+  report_sha256: string;
+  source_model_sha256: string;
+  role: string;
+  scope: string;
+  rows: number;
+  accuracy: number;
+  macro_f1: number;
+  human_or_player_gold: boolean;
+  independent_current_player: boolean;
+  previously_exposed: boolean;
+  requested_accuracy_target: number;
+  target_passed: boolean;
+}
+
+interface FeedbackModelCard {
+  schema_version: "durf-feedback-form-model-card-v1";
+  source_model_sha256: string;
+  release: FeedbackReleaseMetadata;
+  training: {
+    trained: true;
+    frozen: true;
+    status: string;
+    report_sha256: string;
+    source_model_sha256: string;
+  };
+  reports: ModelCardReport[];
+  display_evidence_id: string;
+  evidence: ModelCardEvidence[];
+  claims: {
+    independent_current_player_accuracy: number | null;
+    calibration_independently_validated: boolean;
+  };
+}
+
+export interface TfidfTransformerArtifact {
   name: string;
   analyzer: "word" | "char_wb";
   ngram_range: [number, number];
@@ -41,6 +114,8 @@ interface FeedbackArtifact {
     frozen_config_sha256?: string;
     predictor_sha256?: string;
     candidate_manifest_sha256?: string;
+    diagnostic_report_sha256?: string;
+    release_contract_sha256?: string;
   };
   classes: FeedbackLabel[];
   model_type?: string;
@@ -62,7 +137,27 @@ interface FeedbackArtifact {
   claim_scope?: {
     diagnostic_shadow_preview?: boolean;
     calibration_independently_validated?: boolean;
+    displayed_score_kind?: string;
+    displayed_score_is_probability_of_correctness?: boolean;
+    minimum_confidence_source?: string;
+    independent_current_player_accuracy?: number | null;
+    paper_reference_proxy_accuracy?: number;
+    paper_reference_proxy_examples?: number;
+    paper_reference_proxy_is_previously_exposed?: boolean;
+    synthetic_training_rows?: number;
+    private_diagnostic_accuracy?: number;
+    private_diagnostic_examples?: number;
   };
+  score_policy?: {
+    kind?: string;
+    version?: string;
+    temperature?: number;
+    probability_of_correctness?: boolean;
+    independently_calibrated?: boolean;
+    routing_threshold?: number;
+    threshold_policy?: string;
+  };
+  model_card: FeedbackModelCard;
 }
 
 const FEEDBACK_CLASS_ORDER: FeedbackLabel[] = [
@@ -70,6 +165,7 @@ const FEEDBACK_CLASS_ORDER: FeedbackLabel[] = [
   "evaluative",
   "imperative",
 ];
+const SHA256_PATTERN = /^[0-9a-f]{64}$/u;
 const SHADOW_SOURCE = {
   model_sha256: "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
   report_sha256: "4b23b8ca052e11c530929d640f1a6c15bbf24db7ae8e20c78b13b99e66ef9019",
@@ -78,8 +174,159 @@ const SHADOW_SOURCE = {
   predictor_sha256: "d76fe50fe2e7d079c2709d37c020c88227c5708d087595347f483d6b63c8c507",
   candidate_manifest_sha256:
     "60258ce84ed959aa75f91c6bb43cd02975c3377300b8b0426fd2aeb223db5bee",
+  diagnostic_report_sha256:
+    "5cef25eb4ddba21f182ec4ba9bdc8f1a135ad741b3ef49e9593ab055454ce5d2",
 } as const;
-const SHADOW_TEMPERATURE = 0.0823618560384671;
+const SHADOW_DISPLAY_TEMPERATURE = 1;
+
+function assertReleasePolicy(
+  release: FeedbackReleaseMetadata,
+  shadow: boolean,
+): void {
+  const expected = shadow
+    ? {
+        channel: "shadow-preview",
+        status: "shadow_diagnostic_only",
+        default_eligible: false,
+        promotion_eligible: false,
+        promotion_status: "failed_target_keep_non_promotable_shadow",
+      }
+    : {
+        channel: "production",
+        status: "active_legacy_default",
+        default_eligible: true,
+        promotion_eligible: false,
+        promotion_status: "legacy_active_not_requalified",
+      };
+  if (
+    !release ||
+    release.channel !== expected.channel ||
+    release.status !== expected.status ||
+    release.default_eligible !== expected.default_eligible ||
+    release.promotion_eligible !== expected.promotion_eligible ||
+    release.promotion_status !== expected.promotion_status ||
+    typeof release.promotion_reason !== "string" ||
+    release.promotion_reason.length === 0
+  ) {
+    throw new Error("feedback classifier release status or promotion contract changed");
+  }
+}
+
+function assertUnitMetric(value: number, label: string): void {
+  if (!Number.isFinite(value) || value < 0 || value > 1) {
+    throw new Error(`feedback classifier model-card ${label} is invalid`);
+  }
+}
+
+function assertFeedbackModelCard(artifact: FeedbackArtifact): void {
+  const card = artifact.model_card;
+  const modelHash = artifact.source.model_sha256;
+  const shadow = artifact.claim_scope?.diagnostic_shadow_preview === true;
+  if (
+    !card ||
+    card.schema_version !== "durf-feedback-form-model-card-v1" ||
+    !SHA256_PATTERN.test(modelHash) ||
+    card.source_model_sha256 !== modelHash
+  ) {
+    throw new Error("feedback classifier model-card source binding changed");
+  }
+  assertReleasePolicy(card.release, shadow);
+  if (
+    card.training?.trained !== true ||
+    card.training?.frozen !== true ||
+    typeof card.training.status !== "string" ||
+    !SHA256_PATTERN.test(card.training.report_sha256) ||
+    card.training.report_sha256 !== artifact.source.report_sha256 ||
+    card.training.source_model_sha256 !== modelHash
+  ) {
+    throw new Error("feedback classifier model-card training binding changed");
+  }
+  if (!Array.isArray(card.reports) || card.reports.length < 2) {
+    throw new Error("feedback classifier model-card reports are missing");
+  }
+  const reportIds = new Set<string>();
+  for (const report of card.reports) {
+    if (
+      !report.id ||
+      reportIds.has(report.id) ||
+      !report.role ||
+      !SHA256_PATTERN.test(report.report_sha256) ||
+      report.source_model_sha256 !== modelHash ||
+      !Array.isArray(report.binding_fields) ||
+      report.binding_fields.length === 0 ||
+      report.binding_fields.some((field) => typeof field !== "string" || !field)
+    ) {
+      throw new Error("feedback classifier model-card report binding changed");
+    }
+    reportIds.add(report.id);
+  }
+  if (
+    !card.reports.some(
+      (report) =>
+        report.role === "training" &&
+        report.report_sha256 === card.training.report_sha256 &&
+        report.source_model_sha256 === modelHash,
+    )
+  ) {
+    throw new Error("feedback classifier model-card training report is unreferenced");
+  }
+  if (!Array.isArray(card.evidence) || card.evidence.length === 0) {
+    throw new Error("feedback classifier model-card evidence is missing");
+  }
+  const displayEvidence = card.evidence.find(
+    (evidence) => evidence.id === card.display_evidence_id,
+  );
+  const evidenceReport = card.reports.find(
+    (report) => report.id === card.display_evidence_id,
+  );
+  if (
+    !displayEvidence ||
+    !evidenceReport ||
+    displayEvidence.report_sha256 !== evidenceReport.report_sha256 ||
+    displayEvidence.source_model_sha256 !== modelHash ||
+    !displayEvidence.role ||
+    !displayEvidence.scope ||
+    !Number.isInteger(displayEvidence.rows) ||
+    displayEvidence.rows <= 0 ||
+    displayEvidence.human_or_player_gold !== false ||
+    displayEvidence.independent_current_player !== false ||
+    typeof displayEvidence.previously_exposed !== "boolean" ||
+    typeof displayEvidence.target_passed !== "boolean"
+  ) {
+    throw new Error("feedback classifier display evidence binding changed");
+  }
+  assertUnitMetric(displayEvidence.accuracy, "accuracy");
+  assertUnitMetric(displayEvidence.macro_f1, "macro F1");
+  assertUnitMetric(displayEvidence.requested_accuracy_target, "accuracy target");
+  if (
+    card.claims?.independent_current_player_accuracy !== null ||
+    card.claims.calibration_independently_validated !== false ||
+    artifact.claim_scope?.independent_current_player_accuracy !==
+      card.claims.independent_current_player_accuracy ||
+    artifact.claim_scope?.calibration_independently_validated !==
+      card.claims.calibration_independently_validated
+  ) {
+    throw new Error("feedback classifier model-card claim scope changed");
+  }
+  if (
+    shadow &&
+    (artifact.source.diagnostic_report_sha256 !== displayEvidence.report_sha256 ||
+      artifact.claim_scope?.private_diagnostic_accuracy !== displayEvidence.accuracy ||
+      artifact.claim_scope?.private_diagnostic_examples !== displayEvidence.rows)
+  ) {
+    throw new Error("shadow classifier diagnostic evidence binding changed");
+  }
+  if (
+    !shadow &&
+    (!SHA256_PATTERN.test(artifact.source.release_contract_sha256 ?? "") ||
+      artifact.claim_scope?.paper_reference_proxy_accuracy !== displayEvidence.accuracy ||
+      artifact.claim_scope?.paper_reference_proxy_examples !== displayEvidence.rows ||
+      artifact.claim_scope?.paper_reference_proxy_is_previously_exposed !==
+        displayEvidence.previously_exposed)
+  ) {
+    throw new Error("production classifier diagnostic evidence binding changed");
+  }
+}
 
 function assertFeedbackArtifactShape(artifact: FeedbackArtifact): void {
   if (artifact.schema_version !== "durf-feedback-form-browser-v1") {
@@ -135,6 +382,7 @@ function assertFeedbackArtifactShape(artifact: FeedbackArtifact): void {
   ) {
     throw new Error("feedback classifier temperature is invalid");
   }
+  assertFeedbackModelCard(artifact);
 }
 
 function assertShadowArtifactIdentity(artifact: FeedbackArtifact): void {
@@ -148,12 +396,25 @@ function assertShadowArtifactIdentity(artifact: FeedbackArtifact): void {
     artifact.model_version !== "direct-fg-boundary-shadow-model-v1" ||
     artifact.model_type !== "direct_fg_tfidf_logistic_regression_shadow" ||
     artifact.minimum_confidence !== 0.55 ||
-    artifact.calibration?.method !== "temperature_scaling" ||
-    artifact.calibration?.temperature !== SHADOW_TEMPERATURE ||
-    artifact.calibration?.scope !== "train_oof" ||
+    artifact.calibration?.method !== "none" ||
+    artifact.calibration?.temperature !== undefined ||
+    artifact.calibration?.version !== undefined ||
+    artifact.calibration?.scope !== "raw_model_output" ||
     artifact.calibration?.independently_validated !== false ||
     artifact.claim_scope?.diagnostic_shadow_preview !== true ||
     artifact.claim_scope?.calibration_independently_validated !== false ||
+    artifact.claim_scope?.displayed_score_kind !== "raw_model_softmax_score" ||
+    artifact.claim_scope?.displayed_score_is_probability_of_correctness !== false ||
+    artifact.claim_scope?.minimum_confidence_source !==
+      "existing_web_preview_policy_not_validated_in_raw_score_space" ||
+    artifact.score_policy?.kind !== "raw_softmax" ||
+    artifact.score_policy?.version !== "boundary-shadow-raw-softmax-v2" ||
+    artifact.score_policy?.temperature !== SHADOW_DISPLAY_TEMPERATURE ||
+    artifact.score_policy?.probability_of_correctness !== false ||
+    artifact.score_policy?.independently_calibrated !== false ||
+    artifact.score_policy?.routing_threshold !== 0.55 ||
+    artifact.score_policy?.threshold_policy !==
+      "existing_web_preview_policy_not_validated_in_raw_score_space" ||
     artifact.transformers.length !== 2 ||
     word?.name !== "word" ||
     word?.analyzer !== "word" ||
@@ -203,7 +464,7 @@ interface Route2MemberArtifact {
   >;
 }
 
-interface Route2Artifact {
+export interface Route2Artifact {
   schema_version: "durf-route2-browser-v1";
   source: {
     ensemble_manifest_sha256: string;
@@ -272,6 +533,7 @@ export interface Route1PaperResult {
 
 export interface BrowserModels {
   features: string[];
+  classifierEvidence: ClassifierEvidence;
   classifierMode: "production" | "experimental-shadow-preview";
   classifierVariant: FeedbackClassifierVariant;
   classifierManifestPath: string | null;
@@ -280,13 +542,43 @@ export interface BrowserModels {
   route2(text: string, featureCounts?: number[] | Record<string, number>): Route2Prediction;
 }
 
+function classifierEvidence(artifact: FeedbackArtifact): ClassifierEvidence {
+  const card = artifact.model_card;
+  const evidence = card.evidence.find(
+    (candidate) => candidate.id === card.display_evidence_id,
+  );
+  if (!evidence) throw new Error("feedback classifier display evidence is missing");
+  return {
+    trained: card.training.trained,
+    frozen: card.training.frozen,
+    modelVersion: String(artifact.model_version ?? "unknown"),
+    modelHash: artifact.source.model_sha256,
+    releaseStatus: card.release.status,
+    promotionEligible: card.release.promotion_eligible,
+    promotionReason: card.release.promotion_reason,
+    defaultEligible: card.release.default_eligible,
+    independentCurrentPlayerAccuracy:
+      card.claims.independent_current_player_accuracy,
+    diagnosticAccuracy: evidence.accuracy,
+    diagnosticRows: evidence.rows,
+    diagnosticScope: evidence.scope,
+    requestedAccuracyTarget: evidence.requested_accuracy_target,
+    targetPassed: evidence.target_passed,
+    diagnosticPreviouslyExposed: evidence.previously_exposed,
+  };
+}
+
 interface BrowserModelManifestEntry {
   path: string;
   sha256: string;
 }
 
 interface BrowserModelManifest {
-  schema_version: "durf-browser-model-manifest-v1";
+  schema_version: "durf-browser-model-manifest-v2";
+  release: FeedbackReleaseMetadata & {
+    source_model_sha256: string;
+    model_card_schema_version: "durf-feedback-form-model-card-v1";
+  };
   models: {
     feedback_form: BrowserModelManifestEntry;
     route2: BrowserModelManifestEntry;
@@ -394,6 +686,25 @@ function tfidfEntries(
   ]);
 }
 
+/** Shared raw TF-IDF/logistic calculation for separately trained label heads. */
+export function linearTextProbabilities(
+  artifact: {
+    classes: string[];
+    transformers: TfidfTransformerArtifact[];
+    classifier: { coefficients: number[][]; intercept: number[] };
+  },
+  text: string,
+): { probabilities: number[]; matchedFeatures: number } {
+  if (!text.trim()) throw new Error('feedback text cannot be empty');
+  const sparse = artifact.transformers.flatMap((transformer) => tfidfEntries(text, transformer));
+  const logits = artifact.classes.map((_, index) => {
+    let value = artifact.classifier.intercept[index];
+    for (const [feature, score] of sparse) value += artifact.classifier.coefficients[index][feature] * score;
+    return assertFinite(value, 'linear classifier logit');
+  });
+  return { probabilities: softmax(logits), matchedFeatures: sparse.length };
+}
+
 function classifyWithArtifact(
   artifact: FeedbackArtifact,
   rawText: string,
@@ -445,7 +756,9 @@ function classifyWithArtifact(
       temperatureScaled && artifact.calibration?.independently_validated === true,
     calibrationVersion: artifact.calibration?.version ?? null,
     modelHash: artifact.source.model_sha256,
-    scoreKind: temperatureScaled
+    scoreKind: artifact.score_policy?.kind === "raw_softmax"
+      ? "raw_model_softmax_score"
+      : temperatureScaled
       ? artifact.calibration?.scope === "train_oof"
         ? "temperature_scaled_train_oof_probability"
         : "temperature_scaled_selection_dev_probability"
@@ -584,7 +897,7 @@ function predictRoute2Member(
   return output;
 }
 
-function createRoute2Predictor(artifact: Route2Artifact) {
+export function createRoute2Predictor(artifact: Route2Artifact) {
   if (artifact.members.length !== 10) throw new Error("Route2 requires 10 folds");
   const members = artifact.members.map(decodeRoute2Member);
   return (text: string, supplied?: number[] | Record<string, number>): Route2Prediction => {
@@ -621,17 +934,21 @@ export function createBrowserModels(
   route2Artifact: Route2Artifact,
 ): BrowserModels {
   assertFeedbackArtifactShape(feedbackArtifact);
+  if (feedbackArtifact.claim_scope?.diagnostic_shadow_preview) {
+    assertShadowArtifactIdentity(feedbackArtifact);
+  }
   if (route2Artifact.schema_version !== "durf-route2-browser-v1") {
     throw new Error("unsupported Route2 browser artifact");
   }
   const route2 = createRoute2Predictor(route2Artifact);
   return {
     features: [...route2Artifact.features],
+    classifierEvidence: classifierEvidence(feedbackArtifact),
     classifierMode: feedbackArtifact.claim_scope?.diagnostic_shadow_preview
       ? "experimental-shadow-preview"
       : "production",
     classifierVariant: feedbackArtifact.claim_scope?.diagnostic_shadow_preview
-      ? "boundary-shadow-v1"
+      ? "boundary-shadow-raw-v2"
       : "production",
     classifierManifestPath: null,
     classifierArtifactPath: null,
@@ -649,13 +966,13 @@ const CLASSIFIER_RELEASES: Record<
   production: {
     manifestPath: "/models/manifest.json",
     feedbackPath: "/models/feedback-form-v3.json",
-    feedbackSha256: "db5da937ef483a25e92940e8195c7352b6c9f09d0ea3c2e358470cbb6721cc9d",
+    feedbackSha256: "2280f07b71b5790bbd53a90cea38dd4e84fa9e7f1cf34be1510e304b85bdcb48",
   },
-  "boundary-shadow-v1": {
-    manifestPath: "/models/manifest-boundary-shadow-v1.json",
+  "boundary-shadow-raw-v2": {
+    manifestPath: "/models/manifest-boundary-shadow-raw-v2.json",
     feedbackPath:
-      "/models/feedback-form-boundary-shadow-v1-580ab91c21d988d4ea7e146b70e810b68d0e454372b5cf3cb0ea32abb7f81dc3.json",
-    feedbackSha256: "580ab91c21d988d4ea7e146b70e810b68d0e454372b5cf3cb0ea32abb7f81dc3",
+      "/models/feedback-form-boundary-shadow-raw-v2-2f1e1f7ed8836680c4eebd6e6b89f28e565ef99f1dbbf1c6ed03023903719fef.json",
+    feedbackSha256: "2f1e1f7ed8836680c4eebd6e6b89f28e565ef99f1dbbf1c6ed03023903719fef",
   },
 };
 const ROUTE2_RELEASE = {
@@ -664,7 +981,6 @@ const ROUTE2_RELEASE = {
 } as const;
 
 const MODEL_PATH_PATTERN = /^\/models\/[A-Za-z0-9._-]+\.json$/u;
-const SHA256_PATTERN = /^[0-9a-f]{64}$/u;
 
 function modelUrl(baseUrl: string, path: string): string {
   if (!MODEL_PATH_PATTERN.test(path)) throw new Error("model manifest path is invalid");
@@ -698,6 +1014,39 @@ async function fetchJsonWithHash<T>(
   return JSON.parse(new TextDecoder().decode(bytes)) as T;
 }
 
+function assertManifestRelease(
+  release: BrowserModelManifest["release"],
+  classifierVariant: FeedbackClassifierVariant,
+): void {
+  const shadow = classifierVariant === "boundary-shadow-raw-v2";
+  assertReleasePolicy(release, shadow);
+  if (
+    !SHA256_PATTERN.test(release.source_model_sha256) ||
+    release.model_card_schema_version !== "durf-feedback-form-model-card-v1"
+  ) {
+    throw new Error("browser model manifest release evidence is invalid");
+  }
+}
+
+function assertManifestModelCardBinding(
+  release: BrowserModelManifest["release"],
+  artifact: FeedbackArtifact,
+): void {
+  const cardRelease = artifact.model_card.release;
+  if (
+    release.source_model_sha256 !== artifact.source.model_sha256 ||
+    release.model_card_schema_version !== artifact.model_card.schema_version ||
+    release.channel !== cardRelease.channel ||
+    release.status !== cardRelease.status ||
+    release.default_eligible !== cardRelease.default_eligible ||
+    release.promotion_eligible !== cardRelease.promotion_eligible ||
+    release.promotion_status !== cardRelease.promotion_status ||
+    release.promotion_reason !== cardRelease.promotion_reason
+  ) {
+    throw new Error("browser model manifest/model-card release binding changed");
+  }
+}
+
 export async function loadBrowserModelsFromManifest(
   baseUrl = "",
   fetcher: FetchLike = (input, init) => fetch(input, init),
@@ -710,12 +1059,14 @@ export async function loadBrowserModelsFromManifest(
   if (!response.ok) throw new Error("failed to load browser model manifest");
   const manifest = (await response.json()) as BrowserModelManifest;
   if (
-    manifest.schema_version !== "durf-browser-model-manifest-v1" ||
+    manifest.schema_version !== "durf-browser-model-manifest-v2" ||
+    !manifest.release ||
     !manifest.models?.feedback_form ||
     !manifest.models?.route2
   ) {
     throw new Error("unsupported browser model manifest");
   }
+  assertManifestRelease(manifest.release, classifierVariant);
   if (
     manifest.models.feedback_form.path !== release.feedbackPath ||
     manifest.models.feedback_form.sha256 !== release.feedbackSha256 ||
@@ -738,7 +1089,8 @@ export async function loadBrowserModelsFromManifest(
       fetcher,
     ),
   ]);
-  if (classifierVariant === "boundary-shadow-v1") {
+  assertManifestModelCardBinding(manifest.release, feedback);
+  if (classifierVariant === "boundary-shadow-raw-v2") {
     assertShadowArtifactIdentity(feedback);
   }
   const models = createBrowserModels(feedback, route2);
@@ -763,10 +1115,10 @@ export function classifierVariantFromSearch(search: string): FeedbackClassifierV
   if (requested.length !== 1) {
     throw new Error("classifier query parameter must appear exactly once");
   }
-  if (requested[0] !== "boundary-shadow-v1") {
+  if (requested[0] !== "boundary-shadow-raw-v2") {
     throw new Error(`unsupported classifier query parameter: ${requested[0]}`);
   }
-  return "boundary-shadow-v1";
+  return "boundary-shadow-raw-v2";
 }
 
 export function loadBrowserModels(
@@ -891,7 +1243,13 @@ export function applyRoute1PaperUpdate(
         : observation.namedFeatures ?? {};
   const { vector, selected } = normalizedReference(state.features, source);
   const confidence = observation.feedbackFormConfidence;
-  const effectivePrecision = (observation.basePrecision ?? 2) * confidence;
+  // The classifier score decides whether the observation is accepted. Once
+  // accepted, the paper uses fixed feedback-noise variance 1/2 (precision 2),
+  // not a confidence-scaled observation precision.
+  const effectivePrecision = observation.basePrecision ?? 2;
+  if (!(effectivePrecision > 0)) {
+    throw new Error("Route1 observation precision must be positive");
+  }
   const rejectedReason =
     observation.feedbackFormAbstained || !(confidence >= threshold)
       ? "feedback_form_low_confidence"

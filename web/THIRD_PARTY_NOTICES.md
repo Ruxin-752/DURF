@@ -11,6 +11,13 @@ This project uses the following MIT-licensed software packages:
 
 See each installed package's `LICENSE` file for its complete license text.
 
+The browser sentiment implementation and lexical resources are adapted from
+VADER 3.3.2 by C. J. Hutto and Eric Gilbert (MIT). The complete license and
+copyright notice are included in `public/licenses/VADER-LICENSE.txt` and
+the vendored source directory. This lexicon is a fixed dependency of the paper's
+sentiment method; the new speech-act and grounding classifiers are trained only
+on generated synthetic data.
+
 ## Visual assets
 
 No Team17/Overcooked game art or other third-party game sprites are included.

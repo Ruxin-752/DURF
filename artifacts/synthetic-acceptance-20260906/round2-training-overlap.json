@@ -1,0 +1,34 @@
+{
+  "dataset_sha256": "23c4272190395efa3e9b9791f68b75fda502a9019c85ab2ae5e120d8fc999fea",
+  "scope": "Exact normalized overlap only; independently authored AI synthetic labels are not human validation.",
+  "sources": [
+    {
+      "path": "data\\synthetic_feedback_v1\\final-v2\\train.json",
+      "sha256": "3e3bf9abb367f0f8a36f556ab2f9d945a21e49dd6b801e97c234da326fe96d43",
+      "rows": 62462,
+      "all_rows_human_data_false": true,
+      "overlap_count": 0,
+      "overlap_ids": []
+    },
+    {
+      "path": "data\\synthetic_feedback_v1\\final-v2\\dev.json",
+      "sha256": "9432911f0d293d91a16a0441f08be6fb29bdf1ff683359c73cc577eb637a07e2",
+      "rows": 1101,
+      "all_rows_human_data_false": true,
+      "overlap_count": 1,
+      "overlap_ids": [
+        "NM011:C3"
+      ]
+    },
+    {
+      "path": "data\\synthetic_feedback_v1\\final\\train.json",
+      "sha256": "029043518b93c18aa2efdc3105f07a6f44b2c7576b84cc49597ffcd1976a247e",
+      "rows": 12871,
+      "all_rows_human_data_false": true,
+      "overlap_count": 1,
+      "overlap_ids": [
+        "NM011:C3"
+      ]
+    }
+  ]
+}

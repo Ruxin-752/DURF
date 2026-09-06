@@ -7,15 +7,10 @@ const root = join(import.meta.dirname, '..');
 const component = readFileSync(join(root, 'components', 'kitchen-game-app.tsx'), 'utf8');
 const css = readFileSync(join(root, 'app', 'globals.css'), 'utf8');
 
-describe('layered CSS pixel chefs', () => {
+describe('simple CSS chefs', () => {
   const layers = [
-    'chef-feet',
     'chef-body',
-    'chef-arms',
-    'chef-apron',
-    'chef-hair',
     'chef-face',
-    'chef-scarf',
     'chef-hat',
   ];
 
@@ -23,6 +18,10 @@ describe('layered CSS pixel chefs', () => {
     for (const layer of layers) {
       expect(component).toContain(`aria-hidden="true" className="${layer}"`);
       expect(css).toContain(`.${layer}`);
+    }
+
+    for (const removedLayer of ['chef-arms', 'chef-apron', 'chef-hair', 'chef-scarf']) {
+      expect(component).not.toContain(`className="${removedLayer}"`);
     }
   });
 

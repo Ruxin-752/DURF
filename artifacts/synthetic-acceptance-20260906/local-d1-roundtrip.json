@@ -1,0 +1,19 @@
+{
+  "scope": "local Miniflare D1 engine, not production",
+  "status": 200,
+  "response": {
+    "ok": true,
+    "diagnostic_version": "durf-isolated-synthetic-roundtrip-v1",
+    "schema_version": "durf-web-event-v2",
+    "client_version": "durf-kitchen-synthetic-0.3.0",
+    "no_research_rows_written": true,
+    "data_roundtrip": {
+      "inserted": true,
+      "read_back_matches": true,
+      "deleted": true
+    },
+    "scope": "Isolated synthetic database transport only; participant ingestion and training quality are not measured."
+  },
+  "remaining_diagnostic_rows": 0,
+  "study_tables_created": 0
+}

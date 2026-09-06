@@ -1,0 +1,72 @@
+{
+  "candidate_only": true,
+  "frozen_test": {
+    "labels_read": false,
+    "metrics_computed": false,
+    "path_opened": false
+  },
+  "inputs": {
+    "boundary": {
+      "path": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\data\\feedback_form_boundary_train.v1.json",
+      "sha256": "0d52e35a096b1dc502f47653d9090f206a0ac6af732e5f8fd48cfbd35566e4ca"
+    },
+    "human_dev_secondary": {
+      "path": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\data\\human_feedback_form_dev.json",
+      "sha256": "b3b33a3f2e1db4a6274b5999f3aba1e4d60f6562ca8155b7c27f002693f6e248"
+    },
+    "human_train": {
+      "path": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\data\\human_feedback_form_train.json",
+      "sha256": "7f0973399940ab4b8541f3b27c73802d319084d3be1b8071229c130dc1cda3af"
+    },
+    "paper_proxy_secondary": {
+      "path": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\data\\paper_feedback_form_human_dev.v1.json",
+      "sha256": "adae98ac5bde654a56e6a318917058fec1a80220b2cd13584cba2c80a3cd2f6a"
+    }
+  },
+  "outputs": {
+    "corpus": {
+      "path": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\data\\direct_fg_classifier_corpus.v1.json",
+      "sha256": "710f8f09ad09185cefb7d097a4eef57986ed1b1a46bef000b750fd24d206eaf4"
+    },
+    "model": {
+      "path": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\feedback_form_classifier_candidates\\direct_fg_v1\\model.joblib",
+      "sha256": "0c737d1557b65863f248027846f41d8a7345d90aef10af4ea69321b3355dd9e9"
+    },
+    "report": {
+      "path": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\feedback_form_classifier_candidates\\direct_fg_v1\\model.report.json",
+      "sha256": "3bf551099169080fefbf6748ee9281407657f57ea779ecc803d7f96a84facf31"
+    }
+  },
+  "production_artifact_overwritten": false,
+  "promotion_status": "not_promoted",
+  "quality_gate": {
+    "direct_dev_accuracy_at_least_0_87": true,
+    "direct_dev_macro_f1_at_least_0_87": true,
+    "minimum_direct_dev_class_recall_at_least_0_70": true,
+    "natural_probe_accuracy_at_least_0_80": true,
+    "reference_type_used_as_target": false,
+    "split_integrity_passed": true,
+    "status": "passed_research_candidate_not_promoted"
+  },
+  "reference_type_policy": {
+    "five_class_role": "provenance_or_downstream_routing_only",
+    "mapping": null,
+    "used_as_target": false
+  },
+  "selection": {
+    "frozen_or_test_rows_used": 0,
+    "human_direct_dev_used_for_selection": false,
+    "natural_probe_used_for_selection": false,
+    "paper_reference_proxy_used_for_selection": false,
+    "primary": "direct_fG_family_and_group_disjoint_dev_macro_f1",
+    "tie_breakers": [
+      "minimum_per_class_recall",
+      "balanced_accuracy",
+      "accuracy",
+      "raw_negative_log_likelihood",
+      "smaller_C"
+    ]
+  },
+  "target": "direct_fG_surface_speech_act",
+  "version": "direct-fg-classifier-candidate-v1"
+}

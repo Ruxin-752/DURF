@@ -1,0 +1,668 @@
+{
+  "candidates": [
+    {
+      "independent_human_proxy_dev": {
+        "accuracy": 0.9292929292929293,
+        "balanced_accuracy": 0.9471182412358883,
+        "calibrated_ece_10_bin": 0.030156755128566567,
+        "calibration_warning": "temperature fitted and measured on selection dev",
+        "correct_rows": 92,
+        "macro_f1": 0.9259259259259259,
+        "minimum_class_recall": 0.9019607843137255,
+        "per_class_recall": {
+          "descriptive": 0.9393939393939394,
+          "evaluative": 0.9019607843137255,
+          "imperative": 1.0
+        },
+        "rows": 99,
+        "source": "original_paper_human"
+      },
+      "name": "production_baseline",
+      "natural_probe": {
+        "calibrated_probability_metrics": {
+          "accuracy_from_probabilities": 0.6842105263157895,
+          "ece_10_bin": 0.13524611502866102,
+          "mean_confidence": 0.7691864706682896,
+          "multiclass_brier": 0.333488059520589,
+          "negative_log_likelihood": 0.5650463622239553,
+          "rows": 19
+        },
+        "classification": {
+          "accuracy": 0.6842105263157895,
+          "all_labels_present": true,
+          "balanced_accuracy": 0.6666666666666666,
+          "confusion_matrix": [
+            [
+              7,
+              0,
+              0
+            ],
+            [
+              1,
+              4,
+              1
+            ],
+            [
+              1,
+              3,
+              2
+            ]
+          ],
+          "label_order": [
+            "evaluative",
+            "imperative",
+            "descriptive"
+          ],
+          "label_support": {
+            "descriptive": 6,
+            "evaluative": 7,
+            "imperative": 6
+          },
+          "macro_f1": 0.64494301994302,
+          "per_class": {
+            "descriptive": {
+              "f1-score": 0.4444444444444444,
+              "precision": 0.6666666666666666,
+              "recall": 0.3333333333333333
+            },
+            "evaluative": {
+              "f1-score": 0.875,
+              "precision": 0.7777777777777778,
+              "recall": 1.0
+            },
+            "imperative": {
+              "f1-score": 0.6153846153846154,
+              "precision": 0.5714285714285714,
+              "recall": 0.6666666666666666
+            }
+          },
+          "rows": 19
+        },
+        "raw_probability_metrics": {
+          "accuracy_from_probabilities": 0.6842105263157895,
+          "ece_10_bin": 0.2839315959531663,
+          "mean_confidence": 0.6339153600166124,
+          "multiclass_brier": 0.3567266386080739,
+          "negative_log_likelihood": 0.6369116810984603,
+          "rows": 19
+        },
+        "rows": 19,
+        "selection_uses_this_probe": false
+      },
+      "overall_dev": {
+        "accuracy": 0.9065420560747663,
+        "balanced_accuracy": 0.9161127750194867,
+        "macro_f1": 0.9070063078683769,
+        "per_class_recall": {
+          "descriptive": 0.8174603174603174,
+          "evaluative": 0.941747572815534,
+          "imperative": 0.9891304347826086
+        },
+        "rows": 321
+      },
+      "preserves_baseline_guard": true,
+      "requested_phrase": {
+        "calibrated_confidence": 0.9971395040700257,
+        "calibrated_prediction": "evaluative",
+        "calibrated_probabilities": {
+          "descriptive": 0.0012091829125531884,
+          "evaluative": 0.9971395040700257,
+          "imperative": 0.0016513130174208926
+        },
+        "calibration": {
+          "calibrated": true,
+          "calibration_status": "temperature_scaled_on_selection_dev_not_independently_validated",
+          "calibration_version": "feedback-form-temperature-dev-v1"
+        },
+        "raw_confidence": 0.940766449166594,
+        "raw_prediction": "evaluative",
+        "raw_probabilities": {
+          "descriptive": 0.02718674996555554,
+          "evaluative": 0.940766449166594,
+          "imperative": 0.032046800867850236
+        },
+        "text": "That move was very good."
+      }
+    },
+    {
+      "independent_human_proxy_dev": {
+        "accuracy": 0.9191919191919192,
+        "balanced_accuracy": 0.9284610814022578,
+        "calibrated_ece_10_bin": 0.05127927205663169,
+        "calibration_warning": "temperature fitted and measured on selection dev",
+        "correct_rows": 91,
+        "macro_f1": 0.911514605842337,
+        "minimum_class_recall": 0.8823529411764706,
+        "per_class_recall": {
+          "descriptive": 0.9696969696969697,
+          "evaluative": 0.8823529411764706,
+          "imperative": 0.9333333333333333
+        },
+        "rows": 99,
+        "source": "original_paper_human"
+      },
+      "model_path": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\feedback_form_classifier_candidates\\boundary_v1\\weight_0p01\\model.joblib",
+      "model_sha256": "cb2a31f4b0dc284659fd5e00cdee114855225379aa5a5a270143fa75a292e0fc",
+      "name": "boundary_weight_0.01",
+      "natural_probe": {
+        "calibrated_probability_metrics": {
+          "accuracy_from_probabilities": 0.8421052631578947,
+          "ece_10_bin": 0.11023050364729144,
+          "mean_confidence": 0.800111832484546,
+          "multiclass_brier": 0.2669424469685608,
+          "negative_log_likelihood": 0.4813726641540115,
+          "rows": 19
+        },
+        "classification": {
+          "accuracy": 0.8421052631578947,
+          "all_labels_present": true,
+          "balanced_accuracy": 0.8333333333333334,
+          "confusion_matrix": [
+            [
+              7,
+              0,
+              0
+            ],
+            [
+              1,
+              4,
+              1
+            ],
+            [
+              0,
+              1,
+              5
+            ]
+          ],
+          "label_order": [
+            "evaluative",
+            "imperative",
+            "descriptive"
+          ],
+          "label_support": {
+            "descriptive": 6,
+            "evaluative": 7,
+            "imperative": 6
+          },
+          "macro_f1": 0.8313131313131313,
+          "per_class": {
+            "descriptive": {
+              "f1-score": 0.8333333333333334,
+              "precision": 0.8333333333333334,
+              "recall": 0.8333333333333334
+            },
+            "evaluative": {
+              "f1-score": 0.9333333333333333,
+              "precision": 0.875,
+              "recall": 1.0
+            },
+            "imperative": {
+              "f1-score": 0.7272727272727273,
+              "precision": 0.8,
+              "recall": 0.6666666666666666
+            }
+          },
+          "rows": 19
+        },
+        "raw_probability_metrics": {
+          "accuracy_from_probabilities": 0.8421052631578947,
+          "ece_10_bin": 0.19686365086905486,
+          "mean_confidence": 0.6786914942404132,
+          "multiclass_brier": 0.29925917809311847,
+          "negative_log_likelihood": 0.5529936506755425,
+          "rows": 19
+        },
+        "rows": 19,
+        "selection_uses_this_probe": false
+      },
+      "overall_dev": {
+        "accuracy": 0.940809968847352,
+        "balanced_accuracy": 0.9452133041200158,
+        "macro_f1": 0.9408360193800807,
+        "per_class_recall": {
+          "descriptive": 0.9047619047619048,
+          "evaluative": 0.941747572815534,
+          "imperative": 0.9891304347826086
+        },
+        "rows": 321
+      },
+      "preserves_baseline_guard": false,
+      "report_path": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\feedback_form_classifier_candidates\\boundary_v1\\weight_0p01\\model.report.json",
+      "requested_phrase": {
+        "calibrated_confidence": 0.9984122012702337,
+        "calibrated_prediction": "evaluative",
+        "calibrated_probabilities": {
+          "descriptive": 0.0006070753787830133,
+          "evaluative": 0.9984122012702337,
+          "imperative": 0.000980723350983354
+        },
+        "calibration": {
+          "calibrated": true,
+          "calibration_status": "temperature_scaled_on_selection_dev_not_independently_validated",
+          "calibration_version": "feedback-form-temperature-dev-v1"
+        },
+        "raw_confidence": 0.9662094833021306,
+        "raw_prediction": "evaluative",
+        "raw_probabilities": {
+          "descriptive": 0.014615984330245527,
+          "evaluative": 0.9662094833021306,
+          "imperative": 0.019174532367623967
+        },
+        "text": "That move was very good."
+      }
+    },
+    {
+      "independent_human_proxy_dev": {
+        "accuracy": 0.9191919191919192,
+        "balanced_accuracy": 0.9441473559120618,
+        "calibrated_ece_10_bin": 0.0424652602407231,
+        "calibration_warning": "temperature fitted and measured on selection dev",
+        "correct_rows": 91,
+        "macro_f1": 0.9177646025472113,
+        "minimum_class_recall": 0.8627450980392157,
+        "per_class_recall": {
+          "descriptive": 0.9696969696969697,
+          "evaluative": 0.8627450980392157,
+          "imperative": 1.0
+        },
+        "rows": 99,
+        "source": "original_paper_human"
+      },
+      "model_path": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\feedback_form_classifier_candidates\\boundary_v1\\weight_0p025\\model.joblib",
+      "model_sha256": "e947facb85e342610076626315ddfc03f027f3d629f55c93caa0cbedb297bb0b",
+      "name": "boundary_weight_0.025",
+      "natural_probe": {
+        "calibrated_probability_metrics": {
+          "accuracy_from_probabilities": 0.7894736842105263,
+          "ece_10_bin": 0.0719601814867599,
+          "mean_confidence": 0.7581162240510694,
+          "multiclass_brier": 0.2885667691895537,
+          "negative_log_likelihood": 0.5239724883234188,
+          "rows": 19
+        },
+        "classification": {
+          "accuracy": 0.7894736842105263,
+          "all_labels_present": true,
+          "balanced_accuracy": 0.7777777777777777,
+          "confusion_matrix": [
+            [
+              7,
+              0,
+              0
+            ],
+            [
+              1,
+              4,
+              1
+            ],
+            [
+              1,
+              1,
+              4
+            ]
+          ],
+          "label_order": [
+            "evaluative",
+            "imperative",
+            "descriptive"
+          ],
+          "label_support": {
+            "descriptive": 6,
+            "evaluative": 7,
+            "imperative": 6
+          },
+          "macro_f1": 0.7765151515151515,
+          "per_class": {
+            "descriptive": {
+              "f1-score": 0.7272727272727273,
+              "precision": 0.8,
+              "recall": 0.6666666666666666
+            },
+            "evaluative": {
+              "f1-score": 0.875,
+              "precision": 0.7777777777777778,
+              "recall": 1.0
+            },
+            "imperative": {
+              "f1-score": 0.7272727272727273,
+              "precision": 0.8,
+              "recall": 0.6666666666666666
+            }
+          },
+          "rows": 19
+        },
+        "raw_probability_metrics": {
+          "accuracy_from_probabilities": 0.7894736842105263,
+          "ece_10_bin": 0.050830632500080214,
+          "mean_confidence": 0.7485833740170721,
+          "multiclass_brier": 0.29010844303989053,
+          "negative_log_likelihood": 0.5269081207555123,
+          "rows": 19
+        },
+        "rows": 19,
+        "selection_uses_this_probe": false
+      },
+      "overall_dev": {
+        "accuracy": 0.9501557632398754,
+        "balanced_accuracy": 0.9535367545076282,
+        "macro_f1": 0.9503193882141251,
+        "per_class_recall": {
+          "descriptive": 0.9285714285714286,
+          "evaluative": 0.9320388349514563,
+          "imperative": 1.0
+        },
+        "rows": 321
+      },
+      "preserves_baseline_guard": false,
+      "report_path": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\feedback_form_classifier_candidates\\boundary_v1\\weight_0p025\\model.report.json",
+      "requested_phrase": {
+        "calibrated_confidence": 0.9964369385157992,
+        "calibrated_prediction": "evaluative",
+        "calibrated_probabilities": {
+          "descriptive": 0.001181709456293465,
+          "evaluative": 0.9964369385157992,
+          "imperative": 0.0023813520279073208
+        },
+        "calibration": {
+          "calibrated": true,
+          "calibration_status": "temperature_scaled_on_selection_dev_not_independently_validated",
+          "calibration_version": "feedback-form-temperature-dev-v1"
+        },
+        "raw_confidence": 0.9951702635234257,
+        "raw_prediction": "evaluative",
+        "raw_probabilities": {
+          "descriptive": 0.0016385512941629427,
+          "evaluative": 0.9951702635234257,
+          "imperative": 0.003191185182411113
+        },
+        "text": "That move was very good."
+      }
+    },
+    {
+      "independent_human_proxy_dev": {
+        "accuracy": 0.9191919191919192,
+        "balanced_accuracy": 0.9284610814022578,
+        "calibrated_ece_10_bin": 0.04136031731567628,
+        "calibration_warning": "temperature fitted and measured on selection dev",
+        "correct_rows": 91,
+        "macro_f1": 0.911514605842337,
+        "minimum_class_recall": 0.8823529411764706,
+        "per_class_recall": {
+          "descriptive": 0.9696969696969697,
+          "evaluative": 0.8823529411764706,
+          "imperative": 0.9333333333333333
+        },
+        "rows": 99,
+        "source": "original_paper_human"
+      },
+      "model_path": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\feedback_form_classifier_candidates\\boundary_v1\\weight_0p05\\model.joblib",
+      "model_sha256": "5e63659b7ad617f26e3317884646a24342a259461730f11bc7e13b8ef77c04b9",
+      "name": "boundary_weight_0.05",
+      "natural_probe": {
+        "calibrated_probability_metrics": {
+          "accuracy_from_probabilities": 0.8421052631578947,
+          "ece_10_bin": 0.1461572948863341,
+          "mean_confidence": 0.8012164262056449,
+          "multiclass_brier": 0.2581093864609265,
+          "negative_log_likelihood": 0.47457507404995636,
+          "rows": 19
+        },
+        "classification": {
+          "accuracy": 0.8421052631578947,
+          "all_labels_present": true,
+          "balanced_accuracy": 0.8333333333333334,
+          "confusion_matrix": [
+            [
+              7,
+              0,
+              0
+            ],
+            [
+              0,
+              4,
+              2
+            ],
+            [
+              0,
+              1,
+              5
+            ]
+          ],
+          "label_order": [
+            "evaluative",
+            "imperative",
+            "descriptive"
+          ],
+          "label_support": {
+            "descriptive": 6,
+            "evaluative": 7,
+            "imperative": 6
+          },
+          "macro_f1": 0.8321678321678322,
+          "per_class": {
+            "descriptive": {
+              "f1-score": 0.7692307692307693,
+              "precision": 0.7142857142857143,
+              "recall": 0.8333333333333334
+            },
+            "evaluative": {
+              "f1-score": 1.0,
+              "precision": 1.0,
+              "recall": 1.0
+            },
+            "imperative": {
+              "f1-score": 0.7272727272727273,
+              "precision": 0.8,
+              "recall": 0.6666666666666666
+            }
+          },
+          "rows": 19
+        },
+        "raw_probability_metrics": {
+          "accuracy_from_probabilities": 0.8421052631578947,
+          "ece_10_bin": 0.12739160083565515,
+          "mean_confidence": 0.7147857270033479,
+          "multiclass_brier": 0.27966530767416947,
+          "negative_log_likelihood": 0.5197737549466023,
+          "rows": 19
+        },
+        "rows": 19,
+        "selection_uses_this_probe": false
+      },
+      "overall_dev": {
+        "accuracy": 0.9439252336448598,
+        "balanced_accuracy": 0.9468811210052239,
+        "macro_f1": 0.9437735073482204,
+        "per_class_recall": {
+          "descriptive": 0.9206349206349206,
+          "evaluative": 0.941747572815534,
+          "imperative": 0.9782608695652174
+        },
+        "rows": 321
+      },
+      "preserves_baseline_guard": false,
+      "report_path": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\feedback_form_classifier_candidates\\boundary_v1\\weight_0p05\\model.report.json",
+      "requested_phrase": {
+        "calibrated_confidence": 0.9982641964636042,
+        "calibrated_prediction": "evaluative",
+        "calibrated_probabilities": {
+          "descriptive": 0.000563929281843777,
+          "evaluative": 0.9982641964636042,
+          "imperative": 0.0011718742545519926
+        },
+        "calibration": {
+          "calibrated": true,
+          "calibration_status": "temperature_scaled_on_selection_dev_not_independently_validated",
+          "calibration_version": "feedback-form-temperature-dev-v1"
+        },
+        "raw_confidence": 0.9828398108155743,
+        "raw_prediction": "evaluative",
+        "raw_probabilities": {
+          "descriptive": 0.006516734110060731,
+          "evaluative": 0.9828398108155743,
+          "imperative": 0.010643455074364927
+        },
+        "text": "That move was very good."
+      }
+    },
+    {
+      "independent_human_proxy_dev": {
+        "accuracy": 0.9191919191919192,
+        "balanced_accuracy": 0.924896019013666,
+        "calibrated_ece_10_bin": 0.026252292938996592,
+        "calibration_warning": "temperature fitted and measured on selection dev",
+        "correct_rows": 91,
+        "macro_f1": 0.9114646464646464,
+        "minimum_class_recall": 0.9019607843137255,
+        "per_class_recall": {
+          "descriptive": 0.9393939393939394,
+          "evaluative": 0.9019607843137255,
+          "imperative": 0.9333333333333333
+        },
+        "rows": 99,
+        "source": "original_paper_human"
+      },
+      "model_path": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\feedback_form_classifier_candidates\\boundary_v1\\weight_0p1\\model.joblib",
+      "model_sha256": "2ac629c61e7ed134e63ec47056dbca8c30355f0f417024c4c5d242157bfff308",
+      "name": "boundary_weight_0.1",
+      "natural_probe": {
+        "calibrated_probability_metrics": {
+          "accuracy_from_probabilities": 0.7894736842105263,
+          "ece_10_bin": 0.17394631357420992,
+          "mean_confidence": 0.7423481327028029,
+          "multiclass_brier": 0.33968868144893294,
+          "negative_log_likelihood": 0.602477464047033,
+          "rows": 19
+        },
+        "classification": {
+          "accuracy": 0.7894736842105263,
+          "all_labels_present": true,
+          "balanced_accuracy": 0.7777777777777777,
+          "confusion_matrix": [
+            [
+              7,
+              0,
+              0
+            ],
+            [
+              1,
+              4,
+              1
+            ],
+            [
+              1,
+              1,
+              4
+            ]
+          ],
+          "label_order": [
+            "evaluative",
+            "imperative",
+            "descriptive"
+          ],
+          "label_support": {
+            "descriptive": 6,
+            "evaluative": 7,
+            "imperative": 6
+          },
+          "macro_f1": 0.7765151515151515,
+          "per_class": {
+            "descriptive": {
+              "f1-score": 0.7272727272727273,
+              "precision": 0.8,
+              "recall": 0.6666666666666666
+            },
+            "evaluative": {
+              "f1-score": 0.875,
+              "precision": 0.7777777777777778,
+              "recall": 1.0
+            },
+            "imperative": {
+              "f1-score": 0.7272727272727273,
+              "precision": 0.8,
+              "recall": 0.6666666666666666
+            }
+          },
+          "rows": 19
+        },
+        "raw_probability_metrics": {
+          "accuracy_from_probabilities": 0.7894736842105263,
+          "ece_10_bin": 0.2381231529735088,
+          "mean_confidence": 0.5639078944924938,
+          "multiclass_brier": 0.4006706344187588,
+          "negative_log_likelihood": 0.7158858000654567,
+          "rows": 19
+        },
+        "rows": 19,
+        "selection_uses_this_probe": false
+      },
+      "overall_dev": {
+        "accuracy": 0.9065420560747663,
+        "balanced_accuracy": 0.908291288937131,
+        "macro_f1": 0.9052846762419708,
+        "per_class_recall": {
+          "descriptive": 0.8809523809523809,
+          "evaluative": 0.941747572815534,
+          "imperative": 0.9021739130434783
+        },
+        "rows": 321
+      },
+      "preserves_baseline_guard": false,
+      "report_path": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\feedback_form_classifier_candidates\\boundary_v1\\weight_0p1\\model.report.json",
+      "requested_phrase": {
+        "calibrated_confidence": 0.9982901059820961,
+        "calibrated_prediction": "evaluative",
+        "calibrated_probabilities": {
+          "descriptive": 0.000906556170155998,
+          "evaluative": 0.9982901059820961,
+          "imperative": 0.0008033378477477546
+        },
+        "calibration": {
+          "calibrated": true,
+          "calibration_status": "temperature_scaled_on_selection_dev_not_independently_validated",
+          "calibration_version": "feedback-form-temperature-dev-v1"
+        },
+        "raw_confidence": 0.8795686794899042,
+        "raw_prediction": "evaluative",
+        "raw_probabilities": {
+          "descriptive": 0.061596943846855275,
+          "evaluative": 0.8795686794899042,
+          "imperative": 0.058834376663240574
+        },
+        "text": "That move was very good."
+      }
+    }
+  ],
+  "data": {
+    "base_train_rows": 3194,
+    "boundary_extension_rows": 504,
+    "boundary_label_counts": {
+      "descriptive": 168,
+      "evaluative": 168,
+      "imperative": 168
+    },
+    "candidate_train_rows": 3698,
+    "dev_rows": 321,
+    "frozen_test_bound_by_manifest_not_opened": true,
+    "known_holdout_exact_overlap": 0,
+    "train_dev_exact_overlap": 0
+  },
+  "production_replaced": false,
+  "promotion_requires_separate_approval_and_frozen_evaluation": true,
+  "selected": "production_baseline",
+  "selection_protocol": {
+    "frozen_test_loaded": false,
+    "guard": "do_not_reduce baseline overall accuracy/macro-F1 or human-proxy accuracy/macro-F1",
+    "human_test_loaded": false,
+    "model_selection_data": "train_and_dev_only",
+    "natural_probe_used_for_selection": false,
+    "primary": "independent_original_paper_human_dev_macro_f1",
+    "test_examples_evaluated_during_selection": 0,
+    "tie_breakers": [
+      "human_proxy_minimum_class_recall",
+      "human_proxy_calibrated_ece_10_bin_lower_is_better",
+      "overall_dev_macro_f1"
+    ]
+  },
+  "version": "feedback-form-boundary-candidate-sweep-v1"
+}

@@ -1,0 +1,510 @@
+{
+  "scope": "Agent-authored English speech-act diagnostic; not human gold, not independent current-player accuracy. All models frozen before this audit. No training or production edits.",
+  "rows": [
+    {
+      "id": "evaluative-1",
+      "text": "Nice work!",
+      "expected": "evaluative",
+      "stratum": "single_clause"
+    },
+    {
+      "id": "evaluative-2",
+      "text": "That was a terrible move.",
+      "expected": "evaluative",
+      "stratum": "single_clause"
+    },
+    {
+      "id": "evaluative-3",
+      "text": "You handled that order well.",
+      "expected": "evaluative",
+      "stratum": "single_clause"
+    },
+    {
+      "id": "evaluative-4",
+      "text": "Your last delivery was excellent.",
+      "expected": "evaluative",
+      "stratum": "single_clause"
+    },
+    {
+      "id": "evaluative-5",
+      "text": "I liked how you avoided the collision.",
+      "expected": "evaluative",
+      "stratum": "single_clause"
+    },
+    {
+      "id": "evaluative-6",
+      "text": "You did a poor job of sharing the counter.",
+      "expected": "evaluative",
+      "stratum": "single_clause"
+    },
+    {
+      "id": "evaluative-7",
+      "text": "That detour was unnecessary.",
+      "expected": "evaluative",
+      "stratum": "single_clause"
+    },
+    {
+      "id": "evaluative-8",
+      "text": "Great teamwork on the soup!",
+      "expected": "evaluative",
+      "stratum": "single_clause"
+    },
+    {
+      "id": "evaluative-9",
+      "text": "Waiting there was a bad decision.",
+      "expected": "evaluative",
+      "stratum": "single_clause"
+    },
+    {
+      "id": "evaluative-10",
+      "text": "You made the right choice.",
+      "expected": "evaluative",
+      "stratum": "single_clause"
+    },
+    {
+      "id": "evaluative-11",
+      "text": "That was not a good handoff.",
+      "expected": "evaluative",
+      "stratum": "single_clause"
+    },
+    {
+      "id": "evaluative-12",
+      "text": "Your timing was perfect.",
+      "expected": "evaluative",
+      "stratum": "single_clause"
+    },
+    {
+      "id": "evaluative-13",
+      "text": "I appreciate your help with the dishes.",
+      "expected": "evaluative",
+      "stratum": "single_clause"
+    },
+    {
+      "id": "evaluative-14",
+      "text": "Your last action was helpful.",
+      "expected": "evaluative",
+      "stratum": "single_clause"
+    },
+    {
+      "id": "evaluative-15",
+      "text": "The way you fetched that onion was inefficient.",
+      "expected": "evaluative",
+      "stratum": "single_clause"
+    },
+    {
+      "id": "evaluative-16",
+      "text": "Dropping the plate there was a mistake.",
+      "expected": "evaluative",
+      "stratum": "single_clause"
+    },
+    {
+      "id": "evaluative-17",
+      "text": "Well done on clearing the route.",
+      "expected": "evaluative",
+      "stratum": "single_clause"
+    },
+    {
+      "id": "evaluative-18",
+      "text": "Your move to the right was careless.",
+      "expected": "evaluative",
+      "stratum": "single_clause"
+    },
+    {
+      "id": "evaluative-19",
+      "text": "You were too slow with that order.",
+      "expected": "evaluative",
+      "stratum": "single_clause"
+    },
+    {
+      "id": "evaluative-20",
+      "text": "That was a clever way to get around the pot.",
+      "expected": "evaluative",
+      "stratum": "single_clause"
+    },
+    {
+      "id": "imperative-1",
+      "text": "Go to the stove.",
+      "expected": "imperative",
+      "stratum": "single_clause"
+    },
+    {
+      "id": "imperative-2",
+      "text": "Bring me a clean plate.",
+      "expected": "imperative",
+      "stratum": "single_clause"
+    },
+    {
+      "id": "imperative-3",
+      "text": "Please collect another onion.",
+      "expected": "imperative",
+      "stratum": "single_clause"
+    },
+    {
+      "id": "imperative-4",
+      "text": "Could you take the soup to the serving window?",
+      "expected": "imperative",
+      "stratum": "single_clause"
+    },
+    {
+      "id": "imperative-5",
+      "text": "Stop blocking the doorway.",
+      "expected": "imperative",
+      "stratum": "single_clause"
+    },
+    {
+      "id": "imperative-6",
+      "text": "Don't put the plate on the floor.",
+      "expected": "imperative",
+      "stratum": "single_clause"
+    },
+    {
+      "id": "imperative-7",
+      "text": "Do not move into my path.",
+      "expected": "imperative",
+      "stratum": "single_clause"
+    },
+    {
+      "id": "imperative-8",
+      "text": "You should fetch a dish.",
+      "expected": "imperative",
+      "stratum": "single_clause"
+    },
+    {
+      "id": "imperative-9",
+      "text": "Would you mind waiting beside the sink?",
+      "expected": "imperative",
+      "stratum": "single_clause"
+    },
+    {
+      "id": "imperative-10",
+      "text": "Let me pass.",
+      "expected": "imperative",
+      "stratum": "single_clause"
+    },
+    {
+      "id": "imperative-11",
+      "text": "Keep the middle counter clear.",
+      "expected": "imperative",
+      "stratum": "single_clause"
+    },
+    {
+      "id": "imperative-12",
+      "text": "Avoid the narrow corridor.",
+      "expected": "imperative",
+      "stratum": "single_clause"
+    },
+    {
+      "id": "imperative-13",
+      "text": "Pick up the cooked soup now.",
+      "expected": "imperative",
+      "stratum": "single_clause"
+    },
+    {
+      "id": "imperative-14",
+      "text": "Leave the onion on the counter.",
+      "expected": "imperative",
+      "stratum": "single_clause"
+    },
+    {
+      "id": "imperative-15",
+      "text": "Please do not stand in front of the pot.",
+      "expected": "imperative",
+      "stratum": "single_clause"
+    },
+    {
+      "id": "imperative-16",
+      "text": "Can you move one tile west?",
+      "expected": "imperative",
+      "stratum": "single_clause"
+    },
+    {
+      "id": "imperative-17",
+      "text": "Try handing me the dish.",
+      "expected": "imperative",
+      "stratum": "single_clause"
+    },
+    {
+      "id": "imperative-18",
+      "text": "Make room for the other chef.",
+      "expected": "imperative",
+      "stratum": "single_clause"
+    },
+    {
+      "id": "imperative-19",
+      "text": "Stay near the serving area.",
+      "expected": "imperative",
+      "stratum": "single_clause"
+    },
+    {
+      "id": "imperative-20",
+      "text": "Wait until the soup is ready.",
+      "expected": "imperative",
+      "stratum": "single_clause"
+    },
+    {
+      "id": "descriptive-1",
+      "text": "The serving window is on the right.",
+      "expected": "descriptive",
+      "stratum": "single_clause"
+    },
+    {
+      "id": "descriptive-2",
+      "text": "The onion dispenser is on the left.",
+      "expected": "descriptive",
+      "stratum": "single_clause"
+    },
+    {
+      "id": "descriptive-3",
+      "text": "There are two onions in the pot.",
+      "expected": "descriptive",
+      "stratum": "single_clause"
+    },
+    {
+      "id": "descriptive-4",
+      "text": "I am holding a clean plate.",
+      "expected": "descriptive",
+      "stratum": "single_clause"
+    },
+    {
+      "id": "descriptive-5",
+      "text": "The soup is not ready yet.",
+      "expected": "descriptive",
+      "stratum": "single_clause"
+    },
+    {
+      "id": "descriptive-6",
+      "text": "You are standing beside the sink.",
+      "expected": "descriptive",
+      "stratum": "single_clause"
+    },
+    {
+      "id": "descriptive-7",
+      "text": "The corridor is blocked.",
+      "expected": "descriptive",
+      "stratum": "single_clause"
+    },
+    {
+      "id": "descriptive-8",
+      "text": "The counter next to the pot is empty.",
+      "expected": "descriptive",
+      "stratum": "single_clause"
+    },
+    {
+      "id": "descriptive-9",
+      "text": "I have already delivered the soup.",
+      "expected": "descriptive",
+      "stratum": "single_clause"
+    },
+    {
+      "id": "descriptive-10",
+      "text": "There is no plate by the stove.",
+      "expected": "descriptive",
+      "stratum": "single_clause"
+    },
+    {
+      "id": "descriptive-11",
+      "text": "You did not pick up the onion.",
+      "expected": "descriptive",
+      "stratum": "single_clause"
+    },
+    {
+      "id": "descriptive-12",
+      "text": "The other chef is carrying a tomato.",
+      "expected": "descriptive",
+      "stratum": "single_clause"
+    },
+    {
+      "id": "descriptive-13",
+      "text": "Our score is twenty.",
+      "expected": "descriptive",
+      "stratum": "single_clause"
+    },
+    {
+      "id": "descriptive-14",
+      "text": "The order needs three onions.",
+      "expected": "descriptive",
+      "stratum": "single_clause"
+    },
+    {
+      "id": "descriptive-15",
+      "text": "The pot contains no soup.",
+      "expected": "descriptive",
+      "stratum": "single_clause"
+    },
+    {
+      "id": "descriptive-16",
+      "text": "My route goes through the middle.",
+      "expected": "descriptive",
+      "stratum": "single_clause"
+    },
+    {
+      "id": "descriptive-17",
+      "text": "A dish is sitting on the bottom counter.",
+      "expected": "descriptive",
+      "stratum": "single_clause"
+    },
+    {
+      "id": "descriptive-18",
+      "text": "You are not in my way.",
+      "expected": "descriptive",
+      "stratum": "single_clause"
+    },
+    {
+      "id": "descriptive-19",
+      "text": "The onion is still on the floor.",
+      "expected": "descriptive",
+      "stratum": "single_clause"
+    },
+    {
+      "id": "descriptive-20",
+      "text": "The top counter has a clean plate.",
+      "expected": "descriptive",
+      "stratum": "single_clause"
+    },
+    {
+      "id": "location-left-imperative",
+      "text": "Go to the left counter.",
+      "expected": "imperative",
+      "stratum": "location_counterfactual"
+    },
+    {
+      "id": "location-left-descriptive",
+      "text": "The soup is on the left counter.",
+      "expected": "descriptive",
+      "stratum": "location_counterfactual"
+    },
+    {
+      "id": "location-left-evaluative",
+      "text": "Leaving the soup on the left counter was a bad decision.",
+      "expected": "evaluative",
+      "stratum": "location_counterfactual"
+    },
+    {
+      "id": "location-right-imperative",
+      "text": "Go to the right counter.",
+      "expected": "imperative",
+      "stratum": "location_counterfactual"
+    },
+    {
+      "id": "location-right-descriptive",
+      "text": "The soup is on the right counter.",
+      "expected": "descriptive",
+      "stratum": "location_counterfactual"
+    },
+    {
+      "id": "location-right-evaluative",
+      "text": "Leaving the soup on the right counter was a bad decision.",
+      "expected": "evaluative",
+      "stratum": "location_counterfactual"
+    },
+    {
+      "id": "location-top-imperative",
+      "text": "Go to the top counter.",
+      "expected": "imperative",
+      "stratum": "location_counterfactual"
+    },
+    {
+      "id": "location-top-descriptive",
+      "text": "The soup is on the top counter.",
+      "expected": "descriptive",
+      "stratum": "location_counterfactual"
+    },
+    {
+      "id": "location-top-evaluative",
+      "text": "Leaving the soup on the top counter was a bad decision.",
+      "expected": "evaluative",
+      "stratum": "location_counterfactual"
+    },
+    {
+      "id": "location-bottom-imperative",
+      "text": "Go to the bottom counter.",
+      "expected": "imperative",
+      "stratum": "location_counterfactual"
+    },
+    {
+      "id": "location-bottom-descriptive",
+      "text": "The soup is on the bottom counter.",
+      "expected": "descriptive",
+      "stratum": "location_counterfactual"
+    },
+    {
+      "id": "location-bottom-evaluative",
+      "text": "Leaving the soup on the bottom counter was a bad decision.",
+      "expected": "evaluative",
+      "stratum": "location_counterfactual"
+    }
+  ],
+  "mixed": [
+    {
+      "text": "Nice work! Please fetch a plate.",
+      "expected": [
+        "evaluative",
+        "imperative"
+      ]
+    },
+    {
+      "text": "The soup is ready; take it to the serving window.",
+      "expected": [
+        "descriptive",
+        "imperative"
+      ]
+    },
+    {
+      "text": "You did well, but keep the corridor clear.",
+      "expected": [
+        "evaluative",
+        "imperative"
+      ]
+    },
+    {
+      "text": "The counter is empty. Your last delivery was excellent.",
+      "expected": [
+        "descriptive",
+        "evaluative"
+      ]
+    },
+    {
+      "text": "Please fetch an onion, but do not block the sink.",
+      "expected": [
+        "imperative",
+        "imperative"
+      ]
+    },
+    {
+      "text": "That was a good handoff, and the next soup is ready.",
+      "expected": [
+        "evaluative",
+        "descriptive"
+      ]
+    },
+    {
+      "text": "The soup is ready, so bring me a plate.",
+      "expected": [
+        "descriptive",
+        "imperative"
+      ]
+    },
+    {
+      "text": "Nice job, please move to the left.",
+      "expected": [
+        "evaluative",
+        "imperative"
+      ]
+    },
+    {
+      "text": "The pot is full and you did a great job.",
+      "expected": [
+        "descriptive",
+        "evaluative"
+      ]
+    },
+    {
+      "text": "Great job. The pot is full. Please serve the soup.",
+      "expected": [
+        "evaluative",
+        "descriptive",
+        "imperative"
+      ]
+    }
+  ]
+}

@@ -1,5 +1,7 @@
 'use client';
 
+import { MAX_RESEARCH_REQUEST_BYTES } from './research-limits';
+
 import {
   CLIENT_VERSION,
   CONSENT_VERSION,
@@ -17,6 +19,7 @@ import {
 const FLUSH_INTERVAL_MS = 3_000;
 const MAX_SEND_BATCH = 20;
 const MOVE_SAMPLE_INTERVAL_MS = 250;
+const MAX_KEEPALIVE_BYTES = 60 * 1024;
 
 export interface QueueStatus {
   pending: number;
@@ -119,6 +122,15 @@ export class ResearchEventQueue {
     const sending = this.events.slice(0, MAX_SEND_BATCH);
     const body: ResearchBatch = { session: this.session, events: sending };
     try {
+      // Large queued feedback must not permanently block later events with a
+      // request that exceeds the server's byte limit after reconnecting.
+      const encoder = new TextEncoder();
+      while (sending.length > 1 && encoder.encode(JSON.stringify(body)).byteLength > MAX_RESEARCH_REQUEST_BYTES) {
+        sending.pop();
+      }
+      if (encoder.encode(JSON.stringify(body)).byteLength > MAX_RESEARCH_REQUEST_BYTES) {
+        throw new Error('A queued research event exceeds the request limit');
+      }
       await this.ensureResearchSession();
       let response = await this.postBatch(body);
       if (response.status === 401) {
@@ -175,6 +187,11 @@ export class ResearchEventQueue {
       session: this.session,
       events: this.events.slice(0, MAX_SEND_BATCH),
     };
+    const encoder = new TextEncoder();
+    while (body.events.length > 1 && encoder.encode(JSON.stringify(body)).byteLength > MAX_KEEPALIVE_BYTES) {
+      body.events.pop();
+    }
+    if (encoder.encode(JSON.stringify(body)).byteLength > MAX_KEEPALIVE_BYTES) return;
     navigator.sendBeacon(
       '/api/research/batch',
       new Blob([JSON.stringify(body)], { type: 'application/json' }),
@@ -229,12 +246,14 @@ export class ResearchEventQueue {
   }
 
   private postBatch(body: ResearchBatch): Promise<Response> {
+    const serialized = JSON.stringify(body);
     return this.fetcher('/api/research/batch', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'same-origin',
-      body: JSON.stringify(body),
-      keepalive: true,
+      body: serialized,
+      // Fetch keepalive has a smaller body quota than the research API.
+      keepalive: new TextEncoder().encode(serialized).byteLength <= MAX_KEEPALIVE_BYTES,
     });
   }
 }

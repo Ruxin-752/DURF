@@ -25,7 +25,7 @@ const shadowFeedbackArtifact = JSON.parse(
       root,
       "public",
       "models",
-      "feedback-form-boundary-shadow-v1-580ab91c21d988d4ea7e146b70e810b68d0e454372b5cf3cb0ea32abb7f81dc3.json",
+      "feedback-form-boundary-shadow-raw-v2-2f1e1f7ed8836680c4eebd6e6b89f28e565ef99f1dbbf1c6ed03023903719fef.json",
     ),
     "utf8",
   ),
@@ -42,7 +42,7 @@ describe("browser model release manifest", () => {
     "utf8",
   );
   const shadowManifestText = readFileSync(
-    join(root, "public", "models", "manifest-boundary-shadow-v1.json"),
+    join(root, "public", "models", "manifest-boundary-shadow-raw-v2.json"),
     "utf8",
   );
   const legacyFeedbackBytes = readFileSync(
@@ -53,7 +53,7 @@ describe("browser model release manifest", () => {
       root,
       "public",
       "models",
-      "feedback-form-boundary-shadow-v1-580ab91c21d988d4ea7e146b70e810b68d0e454372b5cf3cb0ea32abb7f81dc3.json",
+      "feedback-form-boundary-shadow-raw-v2-2f1e1f7ed8836680c4eebd6e6b89f28e565ef99f1dbbf1c6ed03023903719fef.json",
     ),
   );
   const route2Bytes = readFileSync(join(root, "public", "models", "route2-v5.json"));
@@ -62,7 +62,7 @@ describe("browser model release manifest", () => {
     return async (input: RequestInfo | URL): Promise<Response> => {
       const path = String(input);
       if (path === "/models/manifest.json") return new Response(manifest);
-      if (path === "/models/manifest-boundary-shadow-v1.json") {
+      if (path === "/models/manifest-boundary-shadow-raw-v2.json") {
         return new Response(shadowManifestText);
       }
       if (path === "/models/feedback-form-v3.json") {
@@ -70,7 +70,7 @@ describe("browser model release manifest", () => {
       }
       if (
         path ===
-        "/models/feedback-form-boundary-shadow-v1-580ab91c21d988d4ea7e146b70e810b68d0e454372b5cf3cb0ea32abb7f81dc3.json"
+        "/models/feedback-form-boundary-shadow-raw-v2-2f1e1f7ed8836680c4eebd6e6b89f28e565ef99f1dbbf1c6ed03023903719fef.json"
       ) {
         return new Response(new Uint8Array(shadowFeedbackBytes));
       }
@@ -83,7 +83,7 @@ describe("browser model release manifest", () => {
 
   it("loads the production classifier by default after SHA-256 verification", async () => {
     expect(createHash("sha256").update(manifestText).digest("hex")).toBe(
-      "ecb077b810cab4fb1949a25c948d65e5878a51164743cd3cc0c1986b70826f76",
+      "40f5d51cd2fdcd6cb2c8f5dacf691b9f097a212b7a6a5373a2f3fb50237b0e1e",
     );
     const released = await loadBrowserModelsFromManifest("", releaseFetcher());
     expect(released.features).toHaveLength(53);
@@ -94,10 +94,13 @@ describe("browser model release manifest", () => {
   });
 
   it("loads the explicit shadow preview without changing the default channel", async () => {
+    expect(createHash("sha256").update(shadowManifestText).digest("hex")).toBe(
+      "9bd1f9411ab0cd16fe056d67dce00d15b4272a05b5acfa2f01251cc9e7be7e03",
+    );
     const released = await loadBrowserModelsFromManifest(
       "",
       releaseFetcher(),
-      "boundary-shadow-v1",
+      "boundary-shadow-raw-v2",
     );
     expect(released.classify("you should not wait").modelHash).toBe(
       "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
@@ -117,24 +120,38 @@ describe("browser model release manifest", () => {
     ).rejects.toThrow("feedback-form model hash mismatch");
   });
 
+  it("rejects a default manifest whose release status or promotion flag changes", async () => {
+    const mutatedManifest = JSON.parse(manifestText);
+    mutatedManifest.release.promotion_eligible = true;
+    const fetcher = releaseFetcher();
+    await expect(
+      loadBrowserModelsFromManifest("", async (input) => {
+        if (String(input) === "/models/manifest.json") {
+          return new Response(JSON.stringify(mutatedManifest));
+        }
+        return fetcher(input);
+      }),
+    ).rejects.toThrow("release status or promotion contract changed");
+  });
+
   it("does not fall back when the explicit shadow manifest is missing", async () => {
     await expect(
       loadBrowserModelsFromManifest(
         "",
         async (input) => {
-          if (String(input) === "/models/manifest-boundary-shadow-v1.json") {
+          if (String(input) === "/models/manifest-boundary-shadow-raw-v2.json") {
             return new Response("not found", { status: 404 });
           }
           return releaseFetcher()(input);
         },
-        "boundary-shadow-v1",
+        "boundary-shadow-raw-v2",
       ),
     ).rejects.toThrow("failed to load browser model manifest");
   });
 
   it("selects the shadow only for the exact opt-in query parameter", () => {
-    expect(classifierVariantFromSearch("?classifier=boundary-shadow-v1")).toBe(
-      "boundary-shadow-v1",
+    expect(classifierVariantFromSearch("?classifier=boundary-shadow-raw-v2")).toBe(
+      "boundary-shadow-raw-v2",
     );
     expect(classifierVariantFromSearch("")).toBe("production");
     expect(() => classifierVariantFromSearch("?classifier=unknown")).toThrow(
@@ -142,31 +159,69 @@ describe("browser model release manifest", () => {
     );
     expect(() =>
       classifierVariantFromSearch(
-        "?classifier=boundary-shadow-v1&classifier=boundary-shadow-v1",
+        "?classifier=boundary-shadow-raw-v2&classifier=boundary-shadow-raw-v2",
       ),
     ).toThrow("must appear exactly once");
+    expect(() => classifierVariantFromSearch("?classifier=boundary-shadow-v1")).toThrow(
+      "unsupported classifier query parameter",
+    );
   });
 });
 
 describe("rollback feedback-form v3 model parity", () => {
+  it("binds every active report and release claim to the active source model", () => {
+    const card = legacyFeedbackArtifact.model_card;
+    expect(card.release).toMatchObject({
+      status: "active_legacy_default",
+      default_eligible: true,
+      promotion_eligible: false,
+      promotion_status: "legacy_active_not_requalified",
+    });
+    expect(card.claims.independent_current_player_accuracy).toBeNull();
+    expect(card.reports.map((report: { id: string }) => report.id)).toEqual([
+      "training",
+      "paper_human_reference_proxy",
+    ]);
+    expect(
+      card.reports.every(
+        (report: { source_model_sha256: string }) =>
+          report.source_model_sha256 === card.source_model_sha256,
+      ),
+    ).toBe(true);
+  });
+
+  it("exposes model-bound evidence without claiming current-player accuracy", () => {
+    expect(legacyModels.classifierEvidence).toMatchObject({
+      trained: true,
+      frozen: true,
+      modelHash: "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+      independentCurrentPlayerAccuracy: null,
+      diagnosticAccuracy: 0.9166666666666666,
+      diagnosticRows: 96,
+      promotionEligible: false,
+      promotionReason: "No independent current-player evaluation is bound to this model.",
+      diagnosticPreviouslyExposed: true,
+    });
+  });
+
   const gold: Record<string, Record<string, number>> = {
     "That last route was bad.": {
       descriptive: 0.0007616129387273556,
       evaluative: 0.9987120181662493,
-      imperative: 0.0005263688950233705,
+      imperative: 0.0005263688950233713,
     },
     "Please take a dish instead.": {
-      descriptive: 0.18208058072521213,
-      evaluative: 0.05712194603207744,
-      imperative: 0.7607974732427105,
+      descriptive: 0.1820805807252124,
+      evaluative: 0.05712194603207763,
+      imperative: 0.76079747324271,
     },
     "There is a spare dish near the stove.": {
       descriptive: 0.45022840947515697,
-      evaluative: 0.041866647848330656,
+      evaluative: 0.04186664784833057,
       imperative: 0.5079049426765124,
     },
     "What is the score?": {
-      descriptive: 0.15589638941591147,
+      descriptive: 0.1558963894159114,
       evaluative: 0.7734005559401227,
       imperative: 0.07070305464396585,
     },
@@ -176,10 +231,10 @@ describe("rollback feedback-form v3 model parity", () => {
     it(`matches sklearn for ${text}`, () => {
       const prediction = legacyModels.classify(text);
       for (const [label, expected] of Object.entries(probabilities)) {
-        expect(prediction.probabilities[label as keyof typeof prediction.probabilities]).toBeCloseTo(
-          expected,
-          9,
-        );
+        const actual = prediction.probabilities[
+          label as keyof typeof prediction.probabilities
+        ];
+        expect(Object.is(actual, expected)).toBe(true);
       }
       expect(prediction.modelHash).toBe(
         "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
@@ -196,26 +251,40 @@ describe("rollback feedback-form v3 model parity", () => {
 });
 
 describe("boundary shadow preview model parity", () => {
+  it("binds the failed one-shot diagnostic to the frozen shadow release", () => {
+    expect(models.classifierEvidence).toMatchObject({
+      modelHash: "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+      independentCurrentPlayerAccuracy: null,
+      diagnosticAccuracy: 0.8194444444444444,
+      diagnosticRows: 72,
+      requestedAccuracyTarget: 0.87,
+      targetPassed: false,
+      promotionEligible: false,
+      promotionReason: "The requested 87% target was not met.",
+      diagnosticPreviouslyExposed: false,
+    });
+  });
+
   const gold: Record<string, Record<string, number>> = {
     "you should not wait": {
-      descriptive: 9.929842301860547e-18,
-      evaluative: 4.331421478968129e-14,
-      imperative: 0.9999999999999567,
+      descriptive: 0.03554112555658123,
+      evaluative: 0.07087656218712816,
+      imperative: 0.8935823122562906,
     },
     "you need to pick up the tomato closest to you.": {
-      descriptive: 2.6274986168347226e-19,
-      evaluative: 2.6181990532796743e-12,
-      imperative: 0.9999999999973819,
+      descriptive: 0.025853134087664525,
+      evaluative: 0.09748086343854041,
+      imperative: 0.876666002473795,
     },
     "There is a spare dish near the stove.": {
-      descriptive: 0.9999329295030418,
-      evaluative: 2.3639187171761516e-10,
-      imperative: 6.707026056616814e-5,
+      descriptive: 0.6194637132574359,
+      evaluative: 0.09980970676859893,
+      imperative: 0.28072657997396516,
     },
-    "should not block my way": {
-      descriptive: 1.0542149527233571e-20,
-      evaluative: 4.228884786855795e-21,
-      imperative: 1.0,
+    "you should not block my way": {
+      descriptive: 0.014481074279711606,
+      evaluative: 0.028159406971222996,
+      imperative: 0.9573595187490653,
     },
   };
 
@@ -230,12 +299,11 @@ describe("boundary shadow preview model parity", () => {
       expect(prediction.modelHash).toBe(
         "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
       );
-      expect(prediction.scoreKind).toBe(
-        "temperature_scaled_train_oof_probability",
-      );
-      expect(prediction.temperatureScaled).toBe(true);
+      expect(prediction.scoreKind).toBe("raw_model_softmax_score");
+      expect(prediction.temperatureScaled).toBe(false);
       expect(prediction.independentlyCalibrated).toBe(false);
       expect(prediction.calibrated).toBe(false);
+      expect(prediction.calibrationVersion).toBeNull();
     });
   }
 
@@ -244,18 +312,62 @@ describe("boundary shadow preview model parity", () => {
     expect(
       models.classify("you need to pick up the tomato closest to you.").label,
     ).toBe("imperative");
-    expect(models.classify("should not block my way").label).toBe("imperative");
+    expect(models.classify("you should not block my way").label).toBe("imperative");
   });
 
-  it("replays the frozen temperature, class order, diagnostic threshold, and FeatureUnion weight", () => {
+  it("uses the raw top score for the routing-policy rejection", () => {
+    const prediction = models.classify("maybe");
+    expect(prediction.confidence).toBeCloseTo(0.43225123, 7);
+    expect(prediction.abstained).toBe(true);
+    const prior = createFullGaussianPrior(["a"]);
+    const result = applyRoute1PaperUpdate(prior, {
+      feedbackForm: prediction.label,
+      feedbackFormConfidence: prediction.confidence,
+      feedbackFormThreshold: prediction.threshold,
+      feedbackFormAbstained: prediction.abstained,
+      actionFeatures: { a: 1 },
+      valence: 1,
+    });
+    expect(result.status).toBe("rejected");
+    expect(result.reason).toBe("feedback_form_low_confidence");
+    expect(result.state).toBe(prior);
+    expect(result.delta).toEqual({});
+  });
+
+  it("uses the paper's fixed precision after the classifier gate", () => {
+    const prediction = models.classify("you should not wait");
+    const result = applyRoute1PaperUpdate(createFullGaussianPrior(["a"]), {
+      feedbackForm: prediction.label,
+      feedbackFormConfidence: prediction.confidence,
+      feedbackFormThreshold: prediction.threshold,
+      feedbackFormAbstained: prediction.abstained,
+      actionFeatures: { a: 1 },
+      valence: 1,
+    });
+    expect(result.status).toBe("updated");
+    expect(result.effectivePrecision).toBe(2);
+  });
+
+  it("replays raw-score policy, class order, routing threshold, and FeatureUnion weight", () => {
     expect(shadowFeedbackArtifact.classes).toEqual([
       "descriptive",
       "evaluative",
       "imperative",
     ]);
-    expect(shadowFeedbackArtifact.calibration.temperature).toBe(
-      0.0823618560384671,
-    );
+    expect(shadowFeedbackArtifact.calibration).toEqual({
+      independently_validated: false,
+      method: "none",
+      scope: "raw_model_output",
+    });
+    expect(shadowFeedbackArtifact.score_policy).toEqual({
+      independently_calibrated: false,
+      kind: "raw_softmax",
+      probability_of_correctness: false,
+      routing_threshold: 0.55,
+      temperature: 1,
+      threshold_policy: "existing_web_preview_policy_not_validated_in_raw_score_space",
+      version: "boundary-shadow-raw-softmax-v2",
+    });
     expect(shadowFeedbackArtifact.minimum_confidence).toBe(0.55);
     expect(shadowFeedbackArtifact.transformers[0].weight ?? 1).toBe(1);
     expect(shadowFeedbackArtifact.transformers[1].weight).toBe(0.7);
@@ -266,6 +378,32 @@ describe("boundary shadow preview model parity", () => {
     mutated.classes = ["evaluative", "descriptive", "imperative"];
     expect(() => createBrowserModels(mutated, route2Artifact)).toThrow(
       "class order changed",
+    );
+  });
+
+  it("fails closed when raw-score or threshold-policy claims change", () => {
+    const scoreMutation = structuredClone(shadowFeedbackArtifact);
+    scoreMutation.claim_scope.displayed_score_is_probability_of_correctness = true;
+    expect(() => createBrowserModels(scoreMutation, route2Artifact)).toThrow(
+      "shadow classifier release contract changed",
+    );
+    const thresholdMutation = structuredClone(shadowFeedbackArtifact);
+    thresholdMutation.score_policy.threshold_policy = "validated";
+    expect(() => createBrowserModels(thresholdMutation, route2Artifact)).toThrow(
+      "shadow classifier release contract changed",
+    );
+  });
+
+  it("fails closed when model-card report SHA binding or promotion changes", () => {
+    const reportMutation = structuredClone(shadowFeedbackArtifact);
+    reportMutation.model_card.reports[1].source_model_sha256 = "0".repeat(64);
+    expect(() => createBrowserModels(reportMutation, route2Artifact)).toThrow(
+      "model-card report binding changed",
+    );
+    const promotionMutation = structuredClone(shadowFeedbackArtifact);
+    promotionMutation.model_card.release.promotion_eligible = true;
+    expect(() => createBrowserModels(promotionMutation, route2Artifact)).toThrow(
+      "release status or promotion contract changed",
     );
   });
 });
@@ -349,6 +487,25 @@ describe("browser Route2 model parity", () => {
 });
 
 describe("paper Bayesian updates", () => {
+  it("does not let classifier score rescale an accepted Route1 observation", () => {
+    const lowScore = applyRoute1PaperUpdate(createFullGaussianPrior(["a"]), {
+      feedbackForm: "imperative",
+      feedbackFormConfidence: 0.6,
+      feedbackFormThreshold: 0.55,
+      actionFeatures: { a: 1 },
+      valence: 1,
+    });
+    const highScore = applyRoute1PaperUpdate(createFullGaussianPrior(["a"]), {
+      feedbackForm: "imperative",
+      feedbackFormConfidence: 0.99,
+      feedbackFormThreshold: 0.55,
+      actionFeatures: { a: 1 },
+      valence: 1,
+    });
+    expect(lowScore.effectivePrecision).toBe(2);
+    expect(lowScore.state.mean).toEqual(highScore.state.mean);
+  });
+
   it("Route2 updates every independent dimension with precision two and no f_G", () => {
     const prior = createIndependentGaussianPrior(["a", "b"]);
     const result = applyRoute2Gaussian(prior, { a: 3, b: -1 });

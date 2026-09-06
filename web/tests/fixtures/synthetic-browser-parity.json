@@ -1,0 +1,302 @@
+[
+  {
+    "grounding": "action",
+    "grounding_scores": {
+      "action": 0.9377653207757805,
+      "feature": 0.004793726454356844,
+      "trajectory": 0.057440952769862684
+    },
+    "speech_act": "imperative",
+    "speech_act_scores": {
+      "descriptive": 0.0012508110820101176,
+      "evaluative": 0.0026265017785186066,
+      "imperative": 0.9961226871394713
+    },
+    "text": "Your next task: wash the dirty dishes."
+  },
+  {
+    "grounding": "trajectory",
+    "grounding_scores": {
+      "action": 0.00011163599604364411,
+      "feature": 2.686280256084407e-06,
+      "trajectory": 0.9998856777237003
+    },
+    "speech_act": "evaluative",
+    "speech_act_scores": {
+      "descriptive": 0.0011238197196528586,
+      "evaluative": 0.9956588270625332,
+      "imperative": 0.0032173532178139327
+    },
+    "text": "How slow that effort turned out!"
+  },
+  {
+    "grounding": "action",
+    "grounding_scores": {
+      "action": 0.9999995689018246,
+      "feature": 2.1564883083474648e-09,
+      "trajectory": 4.2894168711286926e-07
+    },
+    "speech_act": "imperative",
+    "speech_act_scores": {
+      "descriptive": 0.001890170922769108,
+      "evaluative": 0.0011338930404733464,
+      "imperative": 0.9969759360367576
+    },
+    "text": "I'd be grateful if you could keep the plate."
+  },
+  {
+    "grounding": "action",
+    "grounding_scores": {
+      "action": 0.9998317285380625,
+      "feature": 1.2796459820872687e-05,
+      "trajectory": 0.00015547500211657376
+    },
+    "speech_act": "imperative",
+    "speech_act_scores": {
+      "descriptive": 0.00017950949823715233,
+      "evaluative": 0.0003537444148306285,
+      "imperative": 0.9994667460869322
+    },
+    "text": "After that, please grab a bowl."
+  },
+  {
+    "grounding": "trajectory",
+    "grounding_scores": {
+      "action": 0.002360690259743444,
+      "feature": 0.0018380240909738094,
+      "trajectory": 0.9958012856492826
+    },
+    "speech_act": "descriptive",
+    "speech_act_scores": {
+      "descriptive": 0.7631326793589459,
+      "evaluative": 0.2108211626816983,
+      "imperative": 0.02604615795935583
+    },
+    "text": "I watched as you delivered the order."
+  },
+  {
+    "grounding": "trajectory",
+    "grounding_scores": {
+      "action": 0.01360936875771023,
+      "feature": 0.0008926056738916552,
+      "trajectory": 0.985498025568398
+    },
+    "speech_act": "descriptive",
+    "speech_act_scores": {
+      "descriptive": 0.8255758895262427,
+      "evaluative": 0.07611005128023776,
+      "imperative": 0.09831405919351943
+    },
+    "text": "I am watching you stay still."
+  },
+  {
+    "grounding": "action",
+    "grounding_scores": {
+      "action": 0.9998487383660912,
+      "feature": 8.725779568293391e-05,
+      "trajectory": 6.400383822584678e-05
+    },
+    "speech_act": "evaluative",
+    "speech_act_scores": {
+      "descriptive": 0.002674216221807094,
+      "evaluative": 0.9749019573682901,
+      "imperative": 0.022423826409902703
+    },
+    "text": "I would have preferred it if you had left the passage open."
+  },
+  {
+    "grounding": "trajectory",
+    "grounding_scores": {
+      "action": 3.6763669338540263e-06,
+      "feature": 1.4823789937109102e-06,
+      "trajectory": 0.9999948412540726
+    },
+    "speech_act": "evaluative",
+    "speech_act_scores": {
+      "descriptive": 0.005983380494494651,
+      "evaluative": 0.9936824961337614,
+      "imperative": 0.00033412337174403256
+    },
+    "text": "You did a wonderful job of keeping the plate."
+  },
+  {
+    "grounding": "trajectory",
+    "grounding_scores": {
+      "action": 3.733887201630998e-05,
+      "feature": 0.005648876415554213,
+      "trajectory": 0.9943137847124296
+    },
+    "speech_act": "evaluative",
+    "speech_act_scores": {
+      "descriptive": 0.0005318885523103978,
+      "evaluative": 0.9993995562957634,
+      "imperative": 6.855515192626875e-05
+    },
+    "text": "It is a shame that you delivered the order."
+  },
+  {
+    "grounding": "feature",
+    "grounding_scores": {
+      "action": 0.00838637279452994,
+      "feature": 0.9828930547217088,
+      "trajectory": 0.008720572483761164
+    },
+    "speech_act": "imperative",
+    "speech_act_scores": {
+      "descriptive": 0.0032198360991674193,
+      "evaluative": 0.01887529393294843,
+      "imperative": 0.9779048699678841
+    },
+    "text": "Put more emphasis on walking distance."
+  },
+  {
+    "grounding": "feature",
+    "grounding_scores": {
+      "action": 0.005133240990695479,
+      "feature": 0.9885838588610549,
+      "trajectory": 0.006282900148249742
+    },
+    "speech_act": "descriptive",
+    "speech_act_scores": {
+      "descriptive": 0.9410857918564158,
+      "evaluative": 0.030298303213484035,
+      "imperative": 0.028615904930100154
+    },
+    "text": "Your plate remains empty."
+  },
+  {
+    "grounding": "feature",
+    "grounding_scores": {
+      "action": 0.0013507135996352556,
+      "feature": 0.9985204223053928,
+      "trajectory": 0.00012886409497192767
+    },
+    "speech_act": "evaluative",
+    "speech_act_scores": {
+      "descriptive": 0.004341635800596935,
+      "evaluative": 0.9895277722581494,
+      "imperative": 0.006130591941253646
+    },
+    "text": "For me, the serving window is particularly valuable."
+  },
+  {
+    "grounding": "action",
+    "grounding_scores": {
+      "action": 0.9999985849764236,
+      "feature": 1.8555378360730962e-09,
+      "trajectory": 1.4131680386247295e-06
+    },
+    "speech_act": "imperative",
+    "speech_act_scores": {
+      "descriptive": 1.1731229030758827e-06,
+      "evaluative": 7.969429217039602e-06,
+      "imperative": 0.9999908574478799
+    },
+    "text": "Make sure you do not deliver the order."
+  },
+  {
+    "grounding": "action",
+    "grounding_scores": {
+      "action": 0.9848421392498047,
+      "feature": 0.0014799672182202461,
+      "trajectory": 0.013677893531975047
+    },
+    "speech_act": "imperative",
+    "speech_act_scores": {
+      "descriptive": 0.0040900472604515235,
+      "evaluative": 0.05046179072247999,
+      "imperative": 0.9454481620170685
+    },
+    "text": "How about adding the last ingredient?"
+  },
+  {
+    "grounding": "feature",
+    "grounding_scores": {
+      "action": 0.01982303469081253,
+      "feature": 0.9643740884831522,
+      "trajectory": 0.015802876826035192
+    },
+    "speech_act": "descriptive",
+    "speech_act_scores": {
+      "descriptive": 0.8547525207417106,
+      "evaluative": 0.04903659619947954,
+      "imperative": 0.09621088305880982
+    },
+    "text": "Status of the sink: occupied."
+  },
+  {
+    "grounding": "trajectory",
+    "grounding_scores": {
+      "action": 0.00019023773750320372,
+      "feature": 0.0003657230329353251,
+      "trajectory": 0.9994440392295614
+    },
+    "speech_act": "descriptive",
+    "speech_act_scores": {
+      "descriptive": 0.8658829895745168,
+      "evaluative": 0.12821227738240687,
+      "imperative": 0.005904733043076231
+    },
+    "text": "In that entire run we made three soup deliveries."
+  },
+  {
+    "grounding": "trajectory",
+    "grounding_scores": {
+      "action": 5.737849930912622e-05,
+      "feature": 3.7720903958619545e-06,
+      "trajectory": 0.999938849410295
+    },
+    "speech_act": "evaluative",
+    "speech_act_scores": {
+      "descriptive": 0.0012550816751442997,
+      "evaluative": 0.9975571693619036,
+      "imperative": 0.0011877489629520315
+    },
+    "text": "Your decision to check the timer was unwise."
+  },
+  {
+    "grounding": "feature",
+    "grounding_scores": {
+      "action": 0.025282494944363656,
+      "feature": 0.9738513960154188,
+      "trajectory": 0.0008661090402175424
+    },
+    "speech_act": "evaluative",
+    "speech_act_scores": {
+      "descriptive": 9.601760527624705e-05,
+      "evaluative": 0.9696916398535541,
+      "imperative": 0.030212342541169546
+    },
+    "text": "I do not find ready soup worthwhile."
+  },
+  {
+    "grounding": "action",
+    "grounding_scores": {
+      "action": 0.9997949578612465,
+      "feature": 9.459096420473725e-08,
+      "trajectory": 0.00020494754778923333
+    },
+    "speech_act": "imperative",
+    "speech_act_scores": {
+      "descriptive": 0.00023238340496081959,
+      "evaluative": 0.00014349773704057177,
+      "imperative": 0.9996241188579986
+    },
+    "text": "We urgently need you to grab a bowl."
+  },
+  {
+    "grounding": "trajectory",
+    "grounding_scores": {
+      "action": 0.656470557499038,
+      "feature": 0.0010268029841328005,
+      "trajectory": 0.34250263951682924
+    },
+    "speech_act": "imperative",
+    "speech_act_scores": {
+      "descriptive": 0.0002199937139101915,
+      "evaluative": 0.0019966461611778162,
+      "imperative": 0.997783360124912
+    },
+    "text": "Please use that overall strategy for the next round."
+  }
+]

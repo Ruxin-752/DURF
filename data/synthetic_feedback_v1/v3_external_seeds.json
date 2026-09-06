@@ -1,0 +1,1122 @@
+[
+  {
+    "text": "I applaud the way you organized that entire shift.",
+    "speech_act": "evaluative",
+    "grounding": "trajectory",
+    "group_id": "root_authored_evaluative_trajectory_0",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "Your last handoff exceeded my expectations.",
+    "speech_act": "evaluative",
+    "grounding": "trajectory",
+    "group_id": "root_authored_evaluative_trajectory_1",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "The way you waited for me was considerate.",
+    "speech_act": "evaluative",
+    "grounding": "trajectory",
+    "group_id": "root_authored_evaluative_trajectory_2",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "You made a mess of that delivery.",
+    "speech_act": "evaluative",
+    "grounding": "trajectory",
+    "group_id": "root_authored_evaluative_trajectory_3",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "That detour was a stroke of genius.",
+    "speech_act": "evaluative",
+    "grounding": "trajectory",
+    "group_id": "root_authored_evaluative_trajectory_4",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "Your coordination left much to be desired.",
+    "speech_act": "evaluative",
+    "grounding": "trajectory",
+    "group_id": "root_authored_evaluative_trajectory_5",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "I was impressed by how smoothly you passed the bowl.",
+    "speech_act": "evaluative",
+    "grounding": "trajectory",
+    "group_id": "root_authored_evaluative_trajectory_6",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "I regret the time we lost during your last trip.",
+    "speech_act": "evaluative",
+    "grounding": "trajectory",
+    "group_id": "root_authored_evaluative_trajectory_7",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "Finishing those orders so early deserves recognition.",
+    "speech_act": "evaluative",
+    "grounding": "trajectory",
+    "group_id": "root_authored_evaluative_trajectory_8",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "The timing of that pickup could not have been better.",
+    "speech_act": "evaluative",
+    "grounding": "trajectory",
+    "group_id": "root_authored_evaluative_trajectory_9",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "Your decision to walk away cost us dearly.",
+    "speech_act": "evaluative",
+    "grounding": "trajectory",
+    "group_id": "root_authored_evaluative_trajectory_10",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "I disapprove of the way you handled the queue.",
+    "speech_act": "evaluative",
+    "grounding": "trajectory",
+    "group_id": "root_authored_evaluative_trajectory_11",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "That whole round was a delight to watch.",
+    "speech_act": "evaluative",
+    "grounding": "trajectory",
+    "group_id": "root_authored_evaluative_trajectory_12",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "You surpassed yourself on the final delivery.",
+    "speech_act": "evaluative",
+    "grounding": "trajectory",
+    "group_id": "root_authored_evaluative_trajectory_13",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "Our teamwork this round was second to none.",
+    "speech_act": "evaluative",
+    "grounding": "trajectory",
+    "group_id": "root_authored_evaluative_trajectory_14",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "That performance was below par.",
+    "speech_act": "evaluative",
+    "grounding": "trajectory",
+    "group_id": "root_authored_evaluative_trajectory_15",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "The effort you put into keeping the aisle clear paid off.",
+    "speech_act": "evaluative",
+    "grounding": "trajectory",
+    "group_id": "root_authored_evaluative_trajectory_16",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "You let us down with that unnecessary stop.",
+    "speech_act": "evaluative",
+    "grounding": "trajectory",
+    "group_id": "root_authored_evaluative_trajectory_17",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "Picking up that spare dish turned out wonderfully.",
+    "speech_act": "evaluative",
+    "grounding": "trajectory",
+    "group_id": "root_authored_evaluative_trajectory_18",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "The delivery you just completed was flawless.",
+    "speech_act": "evaluative",
+    "grounding": "trajectory",
+    "group_id": "root_authored_evaluative_trajectory_19",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "You reacted admirably when I got stuck.",
+    "speech_act": "evaluative",
+    "grounding": "trajectory",
+    "group_id": "root_authored_evaluative_trajectory_20",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "You managed the crowded corner expertly.",
+    "speech_act": "evaluative",
+    "grounding": "trajectory",
+    "group_id": "root_authored_evaluative_trajectory_21",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "We could hardly have asked for a worse handoff.",
+    "speech_act": "evaluative",
+    "grounding": "trajectory",
+    "group_id": "root_authored_evaluative_trajectory_22",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "The careless way you left that onion was frustrating.",
+    "speech_act": "evaluative",
+    "grounding": "trajectory",
+    "group_id": "root_authored_evaluative_trajectory_23",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "What you did with the last bowl was commendable.",
+    "speech_act": "evaluative",
+    "grounding": "trajectory",
+    "group_id": "root_authored_evaluative_trajectory_24",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "I am proud of the progress you made during that round.",
+    "speech_act": "evaluative",
+    "grounding": "trajectory",
+    "group_id": "root_authored_evaluative_trajectory_25",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "Your last turn showed remarkably sound judgment.",
+    "speech_act": "evaluative",
+    "grounding": "trajectory",
+    "group_id": "root_authored_evaluative_trajectory_26",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "I cannot fault your work on that final order.",
+    "speech_act": "evaluative",
+    "grounding": "trajectory",
+    "group_id": "root_authored_evaluative_trajectory_27",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "I am not pleased with how long you stood there.",
+    "speech_act": "evaluative",
+    "grounding": "trajectory",
+    "group_id": "root_authored_evaluative_trajectory_28",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "That pickup was nothing to write home about.",
+    "speech_act": "evaluative",
+    "grounding": "trajectory",
+    "group_id": "root_authored_evaluative_trajectory_29",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "A clear work surface makes this kitchen a pleasure to use.",
+    "speech_act": "evaluative",
+    "grounding": "feature",
+    "group_id": "root_authored_evaluative_feature_0",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "The short path to the hatch is a real asset.",
+    "speech_act": "evaluative",
+    "grounding": "feature",
+    "group_id": "root_authored_evaluative_feature_1",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "I value easy access to the dish supply.",
+    "speech_act": "evaluative",
+    "grounding": "feature",
+    "group_id": "root_authored_evaluative_feature_2",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "There is little merit in this cramped arrangement.",
+    "speech_act": "evaluative",
+    "grounding": "feature",
+    "group_id": "root_authored_evaluative_feature_3",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "The corner nearest the stove is particularly troublesome.",
+    "speech_act": "evaluative",
+    "grounding": "feature",
+    "group_id": "root_authored_evaluative_feature_4",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "A second place to put bowls would be a blessing.",
+    "speech_act": "evaluative",
+    "grounding": "feature",
+    "group_id": "root_authored_evaluative_feature_5",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "The wide gap between these worktops is convenient.",
+    "speech_act": "evaluative",
+    "grounding": "feature",
+    "group_id": "root_authored_evaluative_feature_6",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "This storage arrangement leaves me cold.",
+    "speech_act": "evaluative",
+    "grounding": "feature",
+    "group_id": "root_authored_evaluative_feature_7",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "The design of the serving station deserves praise.",
+    "speech_act": "evaluative",
+    "grounding": "feature",
+    "group_id": "root_authored_evaluative_feature_8",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "I have a low opinion of the far cooking station.",
+    "speech_act": "evaluative",
+    "grounding": "feature",
+    "group_id": "root_authored_evaluative_feature_9",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "Keeping ingredients within reach is beneficial.",
+    "speech_act": "evaluative",
+    "grounding": "feature",
+    "group_id": "root_authored_evaluative_feature_10",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "This route strikes me as needlessly complicated.",
+    "speech_act": "evaluative",
+    "grounding": "feature",
+    "group_id": "root_authored_evaluative_feature_11",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "The separate lane for deliveries is a welcome feature.",
+    "speech_act": "evaluative",
+    "grounding": "feature",
+    "group_id": "root_authored_evaluative_feature_12",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "The lack of counter space is a nuisance.",
+    "speech_act": "evaluative",
+    "grounding": "feature",
+    "group_id": "root_authored_evaluative_feature_13",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "A long wait for a bowl is unacceptable.",
+    "speech_act": "evaluative",
+    "grounding": "feature",
+    "group_id": "root_authored_evaluative_feature_14",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "The central stove has an advantage over the distant one.",
+    "speech_act": "evaluative",
+    "grounding": "feature",
+    "group_id": "root_authored_evaluative_feature_15",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "The kitchen feels much too cluttered for my liking.",
+    "speech_act": "evaluative",
+    "grounding": "feature",
+    "group_id": "root_authored_evaluative_feature_16",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "I appreciate the extra room beside the serving window.",
+    "speech_act": "evaluative",
+    "grounding": "feature",
+    "group_id": "root_authored_evaluative_feature_17",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "The distance between the onion supply and the pot is excessive.",
+    "speech_act": "evaluative",
+    "grounding": "feature",
+    "group_id": "root_authored_evaluative_feature_18",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "I am fond of the little workspace on the upper side.",
+    "speech_act": "evaluative",
+    "grounding": "feature",
+    "group_id": "root_authored_evaluative_feature_19",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "You would have done better to collect a bowl instead.",
+    "speech_act": "evaluative",
+    "grounding": "action",
+    "group_id": "root_authored_evaluative_action_0",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "Taking the lower aisle instead would have saved valuable time.",
+    "speech_act": "evaluative",
+    "grounding": "action",
+    "group_id": "root_authored_evaluative_action_1",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "You should have delivered that soup instead of waiting.",
+    "speech_act": "evaluative",
+    "grounding": "action",
+    "group_id": "root_authored_evaluative_action_2",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "It would have been wiser to step aside rather than block me.",
+    "speech_act": "evaluative",
+    "grounding": "action",
+    "group_id": "root_authored_evaluative_action_3",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "Fetching another onion instead would have been the superior choice.",
+    "speech_act": "evaluative",
+    "grounding": "action",
+    "group_id": "root_authored_evaluative_action_4",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "Bring over whichever dish is nearest to you.",
+    "speech_act": "imperative",
+    "grounding": "action",
+    "group_id": "root_authored_imperative_action_0",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "Get rid of the ingredient you are holding.",
+    "speech_act": "imperative",
+    "grounding": "action",
+    "group_id": "root_authored_imperative_action_1",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "Carry on filling the pot until it has three ingredients.",
+    "speech_act": "imperative",
+    "grounding": "action",
+    "group_id": "root_authored_imperative_action_2",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "Let the other cook go through ahead of you.",
+    "speech_act": "imperative",
+    "grounding": "action",
+    "group_id": "root_authored_imperative_action_3",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "Put down what you have and come toward me.",
+    "speech_act": "imperative",
+    "grounding": "action",
+    "group_id": "root_authored_imperative_action_4",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "See to it that the soup reaches the hatch.",
+    "speech_act": "imperative",
+    "grounding": "action",
+    "group_id": "root_authored_imperative_action_5",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "Would you mind passing that onion over here?",
+    "speech_act": "imperative",
+    "grounding": "action",
+    "group_id": "root_authored_imperative_action_6",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "Could I ask you to stay beside the empty stove?",
+    "speech_act": "imperative",
+    "grounding": "action",
+    "group_id": "root_authored_imperative_action_7",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "I need you to return the spare bowl to the bench.",
+    "speech_act": "imperative",
+    "grounding": "action",
+    "group_id": "root_authored_imperative_action_8",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "Make sure to collect the tomato from the lower supply.",
+    "speech_act": "imperative",
+    "grounding": "action",
+    "group_id": "root_authored_imperative_action_9",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "Leave enough room for me to get past.",
+    "speech_act": "imperative",
+    "grounding": "action",
+    "group_id": "root_authored_imperative_action_10",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "Give me the plate after you finish that delivery.",
+    "speech_act": "imperative",
+    "grounding": "action",
+    "group_id": "root_authored_imperative_action_11",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "Hold on to the onion for now.",
+    "speech_act": "imperative",
+    "grounding": "action",
+    "group_id": "root_authored_imperative_action_12",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "Turn back before you enter the narrow passage.",
+    "speech_act": "imperative",
+    "grounding": "action",
+    "group_id": "root_authored_imperative_action_13",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "Try going around the stove on its other side.",
+    "speech_act": "imperative",
+    "grounding": "action",
+    "group_id": "root_authored_imperative_action_14",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "Be careful to keep that hot soup in your hands.",
+    "speech_act": "imperative",
+    "grounding": "action",
+    "group_id": "root_authored_imperative_action_15",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "Do not let go of the bowl yet.",
+    "speech_act": "imperative",
+    "grounding": "action",
+    "group_id": "root_authored_imperative_action_16",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "Please refrain from picking up another tomato.",
+    "speech_act": "imperative",
+    "grounding": "action",
+    "group_id": "root_authored_imperative_action_17",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "I would like you to take over at this pot.",
+    "speech_act": "imperative",
+    "grounding": "action",
+    "group_id": "root_authored_imperative_action_18",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "Please go as far as the worktop beside the door.",
+    "speech_act": "imperative",
+    "grounding": "action",
+    "group_id": "root_authored_imperative_action_19",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "Continue walking until you reach the dish rack.",
+    "speech_act": "imperative",
+    "grounding": "action",
+    "group_id": "root_authored_imperative_action_20",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "Help me by bringing the final ingredient.",
+    "speech_act": "imperative",
+    "grounding": "action",
+    "group_id": "root_authored_imperative_action_21",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "Get back to the serving area as soon as you can.",
+    "speech_act": "imperative",
+    "grounding": "action",
+    "group_id": "root_authored_imperative_action_22",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "Step out of the space between me and the stove.",
+    "speech_act": "imperative",
+    "grounding": "action",
+    "group_id": "root_authored_imperative_action_23",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "Pass along the empty bowl rather than keeping it.",
+    "speech_act": "imperative",
+    "grounding": "action",
+    "group_id": "root_authored_imperative_action_24",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "Finish the delivery before collecting anything else.",
+    "speech_act": "imperative",
+    "grounding": "action",
+    "group_id": "root_authored_imperative_action_25",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "How about fetching a fresh dish for me?",
+    "speech_act": "imperative",
+    "grounding": "action",
+    "group_id": "root_authored_imperative_action_26",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "Would you be able to wait at the upper counter?",
+    "speech_act": "imperative",
+    "grounding": "action",
+    "group_id": "root_authored_imperative_action_27",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "You had better move that onion into the pot.",
+    "speech_act": "imperative",
+    "grounding": "action",
+    "group_id": "root_authored_imperative_action_28",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "I suggest carrying the soup straight to the customer.",
+    "speech_act": "imperative",
+    "grounding": "action",
+    "group_id": "root_authored_imperative_action_29",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "Do me a favor and put that tomato down.",
+    "speech_act": "imperative",
+    "grounding": "action",
+    "group_id": "root_authored_imperative_action_30",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "Leave the pot nearest the wall alone.",
+    "speech_act": "imperative",
+    "grounding": "action",
+    "group_id": "root_authored_imperative_action_31",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "Go ahead and pick up the bowl on your right.",
+    "speech_act": "imperative",
+    "grounding": "action",
+    "group_id": "root_authored_imperative_action_32",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "Please have a go at clearing the center aisle.",
+    "speech_act": "imperative",
+    "grounding": "action",
+    "group_id": "root_authored_imperative_action_33",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "Take whichever path gets you to the onion supply.",
+    "speech_act": "imperative",
+    "grounding": "action",
+    "group_id": "root_authored_imperative_action_34",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "Start heading toward the serving point.",
+    "speech_act": "imperative",
+    "grounding": "action",
+    "group_id": "root_authored_imperative_action_35",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "Keep your hands free until the soup is ready.",
+    "speech_act": "imperative",
+    "grounding": "action",
+    "group_id": "root_authored_imperative_action_36",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "Would you please bring me the dish behind you?",
+    "speech_act": "imperative",
+    "grounding": "action",
+    "group_id": "root_authored_imperative_action_37",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "Swap places with me at the cooking station.",
+    "speech_act": "imperative",
+    "grounding": "action",
+    "group_id": "root_authored_imperative_action_38",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "Stay where I can pass you on the left.",
+    "speech_act": "imperative",
+    "grounding": "action",
+    "group_id": "root_authored_imperative_action_39",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "The serving point faces the lower wall.",
+    "speech_act": "descriptive",
+    "grounding": "feature",
+    "group_id": "root_authored_descriptive_feature_0",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "Every available bowl is on the far worktop.",
+    "speech_act": "descriptive",
+    "grounding": "feature",
+    "group_id": "root_authored_descriptive_feature_1",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "You currently have nothing in either hand.",
+    "speech_act": "descriptive",
+    "grounding": "feature",
+    "group_id": "root_authored_descriptive_feature_2",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "A pair of tomatoes is sitting beside the stove.",
+    "speech_act": "descriptive",
+    "grounding": "feature",
+    "group_id": "root_authored_descriptive_feature_3",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "There are four squares from the pot to the window.",
+    "speech_act": "descriptive",
+    "grounding": "feature",
+    "group_id": "root_authored_descriptive_feature_4",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "Neither cooking station is empty at present.",
+    "speech_act": "descriptive",
+    "grounding": "feature",
+    "group_id": "root_authored_descriptive_feature_5",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "The opening beside the wall is two tiles wide.",
+    "speech_act": "descriptive",
+    "grounding": "feature",
+    "group_id": "root_authored_descriptive_feature_6",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "Both cooks are facing the same direction.",
+    "speech_act": "descriptive",
+    "grounding": "feature",
+    "group_id": "root_authored_descriptive_feature_7",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "What I am carrying is an onion.",
+    "speech_act": "descriptive",
+    "grounding": "feature",
+    "group_id": "root_authored_descriptive_feature_8",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "The bowl to your left contains cooked soup.",
+    "speech_act": "descriptive",
+    "grounding": "feature",
+    "group_id": "root_authored_descriptive_feature_9",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "The pot behind me still contains only one ingredient.",
+    "speech_act": "descriptive",
+    "grounding": "feature",
+    "group_id": "root_authored_descriptive_feature_10",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "One end of the worktop touches the serving station.",
+    "speech_act": "descriptive",
+    "grounding": "feature",
+    "group_id": "root_authored_descriptive_feature_11",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "Our current order calls for an onion and two tomatoes.",
+    "speech_act": "descriptive",
+    "grounding": "feature",
+    "group_id": "root_authored_descriptive_feature_12",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "Half of the available counter spaces are occupied.",
+    "speech_act": "descriptive",
+    "grounding": "feature",
+    "group_id": "root_authored_descriptive_feature_13",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "The stove on the opposite side is unlit.",
+    "speech_act": "descriptive",
+    "grounding": "feature",
+    "group_id": "root_authored_descriptive_feature_14",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "Your hands are full at the moment.",
+    "speech_act": "descriptive",
+    "grounding": "feature",
+    "group_id": "root_authored_descriptive_feature_15",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "I am standing directly above the empty dish.",
+    "speech_act": "descriptive",
+    "grounding": "feature",
+    "group_id": "root_authored_descriptive_feature_16",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "The cook beside you is holding a plate.",
+    "speech_act": "descriptive",
+    "grounding": "feature",
+    "group_id": "root_authored_descriptive_feature_17",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "Only one of the dishes contains soup.",
+    "speech_act": "descriptive",
+    "grounding": "feature",
+    "group_id": "root_authored_descriptive_feature_18",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "There are no ingredients on the lower bench.",
+    "speech_act": "descriptive",
+    "grounding": "feature",
+    "group_id": "root_authored_descriptive_feature_19",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "The two cooking stations share a counter.",
+    "speech_act": "descriptive",
+    "grounding": "feature",
+    "group_id": "root_authored_descriptive_feature_20",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "Nothing is blocking the tile immediately behind you.",
+    "speech_act": "descriptive",
+    "grounding": "feature",
+    "group_id": "root_authored_descriptive_feature_21",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "The soup has ten seconds of cooking time remaining.",
+    "speech_act": "descriptive",
+    "grounding": "feature",
+    "group_id": "root_authored_descriptive_feature_22",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "An empty plate separates the two onions on the bench.",
+    "speech_act": "descriptive",
+    "grounding": "feature",
+    "group_id": "root_authored_descriptive_feature_23",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "The order shown at the top is still waiting to be filled.",
+    "speech_act": "descriptive",
+    "grounding": "feature",
+    "group_id": "root_authored_descriptive_feature_24",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "Earlier in the round, you placed an onion on this worktop.",
+    "speech_act": "descriptive",
+    "grounding": "trajectory",
+    "group_id": "root_authored_descriptive_trajectory_0",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "A tomato was collected by the other cook on the previous turn.",
+    "speech_act": "descriptive",
+    "grounding": "trajectory",
+    "group_id": "root_authored_descriptive_trajectory_1",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "The last order was handed in before the timer reached zero.",
+    "speech_act": "descriptive",
+    "grounding": "trajectory",
+    "group_id": "root_authored_descriptive_trajectory_2",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "Your partner has just come back from the serving point.",
+    "speech_act": "descriptive",
+    "grounding": "trajectory",
+    "group_id": "root_authored_descriptive_trajectory_3",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "You have been waiting beside the stove for six steps.",
+    "speech_act": "descriptive",
+    "grounding": "trajectory",
+    "group_id": "root_authored_descriptive_trajectory_4",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "The cook in the blue hat took the dish off that counter.",
+    "speech_act": "descriptive",
+    "grounding": "trajectory",
+    "group_id": "root_authored_descriptive_trajectory_5",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "We completed three deliveries during the previous shift.",
+    "speech_act": "descriptive",
+    "grounding": "trajectory",
+    "group_id": "root_authored_descriptive_trajectory_6",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "No ingredients were collected during your last trip.",
+    "speech_act": "descriptive",
+    "grounding": "trajectory",
+    "group_id": "root_authored_descriptive_trajectory_7",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "You spent the previous turn standing behind me.",
+    "speech_act": "descriptive",
+    "grounding": "trajectory",
+    "group_id": "root_authored_descriptive_trajectory_8",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "A bowl changed hands when you interacted with the bench.",
+    "speech_act": "descriptive",
+    "grounding": "trajectory",
+    "group_id": "root_authored_descriptive_trajectory_9",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "The soup was delivered while I was holding the onion.",
+    "speech_act": "descriptive",
+    "grounding": "trajectory",
+    "group_id": "root_authored_descriptive_trajectory_10",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "On the last move you turned to face the lower wall.",
+    "speech_act": "descriptive",
+    "grounding": "trajectory",
+    "group_id": "root_authored_descriptive_trajectory_11",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "Our previous game lasted exactly two minutes.",
+    "speech_act": "descriptive",
+    "grounding": "trajectory",
+    "group_id": "root_authored_descriptive_trajectory_12",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "You passed the cooking station twice on your way back.",
+    "speech_act": "descriptive",
+    "grounding": "trajectory",
+    "group_id": "root_authored_descriptive_trajectory_13",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "The last action added a tomato to the upper pot.",
+    "speech_act": "descriptive",
+    "grounding": "trajectory",
+    "group_id": "root_authored_descriptive_trajectory_14",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "You had already left the stove when I arrived.",
+    "speech_act": "descriptive",
+    "grounding": "trajectory",
+    "group_id": "root_authored_descriptive_trajectory_15",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "I saw you move the plate from one counter to the other.",
+    "speech_act": "descriptive",
+    "grounding": "trajectory",
+    "group_id": "root_authored_descriptive_trajectory_16",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "You ended the round with a bowl in your hands.",
+    "speech_act": "descriptive",
+    "grounding": "trajectory",
+    "group_id": "root_authored_descriptive_trajectory_17",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "The scoreboard gained two points on that delivery.",
+    "speech_act": "descriptive",
+    "grounding": "trajectory",
+    "group_id": "root_authored_descriptive_trajectory_18",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  },
+  {
+    "text": "The partner crossed the middle aisle on the preceding turn.",
+    "speech_act": "descriptive",
+    "grounding": "trajectory",
+    "group_id": "root_authored_descriptive_trajectory_19",
+    "source": "new_synthetic_seed_v3",
+    "human_data": false
+  }
+]

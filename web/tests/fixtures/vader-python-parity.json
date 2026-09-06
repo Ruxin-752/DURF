@@ -1,0 +1,2590 @@
+{
+  "source": "official Python vaderSentiment 3.3.2",
+  "source_sha256": "25cd814d23000b41c0e242d99960832c6620b3f1b844469173404500ce63206b",
+  "provenance": "Upstream public demonstration sentences and generated synthetic cases only.",
+  "cases": [
+    {
+      "text": "VADER is smart, handsome, and funny.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.254,
+        "pos": 0.746,
+        "compound": 0.8316
+      }
+    },
+    {
+      "text": "VADER is smart, handsome, and funny!",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.248,
+        "pos": 0.752,
+        "compound": 0.8439
+      }
+    },
+    {
+      "text": "VADER is very smart, handsome, and funny.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.299,
+        "pos": 0.701,
+        "compound": 0.8545
+      }
+    },
+    {
+      "text": "VADER is VERY SMART, handsome, and FUNNY.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.246,
+        "pos": 0.754,
+        "compound": 0.9227
+      }
+    },
+    {
+      "text": "VADER is VERY SMART, handsome, and FUNNY!!!",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.233,
+        "pos": 0.767,
+        "compound": 0.9342
+      }
+    },
+    {
+      "text": "VADER is VERY SMART, uber handsome, and FRIGGIN FUNNY!!!",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.294,
+        "pos": 0.706,
+        "compound": 0.9469
+      }
+    },
+    {
+      "text": "VADER is not smart, handsome, nor funny.",
+      "scores": {
+        "neg": 0.646,
+        "neu": 0.354,
+        "pos": 0.0,
+        "compound": -0.7424
+      }
+    },
+    {
+      "text": "The book was good.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.508,
+        "pos": 0.492,
+        "compound": 0.4404
+      }
+    },
+    {
+      "text": "At least it isn't a horrible book.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.678,
+        "pos": 0.322,
+        "compound": 0.431
+      }
+    },
+    {
+      "text": "The book was only kind of good.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.697,
+        "pos": 0.303,
+        "compound": 0.3832
+      }
+    },
+    {
+      "text": "The plot was good, but the characters are uncompelling and the dialog is not great.",
+      "scores": {
+        "neg": 0.327,
+        "neu": 0.579,
+        "pos": 0.094,
+        "compound": -0.7042
+      }
+    },
+    {
+      "text": "Today SUX!",
+      "scores": {
+        "neg": 0.779,
+        "neu": 0.221,
+        "pos": 0.0,
+        "compound": -0.5461
+      }
+    },
+    {
+      "text": "Today only kinda sux! But I'll get by, lol",
+      "scores": {
+        "neg": 0.127,
+        "neu": 0.556,
+        "pos": 0.317,
+        "compound": 0.5249
+      }
+    },
+    {
+      "text": "Make sure you :) or :D today!",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.294,
+        "pos": 0.706,
+        "compound": 0.8633
+      }
+    },
+    {
+      "text": "Catch utf-8 emoji such as 💘 and 💋 and 😁",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.583,
+        "pos": 0.417,
+        "compound": 0.875
+      }
+    },
+    {
+      "text": "Not bad at all",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.513,
+        "pos": 0.487,
+        "compound": 0.431
+      }
+    },
+    {
+      "text": "",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.0,
+        "pos": 0.0,
+        "compound": 0.0
+      }
+    },
+    {
+      "text": "Not good.",
+      "scores": {
+        "neg": 0.706,
+        "neu": 0.294,
+        "pos": 0.0,
+        "compound": -0.3412
+      }
+    },
+    {
+      "text": "NOT good.",
+      "scores": {
+        "neg": 0.706,
+        "neu": 0.294,
+        "pos": 0.0,
+        "compound": -0.3412
+      }
+    },
+    {
+      "text": "not GOOD.",
+      "scores": {
+        "neg": 0.747,
+        "neu": 0.253,
+        "pos": 0.0,
+        "compound": -0.4494
+      }
+    },
+    {
+      "text": "NOT GOOD.",
+      "scores": {
+        "neg": 0.706,
+        "neu": 0.294,
+        "pos": 0.0,
+        "compound": -0.3412
+      }
+    },
+    {
+      "text": "No good.",
+      "scores": {
+        "neg": 0.706,
+        "neu": 0.294,
+        "pos": 0.0,
+        "compound": -0.3412
+      }
+    },
+    {
+      "text": "No GOOD!",
+      "scores": {
+        "neg": 0.774,
+        "neu": 0.226,
+        "pos": 0.0,
+        "compound": -0.5316
+      }
+    },
+    {
+      "text": "Never good.",
+      "scores": {
+        "neg": 0.706,
+        "neu": 0.294,
+        "pos": 0.0,
+        "compound": -0.3412
+      }
+    },
+    {
+      "text": "Pick an onion.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 1.0,
+        "pos": 0.0,
+        "compound": 0.0
+      }
+    },
+    {
+      "text": "Do not pick onions.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 1.0,
+        "pos": 0.0,
+        "compound": 0.0
+      }
+    },
+    {
+      "text": "Stop picking onions.",
+      "scores": {
+        "neg": 0.524,
+        "neu": 0.476,
+        "pos": 0.0,
+        "compound": -0.296
+      }
+    },
+    {
+      "text": "The pot is empty.",
+      "scores": {
+        "neg": 0.375,
+        "neu": 0.625,
+        "pos": 0.0,
+        "compound": -0.2023
+      }
+    },
+    {
+      "text": "You are blocking my path.",
+      "scores": {
+        "neg": 0.394,
+        "neu": 0.606,
+        "pos": 0.0,
+        "compound": -0.3818
+      }
+    },
+    {
+      "text": "The path is blocked.",
+      "scores": {
+        "neg": 0.412,
+        "neu": 0.588,
+        "pos": 0.0,
+        "compound": -0.2732
+      }
+    },
+    {
+      "text": "Onions are useful.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.408,
+        "pos": 0.592,
+        "compound": 0.4404
+      }
+    },
+    {
+      "text": "The onion was bad.",
+      "scores": {
+        "neg": 0.538,
+        "neu": 0.462,
+        "pos": 0.0,
+        "compound": -0.5423
+      }
+    },
+    {
+      "text": "You did a good job.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.58,
+        "pos": 0.42,
+        "compound": 0.4404
+      }
+    },
+    {
+      "text": "You did a BAD job!!!",
+      "scores": {
+        "neg": 0.561,
+        "neu": 0.439,
+        "pos": 0.0,
+        "compound": -0.7277
+      }
+    },
+    {
+      "text": "good good but good good",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.079,
+        "pos": 0.921,
+        "compound": 0.891
+      }
+    },
+    {
+      "text": "Good but not good",
+      "scores": {
+        "neg": 0.44,
+        "neu": 0.283,
+        "pos": 0.276,
+        "compound": -0.2867
+      }
+    },
+    {
+      "text": "Good But not good",
+      "scores": {
+        "neg": 0.44,
+        "neu": 0.283,
+        "pos": 0.276,
+        "compound": -0.2867
+      }
+    },
+    {
+      "text": "The soup is not very good.",
+      "scores": {
+        "neg": 0.344,
+        "neu": 0.656,
+        "pos": 0.0,
+        "compound": -0.3865
+      }
+    },
+    {
+      "text": "There is no doubt it is good.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.5,
+        "pos": 0.5,
+        "compound": 0.6136
+      }
+    },
+    {
+      "text": "This is without doubt good.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.375,
+        "pos": 0.625,
+        "compound": 0.6136
+      }
+    },
+    {
+      "text": "This is never so good.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.475,
+        "pos": 0.525,
+        "compound": 0.6626
+      }
+    },
+    {
+      "text": "This is least good.",
+      "scores": {
+        "neg": 0.445,
+        "neu": 0.555,
+        "pos": 0.0,
+        "compound": -0.3412
+      }
+    },
+    {
+      "text": "This is at least good.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.58,
+        "pos": 0.42,
+        "compound": 0.4404
+      }
+    },
+    {
+      "text": "This is kind of good.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.605,
+        "pos": 0.395,
+        "compound": 0.3832
+      }
+    },
+    {
+      "text": "That was the bomb.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.429,
+        "pos": 0.571,
+        "compound": 0.6124
+      }
+    },
+    {
+      "text": "I love this 😁",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.455,
+        "pos": 0.545,
+        "compound": 0.802
+      }
+    },
+    {
+      "text": "good.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.0,
+        "pos": 1.0,
+        "compound": 0.4404
+      }
+    },
+    {
+      "text": "good!",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.0,
+        "pos": 1.0,
+        "compound": 0.4926
+      }
+    },
+    {
+      "text": "good???",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.0,
+        "pos": 1.0,
+        "compound": 0.533
+      }
+    },
+    {
+      "text": "not good.",
+      "scores": {
+        "neg": 0.706,
+        "neu": 0.294,
+        "pos": 0.0,
+        "compound": -0.3412
+      }
+    },
+    {
+      "text": "not good!",
+      "scores": {
+        "neg": 0.73,
+        "neu": 0.27,
+        "pos": 0.0,
+        "compound": -0.4015
+      }
+    },
+    {
+      "text": "not good???",
+      "scores": {
+        "neg": 0.747,
+        "neu": 0.253,
+        "pos": 0.0,
+        "compound": -0.449
+      }
+    },
+    {
+      "text": "Not good!",
+      "scores": {
+        "neg": 0.73,
+        "neu": 0.27,
+        "pos": 0.0,
+        "compound": -0.4015
+      }
+    },
+    {
+      "text": "Not good???",
+      "scores": {
+        "neg": 0.747,
+        "neu": 0.253,
+        "pos": 0.0,
+        "compound": -0.449
+      }
+    },
+    {
+      "text": "NOT good!",
+      "scores": {
+        "neg": 0.73,
+        "neu": 0.27,
+        "pos": 0.0,
+        "compound": -0.4015
+      }
+    },
+    {
+      "text": "NOT good???",
+      "scores": {
+        "neg": 0.747,
+        "neu": 0.253,
+        "pos": 0.0,
+        "compound": -0.449
+      }
+    },
+    {
+      "text": "not very good.",
+      "scores": {
+        "neg": 0.567,
+        "neu": 0.433,
+        "pos": 0.0,
+        "compound": -0.3865
+      }
+    },
+    {
+      "text": "not very good!",
+      "scores": {
+        "neg": 0.593,
+        "neu": 0.407,
+        "pos": 0.0,
+        "compound": -0.4432
+      }
+    },
+    {
+      "text": "not very good???",
+      "scores": {
+        "neg": 0.613,
+        "neu": 0.387,
+        "pos": 0.0,
+        "compound": -0.4876
+      }
+    },
+    {
+      "text": "never so good.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.348,
+        "pos": 0.652,
+        "compound": 0.5777
+      }
+    },
+    {
+      "text": "never so good!",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.331,
+        "pos": 0.669,
+        "compound": 0.6166
+      }
+    },
+    {
+      "text": "never so good???",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.318,
+        "pos": 0.682,
+        "compound": 0.6464
+      }
+    },
+    {
+      "text": "no good.",
+      "scores": {
+        "neg": 0.706,
+        "neu": 0.294,
+        "pos": 0.0,
+        "compound": -0.3412
+      }
+    },
+    {
+      "text": "no good!",
+      "scores": {
+        "neg": 0.73,
+        "neu": 0.27,
+        "pos": 0.0,
+        "compound": -0.4015
+      }
+    },
+    {
+      "text": "no good???",
+      "scores": {
+        "neg": 0.747,
+        "neu": 0.253,
+        "pos": 0.0,
+        "compound": -0.449
+      }
+    },
+    {
+      "text": "barely good.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.277,
+        "pos": 0.723,
+        "compound": 0.3832
+      }
+    },
+    {
+      "text": "barely good!",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.256,
+        "pos": 0.744,
+        "compound": 0.4402
+      }
+    },
+    {
+      "text": "barely good???",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.241,
+        "pos": 0.759,
+        "compound": 0.4848
+      }
+    },
+    {
+      "text": "really good.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.238,
+        "pos": 0.762,
+        "compound": 0.4927
+      }
+    },
+    {
+      "text": "really good!",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.223,
+        "pos": 0.777,
+        "compound": 0.54
+      }
+    },
+    {
+      "text": "really good???",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.211,
+        "pos": 0.789,
+        "compound": 0.5766
+      }
+    },
+    {
+      "text": "bad.",
+      "scores": {
+        "neg": 1.0,
+        "neu": 0.0,
+        "pos": 0.0,
+        "compound": -0.5423
+      }
+    },
+    {
+      "text": "bad!",
+      "scores": {
+        "neg": 1.0,
+        "neu": 0.0,
+        "pos": 0.0,
+        "compound": -0.5848
+      }
+    },
+    {
+      "text": "bad???",
+      "scores": {
+        "neg": 1.0,
+        "neu": 0.0,
+        "pos": 0.0,
+        "compound": -0.6174
+      }
+    },
+    {
+      "text": "not bad.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.26,
+        "pos": 0.74,
+        "compound": 0.431
+      }
+    },
+    {
+      "text": "not bad!",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.241,
+        "pos": 0.759,
+        "compound": 0.484
+      }
+    },
+    {
+      "text": "not bad???",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.228,
+        "pos": 0.772,
+        "compound": 0.5252
+      }
+    },
+    {
+      "text": "Not bad.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.26,
+        "pos": 0.74,
+        "compound": 0.431
+      }
+    },
+    {
+      "text": "Not bad!",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.241,
+        "pos": 0.759,
+        "compound": 0.484
+      }
+    },
+    {
+      "text": "Not bad???",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.228,
+        "pos": 0.772,
+        "compound": 0.5252
+      }
+    },
+    {
+      "text": "NOT bad.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.26,
+        "pos": 0.74,
+        "compound": 0.431
+      }
+    },
+    {
+      "text": "NOT bad!",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.241,
+        "pos": 0.759,
+        "compound": 0.484
+      }
+    },
+    {
+      "text": "NOT bad???",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.228,
+        "pos": 0.772,
+        "compound": 0.5252
+      }
+    },
+    {
+      "text": "not very bad.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.395,
+        "pos": 0.605,
+        "compound": 0.4708
+      }
+    },
+    {
+      "text": "not very bad!",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.373,
+        "pos": 0.627,
+        "compound": 0.5202
+      }
+    },
+    {
+      "text": "not very bad???",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.357,
+        "pos": 0.643,
+        "compound": 0.5584
+      }
+    },
+    {
+      "text": "never so bad.",
+      "scores": {
+        "neg": 0.692,
+        "neu": 0.308,
+        "pos": 0.0,
+        "compound": -0.6696
+      }
+    },
+    {
+      "text": "never so bad!",
+      "scores": {
+        "neg": 0.705,
+        "neu": 0.295,
+        "pos": 0.0,
+        "compound": -0.6988
+      }
+    },
+    {
+      "text": "never so bad???",
+      "scores": {
+        "neg": 0.716,
+        "neu": 0.284,
+        "pos": 0.0,
+        "compound": -0.7211
+      }
+    },
+    {
+      "text": "no bad.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.26,
+        "pos": 0.74,
+        "compound": 0.431
+      }
+    },
+    {
+      "text": "no bad!",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.241,
+        "pos": 0.759,
+        "compound": 0.484
+      }
+    },
+    {
+      "text": "no bad???",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.228,
+        "pos": 0.772,
+        "compound": 0.5252
+      }
+    },
+    {
+      "text": "barely bad.",
+      "scores": {
+        "neg": 0.762,
+        "neu": 0.238,
+        "pos": 0.0,
+        "compound": -0.4951
+      }
+    },
+    {
+      "text": "barely bad!",
+      "scores": {
+        "neg": 0.778,
+        "neu": 0.222,
+        "pos": 0.0,
+        "compound": -0.5422
+      }
+    },
+    {
+      "text": "barely bad???",
+      "scores": {
+        "neg": 0.789,
+        "neu": 0.211,
+        "pos": 0.0,
+        "compound": -0.5785
+      }
+    },
+    {
+      "text": "really bad.",
+      "scores": {
+        "neg": 0.791,
+        "neu": 0.209,
+        "pos": 0.0,
+        "compound": -0.5849
+      }
+    },
+    {
+      "text": "really bad!",
+      "scores": {
+        "neg": 0.803,
+        "neu": 0.197,
+        "pos": 0.0,
+        "compound": -0.623
+      }
+    },
+    {
+      "text": "really bad???",
+      "scores": {
+        "neg": 0.812,
+        "neu": 0.188,
+        "pos": 0.0,
+        "compound": -0.6523
+      }
+    },
+    {
+      "text": "excellent.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.0,
+        "pos": 1.0,
+        "compound": 0.5719
+      }
+    },
+    {
+      "text": "excellent!",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.0,
+        "pos": 1.0,
+        "compound": 0.6114
+      }
+    },
+    {
+      "text": "excellent???",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.0,
+        "pos": 1.0,
+        "compound": 0.6416
+      }
+    },
+    {
+      "text": "not excellent.",
+      "scores": {
+        "neg": 0.75,
+        "neu": 0.25,
+        "pos": 0.0,
+        "compound": -0.4585
+      }
+    },
+    {
+      "text": "not excellent!",
+      "scores": {
+        "neg": 0.767,
+        "neu": 0.233,
+        "pos": 0.0,
+        "compound": -0.509
+      }
+    },
+    {
+      "text": "not excellent???",
+      "scores": {
+        "neg": 0.78,
+        "neu": 0.22,
+        "pos": 0.0,
+        "compound": -0.5481
+      }
+    },
+    {
+      "text": "Not excellent.",
+      "scores": {
+        "neg": 0.75,
+        "neu": 0.25,
+        "pos": 0.0,
+        "compound": -0.4585
+      }
+    },
+    {
+      "text": "Not excellent!",
+      "scores": {
+        "neg": 0.767,
+        "neu": 0.233,
+        "pos": 0.0,
+        "compound": -0.509
+      }
+    },
+    {
+      "text": "Not excellent???",
+      "scores": {
+        "neg": 0.78,
+        "neu": 0.22,
+        "pos": 0.0,
+        "compound": -0.5481
+      }
+    },
+    {
+      "text": "NOT excellent.",
+      "scores": {
+        "neg": 0.75,
+        "neu": 0.25,
+        "pos": 0.0,
+        "compound": -0.4585
+      }
+    },
+    {
+      "text": "NOT excellent!",
+      "scores": {
+        "neg": 0.767,
+        "neu": 0.233,
+        "pos": 0.0,
+        "compound": -0.509
+      }
+    },
+    {
+      "text": "NOT excellent???",
+      "scores": {
+        "neg": 0.78,
+        "neu": 0.22,
+        "pos": 0.0,
+        "compound": -0.5481
+      }
+    },
+    {
+      "text": "not very excellent.",
+      "scores": {
+        "neg": 0.616,
+        "neu": 0.384,
+        "pos": 0.0,
+        "compound": -0.4964
+      }
+    },
+    {
+      "text": "not very excellent!",
+      "scores": {
+        "neg": 0.637,
+        "neu": 0.363,
+        "pos": 0.0,
+        "compound": -0.5434
+      }
+    },
+    {
+      "text": "not very excellent???",
+      "scores": {
+        "neg": 0.652,
+        "neu": 0.348,
+        "pos": 0.0,
+        "compound": -0.5796
+      }
+    },
+    {
+      "text": "never so excellent.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.297,
+        "pos": 0.703,
+        "compound": 0.6948
+      }
+    },
+    {
+      "text": "never so excellent!",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.284,
+        "pos": 0.716,
+        "compound": 0.7213
+      }
+    },
+    {
+      "text": "never so excellent???",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.275,
+        "pos": 0.725,
+        "compound": 0.7416
+      }
+    },
+    {
+      "text": "no excellent.",
+      "scores": {
+        "neg": 0.75,
+        "neu": 0.25,
+        "pos": 0.0,
+        "compound": -0.4585
+      }
+    },
+    {
+      "text": "no excellent!",
+      "scores": {
+        "neg": 0.767,
+        "neu": 0.233,
+        "pos": 0.0,
+        "compound": -0.509
+      }
+    },
+    {
+      "text": "no excellent???",
+      "scores": {
+        "neg": 0.78,
+        "neu": 0.22,
+        "pos": 0.0,
+        "compound": -0.5481
+      }
+    },
+    {
+      "text": "barely excellent.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.227,
+        "pos": 0.773,
+        "compound": 0.5279
+      }
+    },
+    {
+      "text": "barely excellent!",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.213,
+        "pos": 0.787,
+        "compound": 0.5717
+      }
+    },
+    {
+      "text": "barely excellent???",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.202,
+        "pos": 0.798,
+        "compound": 0.6055
+      }
+    },
+    {
+      "text": "really excellent.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.2,
+        "pos": 0.8,
+        "compound": 0.6115
+      }
+    },
+    {
+      "text": "really excellent!",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.189,
+        "pos": 0.811,
+        "compound": 0.6468
+      }
+    },
+    {
+      "text": "really excellent???",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.181,
+        "pos": 0.819,
+        "compound": 0.6739
+      }
+    },
+    {
+      "text": "terrible.",
+      "scores": {
+        "neg": 1.0,
+        "neu": 0.0,
+        "pos": 0.0,
+        "compound": -0.4767
+      }
+    },
+    {
+      "text": "terrible!",
+      "scores": {
+        "neg": 1.0,
+        "neu": 0.0,
+        "pos": 0.0,
+        "compound": -0.5255
+      }
+    },
+    {
+      "text": "terrible???",
+      "scores": {
+        "neg": 1.0,
+        "neu": 0.0,
+        "pos": 0.0,
+        "compound": -0.5632
+      }
+    },
+    {
+      "text": "not terrible.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.281,
+        "pos": 0.719,
+        "compound": 0.3724
+      }
+    },
+    {
+      "text": "not terrible!",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.26,
+        "pos": 0.74,
+        "compound": 0.4303
+      }
+    },
+    {
+      "text": "not terrible???",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.244,
+        "pos": 0.756,
+        "compound": 0.4756
+      }
+    },
+    {
+      "text": "Not terrible.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.281,
+        "pos": 0.719,
+        "compound": 0.3724
+      }
+    },
+    {
+      "text": "Not terrible!",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.26,
+        "pos": 0.74,
+        "compound": 0.4303
+      }
+    },
+    {
+      "text": "Not terrible???",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.244,
+        "pos": 0.756,
+        "compound": 0.4756
+      }
+    },
+    {
+      "text": "NOT terrible.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.281,
+        "pos": 0.719,
+        "compound": 0.3724
+      }
+    },
+    {
+      "text": "NOT terrible!",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.26,
+        "pos": 0.74,
+        "compound": 0.4303
+      }
+    },
+    {
+      "text": "NOT terrible???",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.244,
+        "pos": 0.756,
+        "compound": 0.4756
+      }
+    },
+    {
+      "text": "not very terrible.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.419,
+        "pos": 0.581,
+        "compound": 0.4158
+      }
+    },
+    {
+      "text": "not very terrible!",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.395,
+        "pos": 0.605,
+        "compound": 0.4701
+      }
+    },
+    {
+      "text": "not very terrible???",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.377,
+        "pos": 0.623,
+        "compound": 0.5124
+      }
+    },
+    {
+      "text": "never so terrible.",
+      "scores": {
+        "neg": 0.666,
+        "neu": 0.334,
+        "pos": 0.0,
+        "compound": -0.6113
+      }
+    },
+    {
+      "text": "never so terrible!",
+      "scores": {
+        "neg": 0.682,
+        "neu": 0.318,
+        "pos": 0.0,
+        "compound": -0.6466
+      }
+    },
+    {
+      "text": "never so terrible???",
+      "scores": {
+        "neg": 0.694,
+        "neu": 0.306,
+        "pos": 0.0,
+        "compound": -0.6738
+      }
+    },
+    {
+      "text": "no terrible.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.281,
+        "pos": 0.719,
+        "compound": 0.3724
+      }
+    },
+    {
+      "text": "no terrible!",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.26,
+        "pos": 0.74,
+        "compound": 0.4303
+      }
+    },
+    {
+      "text": "no terrible???",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.244,
+        "pos": 0.756,
+        "compound": 0.4756
+      }
+    },
+    {
+      "text": "barely terrible.",
+      "scores": {
+        "neg": 0.737,
+        "neu": 0.263,
+        "pos": 0.0,
+        "compound": -0.4228
+      }
+    },
+    {
+      "text": "barely terrible!",
+      "scores": {
+        "neg": 0.756,
+        "neu": 0.244,
+        "pos": 0.0,
+        "compound": -0.4765
+      }
+    },
+    {
+      "text": "barely terrible???",
+      "scores": {
+        "neg": 0.77,
+        "neu": 0.23,
+        "pos": 0.0,
+        "compound": -0.5183
+      }
+    },
+    {
+      "text": "really terrible.",
+      "scores": {
+        "neg": 0.772,
+        "neu": 0.228,
+        "pos": 0.0,
+        "compound": -0.5256
+      }
+    },
+    {
+      "text": "really terrible!",
+      "scores": {
+        "neg": 0.787,
+        "neu": 0.213,
+        "pos": 0.0,
+        "compound": -0.5697
+      }
+    },
+    {
+      "text": "really terrible???",
+      "scores": {
+        "neg": 0.797,
+        "neu": 0.203,
+        "pos": 0.0,
+        "compound": -0.6037
+      }
+    },
+    {
+      "text": "helpful.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.0,
+        "pos": 1.0,
+        "compound": 0.4215
+      }
+    },
+    {
+      "text": "helpful!",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.0,
+        "pos": 1.0,
+        "compound": 0.4753
+      }
+    },
+    {
+      "text": "helpful???",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.0,
+        "pos": 1.0,
+        "compound": 0.5171
+      }
+    },
+    {
+      "text": "not helpful.",
+      "scores": {
+        "neg": 0.7,
+        "neu": 0.3,
+        "pos": 0.0,
+        "compound": -0.3252
+      }
+    },
+    {
+      "text": "not helpful!",
+      "scores": {
+        "neg": 0.724,
+        "neu": 0.276,
+        "pos": 0.0,
+        "compound": -0.3867
+      }
+    },
+    {
+      "text": "not helpful???",
+      "scores": {
+        "neg": 0.742,
+        "neu": 0.258,
+        "pos": 0.0,
+        "compound": -0.4352
+      }
+    },
+    {
+      "text": "Not helpful.",
+      "scores": {
+        "neg": 0.7,
+        "neu": 0.3,
+        "pos": 0.0,
+        "compound": -0.3252
+      }
+    },
+    {
+      "text": "Not helpful!",
+      "scores": {
+        "neg": 0.724,
+        "neu": 0.276,
+        "pos": 0.0,
+        "compound": -0.3867
+      }
+    },
+    {
+      "text": "Not helpful???",
+      "scores": {
+        "neg": 0.742,
+        "neu": 0.258,
+        "pos": 0.0,
+        "compound": -0.4352
+      }
+    },
+    {
+      "text": "NOT helpful.",
+      "scores": {
+        "neg": 0.7,
+        "neu": 0.3,
+        "pos": 0.0,
+        "compound": -0.3252
+      }
+    },
+    {
+      "text": "NOT helpful!",
+      "scores": {
+        "neg": 0.724,
+        "neu": 0.276,
+        "pos": 0.0,
+        "compound": -0.3867
+      }
+    },
+    {
+      "text": "NOT helpful???",
+      "scores": {
+        "neg": 0.742,
+        "neu": 0.258,
+        "pos": 0.0,
+        "compound": -0.4352
+      }
+    },
+    {
+      "text": "not very helpful.",
+      "scores": {
+        "neg": 0.56,
+        "neu": 0.44,
+        "pos": 0.0,
+        "compound": -0.3713
+      }
+    },
+    {
+      "text": "not very helpful!",
+      "scores": {
+        "neg": 0.587,
+        "neu": 0.413,
+        "pos": 0.0,
+        "compound": -0.4293
+      }
+    },
+    {
+      "text": "not very helpful???",
+      "scores": {
+        "neg": 0.607,
+        "neu": 0.393,
+        "pos": 0.0,
+        "compound": -0.4747
+      }
+    },
+    {
+      "text": "never so helpful.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.356,
+        "pos": 0.644,
+        "compound": 0.5598
+      }
+    },
+    {
+      "text": "never so helpful!",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.339,
+        "pos": 0.661,
+        "compound": 0.6005
+      }
+    },
+    {
+      "text": "never so helpful???",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.325,
+        "pos": 0.675,
+        "compound": 0.6317
+      }
+    },
+    {
+      "text": "no helpful.",
+      "scores": {
+        "neg": 0.7,
+        "neu": 0.3,
+        "pos": 0.0,
+        "compound": -0.3252
+      }
+    },
+    {
+      "text": "no helpful!",
+      "scores": {
+        "neg": 0.724,
+        "neu": 0.276,
+        "pos": 0.0,
+        "compound": -0.3867
+      }
+    },
+    {
+      "text": "no helpful???",
+      "scores": {
+        "neg": 0.742,
+        "neu": 0.258,
+        "pos": 0.0,
+        "compound": -0.4352
+      }
+    },
+    {
+      "text": "barely helpful.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.285,
+        "pos": 0.715,
+        "compound": 0.3626
+      }
+    },
+    {
+      "text": "barely helpful!",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.263,
+        "pos": 0.737,
+        "compound": 0.4213
+      }
+    },
+    {
+      "text": "barely helpful???",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.247,
+        "pos": 0.753,
+        "compound": 0.4673
+      }
+    },
+    {
+      "text": "really helpful.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.244,
+        "pos": 0.756,
+        "compound": 0.4754
+      }
+    },
+    {
+      "text": "really helpful!",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.228,
+        "pos": 0.772,
+        "compound": 0.5244
+      }
+    },
+    {
+      "text": "really helpful???",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.216,
+        "pos": 0.784,
+        "compound": 0.5622
+      }
+    },
+    {
+      "text": "annoying.",
+      "scores": {
+        "neg": 1.0,
+        "neu": 0.0,
+        "pos": 0.0,
+        "compound": -0.4019
+      }
+    },
+    {
+      "text": "annoying!",
+      "scores": {
+        "neg": 1.0,
+        "neu": 0.0,
+        "pos": 0.0,
+        "compound": -0.4574
+      }
+    },
+    {
+      "text": "annoying???",
+      "scores": {
+        "neg": 1.0,
+        "neu": 0.0,
+        "pos": 0.0,
+        "compound": -0.5007
+      }
+    },
+    {
+      "text": "not annoying.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.307,
+        "pos": 0.693,
+        "compound": 0.3089
+      }
+    },
+    {
+      "text": "not annoying!",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.282,
+        "pos": 0.718,
+        "compound": 0.3716
+      }
+    },
+    {
+      "text": "not annoying???",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.263,
+        "pos": 0.737,
+        "compound": 0.4211
+      }
+    },
+    {
+      "text": "Not annoying.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.307,
+        "pos": 0.693,
+        "compound": 0.3089
+      }
+    },
+    {
+      "text": "Not annoying!",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.282,
+        "pos": 0.718,
+        "compound": 0.3716
+      }
+    },
+    {
+      "text": "Not annoying???",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.263,
+        "pos": 0.737,
+        "compound": 0.4211
+      }
+    },
+    {
+      "text": "NOT annoying.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.307,
+        "pos": 0.693,
+        "compound": 0.3089
+      }
+    },
+    {
+      "text": "NOT annoying!",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.282,
+        "pos": 0.718,
+        "compound": 0.3716
+      }
+    },
+    {
+      "text": "NOT annoying???",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.263,
+        "pos": 0.737,
+        "compound": 0.4211
+      }
+    },
+    {
+      "text": "not very annoying.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.447,
+        "pos": 0.553,
+        "compound": 0.3559
+      }
+    },
+    {
+      "text": "not very annoying!",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.42,
+        "pos": 0.58,
+        "compound": 0.415
+      }
+    },
+    {
+      "text": "not very annoying???",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.399,
+        "pos": 0.601,
+        "compound": 0.4615
+      }
+    },
+    {
+      "text": "never so annoying.",
+      "scores": {
+        "neg": 0.636,
+        "neu": 0.364,
+        "pos": 0.0,
+        "compound": -0.541
+      }
+    },
+    {
+      "text": "never so annoying!",
+      "scores": {
+        "neg": 0.654,
+        "neu": 0.346,
+        "pos": 0.0,
+        "compound": -0.5836
+      }
+    },
+    {
+      "text": "never so annoying???",
+      "scores": {
+        "neg": 0.668,
+        "neu": 0.332,
+        "pos": 0.0,
+        "compound": -0.6163
+      }
+    },
+    {
+      "text": "no annoying.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.307,
+        "pos": 0.693,
+        "compound": 0.3089
+      }
+    },
+    {
+      "text": "no annoying!",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.282,
+        "pos": 0.718,
+        "compound": 0.3716
+      }
+    },
+    {
+      "text": "no annoying???",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.263,
+        "pos": 0.737,
+        "compound": 0.4211
+      }
+    },
+    {
+      "text": "barely annoying.",
+      "scores": {
+        "neg": 0.706,
+        "neu": 0.294,
+        "pos": 0.0,
+        "compound": -0.3415
+      }
+    },
+    {
+      "text": "barely annoying!",
+      "scores": {
+        "neg": 0.73,
+        "neu": 0.27,
+        "pos": 0.0,
+        "compound": -0.4017
+      }
+    },
+    {
+      "text": "barely annoying???",
+      "scores": {
+        "neg": 0.747,
+        "neu": 0.253,
+        "pos": 0.0,
+        "compound": -0.4492
+      }
+    },
+    {
+      "text": "really annoying.",
+      "scores": {
+        "neg": 0.75,
+        "neu": 0.25,
+        "pos": 0.0,
+        "compound": -0.4576
+      }
+    },
+    {
+      "text": "really annoying!",
+      "scores": {
+        "neg": 0.767,
+        "neu": 0.233,
+        "pos": 0.0,
+        "compound": -0.5081
+      }
+    },
+    {
+      "text": "really annoying???",
+      "scores": {
+        "neg": 0.779,
+        "neu": 0.221,
+        "pos": 0.0,
+        "compound": -0.5473
+      }
+    },
+    {
+      "text": "correct.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 1.0,
+        "pos": 0.0,
+        "compound": 0.0
+      }
+    },
+    {
+      "text": "correct!",
+      "scores": {
+        "neg": 0.0,
+        "neu": 1.0,
+        "pos": 0.0,
+        "compound": 0.0
+      }
+    },
+    {
+      "text": "correct???",
+      "scores": {
+        "neg": 0.0,
+        "neu": 1.0,
+        "pos": 0.0,
+        "compound": 0.0
+      }
+    },
+    {
+      "text": "not correct.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 1.0,
+        "pos": 0.0,
+        "compound": 0.0
+      }
+    },
+    {
+      "text": "not correct!",
+      "scores": {
+        "neg": 0.0,
+        "neu": 1.0,
+        "pos": 0.0,
+        "compound": 0.0
+      }
+    },
+    {
+      "text": "not correct???",
+      "scores": {
+        "neg": 0.0,
+        "neu": 1.0,
+        "pos": 0.0,
+        "compound": 0.0
+      }
+    },
+    {
+      "text": "Not correct.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 1.0,
+        "pos": 0.0,
+        "compound": 0.0
+      }
+    },
+    {
+      "text": "Not correct!",
+      "scores": {
+        "neg": 0.0,
+        "neu": 1.0,
+        "pos": 0.0,
+        "compound": 0.0
+      }
+    },
+    {
+      "text": "Not correct???",
+      "scores": {
+        "neg": 0.0,
+        "neu": 1.0,
+        "pos": 0.0,
+        "compound": 0.0
+      }
+    },
+    {
+      "text": "NOT correct.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 1.0,
+        "pos": 0.0,
+        "compound": 0.0
+      }
+    },
+    {
+      "text": "NOT correct!",
+      "scores": {
+        "neg": 0.0,
+        "neu": 1.0,
+        "pos": 0.0,
+        "compound": 0.0
+      }
+    },
+    {
+      "text": "NOT correct???",
+      "scores": {
+        "neg": 0.0,
+        "neu": 1.0,
+        "pos": 0.0,
+        "compound": 0.0
+      }
+    },
+    {
+      "text": "not very correct.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 1.0,
+        "pos": 0.0,
+        "compound": 0.0
+      }
+    },
+    {
+      "text": "not very correct!",
+      "scores": {
+        "neg": 0.0,
+        "neu": 1.0,
+        "pos": 0.0,
+        "compound": 0.0
+      }
+    },
+    {
+      "text": "not very correct???",
+      "scores": {
+        "neg": 0.0,
+        "neu": 1.0,
+        "pos": 0.0,
+        "compound": 0.0
+      }
+    },
+    {
+      "text": "never so correct.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 1.0,
+        "pos": 0.0,
+        "compound": 0.0
+      }
+    },
+    {
+      "text": "never so correct!",
+      "scores": {
+        "neg": 0.0,
+        "neu": 1.0,
+        "pos": 0.0,
+        "compound": 0.0
+      }
+    },
+    {
+      "text": "never so correct???",
+      "scores": {
+        "neg": 0.0,
+        "neu": 1.0,
+        "pos": 0.0,
+        "compound": 0.0
+      }
+    },
+    {
+      "text": "no correct.",
+      "scores": {
+        "neg": 0.688,
+        "neu": 0.312,
+        "pos": 0.0,
+        "compound": -0.296
+      }
+    },
+    {
+      "text": "no correct!",
+      "scores": {
+        "neg": 0.714,
+        "neu": 0.286,
+        "pos": 0.0,
+        "compound": -0.3595
+      }
+    },
+    {
+      "text": "no correct???",
+      "scores": {
+        "neg": 0.733,
+        "neu": 0.267,
+        "pos": 0.0,
+        "compound": -0.4098
+      }
+    },
+    {
+      "text": "barely correct.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 1.0,
+        "pos": 0.0,
+        "compound": 0.0
+      }
+    },
+    {
+      "text": "barely correct!",
+      "scores": {
+        "neg": 0.0,
+        "neu": 1.0,
+        "pos": 0.0,
+        "compound": 0.0
+      }
+    },
+    {
+      "text": "barely correct???",
+      "scores": {
+        "neg": 0.0,
+        "neu": 1.0,
+        "pos": 0.0,
+        "compound": 0.0
+      }
+    },
+    {
+      "text": "really correct.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 1.0,
+        "pos": 0.0,
+        "compound": 0.0
+      }
+    },
+    {
+      "text": "really correct!",
+      "scores": {
+        "neg": 0.0,
+        "neu": 1.0,
+        "pos": 0.0,
+        "compound": 0.0
+      }
+    },
+    {
+      "text": "really correct???",
+      "scores": {
+        "neg": 0.0,
+        "neu": 1.0,
+        "pos": 0.0,
+        "compound": 0.0
+      }
+    },
+    {
+      "text": "wrong.",
+      "scores": {
+        "neg": 1.0,
+        "neu": 0.0,
+        "pos": 0.0,
+        "compound": -0.4767
+      }
+    },
+    {
+      "text": "wrong!",
+      "scores": {
+        "neg": 1.0,
+        "neu": 0.0,
+        "pos": 0.0,
+        "compound": -0.5255
+      }
+    },
+    {
+      "text": "wrong???",
+      "scores": {
+        "neg": 1.0,
+        "neu": 0.0,
+        "pos": 0.0,
+        "compound": -0.5632
+      }
+    },
+    {
+      "text": "not wrong.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.281,
+        "pos": 0.719,
+        "compound": 0.3724
+      }
+    },
+    {
+      "text": "not wrong!",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.26,
+        "pos": 0.74,
+        "compound": 0.4303
+      }
+    },
+    {
+      "text": "not wrong???",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.244,
+        "pos": 0.756,
+        "compound": 0.4756
+      }
+    },
+    {
+      "text": "Not wrong.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.281,
+        "pos": 0.719,
+        "compound": 0.3724
+      }
+    },
+    {
+      "text": "Not wrong!",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.26,
+        "pos": 0.74,
+        "compound": 0.4303
+      }
+    },
+    {
+      "text": "Not wrong???",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.244,
+        "pos": 0.756,
+        "compound": 0.4756
+      }
+    },
+    {
+      "text": "NOT wrong.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.281,
+        "pos": 0.719,
+        "compound": 0.3724
+      }
+    },
+    {
+      "text": "NOT wrong!",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.26,
+        "pos": 0.74,
+        "compound": 0.4303
+      }
+    },
+    {
+      "text": "NOT wrong???",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.244,
+        "pos": 0.756,
+        "compound": 0.4756
+      }
+    },
+    {
+      "text": "not very wrong.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.419,
+        "pos": 0.581,
+        "compound": 0.4158
+      }
+    },
+    {
+      "text": "not very wrong!",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.395,
+        "pos": 0.605,
+        "compound": 0.4701
+      }
+    },
+    {
+      "text": "not very wrong???",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.377,
+        "pos": 0.623,
+        "compound": 0.5124
+      }
+    },
+    {
+      "text": "never so wrong.",
+      "scores": {
+        "neg": 0.666,
+        "neu": 0.334,
+        "pos": 0.0,
+        "compound": -0.6113
+      }
+    },
+    {
+      "text": "never so wrong!",
+      "scores": {
+        "neg": 0.682,
+        "neu": 0.318,
+        "pos": 0.0,
+        "compound": -0.6466
+      }
+    },
+    {
+      "text": "never so wrong???",
+      "scores": {
+        "neg": 0.694,
+        "neu": 0.306,
+        "pos": 0.0,
+        "compound": -0.6738
+      }
+    },
+    {
+      "text": "no wrong.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.281,
+        "pos": 0.719,
+        "compound": 0.3724
+      }
+    },
+    {
+      "text": "no wrong!",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.26,
+        "pos": 0.74,
+        "compound": 0.4303
+      }
+    },
+    {
+      "text": "no wrong???",
+      "scores": {
+        "neg": 0.0,
+        "neu": 0.244,
+        "pos": 0.756,
+        "compound": 0.4756
+      }
+    },
+    {
+      "text": "barely wrong.",
+      "scores": {
+        "neg": 0.737,
+        "neu": 0.263,
+        "pos": 0.0,
+        "compound": -0.4228
+      }
+    },
+    {
+      "text": "barely wrong!",
+      "scores": {
+        "neg": 0.756,
+        "neu": 0.244,
+        "pos": 0.0,
+        "compound": -0.4765
+      }
+    },
+    {
+      "text": "barely wrong???",
+      "scores": {
+        "neg": 0.77,
+        "neu": 0.23,
+        "pos": 0.0,
+        "compound": -0.5183
+      }
+    },
+    {
+      "text": "really wrong.",
+      "scores": {
+        "neg": 0.772,
+        "neu": 0.228,
+        "pos": 0.0,
+        "compound": -0.5256
+      }
+    },
+    {
+      "text": "really wrong!",
+      "scores": {
+        "neg": 0.787,
+        "neu": 0.213,
+        "pos": 0.0,
+        "compound": -0.5697
+      }
+    },
+    {
+      "text": "really wrong???",
+      "scores": {
+        "neg": 0.797,
+        "neu": 0.203,
+        "pos": 0.0,
+        "compound": -0.6037
+      }
+    },
+    {
+      "text": "slow.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 1.0,
+        "pos": 0.0,
+        "compound": 0.0
+      }
+    },
+    {
+      "text": "slow!",
+      "scores": {
+        "neg": 0.0,
+        "neu": 1.0,
+        "pos": 0.0,
+        "compound": 0.0
+      }
+    },
+    {
+      "text": "slow???",
+      "scores": {
+        "neg": 0.0,
+        "neu": 1.0,
+        "pos": 0.0,
+        "compound": 0.0
+      }
+    },
+    {
+      "text": "not slow.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 1.0,
+        "pos": 0.0,
+        "compound": 0.0
+      }
+    },
+    {
+      "text": "not slow!",
+      "scores": {
+        "neg": 0.0,
+        "neu": 1.0,
+        "pos": 0.0,
+        "compound": 0.0
+      }
+    },
+    {
+      "text": "not slow???",
+      "scores": {
+        "neg": 0.0,
+        "neu": 1.0,
+        "pos": 0.0,
+        "compound": 0.0
+      }
+    },
+    {
+      "text": "Not slow.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 1.0,
+        "pos": 0.0,
+        "compound": 0.0
+      }
+    },
+    {
+      "text": "Not slow!",
+      "scores": {
+        "neg": 0.0,
+        "neu": 1.0,
+        "pos": 0.0,
+        "compound": 0.0
+      }
+    },
+    {
+      "text": "Not slow???",
+      "scores": {
+        "neg": 0.0,
+        "neu": 1.0,
+        "pos": 0.0,
+        "compound": 0.0
+      }
+    },
+    {
+      "text": "NOT slow.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 1.0,
+        "pos": 0.0,
+        "compound": 0.0
+      }
+    },
+    {
+      "text": "NOT slow!",
+      "scores": {
+        "neg": 0.0,
+        "neu": 1.0,
+        "pos": 0.0,
+        "compound": 0.0
+      }
+    },
+    {
+      "text": "NOT slow???",
+      "scores": {
+        "neg": 0.0,
+        "neu": 1.0,
+        "pos": 0.0,
+        "compound": 0.0
+      }
+    },
+    {
+      "text": "not very slow.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 1.0,
+        "pos": 0.0,
+        "compound": 0.0
+      }
+    },
+    {
+      "text": "not very slow!",
+      "scores": {
+        "neg": 0.0,
+        "neu": 1.0,
+        "pos": 0.0,
+        "compound": 0.0
+      }
+    },
+    {
+      "text": "not very slow???",
+      "scores": {
+        "neg": 0.0,
+        "neu": 1.0,
+        "pos": 0.0,
+        "compound": 0.0
+      }
+    },
+    {
+      "text": "never so slow.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 1.0,
+        "pos": 0.0,
+        "compound": 0.0
+      }
+    },
+    {
+      "text": "never so slow!",
+      "scores": {
+        "neg": 0.0,
+        "neu": 1.0,
+        "pos": 0.0,
+        "compound": 0.0
+      }
+    },
+    {
+      "text": "never so slow???",
+      "scores": {
+        "neg": 0.0,
+        "neu": 1.0,
+        "pos": 0.0,
+        "compound": 0.0
+      }
+    },
+    {
+      "text": "no slow.",
+      "scores": {
+        "neg": 0.688,
+        "neu": 0.312,
+        "pos": 0.0,
+        "compound": -0.296
+      }
+    },
+    {
+      "text": "no slow!",
+      "scores": {
+        "neg": 0.714,
+        "neu": 0.286,
+        "pos": 0.0,
+        "compound": -0.3595
+      }
+    },
+    {
+      "text": "no slow???",
+      "scores": {
+        "neg": 0.733,
+        "neu": 0.267,
+        "pos": 0.0,
+        "compound": -0.4098
+      }
+    },
+    {
+      "text": "barely slow.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 1.0,
+        "pos": 0.0,
+        "compound": 0.0
+      }
+    },
+    {
+      "text": "barely slow!",
+      "scores": {
+        "neg": 0.0,
+        "neu": 1.0,
+        "pos": 0.0,
+        "compound": 0.0
+      }
+    },
+    {
+      "text": "barely slow???",
+      "scores": {
+        "neg": 0.0,
+        "neu": 1.0,
+        "pos": 0.0,
+        "compound": 0.0
+      }
+    },
+    {
+      "text": "really slow.",
+      "scores": {
+        "neg": 0.0,
+        "neu": 1.0,
+        "pos": 0.0,
+        "compound": 0.0
+      }
+    },
+    {
+      "text": "really slow!",
+      "scores": {
+        "neg": 0.0,
+        "neu": 1.0,
+        "pos": 0.0,
+        "compound": 0.0
+      }
+    },
+    {
+      "text": "really slow???",
+      "scores": {
+        "neg": 0.0,
+        "neu": 1.0,
+        "pos": 0.0,
+        "compound": 0.0
+      }
+    }
+  ]
+}

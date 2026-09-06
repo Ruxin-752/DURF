@@ -22,6 +22,7 @@ import {
   CLIENT_VERSION,
   CONSENT_VERSION,
   SCHEMA_VERSION,
+  type ResearchBatch,
   type ResearchEvent,
 } from '../lib/research-types';
 import { parseResearchBatch, parseResearchSessionGrant } from '../lib/validation';
@@ -257,6 +258,57 @@ describe('current consent and batch identity validation', () => {
     });
     expect(parsed).toMatchObject({ ok: false, error: 'Duplicate eventId in batch' });
   });
+
+  it('round-trips optional raw-score semantics on each feedback phrase', () => {
+    const now = Date.now();
+    const probabilities = { Evaluative: 0.1, Imperative: 0.8, Descriptive: 0.1 };
+    const event: ResearchEvent = {
+      ...sampleEvent(now),
+      eventType: 'feedback',
+      probabilities,
+      feedback: {
+        feedbackId: '66666666-6666-4666-8666-666666666666',
+        utterance: 'Take it.',
+        route: 'route1',
+        topLabel: 'Imperative',
+        lowConfidence: false,
+        probabilities,
+        phrases: [
+          {
+            phrase: 'Take it.',
+            label: 'Imperative',
+            confidence: 0.8,
+            probabilities,
+            abstained: false,
+            scoreKind: 'raw_model_softmax_score',
+            thresholdPolicy:
+              'existing_web_preview_policy_not_validated_in_raw_score_space',
+          },
+        ],
+        modelHash: 'model-v1',
+        schemaVersion: SCHEMA_VERSION,
+        routeTrace: 'route1',
+      },
+    };
+    const parsed = parseResearchBatch({
+      session: {
+        sessionId: SESSION_ID,
+        anonymousUserId: USER_ID,
+        consentVersion: CONSENT_VERSION,
+        consentedAt: now,
+        startedAt: now,
+        clientVersion: CLIENT_VERSION,
+        schemaVersion: SCHEMA_VERSION,
+      },
+      events: [event],
+    });
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) throw new Error(parsed.error);
+    expect(parsed.value.events[0].feedback?.phrases[0]).toMatchObject({
+      scoreKind: 'raw_model_softmax_score',
+      thresholdPolicy: 'existing_web_preview_policy_not_validated_in_raw_score_space',
+    });
+  });
 });
 
 describe('opaque research session and durable rate limiting', () => {
@@ -420,9 +472,152 @@ describe('event idempotency is explicit', () => {
 });
 
 describe('browser queue session handshake and write statuses', () => {
+  function syntheticQueueServer() {
+    let online = true;
+    const batches: Array<{ body: string; batch: ResearchBatch; keepalive?: boolean }> = [];
+    const fetcher = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      if (!online) return new Response(null, { status: 503 });
+      if (String(input).endsWith('/session')) {
+        return Response.json(
+          { ok: true, consentVersion: CONSENT_VERSION, expiresAt: Date.now() + 60_000 },
+          { status: 201 },
+        );
+      }
+      const body = String(init?.body);
+      const batch = JSON.parse(body) as ResearchBatch;
+      batches.push({ body, batch, keepalive: init?.keepalive });
+      return Response.json({
+        ok: true,
+        accepted: batch.events.length,
+        duplicate: 0,
+        conflict: 0,
+        events: batch.events.map(({ eventId }) => ({ eventId, status: 'accepted' })),
+      });
+    });
+    return { fetcher, batches, setOnline: (value: boolean) => { online = value; } };
+  }
+
   afterEach(() => {
+    vi.clearAllTimers();
     vi.useRealTimers();
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  });
+
+  it('drains an offline multibyte backlog in byte-bounded batches without losing event order', async () => {
+    vi.useFakeTimers();
+    const server = syntheticQueueServer();
+    const queue = new ResearchEventQueue(USER_ID, undefined, server.fetcher);
+    await queue.flush();
+    const expectedIds = [server.batches[0].batch.events[0].eventId];
+    const syntheticNote = '厨房🍲'.repeat(1_800);
+
+    server.setOnline(false);
+    for (let index = 0; index < 45; index += 1) {
+      const eventId = queue.enqueue('restart', { index, syntheticNote });
+      expect(eventId).not.toBeNull();
+      expectedIds.push(eventId!);
+    }
+    await vi.advanceTimersByTimeAsync(0);
+    expect(queue.pendingCount).toBe(45);
+    expect(server.batches).toHaveLength(1);
+
+    server.setOnline(true);
+    await queue.flush();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(queue.pendingCount).toBe(0);
+    const recovered = server.batches.slice(1);
+    expect(recovered.length).toBeGreaterThan(3);
+    const encoder = new TextEncoder();
+    for (const { body, batch, keepalive } of server.batches) {
+      const bytes = encoder.encode(body).byteLength;
+      expect(bytes).toBeLessThanOrEqual(256 * 1024);
+      expect(batch.events.length).toBeLessThanOrEqual(20);
+      expect(parseResearchBatch(batch)).toMatchObject({ ok: true });
+      expect(keepalive).toBe(bytes <= 60 * 1024);
+    }
+    expect(recovered.some(({ keepalive }) => keepalive === false)).toBe(true);
+
+    const events = server.batches.flatMap(({ batch }) => batch.events);
+    expect(events.map(({ eventId }) => eventId)).toEqual(expectedIds);
+    expect(new Set(events.map(({ eventId }) => eventId)).size).toBe(46);
+    expect(events.map(({ sequenceNumber }) => sequenceNumber)).toEqual(
+      Array.from({ length: 46 }, (_, index) => index),
+    );
+    expect(events.slice(1).map(({ payload }) => payload)).toEqual(
+      Array.from({ length: 45 }, (_, index) => ({ index, syntheticNote })),
+    );
+    // This fixture would pass a character-count check while exceeding the wire limit.
+    const unsplitBody = JSON.stringify({
+      session: recovered[0].batch.session,
+      events: events.slice(1, 21),
+    });
+    expect(unsplitBody.length).toBeLessThan(256 * 1024);
+    expect(encoder.encode(unsplitBody).byteLength).toBeGreaterThan(256 * 1024);
+  });
+
+  it('bounds multibyte beacons to 60 KiB and retains every pending event for acknowledged upload', async () => {
+    vi.useFakeTimers();
+    const server = syntheticQueueServer();
+    const queue = new ResearchEventQueue(USER_ID, undefined, server.fetcher);
+    await queue.flush();
+    server.setOnline(false);
+    const expectedIds = Array.from({ length: 8 }, (_, index) =>
+      queue.enqueue('restart', { index, syntheticNote: '厨房🍲'.repeat(1_800) }),
+    );
+    const sendBeacon = vi.fn((_url: string, _body: Blob) => true);
+    vi.stubGlobal('navigator', { sendBeacon });
+
+    queue.flushWithBeacon();
+    expect(sendBeacon).toHaveBeenCalledOnce();
+    expect(queue.pendingCount).toBe(8);
+    const [url, blob] = sendBeacon.mock.calls[0];
+    expect(url).toBe('/api/research/batch');
+    expect(blob.type).toBe('application/json');
+    expect(blob.size).toBeLessThanOrEqual(60 * 1024);
+    const body = await blob.text();
+    expect(blob.size).toBeGreaterThan(body.length);
+    const beaconBatch = JSON.parse(body) as ResearchBatch;
+    expect(parseResearchBatch(beaconBatch)).toMatchObject({ ok: true });
+    expect(beaconBatch.events.length).toBeGreaterThan(1);
+    expect(beaconBatch.events.length).toBeLessThan(8);
+    expect(beaconBatch.events.map(({ eventId }) => eventId)).toEqual(
+      expectedIds.slice(0, beaconBatch.events.length),
+    );
+    expect(beaconBatch.events.map(({ sequenceNumber }) => sequenceNumber)).toEqual(
+      Array.from({ length: beaconBatch.events.length }, (_, index) => index + 1),
+    );
+
+    sendBeacon.mockReturnValueOnce(false);
+    queue.flushWithBeacon();
+    expect(await sendBeacon.mock.calls[1][1].text()).toBe(body);
+    expect(queue.pendingCount).toBe(8);
+
+    server.setOnline(true);
+    await queue.flush();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(queue.pendingCount).toBe(0);
+    const uploaded = server.batches.slice(1).flatMap(({ batch }) => batch.events);
+    expect(uploaded.map(({ eventId }) => eventId)).toEqual(expectedIds);
+    expect(uploaded.map(({ sequenceNumber }) => sequenceNumber)).toEqual(
+      Array.from({ length: 8 }, (_, index) => index + 1),
+    );
+  });
+
+  it('keeps keepalive enabled for small acknowledged batches', async () => {
+    vi.useFakeTimers();
+    const server = syntheticQueueServer();
+    const queue = new ResearchEventQueue(USER_ID, undefined, server.fetcher);
+    await queue.flush();
+    queue.enqueue('restart', { syntheticNote: 'A small synthetic event.' });
+    await queue.flush();
+
+    expect(queue.pendingCount).toBe(0);
+    expect(server.batches).toHaveLength(2);
+    for (const { body, keepalive } of server.batches) {
+      expect(new TextEncoder().encode(body).byteLength).toBeLessThan(60 * 1024);
+      expect(keepalive).toBe(true);
+    }
   });
 
   it('obtains a server session before batching and surfaces permanent conflicts', async () => {

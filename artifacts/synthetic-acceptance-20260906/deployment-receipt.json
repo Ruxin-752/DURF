@@ -1,0 +1,69 @@
+{
+  "schema": "durf-synthetic-site-release-v1",
+  "release_id": "durf-synthetic-v3-20260906",
+  "version": {
+    "id": "appgprj_6a8fcd0cf29081919d04d5c852953347~appgver_cb18c5a58bfc819187f1c50442bf855b",
+    "project_id": "appgprj_6a8fcd0cf29081919d04d5c852953347",
+    "version_number": 6,
+    "source": {
+      "commit_sha": "6ff32984ea9753fe99018b63eec851b4703675e2"
+    },
+    "archive_storage": {
+      "archive_format": "tar",
+      "sediment_file_id": "file_00000000c9f881f5be69bf7bfba02f25",
+      "content_hash": "sha256:ce583731fecf1a0b1f4e87321e11bcba44b66f39b4c9be529609a8d84c48177a",
+      "size_bytes": 10270720,
+      "file_count": 82
+    },
+    "screenshot_url": null
+  },
+  "deployment": {
+    "id": "appgdep_6a9cbf517e348191a9bc5f623369795e",
+    "project_id": "appgprj_6a8fcd0cf29081919d04d5c852953347",
+    "title": "DURF 暖炉厨房实验室",
+    "version_id": "appgprj_6a8fcd0cf29081919d04d5c852953347~appgver_cb18c5a58bfc819187f1c50442bf855b",
+    "type": "publish",
+    "status": "succeeded",
+    "url": "https://durf-kitchen-lab-study.xc3083.chatgpt.site",
+    "screenshot_asset_pointer": null,
+    "provider_deployment_id": "site---6a8fcd0cf29081919d04d5c852953347",
+    "failure_message": null,
+    "env_set_revision": 1,
+    "updated_at": "2026-09-06T01:18:36.598878+00:00"
+  },
+  "local_archive": {
+    "path": "outputs/sites-synthetic-release/durf-synthetic-v3-sites-layout-20260906.tar.gz",
+    "sha256": "fe8aeb5de5254440ff5ef75429d4abf7f9fdfb31caae9cf3b0c8006e50a07181",
+    "source_tree_sha256": "78ab46afd2fcdfee4a81ef9abcef75d46e4efb26384d0b4baef466c48045d65d",
+    "build_receipt_sha256": "eacb6ef679dab9945d819b4246fda585d2311313420a52f983b479ee0f4eb426",
+    "secret_matches": 0
+  },
+  "verification": "public-release-verification.json",
+  "browser": {
+    "pages": [
+      "/",
+      "/model-check"
+    ],
+    "runtime_errors": [],
+    "main_status_text": "AI ready",
+    "consent_checked": false,
+    "research_requests": 0,
+    "synthetic_input": "That was good. Please get an onion. The pot is empty.",
+    "speech_labels": [
+      "evaluative",
+      "imperative",
+      "descriptive"
+    ],
+    "grounding_labels": [
+      "trajectory",
+      "action",
+      "feature"
+    ],
+    "screenshots": [
+      "public-model-check.png",
+      "public-after.png"
+    ]
+  },
+  "no_participant_records_downloaded": true,
+  "no_study_sessions_created": true
+}

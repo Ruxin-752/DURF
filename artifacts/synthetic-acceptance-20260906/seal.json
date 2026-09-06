@@ -1,0 +1,51 @@
+{
+  "dataset_id": "durf-independent-synthetic-acceptance-20260906",
+  "sha256": "4efe488f045c845dbf176ec7223d689c0d2a743cfb2914624f84fdfb89c75888",
+  "single_count": 150,
+  "speech_act_counts": {
+    "evaluative": 50,
+    "imperative": 50,
+    "descriptive": 50
+  },
+  "grounding_counts": {
+    "action": 82,
+    "feature": 52,
+    "trajectory": 16
+  },
+  "cross_label_counts": {
+    "evaluative/action": 20,
+    "evaluative/feature": 20,
+    "evaluative/trajectory": 10,
+    "imperative/action": 50,
+    "descriptive/feature": 32,
+    "descriptive/action": 12,
+    "descriptive/trajectory": 6
+  },
+  "mixed_count": 20,
+  "mixed_clause_count": 42,
+  "uncertain_count": 20,
+  "source": "AI-authored synthetic only; no human participant data",
+  "independence": {
+    "candidate_training_text_read": false,
+    "candidate_generator_read": false,
+    "candidate_inference_before_freeze": false,
+    "use": "one final evaluation after candidate and inference code freeze; no tuning on this set",
+    "limitation": "independent authorship within the same AI session, not independently human-validated ground truth"
+  },
+  "predeclared_checks": {
+    "speech_act_macro_f1_min": 0.87,
+    "speech_act_each_class_recall_min": 0.85,
+    "grounding_macro_f1_min": 0.87,
+    "grounding_each_class_recall_min": 0.85,
+    "mixed_message_component_set_accuracy_min": 0.85,
+    "critical_strata": [
+      "retrospective_should",
+      "future_should",
+      "spatial_state",
+      "spatial_request",
+      "object_value",
+      "past_action_fact"
+    ],
+    "notes": "Synthetic acceptance only. Critical systematic failures and unsupported learning behavior must be reported regardless of aggregate score."
+  }
+}

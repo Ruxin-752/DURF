@@ -1,0 +1,42 @@
+{
+  "origin": "https://durf-kitchen-lab-study.xc3083.chatgpt.site",
+  "release_id": "durf-synthetic-v3-20260906",
+  "manifest_sha256": "91a3dc2611782864b6bb9a27045255ffd7d798461f538f48169c2765b43dadc4",
+  "models": {
+    "speech_act": {
+      "status": 200,
+      "sha256": "1a7327c3fe998f5e35b4422cf84032abbfeb350bbdcf77f531a781b43259bddf",
+      "matches_release": true
+    },
+    "grounding": {
+      "status": 200,
+      "sha256": "fcb3d9d9a6eacd8d1e2c9bdc12b4469b46b91237ce8e61d167025af304d3f306",
+      "matches_release": true
+    },
+    "route2": {
+      "status": 200,
+      "sha256": "fa9ddb2aff1a451713e62417fcd3bca56a9e06987fbc6d7dbec2cf1651b80177",
+      "matches_release": true
+    }
+  },
+  "model_check_status": 200,
+  "model_check_heading_present": true,
+  "unauthorized_export_status": 401,
+  "unauthorized_diagnostic_status": 401,
+  "diagnostic_status": 200,
+  "diagnostic": {
+    "ok": true,
+    "diagnostic_version": "durf-isolated-synthetic-roundtrip-v1",
+    "schema_version": "durf-web-event-v2",
+    "client_version": "durf-kitchen-synthetic-0.3.0",
+    "no_research_rows_written": true,
+    "data_roundtrip": {
+      "inserted": true,
+      "read_back_matches": true,
+      "deleted": true
+    },
+    "scope": "Isolated synthetic database transport only; participant ingestion and training quality are not measured."
+  },
+  "participant_data_downloaded": false,
+  "study_sessions_created": false
+}

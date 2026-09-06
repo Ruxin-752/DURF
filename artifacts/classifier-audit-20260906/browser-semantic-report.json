@@ -1,0 +1,4728 @@
+{
+  "schema": "durf-independent-browser-semantic-diagnostic-v1",
+  "date": "2026-09-06",
+  "scope": "Agent-authored English speech-act diagnostic; not human gold, not independent current-player accuracy. All models frozen before this audit. No training or production edits.",
+  "cautions": [
+    "Simple utterances can overlap prior training; overlap is audited separately.",
+    "Implicit feedback can be pragmatically ambiguous; the expected label records the literal speech act.",
+    "Mixed examples test clause segmentation and sequence; whole-utterance softmax is not a composition percentage."
+  ],
+  "expected_labels_frozen_sha256": "89debf8d66d245aa76f325ad06acb0c4b2e37db0259b4684fe6a90ac37a2a8ce",
+  "splitter_source_sha256": "edeafed73d711841941cd99db0605fad162c6785580308b8c67cf8c67625b7b4",
+  "models": {
+    "production": {
+      "artifact_path": "/models/feedback-form-v3.json",
+      "artifact_sha256": "2280f07b71b5790bbd53a90cea38dd4e84fa9e7f1cf34be1510e304b85bdcb48",
+      "evidence": {
+        "trained": true,
+        "frozen": true,
+        "modelVersion": "3",
+        "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+        "releaseStatus": "active_legacy_default",
+        "promotionEligible": false,
+        "promotionReason": "No independent current-player evaluation is bound to this model.",
+        "defaultEligible": true,
+        "independentCurrentPlayerAccuracy": null,
+        "diagnosticAccuracy": 0.9166666666666666,
+        "diagnosticRows": 96,
+        "diagnosticScope": "human-authored original-paper task language with reference labels collapsed by the paper main-experiment operational mapping",
+        "requestedAccuracyTarget": 0.87,
+        "targetPassed": true,
+        "diagnosticPreviouslyExposed": true
+      },
+      "summary": {
+        "rows": 72,
+        "correct": 36,
+        "accuracy": 0.5,
+        "macro_f1": 0.48085670015494575,
+        "labels": [
+          "evaluative",
+          "imperative",
+          "descriptive"
+        ],
+        "confusion_matrix": [
+          [
+            19,
+            4,
+            1
+          ],
+          [
+            6,
+            11,
+            7
+          ],
+          [
+            5,
+            13,
+            6
+          ]
+        ],
+        "per_class": {
+          "evaluative": {
+            "support": 24,
+            "correct": 19,
+            "recall": 0.7916666666666666,
+            "precision": 0.6333333333333333,
+            "f1": 0.7037037037037038
+          },
+          "imperative": {
+            "support": 24,
+            "correct": 11,
+            "recall": 0.4583333333333333,
+            "precision": 0.39285714285714285,
+            "f1": 0.4230769230769231
+          },
+          "descriptive": {
+            "support": 24,
+            "correct": 6,
+            "recall": 0.25,
+            "precision": 0.42857142857142855,
+            "f1": 0.3157894736842105
+          }
+        },
+        "accepted": 62,
+        "accepted_accuracy": 0.5161290322580645,
+        "high_score_wrong": 10
+      },
+      "single_clause_summary": {
+        "rows": 60,
+        "correct": 31,
+        "accuracy": 0.5166666666666667,
+        "macro_f1": 0.48867114413332907,
+        "labels": [
+          "evaluative",
+          "imperative",
+          "descriptive"
+        ],
+        "confusion_matrix": [
+          [
+            18,
+            1,
+            1
+          ],
+          [
+            6,
+            7,
+            7
+          ],
+          [
+            5,
+            9,
+            6
+          ]
+        ],
+        "per_class": {
+          "evaluative": {
+            "support": 20,
+            "correct": 18,
+            "recall": 0.9,
+            "precision": 0.6206896551724138,
+            "f1": 0.7346938775510204
+          },
+          "imperative": {
+            "support": 20,
+            "correct": 7,
+            "recall": 0.35,
+            "precision": 0.4117647058823529,
+            "f1": 0.37837837837837834
+          },
+          "descriptive": {
+            "support": 20,
+            "correct": 6,
+            "recall": 0.3,
+            "precision": 0.42857142857142855,
+            "f1": 0.3529411764705882
+          }
+        },
+        "accepted": 50,
+        "accepted_accuracy": 0.54,
+        "high_score_wrong": 6
+      },
+      "location_counterfactual_summary": {
+        "rows": 12,
+        "correct": 5,
+        "accuracy": 0.4166666666666667,
+        "macro_f1": 0.3111111111111111,
+        "labels": [
+          "evaluative",
+          "imperative",
+          "descriptive"
+        ],
+        "confusion_matrix": [
+          [
+            1,
+            3,
+            0
+          ],
+          [
+            0,
+            4,
+            0
+          ],
+          [
+            0,
+            4,
+            0
+          ]
+        ],
+        "per_class": {
+          "evaluative": {
+            "support": 4,
+            "correct": 1,
+            "recall": 0.25,
+            "precision": 1,
+            "f1": 0.4
+          },
+          "imperative": {
+            "support": 4,
+            "correct": 4,
+            "recall": 1,
+            "precision": 0.36363636363636365,
+            "f1": 0.5333333333333333
+          },
+          "descriptive": {
+            "support": 4,
+            "correct": 0,
+            "recall": 0,
+            "precision": 0,
+            "f1": 0
+          }
+        },
+        "accepted": 12,
+        "accepted_accuracy": 0.4166666666666667,
+        "high_score_wrong": 4
+      },
+      "mixed": {
+        "rows": 10,
+        "correct_label_sequences": 3,
+        "correct_segment_counts": 6,
+        "predictions": [
+          {
+            "text": "Nice work! Please fetch a plate.",
+            "expected": [
+              "evaluative",
+              "imperative"
+            ],
+            "phrases": [
+              "Nice work!",
+              "Please fetch a plate."
+            ],
+            "predictions": [
+              {
+                "label": "evaluative",
+                "confidence": 0.9975782529228572,
+                "probabilities": {
+                  "descriptive": 0.0017903206480211543,
+                  "evaluative": 0.9975782529228572,
+                  "imperative": 0.0006314264291217333
+                },
+                "threshold": 0.55,
+                "abstained": false,
+                "calibrated": true,
+                "temperatureScaled": true,
+                "independentlyCalibrated": false,
+                "calibrationVersion": "feedback-form-temperature-dev-v1",
+                "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+                "scoreKind": "temperature_scaled_selection_dev_probability"
+              },
+              {
+                "label": "imperative",
+                "confidence": 0.464849329766961,
+                "probabilities": {
+                  "descriptive": 0.15713306965226703,
+                  "evaluative": 0.37801760058077194,
+                  "imperative": 0.464849329766961
+                },
+                "threshold": 0.55,
+                "abstained": true,
+                "calibrated": true,
+                "temperatureScaled": true,
+                "independentlyCalibrated": false,
+                "calibrationVersion": "feedback-form-temperature-dev-v1",
+                "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+                "scoreKind": "temperature_scaled_selection_dev_probability"
+              }
+            ],
+            "segmentation_matches_count": true,
+            "exact_label_sequence": true
+          },
+          {
+            "text": "The soup is ready; take it to the serving window.",
+            "expected": [
+              "descriptive",
+              "imperative"
+            ],
+            "phrases": [
+              "The soup is ready;",
+              "take it to the serving window."
+            ],
+            "predictions": [
+              {
+                "label": "descriptive",
+                "confidence": 0.8272672471962547,
+                "probabilities": {
+                  "descriptive": 0.8272672471962547,
+                  "evaluative": 0.06022731011160221,
+                  "imperative": 0.11250544269214308
+                },
+                "threshold": 0.55,
+                "abstained": false,
+                "calibrated": true,
+                "temperatureScaled": true,
+                "independentlyCalibrated": false,
+                "calibrationVersion": "feedback-form-temperature-dev-v1",
+                "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+                "scoreKind": "temperature_scaled_selection_dev_probability"
+              },
+              {
+                "label": "imperative",
+                "confidence": 0.48763420879037594,
+                "probabilities": {
+                  "descriptive": 0.39309758959722757,
+                  "evaluative": 0.1192682016123964,
+                  "imperative": 0.48763420879037594
+                },
+                "threshold": 0.55,
+                "abstained": true,
+                "calibrated": true,
+                "temperatureScaled": true,
+                "independentlyCalibrated": false,
+                "calibrationVersion": "feedback-form-temperature-dev-v1",
+                "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+                "scoreKind": "temperature_scaled_selection_dev_probability"
+              }
+            ],
+            "segmentation_matches_count": true,
+            "exact_label_sequence": true
+          },
+          {
+            "text": "You did well, but keep the corridor clear.",
+            "expected": [
+              "evaluative",
+              "imperative"
+            ],
+            "phrases": [
+              "You did well,",
+              "keep the corridor clear."
+            ],
+            "predictions": [
+              {
+                "label": "evaluative",
+                "confidence": 0.9974771200992506,
+                "probabilities": {
+                  "descriptive": 0.0017933716948146724,
+                  "evaluative": 0.9974771200992506,
+                  "imperative": 0.0007295082059346587
+                },
+                "threshold": 0.55,
+                "abstained": false,
+                "calibrated": true,
+                "temperatureScaled": true,
+                "independentlyCalibrated": false,
+                "calibrationVersion": "feedback-form-temperature-dev-v1",
+                "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+                "scoreKind": "temperature_scaled_selection_dev_probability"
+              },
+              {
+                "label": "evaluative",
+                "confidence": 0.5713132619753497,
+                "probabilities": {
+                  "descriptive": 0.1607860198120355,
+                  "evaluative": 0.5713132619753497,
+                  "imperative": 0.26790071821261474
+                },
+                "threshold": 0.55,
+                "abstained": false,
+                "calibrated": true,
+                "temperatureScaled": true,
+                "independentlyCalibrated": false,
+                "calibrationVersion": "feedback-form-temperature-dev-v1",
+                "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+                "scoreKind": "temperature_scaled_selection_dev_probability"
+              }
+            ],
+            "segmentation_matches_count": true,
+            "exact_label_sequence": false
+          },
+          {
+            "text": "The counter is empty. Your last delivery was excellent.",
+            "expected": [
+              "descriptive",
+              "evaluative"
+            ],
+            "phrases": [
+              "The counter is empty.",
+              "Your last delivery was excellent."
+            ],
+            "predictions": [
+              {
+                "label": "evaluative",
+                "confidence": 0.5178615087257937,
+                "probabilities": {
+                  "descriptive": 0.274929992046968,
+                  "evaluative": 0.5178615087257937,
+                  "imperative": 0.20720849922723836
+                },
+                "threshold": 0.55,
+                "abstained": true,
+                "calibrated": true,
+                "temperatureScaled": true,
+                "independentlyCalibrated": false,
+                "calibrationVersion": "feedback-form-temperature-dev-v1",
+                "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+                "scoreKind": "temperature_scaled_selection_dev_probability"
+              },
+              {
+                "label": "evaluative",
+                "confidence": 0.9924830321741049,
+                "probabilities": {
+                  "descriptive": 0.006950519493378691,
+                  "evaluative": 0.9924830321741049,
+                  "imperative": 0.0005664483325164399
+                },
+                "threshold": 0.55,
+                "abstained": false,
+                "calibrated": true,
+                "temperatureScaled": true,
+                "independentlyCalibrated": false,
+                "calibrationVersion": "feedback-form-temperature-dev-v1",
+                "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+                "scoreKind": "temperature_scaled_selection_dev_probability"
+              }
+            ],
+            "segmentation_matches_count": true,
+            "exact_label_sequence": false
+          },
+          {
+            "text": "Please fetch an onion, but do not block the sink.",
+            "expected": [
+              "imperative",
+              "imperative"
+            ],
+            "phrases": [
+              "Please fetch an onion,",
+              "do not block the sink."
+            ],
+            "predictions": [
+              {
+                "label": "evaluative",
+                "confidence": 0.4618450140619996,
+                "probabilities": {
+                  "descriptive": 0.2939518204548291,
+                  "evaluative": 0.4618450140619996,
+                  "imperative": 0.24420316548317125
+                },
+                "threshold": 0.55,
+                "abstained": true,
+                "calibrated": true,
+                "temperatureScaled": true,
+                "independentlyCalibrated": false,
+                "calibrationVersion": "feedback-form-temperature-dev-v1",
+                "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+                "scoreKind": "temperature_scaled_selection_dev_probability"
+              },
+              {
+                "label": "descriptive",
+                "confidence": 0.4821881890763441,
+                "probabilities": {
+                  "descriptive": 0.4821881890763441,
+                  "evaluative": 0.4060819976506023,
+                  "imperative": 0.11172981327305366
+                },
+                "threshold": 0.55,
+                "abstained": true,
+                "calibrated": true,
+                "temperatureScaled": true,
+                "independentlyCalibrated": false,
+                "calibrationVersion": "feedback-form-temperature-dev-v1",
+                "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+                "scoreKind": "temperature_scaled_selection_dev_probability"
+              }
+            ],
+            "segmentation_matches_count": true,
+            "exact_label_sequence": false
+          },
+          {
+            "text": "That was a good handoff, and the next soup is ready.",
+            "expected": [
+              "evaluative",
+              "descriptive"
+            ],
+            "phrases": [
+              "That was a good handoff, and the next soup is ready."
+            ],
+            "predictions": [
+              {
+                "label": "evaluative",
+                "confidence": 0.8901932304142153,
+                "probabilities": {
+                  "descriptive": 0.07458636000001857,
+                  "evaluative": 0.8901932304142153,
+                  "imperative": 0.03522040958576608
+                },
+                "threshold": 0.55,
+                "abstained": false,
+                "calibrated": true,
+                "temperatureScaled": true,
+                "independentlyCalibrated": false,
+                "calibrationVersion": "feedback-form-temperature-dev-v1",
+                "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+                "scoreKind": "temperature_scaled_selection_dev_probability"
+              }
+            ],
+            "segmentation_matches_count": false,
+            "exact_label_sequence": false
+          },
+          {
+            "text": "The soup is ready, so bring me a plate.",
+            "expected": [
+              "descriptive",
+              "imperative"
+            ],
+            "phrases": [
+              "The soup is ready, so bring me a plate."
+            ],
+            "predictions": [
+              {
+                "label": "descriptive",
+                "confidence": 0.8201258183030041,
+                "probabilities": {
+                  "descriptive": 0.8201258183030041,
+                  "evaluative": 0.06750113970724039,
+                  "imperative": 0.11237304198975542
+                },
+                "threshold": 0.55,
+                "abstained": false,
+                "calibrated": true,
+                "temperatureScaled": true,
+                "independentlyCalibrated": false,
+                "calibrationVersion": "feedback-form-temperature-dev-v1",
+                "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+                "scoreKind": "temperature_scaled_selection_dev_probability"
+              }
+            ],
+            "segmentation_matches_count": false,
+            "exact_label_sequence": false
+          },
+          {
+            "text": "Nice job, please move to the left.",
+            "expected": [
+              "evaluative",
+              "imperative"
+            ],
+            "phrases": [
+              "Nice job, please move to the left."
+            ],
+            "predictions": [
+              {
+                "label": "imperative",
+                "confidence": 0.5645497067759325,
+                "probabilities": {
+                  "descriptive": 0.015518941215177657,
+                  "evaluative": 0.4199313520088897,
+                  "imperative": 0.5645497067759325
+                },
+                "threshold": 0.55,
+                "abstained": false,
+                "calibrated": true,
+                "temperatureScaled": true,
+                "independentlyCalibrated": false,
+                "calibrationVersion": "feedback-form-temperature-dev-v1",
+                "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+                "scoreKind": "temperature_scaled_selection_dev_probability"
+              }
+            ],
+            "segmentation_matches_count": false,
+            "exact_label_sequence": false
+          },
+          {
+            "text": "The pot is full and you did a great job.",
+            "expected": [
+              "descriptive",
+              "evaluative"
+            ],
+            "phrases": [
+              "The pot is full and you did a great job."
+            ],
+            "predictions": [
+              {
+                "label": "evaluative",
+                "confidence": 0.9831549808689415,
+                "probabilities": {
+                  "descriptive": 0.009650314463086458,
+                  "evaluative": 0.9831549808689415,
+                  "imperative": 0.007194704667972012
+                },
+                "threshold": 0.55,
+                "abstained": false,
+                "calibrated": true,
+                "temperatureScaled": true,
+                "independentlyCalibrated": false,
+                "calibrationVersion": "feedback-form-temperature-dev-v1",
+                "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+                "scoreKind": "temperature_scaled_selection_dev_probability"
+              }
+            ],
+            "segmentation_matches_count": false,
+            "exact_label_sequence": false
+          },
+          {
+            "text": "Great job. The pot is full. Please serve the soup.",
+            "expected": [
+              "evaluative",
+              "descriptive",
+              "imperative"
+            ],
+            "phrases": [
+              "Great job.",
+              "The pot is full.",
+              "Please serve the soup."
+            ],
+            "predictions": [
+              {
+                "label": "evaluative",
+                "confidence": 0.9938139487799886,
+                "probabilities": {
+                  "descriptive": 0.004693410332853092,
+                  "evaluative": 0.9938139487799886,
+                  "imperative": 0.0014926408871581906
+                },
+                "threshold": 0.55,
+                "abstained": false,
+                "calibrated": true,
+                "temperatureScaled": true,
+                "independentlyCalibrated": false,
+                "calibrationVersion": "feedback-form-temperature-dev-v1",
+                "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+                "scoreKind": "temperature_scaled_selection_dev_probability"
+              },
+              {
+                "label": "descriptive",
+                "confidence": 0.3941919144147698,
+                "probabilities": {
+                  "descriptive": 0.3941919144147698,
+                  "evaluative": 0.2884501575538538,
+                  "imperative": 0.3173579280313764
+                },
+                "threshold": 0.55,
+                "abstained": true,
+                "calibrated": true,
+                "temperatureScaled": true,
+                "independentlyCalibrated": false,
+                "calibrationVersion": "feedback-form-temperature-dev-v1",
+                "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+                "scoreKind": "temperature_scaled_selection_dev_probability"
+              },
+              {
+                "label": "imperative",
+                "confidence": 0.7998809742187581,
+                "probabilities": {
+                  "descriptive": 0.14485231470403725,
+                  "evaluative": 0.05526671107720448,
+                  "imperative": 0.7998809742187581
+                },
+                "threshold": 0.55,
+                "abstained": false,
+                "calibrated": true,
+                "temperatureScaled": true,
+                "independentlyCalibrated": false,
+                "calibrationVersion": "feedback-form-temperature-dev-v1",
+                "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+                "scoreKind": "temperature_scaled_selection_dev_probability"
+              }
+            ],
+            "segmentation_matches_count": true,
+            "exact_label_sequence": true
+          }
+        ]
+      },
+      "predictions": [
+        {
+          "id": "evaluative-1",
+          "text": "Nice work!",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "evaluative",
+            "confidence": 0.9975782529228572,
+            "probabilities": {
+              "descriptive": 0.0017903206480211543,
+              "evaluative": 0.9975782529228572,
+              "imperative": 0.0006314264291217333
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": true
+        },
+        {
+          "id": "evaluative-2",
+          "text": "That was a terrible move.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "evaluative",
+            "confidence": 0.9944790673751903,
+            "probabilities": {
+              "descriptive": 0.002691573038160202,
+              "evaluative": 0.9944790673751903,
+              "imperative": 0.002829359586649357
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": true
+        },
+        {
+          "id": "evaluative-3",
+          "text": "You handled that order well.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "evaluative",
+            "confidence": 0.9830342909672178,
+            "probabilities": {
+              "descriptive": 0.00835736554902931,
+              "evaluative": 0.9830342909672178,
+              "imperative": 0.008608343483752917
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": true
+        },
+        {
+          "id": "evaluative-4",
+          "text": "Your last delivery was excellent.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "evaluative",
+            "confidence": 0.9924830321741049,
+            "probabilities": {
+              "descriptive": 0.006950519493378691,
+              "evaluative": 0.9924830321741049,
+              "imperative": 0.0005664483325164399
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": true
+        },
+        {
+          "id": "evaluative-5",
+          "text": "I liked how you avoided the collision.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "evaluative",
+            "confidence": 0.6816997696730958,
+            "probabilities": {
+              "descriptive": 0.2939326647173943,
+              "evaluative": 0.6816997696730958,
+              "imperative": 0.02436756560950989
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": true
+        },
+        {
+          "id": "evaluative-6",
+          "text": "You did a poor job of sharing the counter.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "evaluative",
+            "confidence": 0.988231690251557,
+            "probabilities": {
+              "descriptive": 0.002691853920370587,
+              "evaluative": 0.988231690251557,
+              "imperative": 0.009076455828072497
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": true
+        },
+        {
+          "id": "evaluative-7",
+          "text": "That detour was unnecessary.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "evaluative",
+            "confidence": 0.9383301730378506,
+            "probabilities": {
+              "descriptive": 0.06040332170323405,
+              "evaluative": 0.9383301730378506,
+              "imperative": 0.001266505258915335
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": true
+        },
+        {
+          "id": "evaluative-8",
+          "text": "Great teamwork on the soup!",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "evaluative",
+            "confidence": 0.9699579572732061,
+            "probabilities": {
+              "descriptive": 0.010603982275865407,
+              "evaluative": 0.9699579572732061,
+              "imperative": 0.01943806045092834
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": true
+        },
+        {
+          "id": "evaluative-9",
+          "text": "Waiting there was a bad decision.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "evaluative",
+            "confidence": 0.8285966567477272,
+            "probabilities": {
+              "descriptive": 0.10826694744581518,
+              "evaluative": 0.8285966567477272,
+              "imperative": 0.06313639580645757
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": true
+        },
+        {
+          "id": "evaluative-10",
+          "text": "You made the right choice.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "evaluative",
+            "confidence": 0.8265032677913008,
+            "probabilities": {
+              "descriptive": 0.0016115185811207801,
+              "evaluative": 0.8265032677913008,
+              "imperative": 0.17188521362757841
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": true
+        },
+        {
+          "id": "evaluative-11",
+          "text": "That was not a good handoff.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "evaluative",
+            "confidence": 0.9917647295623122,
+            "probabilities": {
+              "descriptive": 0.005343733701494576,
+              "evaluative": 0.9917647295623122,
+              "imperative": 0.002891536736193227
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": true
+        },
+        {
+          "id": "evaluative-12",
+          "text": "Your timing was perfect.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "evaluative",
+            "confidence": 0.9614710432798568,
+            "probabilities": {
+              "descriptive": 0.030335498346001816,
+              "evaluative": 0.9614710432798568,
+              "imperative": 0.008193458374141364
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": true
+        },
+        {
+          "id": "evaluative-13",
+          "text": "I appreciate your help with the dishes.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "descriptive",
+            "confidence": 0.6427216959314145,
+            "probabilities": {
+              "descriptive": 0.6427216959314145,
+              "evaluative": 0.23414049697248027,
+              "imperative": 0.12313780709610526
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": false
+        },
+        {
+          "id": "evaluative-14",
+          "text": "Your last action was helpful.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "evaluative",
+            "confidence": 0.9480445832581312,
+            "probabilities": {
+              "descriptive": 0.049394561497737376,
+              "evaluative": 0.9480445832581312,
+              "imperative": 0.0025608552441313175
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": true
+        },
+        {
+          "id": "evaluative-15",
+          "text": "The way you fetched that onion was inefficient.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "evaluative",
+            "confidence": 0.9940283332127989,
+            "probabilities": {
+              "descriptive": 0.0036706325701887613,
+              "evaluative": 0.9940283332127989,
+              "imperative": 0.0023010342170121487
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": true
+        },
+        {
+          "id": "evaluative-16",
+          "text": "Dropping the plate there was a mistake.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "evaluative",
+            "confidence": 0.5046666757308177,
+            "probabilities": {
+              "descriptive": 0.10828915730451688,
+              "evaluative": 0.5046666757308177,
+              "imperative": 0.3870441669646655
+            },
+            "threshold": 0.55,
+            "abstained": true,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": true
+        },
+        {
+          "id": "evaluative-17",
+          "text": "Well done on clearing the route.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "evaluative",
+            "confidence": 0.9089792208572397,
+            "probabilities": {
+              "descriptive": 0.04319407582834323,
+              "evaluative": 0.9089792208572397,
+              "imperative": 0.047826703314417136
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": true
+        },
+        {
+          "id": "evaluative-18",
+          "text": "Your move to the right was careless.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "imperative",
+            "confidence": 0.5768694178387826,
+            "probabilities": {
+              "descriptive": 0.04430589279671142,
+              "evaluative": 0.3788246893645059,
+              "imperative": 0.5768694178387826
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": false
+        },
+        {
+          "id": "evaluative-19",
+          "text": "You were too slow with that order.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "evaluative",
+            "confidence": 0.9931134102295699,
+            "probabilities": {
+              "descriptive": 0.0030734850527309268,
+              "evaluative": 0.9931134102295699,
+              "imperative": 0.003813104717699086
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": true
+        },
+        {
+          "id": "evaluative-20",
+          "text": "That was a clever way to get around the pot.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "evaluative",
+            "confidence": 0.9091352030819934,
+            "probabilities": {
+              "descriptive": 0.033648833179618115,
+              "evaluative": 0.9091352030819934,
+              "imperative": 0.05721596373838839
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": true
+        },
+        {
+          "id": "imperative-1",
+          "text": "Go to the stove.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "evaluative",
+            "confidence": 0.7243511647372376,
+            "probabilities": {
+              "descriptive": 0.10306848256753923,
+              "evaluative": 0.7243511647372376,
+              "imperative": 0.1725803526952232
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": false
+        },
+        {
+          "id": "imperative-2",
+          "text": "Bring me a clean plate.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "descriptive",
+            "confidence": 0.6847230207020709,
+            "probabilities": {
+              "descriptive": 0.6847230207020709,
+              "evaluative": 0.1811481956376046,
+              "imperative": 0.13412878366032435
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": false
+        },
+        {
+          "id": "imperative-3",
+          "text": "Please collect another onion.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "evaluative",
+            "confidence": 0.7662297816079374,
+            "probabilities": {
+              "descriptive": 0.06568658393645373,
+              "evaluative": 0.7662297816079374,
+              "imperative": 0.16808363445560884
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": false
+        },
+        {
+          "id": "imperative-4",
+          "text": "Could you take the soup to the serving window?",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "imperative",
+            "confidence": 0.7207666025394875,
+            "probabilities": {
+              "descriptive": 0.11505104311815664,
+              "evaluative": 0.16418235434235579,
+              "imperative": 0.7207666025394875
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": true
+        },
+        {
+          "id": "imperative-5",
+          "text": "Stop blocking the doorway.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "descriptive",
+            "confidence": 0.6610198467530497,
+            "probabilities": {
+              "descriptive": 0.6610198467530497,
+              "evaluative": 0.24245228349473116,
+              "imperative": 0.09652786975221914
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": false
+        },
+        {
+          "id": "imperative-6",
+          "text": "Don't put the plate on the floor.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "descriptive",
+            "confidence": 0.40268168234521956,
+            "probabilities": {
+              "descriptive": 0.40268168234521956,
+              "evaluative": 0.3170591652955604,
+              "imperative": 0.28025915235922005
+            },
+            "threshold": 0.55,
+            "abstained": true,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": false
+        },
+        {
+          "id": "imperative-7",
+          "text": "Do not move into my path.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "evaluative",
+            "confidence": 0.7435102206052668,
+            "probabilities": {
+              "descriptive": 0.13408941034463204,
+              "evaluative": 0.7435102206052668,
+              "imperative": 0.1224003690501011
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": false
+        },
+        {
+          "id": "imperative-8",
+          "text": "You should fetch a dish.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "evaluative",
+            "confidence": 0.7693140003470548,
+            "probabilities": {
+              "descriptive": 0.1534098633003063,
+              "evaluative": 0.7693140003470548,
+              "imperative": 0.07727613635263879
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": false
+        },
+        {
+          "id": "imperative-9",
+          "text": "Would you mind waiting beside the sink?",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "imperative",
+            "confidence": 0.6464379150107292,
+            "probabilities": {
+              "descriptive": 0.2303691171626495,
+              "evaluative": 0.12319296782662131,
+              "imperative": 0.6464379150107292
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": true
+        },
+        {
+          "id": "imperative-10",
+          "text": "Let me pass.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "imperative",
+            "confidence": 0.5195070699250657,
+            "probabilities": {
+              "descriptive": 0.20787394200602458,
+              "evaluative": 0.27261898806890983,
+              "imperative": 0.5195070699250657
+            },
+            "threshold": 0.55,
+            "abstained": true,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": true
+        },
+        {
+          "id": "imperative-11",
+          "text": "Keep the middle counter clear.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "imperative",
+            "confidence": 0.5016199001277333,
+            "probabilities": {
+              "descriptive": 0.03960710697735284,
+              "evaluative": 0.4587729928949139,
+              "imperative": 0.5016199001277333
+            },
+            "threshold": 0.55,
+            "abstained": true,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": true
+        },
+        {
+          "id": "imperative-12",
+          "text": "Avoid the narrow corridor.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "descriptive",
+            "confidence": 0.8673598637871345,
+            "probabilities": {
+              "descriptive": 0.8673598637871345,
+              "evaluative": 0.0876763960989454,
+              "imperative": 0.044963740113920174
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": false
+        },
+        {
+          "id": "imperative-13",
+          "text": "Pick up the cooked soup now.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "imperative",
+            "confidence": 0.7830148190780073,
+            "probabilities": {
+              "descriptive": 0.07915199698907396,
+              "evaluative": 0.1378331839329187,
+              "imperative": 0.7830148190780073
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": true
+        },
+        {
+          "id": "imperative-14",
+          "text": "Leave the onion on the counter.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "imperative",
+            "confidence": 0.895386607378569,
+            "probabilities": {
+              "descriptive": 0.024430590292828142,
+              "evaluative": 0.08018280232860288,
+              "imperative": 0.895386607378569
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": true
+        },
+        {
+          "id": "imperative-15",
+          "text": "Please do not stand in front of the pot.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "imperative",
+            "confidence": 0.9638126710811058,
+            "probabilities": {
+              "descriptive": 0.013513419393820354,
+              "evaluative": 0.022673909525073817,
+              "imperative": 0.9638126710811058
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": true
+        },
+        {
+          "id": "imperative-16",
+          "text": "Can you move one tile west?",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "evaluative",
+            "confidence": 0.6687059964188954,
+            "probabilities": {
+              "descriptive": 0.013910393201132847,
+              "evaluative": 0.6687059964188954,
+              "imperative": 0.31738361037997165
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": false
+        },
+        {
+          "id": "imperative-17",
+          "text": "Try handing me the dish.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "descriptive",
+            "confidence": 0.47939306391683434,
+            "probabilities": {
+              "descriptive": 0.47939306391683434,
+              "evaluative": 0.1278272232972709,
+              "imperative": 0.3927797127858948
+            },
+            "threshold": 0.55,
+            "abstained": true,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": false
+        },
+        {
+          "id": "imperative-18",
+          "text": "Make room for the other chef.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "evaluative",
+            "confidence": 0.6978144896136672,
+            "probabilities": {
+              "descriptive": 0.22839769961802472,
+              "evaluative": 0.6978144896136672,
+              "imperative": 0.07378781076830805
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": false
+        },
+        {
+          "id": "imperative-19",
+          "text": "Stay near the serving area.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "descriptive",
+            "confidence": 0.8224821629901857,
+            "probabilities": {
+              "descriptive": 0.8224821629901857,
+              "evaluative": 0.12690576203837203,
+              "imperative": 0.05061207497144223
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": false
+        },
+        {
+          "id": "imperative-20",
+          "text": "Wait until the soup is ready.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "descriptive",
+            "confidence": 0.6655081572209268,
+            "probabilities": {
+              "descriptive": 0.6655081572209268,
+              "evaluative": 0.20075018042166992,
+              "imperative": 0.1337416623574031
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": false
+        },
+        {
+          "id": "descriptive-1",
+          "text": "The serving window is on the right.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "imperative",
+            "confidence": 0.9401142395415087,
+            "probabilities": {
+              "descriptive": 0.05130889630760623,
+              "evaluative": 0.00857686415088495,
+              "imperative": 0.9401142395415087
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": false
+        },
+        {
+          "id": "descriptive-2",
+          "text": "The onion dispenser is on the left.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "imperative",
+            "confidence": 0.6119429857812919,
+            "probabilities": {
+              "descriptive": 0.14687955287428,
+              "evaluative": 0.24117746134442802,
+              "imperative": 0.6119429857812919
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": false
+        },
+        {
+          "id": "descriptive-3",
+          "text": "There are two onions in the pot.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "imperative",
+            "confidence": 0.9700857525296158,
+            "probabilities": {
+              "descriptive": 0.022418292159150924,
+              "evaluative": 0.007495955311233251,
+              "imperative": 0.9700857525296158
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": false
+        },
+        {
+          "id": "descriptive-4",
+          "text": "I am holding a clean plate.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "descriptive",
+            "confidence": 0.7068947362770357,
+            "probabilities": {
+              "descriptive": 0.7068947362770357,
+              "evaluative": 0.18127584333699354,
+              "imperative": 0.11182942038597084
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": true
+        },
+        {
+          "id": "descriptive-5",
+          "text": "The soup is not ready yet.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "descriptive",
+            "confidence": 0.8942936176253585,
+            "probabilities": {
+              "descriptive": 0.8942936176253585,
+              "evaluative": 0.04159959027191341,
+              "imperative": 0.0641067921027282
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": true
+        },
+        {
+          "id": "descriptive-6",
+          "text": "You are standing beside the sink.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "imperative",
+            "confidence": 0.4986071899438445,
+            "probabilities": {
+              "descriptive": 0.4135545801838241,
+              "evaluative": 0.08783822987233146,
+              "imperative": 0.4986071899438445
+            },
+            "threshold": 0.55,
+            "abstained": true,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": false
+        },
+        {
+          "id": "descriptive-7",
+          "text": "The corridor is blocked.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "descriptive",
+            "confidence": 0.6770509886672095,
+            "probabilities": {
+              "descriptive": 0.6770509886672095,
+              "evaluative": 0.24364743047130835,
+              "imperative": 0.0793015808614821
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": true
+        },
+        {
+          "id": "descriptive-8",
+          "text": "The counter next to the pot is empty.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "imperative",
+            "confidence": 0.6563642086562229,
+            "probabilities": {
+              "descriptive": 0.09845365798096728,
+              "evaluative": 0.24518213336280986,
+              "imperative": 0.6563642086562229
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": false
+        },
+        {
+          "id": "descriptive-9",
+          "text": "I have already delivered the soup.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "descriptive",
+            "confidence": 0.6072598993649454,
+            "probabilities": {
+              "descriptive": 0.6072598993649454,
+              "evaluative": 0.22830633857197613,
+              "imperative": 0.1644337620630785
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": true
+        },
+        {
+          "id": "descriptive-10",
+          "text": "There is no plate by the stove.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "imperative",
+            "confidence": 0.4609343295417544,
+            "probabilities": {
+              "descriptive": 0.42278689725221874,
+              "evaluative": 0.11627877320602684,
+              "imperative": 0.4609343295417544
+            },
+            "threshold": 0.55,
+            "abstained": true,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": false
+        },
+        {
+          "id": "descriptive-11",
+          "text": "You did not pick up the onion.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "evaluative",
+            "confidence": 0.5714741368345603,
+            "probabilities": {
+              "descriptive": 0.025766320490486404,
+              "evaluative": 0.5714741368345603,
+              "imperative": 0.40275954267495334
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": false
+        },
+        {
+          "id": "descriptive-12",
+          "text": "The other chef is carrying a tomato.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "evaluative",
+            "confidence": 0.5468637150407143,
+            "probabilities": {
+              "descriptive": 0.3865028285013312,
+              "evaluative": 0.5468637150407143,
+              "imperative": 0.06663345645795447
+            },
+            "threshold": 0.55,
+            "abstained": true,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": false
+        },
+        {
+          "id": "descriptive-13",
+          "text": "Our score is twenty.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "evaluative",
+            "confidence": 0.751053496052457,
+            "probabilities": {
+              "descriptive": 0.22121682312555008,
+              "evaluative": 0.751053496052457,
+              "imperative": 0.027729680821992887
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": false
+        },
+        {
+          "id": "descriptive-14",
+          "text": "The order needs three onions.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "descriptive",
+            "confidence": 0.4988569879994597,
+            "probabilities": {
+              "descriptive": 0.4988569879994597,
+              "evaluative": 0.2532914659881387,
+              "imperative": 0.2478515460124017
+            },
+            "threshold": 0.55,
+            "abstained": true,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": true
+        },
+        {
+          "id": "descriptive-15",
+          "text": "The pot contains no soup.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "imperative",
+            "confidence": 0.5503143539151178,
+            "probabilities": {
+              "descriptive": 0.16876879322274488,
+              "evaluative": 0.28091685286213725,
+              "imperative": 0.5503143539151178
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": false
+        },
+        {
+          "id": "descriptive-16",
+          "text": "My route goes through the middle.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "evaluative",
+            "confidence": 0.4138565913047627,
+            "probabilities": {
+              "descriptive": 0.4089639164380263,
+              "evaluative": 0.4138565913047627,
+              "imperative": 0.17717949225721083
+            },
+            "threshold": 0.55,
+            "abstained": true,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": false
+        },
+        {
+          "id": "descriptive-17",
+          "text": "A dish is sitting on the bottom counter.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "imperative",
+            "confidence": 0.9736912797757792,
+            "probabilities": {
+              "descriptive": 0.008531112367365963,
+              "evaluative": 0.017777607856854824,
+              "imperative": 0.9736912797757792
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": false
+        },
+        {
+          "id": "descriptive-18",
+          "text": "You are not in my way.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "evaluative",
+            "confidence": 0.8587080092708695,
+            "probabilities": {
+              "descriptive": 0.098483289535411,
+              "evaluative": 0.8587080092708695,
+              "imperative": 0.04280870119371947
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": false
+        },
+        {
+          "id": "descriptive-19",
+          "text": "The onion is still on the floor.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "descriptive",
+            "confidence": 0.8057769975066345,
+            "probabilities": {
+              "descriptive": 0.8057769975066345,
+              "evaluative": 0.06962106331191673,
+              "imperative": 0.1246019391814488
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": true
+        },
+        {
+          "id": "descriptive-20",
+          "text": "The top counter has a clean plate.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "imperative",
+            "confidence": 0.7467859430665433,
+            "probabilities": {
+              "descriptive": 0.06696313310802395,
+              "evaluative": 0.18625092382543273,
+              "imperative": 0.7467859430665433
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": false
+        },
+        {
+          "id": "location-left-imperative",
+          "text": "Go to the left counter.",
+          "expected": "imperative",
+          "stratum": "location_counterfactual",
+          "prediction": {
+            "label": "imperative",
+            "confidence": 0.9444610800952619,
+            "probabilities": {
+              "descriptive": 0.0054378748815441975,
+              "evaluative": 0.050101045023193944,
+              "imperative": 0.9444610800952619
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": true
+        },
+        {
+          "id": "location-left-descriptive",
+          "text": "The soup is on the left counter.",
+          "expected": "descriptive",
+          "stratum": "location_counterfactual",
+          "prediction": {
+            "label": "imperative",
+            "confidence": 0.9871152596403397,
+            "probabilities": {
+              "descriptive": 0.005697724580504329,
+              "evaluative": 0.007187015779155993,
+              "imperative": 0.9871152596403397
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": false
+        },
+        {
+          "id": "location-left-evaluative",
+          "text": "Leaving the soup on the left counter was a bad decision.",
+          "expected": "evaluative",
+          "stratum": "location_counterfactual",
+          "prediction": {
+            "label": "imperative",
+            "confidence": 0.6749771741734624,
+            "probabilities": {
+              "descriptive": 0.06714145381310226,
+              "evaluative": 0.2578813720134354,
+              "imperative": 0.6749771741734624
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": false
+        },
+        {
+          "id": "location-right-imperative",
+          "text": "Go to the right counter.",
+          "expected": "imperative",
+          "stratum": "location_counterfactual",
+          "prediction": {
+            "label": "imperative",
+            "confidence": 0.9715134458518796,
+            "probabilities": {
+              "descriptive": 0.0018506560302469486,
+              "evaluative": 0.02663589811787359,
+              "imperative": 0.9715134458518796
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": true
+        },
+        {
+          "id": "location-right-descriptive",
+          "text": "The soup is on the right counter.",
+          "expected": "descriptive",
+          "stratum": "location_counterfactual",
+          "prediction": {
+            "label": "imperative",
+            "confidence": 0.9928388520435244,
+            "probabilities": {
+              "descriptive": 0.003049753878558228,
+              "evaluative": 0.004111394077917354,
+              "imperative": 0.9928388520435244
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": false
+        },
+        {
+          "id": "location-right-evaluative",
+          "text": "Leaving the soup on the right counter was a bad decision.",
+          "expected": "evaluative",
+          "stratum": "location_counterfactual",
+          "prediction": {
+            "label": "imperative",
+            "confidence": 0.7344977880439238,
+            "probabilities": {
+              "descriptive": 0.05324393651182238,
+              "evaluative": 0.21225827544425377,
+              "imperative": 0.7344977880439238
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": false
+        },
+        {
+          "id": "location-top-imperative",
+          "text": "Go to the top counter.",
+          "expected": "imperative",
+          "stratum": "location_counterfactual",
+          "prediction": {
+            "label": "imperative",
+            "confidence": 0.6558462813426017,
+            "probabilities": {
+              "descriptive": 0.011015157595299736,
+              "evaluative": 0.33313856106209844,
+              "imperative": 0.6558462813426017
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": true
+        },
+        {
+          "id": "location-top-descriptive",
+          "text": "The soup is on the top counter.",
+          "expected": "descriptive",
+          "stratum": "location_counterfactual",
+          "prediction": {
+            "label": "imperative",
+            "confidence": 0.9074827808976943,
+            "probabilities": {
+              "descriptive": 0.02103251540946617,
+              "evaluative": 0.07148470369283952,
+              "imperative": 0.9074827808976943
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": false
+        },
+        {
+          "id": "location-top-evaluative",
+          "text": "Leaving the soup on the top counter was a bad decision.",
+          "expected": "evaluative",
+          "stratum": "location_counterfactual",
+          "prediction": {
+            "label": "evaluative",
+            "confidence": 0.5735089557286595,
+            "probabilities": {
+              "descriptive": 0.08155955763288357,
+              "evaluative": 0.5735089557286595,
+              "imperative": 0.3449314866384571
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": true
+        },
+        {
+          "id": "location-bottom-imperative",
+          "text": "Go to the bottom counter.",
+          "expected": "imperative",
+          "stratum": "location_counterfactual",
+          "prediction": {
+            "label": "imperative",
+            "confidence": 0.9382301426772328,
+            "probabilities": {
+              "descriptive": 0.0020558463357124275,
+              "evaluative": 0.05971401098705465,
+              "imperative": 0.9382301426772328
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": true
+        },
+        {
+          "id": "location-bottom-descriptive",
+          "text": "The soup is on the bottom counter.",
+          "expected": "descriptive",
+          "stratum": "location_counterfactual",
+          "prediction": {
+            "label": "imperative",
+            "confidence": 0.9858593244455971,
+            "probabilities": {
+              "descriptive": 0.0027386520727054934,
+              "evaluative": 0.011402023481697493,
+              "imperative": 0.9858593244455971
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": false
+        },
+        {
+          "id": "location-bottom-evaluative",
+          "text": "Leaving the soup on the bottom counter was a bad decision.",
+          "expected": "evaluative",
+          "stratum": "location_counterfactual",
+          "prediction": {
+            "label": "imperative",
+            "confidence": 0.7090280498957171,
+            "probabilities": {
+              "descriptive": 0.031753449939820336,
+              "evaluative": 0.2592185001644626,
+              "imperative": 0.7090280498957171
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": true,
+            "temperatureScaled": true,
+            "independentlyCalibrated": false,
+            "calibrationVersion": "feedback-form-temperature-dev-v1",
+            "modelHash": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+            "scoreKind": "temperature_scaled_selection_dev_probability"
+          },
+          "correct": false
+        }
+      ]
+    },
+    "boundary-shadow-raw-v2": {
+      "artifact_path": "/models/feedback-form-boundary-shadow-raw-v2-2f1e1f7ed8836680c4eebd6e6b89f28e565ef99f1dbbf1c6ed03023903719fef.json",
+      "artifact_sha256": "2f1e1f7ed8836680c4eebd6e6b89f28e565ef99f1dbbf1c6ed03023903719fef",
+      "evidence": {
+        "trained": true,
+        "frozen": true,
+        "modelVersion": "direct-fg-boundary-shadow-model-v1",
+        "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+        "releaseStatus": "shadow_diagnostic_only",
+        "promotionEligible": false,
+        "promotionReason": "The requested 87% target was not met.",
+        "defaultEligible": false,
+        "independentCurrentPlayerAccuracy": null,
+        "diagnosticAccuracy": 0.8194444444444444,
+        "diagnosticRows": 72,
+        "diagnosticScope": "This is agent-authored secondary diagnostic evidence, not human or player accuracy.",
+        "requestedAccuracyTarget": 0.87,
+        "targetPassed": false,
+        "diagnosticPreviouslyExposed": false
+      },
+      "summary": {
+        "rows": 72,
+        "correct": 52,
+        "accuracy": 0.7222222222222222,
+        "macro_f1": 0.7135443921158208,
+        "labels": [
+          "evaluative",
+          "imperative",
+          "descriptive"
+        ],
+        "confusion_matrix": [
+          [
+            22,
+            2,
+            0
+          ],
+          [
+            1,
+            19,
+            4
+          ],
+          [
+            2,
+            11,
+            11
+          ]
+        ],
+        "per_class": {
+          "evaluative": {
+            "support": 24,
+            "correct": 22,
+            "recall": 0.9166666666666666,
+            "precision": 0.88,
+            "f1": 0.8979591836734694
+          },
+          "imperative": {
+            "support": 24,
+            "correct": 19,
+            "recall": 0.7916666666666666,
+            "precision": 0.59375,
+            "f1": 0.6785714285714286
+          },
+          "descriptive": {
+            "support": 24,
+            "correct": 11,
+            "recall": 0.4583333333333333,
+            "precision": 0.7333333333333333,
+            "f1": 0.5641025641025641
+          }
+        },
+        "accepted": 50,
+        "accepted_accuracy": 0.88,
+        "high_score_wrong": 0
+      },
+      "single_clause_summary": {
+        "rows": 60,
+        "correct": 44,
+        "accuracy": 0.7333333333333333,
+        "macro_f1": 0.729479463625805,
+        "labels": [
+          "evaluative",
+          "imperative",
+          "descriptive"
+        ],
+        "confusion_matrix": [
+          [
+            18,
+            2,
+            0
+          ],
+          [
+            1,
+            15,
+            4
+          ],
+          [
+            2,
+            7,
+            11
+          ]
+        ],
+        "per_class": {
+          "evaluative": {
+            "support": 20,
+            "correct": 18,
+            "recall": 0.9,
+            "precision": 0.8571428571428571,
+            "f1": 0.8780487804878048
+          },
+          "imperative": {
+            "support": 20,
+            "correct": 15,
+            "recall": 0.75,
+            "precision": 0.625,
+            "f1": 0.6818181818181818
+          },
+          "descriptive": {
+            "support": 20,
+            "correct": 11,
+            "recall": 0.55,
+            "precision": 0.7333333333333333,
+            "f1": 0.6285714285714286
+          }
+        },
+        "accepted": 42,
+        "accepted_accuracy": 0.8571428571428571,
+        "high_score_wrong": 0
+      },
+      "location_counterfactual_summary": {
+        "rows": 12,
+        "correct": 8,
+        "accuracy": 0.6666666666666666,
+        "macro_f1": 0.5555555555555555,
+        "labels": [
+          "evaluative",
+          "imperative",
+          "descriptive"
+        ],
+        "confusion_matrix": [
+          [
+            4,
+            0,
+            0
+          ],
+          [
+            0,
+            4,
+            0
+          ],
+          [
+            0,
+            4,
+            0
+          ]
+        ],
+        "per_class": {
+          "evaluative": {
+            "support": 4,
+            "correct": 4,
+            "recall": 1,
+            "precision": 1,
+            "f1": 1
+          },
+          "imperative": {
+            "support": 4,
+            "correct": 4,
+            "recall": 1,
+            "precision": 0.5,
+            "f1": 0.6666666666666666
+          },
+          "descriptive": {
+            "support": 4,
+            "correct": 0,
+            "recall": 0,
+            "precision": 0,
+            "f1": 0
+          }
+        },
+        "accepted": 8,
+        "accepted_accuracy": 1,
+        "high_score_wrong": 0
+      },
+      "mixed": {
+        "rows": 10,
+        "correct_label_sequences": 3,
+        "correct_segment_counts": 6,
+        "predictions": [
+          {
+            "text": "Nice work! Please fetch a plate.",
+            "expected": [
+              "evaluative",
+              "imperative"
+            ],
+            "phrases": [
+              "Nice work!",
+              "Please fetch a plate."
+            ],
+            "predictions": [
+              {
+                "label": "evaluative",
+                "confidence": 0.7024315338996928,
+                "probabilities": {
+                  "descriptive": 0.15841410847144574,
+                  "evaluative": 0.7024315338996928,
+                  "imperative": 0.1391543576288613
+                },
+                "threshold": 0.55,
+                "abstained": false,
+                "calibrated": false,
+                "temperatureScaled": false,
+                "independentlyCalibrated": false,
+                "calibrationVersion": null,
+                "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+                "scoreKind": "raw_model_softmax_score"
+              },
+              {
+                "label": "imperative",
+                "confidence": 0.8973665947880471,
+                "probabilities": {
+                  "descriptive": 0.0532299611651271,
+                  "evaluative": 0.049403444046825735,
+                  "imperative": 0.8973665947880471
+                },
+                "threshold": 0.55,
+                "abstained": false,
+                "calibrated": false,
+                "temperatureScaled": false,
+                "independentlyCalibrated": false,
+                "calibrationVersion": null,
+                "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+                "scoreKind": "raw_model_softmax_score"
+              }
+            ],
+            "segmentation_matches_count": true,
+            "exact_label_sequence": true
+          },
+          {
+            "text": "The soup is ready; take it to the serving window.",
+            "expected": [
+              "descriptive",
+              "imperative"
+            ],
+            "phrases": [
+              "The soup is ready;",
+              "take it to the serving window."
+            ],
+            "predictions": [
+              {
+                "label": "imperative",
+                "confidence": 0.5836126482518172,
+                "probabilities": {
+                  "descriptive": 0.3027403184154973,
+                  "evaluative": 0.11364703333268557,
+                  "imperative": 0.5836126482518172
+                },
+                "threshold": 0.55,
+                "abstained": false,
+                "calibrated": false,
+                "temperatureScaled": false,
+                "independentlyCalibrated": false,
+                "calibrationVersion": null,
+                "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+                "scoreKind": "raw_model_softmax_score"
+              },
+              {
+                "label": "imperative",
+                "confidence": 0.7556141885275838,
+                "probabilities": {
+                  "descriptive": 0.13367752613777814,
+                  "evaluative": 0.11070828533463799,
+                  "imperative": 0.7556141885275838
+                },
+                "threshold": 0.55,
+                "abstained": false,
+                "calibrated": false,
+                "temperatureScaled": false,
+                "independentlyCalibrated": false,
+                "calibrationVersion": null,
+                "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+                "scoreKind": "raw_model_softmax_score"
+              }
+            ],
+            "segmentation_matches_count": true,
+            "exact_label_sequence": false
+          },
+          {
+            "text": "You did well, but keep the corridor clear.",
+            "expected": [
+              "evaluative",
+              "imperative"
+            ],
+            "phrases": [
+              "You did well,",
+              "keep the corridor clear."
+            ],
+            "predictions": [
+              {
+                "label": "evaluative",
+                "confidence": 0.8412271866895388,
+                "probabilities": {
+                  "descriptive": 0.06435441400597171,
+                  "evaluative": 0.8412271866895388,
+                  "imperative": 0.09441839930448949
+                },
+                "threshold": 0.55,
+                "abstained": false,
+                "calibrated": false,
+                "temperatureScaled": false,
+                "independentlyCalibrated": false,
+                "calibrationVersion": null,
+                "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+                "scoreKind": "raw_model_softmax_score"
+              },
+              {
+                "label": "descriptive",
+                "confidence": 0.5458455566913164,
+                "probabilities": {
+                  "descriptive": 0.5458455566913164,
+                  "evaluative": 0.20774044632111885,
+                  "imperative": 0.24641399698756478
+                },
+                "threshold": 0.55,
+                "abstained": true,
+                "calibrated": false,
+                "temperatureScaled": false,
+                "independentlyCalibrated": false,
+                "calibrationVersion": null,
+                "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+                "scoreKind": "raw_model_softmax_score"
+              }
+            ],
+            "segmentation_matches_count": true,
+            "exact_label_sequence": false
+          },
+          {
+            "text": "The counter is empty. Your last delivery was excellent.",
+            "expected": [
+              "descriptive",
+              "evaluative"
+            ],
+            "phrases": [
+              "The counter is empty.",
+              "Your last delivery was excellent."
+            ],
+            "predictions": [
+              {
+                "label": "descriptive",
+                "confidence": 0.4752659604935475,
+                "probabilities": {
+                  "descriptive": 0.4752659604935475,
+                  "evaluative": 0.13275309509483493,
+                  "imperative": 0.3919809444116175
+                },
+                "threshold": 0.55,
+                "abstained": true,
+                "calibrated": false,
+                "temperatureScaled": false,
+                "independentlyCalibrated": false,
+                "calibrationVersion": null,
+                "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+                "scoreKind": "raw_model_softmax_score"
+              },
+              {
+                "label": "evaluative",
+                "confidence": 0.8670010624263562,
+                "probabilities": {
+                  "descriptive": 0.040865158982120925,
+                  "evaluative": 0.8670010624263562,
+                  "imperative": 0.09213377859152289
+                },
+                "threshold": 0.55,
+                "abstained": false,
+                "calibrated": false,
+                "temperatureScaled": false,
+                "independentlyCalibrated": false,
+                "calibrationVersion": null,
+                "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+                "scoreKind": "raw_model_softmax_score"
+              }
+            ],
+            "segmentation_matches_count": true,
+            "exact_label_sequence": true
+          },
+          {
+            "text": "Please fetch an onion, but do not block the sink.",
+            "expected": [
+              "imperative",
+              "imperative"
+            ],
+            "phrases": [
+              "Please fetch an onion,",
+              "do not block the sink."
+            ],
+            "predictions": [
+              {
+                "label": "imperative",
+                "confidence": 0.8753261802280385,
+                "probabilities": {
+                  "descriptive": 0.07583658035623361,
+                  "evaluative": 0.048837239415727776,
+                  "imperative": 0.8753261802280385
+                },
+                "threshold": 0.55,
+                "abstained": false,
+                "calibrated": false,
+                "temperatureScaled": false,
+                "independentlyCalibrated": false,
+                "calibrationVersion": null,
+                "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+                "scoreKind": "raw_model_softmax_score"
+              },
+              {
+                "label": "imperative",
+                "confidence": 0.9393807728482351,
+                "probabilities": {
+                  "descriptive": 0.03174263547246162,
+                  "evaluative": 0.028876591679303194,
+                  "imperative": 0.9393807728482351
+                },
+                "threshold": 0.55,
+                "abstained": false,
+                "calibrated": false,
+                "temperatureScaled": false,
+                "independentlyCalibrated": false,
+                "calibrationVersion": null,
+                "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+                "scoreKind": "raw_model_softmax_score"
+              }
+            ],
+            "segmentation_matches_count": true,
+            "exact_label_sequence": true
+          },
+          {
+            "text": "That was a good handoff, and the next soup is ready.",
+            "expected": [
+              "evaluative",
+              "descriptive"
+            ],
+            "phrases": [
+              "That was a good handoff, and the next soup is ready."
+            ],
+            "predictions": [
+              {
+                "label": "evaluative",
+                "confidence": 0.4408712887731257,
+                "probabilities": {
+                  "descriptive": 0.2019907576918689,
+                  "evaluative": 0.4408712887731257,
+                  "imperative": 0.3571379535350053
+                },
+                "threshold": 0.55,
+                "abstained": true,
+                "calibrated": false,
+                "temperatureScaled": false,
+                "independentlyCalibrated": false,
+                "calibrationVersion": null,
+                "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+                "scoreKind": "raw_model_softmax_score"
+              }
+            ],
+            "segmentation_matches_count": false,
+            "exact_label_sequence": false
+          },
+          {
+            "text": "The soup is ready, so bring me a plate.",
+            "expected": [
+              "descriptive",
+              "imperative"
+            ],
+            "phrases": [
+              "The soup is ready, so bring me a plate."
+            ],
+            "predictions": [
+              {
+                "label": "imperative",
+                "confidence": 0.5693516163620395,
+                "probabilities": {
+                  "descriptive": 0.3027894291413243,
+                  "evaluative": 0.12785895449663626,
+                  "imperative": 0.5693516163620395
+                },
+                "threshold": 0.55,
+                "abstained": false,
+                "calibrated": false,
+                "temperatureScaled": false,
+                "independentlyCalibrated": false,
+                "calibrationVersion": null,
+                "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+                "scoreKind": "raw_model_softmax_score"
+              }
+            ],
+            "segmentation_matches_count": false,
+            "exact_label_sequence": false
+          },
+          {
+            "text": "Nice job, please move to the left.",
+            "expected": [
+              "evaluative",
+              "imperative"
+            ],
+            "phrases": [
+              "Nice job, please move to the left."
+            ],
+            "predictions": [
+              {
+                "label": "imperative",
+                "confidence": 0.5381919486159961,
+                "probabilities": {
+                  "descriptive": 0.06984136786228404,
+                  "evaluative": 0.39196668352171987,
+                  "imperative": 0.5381919486159961
+                },
+                "threshold": 0.55,
+                "abstained": true,
+                "calibrated": false,
+                "temperatureScaled": false,
+                "independentlyCalibrated": false,
+                "calibrationVersion": null,
+                "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+                "scoreKind": "raw_model_softmax_score"
+              }
+            ],
+            "segmentation_matches_count": false,
+            "exact_label_sequence": false
+          },
+          {
+            "text": "The pot is full and you did a great job.",
+            "expected": [
+              "descriptive",
+              "evaluative"
+            ],
+            "phrases": [
+              "The pot is full and you did a great job."
+            ],
+            "predictions": [
+              {
+                "label": "descriptive",
+                "confidence": 0.5766699476470555,
+                "probabilities": {
+                  "descriptive": 0.5766699476470555,
+                  "evaluative": 0.27108203359082567,
+                  "imperative": 0.15224801876211888
+                },
+                "threshold": 0.55,
+                "abstained": false,
+                "calibrated": false,
+                "temperatureScaled": false,
+                "independentlyCalibrated": false,
+                "calibrationVersion": null,
+                "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+                "scoreKind": "raw_model_softmax_score"
+              }
+            ],
+            "segmentation_matches_count": false,
+            "exact_label_sequence": false
+          },
+          {
+            "text": "Great job. The pot is full. Please serve the soup.",
+            "expected": [
+              "evaluative",
+              "descriptive",
+              "imperative"
+            ],
+            "phrases": [
+              "Great job.",
+              "The pot is full.",
+              "Please serve the soup."
+            ],
+            "predictions": [
+              {
+                "label": "imperative",
+                "confidence": 0.36799838471268265,
+                "probabilities": {
+                  "descriptive": 0.31823226923801895,
+                  "evaluative": 0.31376934604929846,
+                  "imperative": 0.36799838471268265
+                },
+                "threshold": 0.55,
+                "abstained": true,
+                "calibrated": false,
+                "temperatureScaled": false,
+                "independentlyCalibrated": false,
+                "calibrationVersion": null,
+                "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+                "scoreKind": "raw_model_softmax_score"
+              },
+              {
+                "label": "descriptive",
+                "confidence": 0.8612627079958626,
+                "probabilities": {
+                  "descriptive": 0.8612627079958626,
+                  "evaluative": 0.05225147034775721,
+                  "imperative": 0.08648582165638019
+                },
+                "threshold": 0.55,
+                "abstained": false,
+                "calibrated": false,
+                "temperatureScaled": false,
+                "independentlyCalibrated": false,
+                "calibrationVersion": null,
+                "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+                "scoreKind": "raw_model_softmax_score"
+              },
+              {
+                "label": "imperative",
+                "confidence": 0.7780949688445388,
+                "probabilities": {
+                  "descriptive": 0.15028858259068054,
+                  "evaluative": 0.0716164485647807,
+                  "imperative": 0.7780949688445388
+                },
+                "threshold": 0.55,
+                "abstained": false,
+                "calibrated": false,
+                "temperatureScaled": false,
+                "independentlyCalibrated": false,
+                "calibrationVersion": null,
+                "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+                "scoreKind": "raw_model_softmax_score"
+              }
+            ],
+            "segmentation_matches_count": true,
+            "exact_label_sequence": false
+          }
+        ]
+      },
+      "predictions": [
+        {
+          "id": "evaluative-1",
+          "text": "Nice work!",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "evaluative",
+            "confidence": 0.7024315338996928,
+            "probabilities": {
+              "descriptive": 0.15841410847144574,
+              "evaluative": 0.7024315338996928,
+              "imperative": 0.1391543576288613
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": true
+        },
+        {
+          "id": "evaluative-2",
+          "text": "That was a terrible move.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "evaluative",
+            "confidence": 0.9599348079802238,
+            "probabilities": {
+              "descriptive": 0.029305533105301235,
+              "evaluative": 0.9599348079802238,
+              "imperative": 0.010759658914474949
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": true
+        },
+        {
+          "id": "evaluative-3",
+          "text": "You handled that order well.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "evaluative",
+            "confidence": 0.8987154662891307,
+            "probabilities": {
+              "descriptive": 0.07747343442369184,
+              "evaluative": 0.8987154662891307,
+              "imperative": 0.023811099287177572
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": true
+        },
+        {
+          "id": "evaluative-4",
+          "text": "Your last delivery was excellent.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "evaluative",
+            "confidence": 0.8670010624263562,
+            "probabilities": {
+              "descriptive": 0.040865158982120925,
+              "evaluative": 0.8670010624263562,
+              "imperative": 0.09213377859152289
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": true
+        },
+        {
+          "id": "evaluative-5",
+          "text": "I liked how you avoided the collision.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "evaluative",
+            "confidence": 0.7993794622986667,
+            "probabilities": {
+              "descriptive": 0.05852052316172159,
+              "evaluative": 0.7993794622986667,
+              "imperative": 0.14210001453961188
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": true
+        },
+        {
+          "id": "evaluative-6",
+          "text": "You did a poor job of sharing the counter.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "evaluative",
+            "confidence": 0.6997603254812329,
+            "probabilities": {
+              "descriptive": 0.12602319109759272,
+              "evaluative": 0.6997603254812329,
+              "imperative": 0.17421648342117443
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": true
+        },
+        {
+          "id": "evaluative-7",
+          "text": "That detour was unnecessary.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "evaluative",
+            "confidence": 0.9124598786999774,
+            "probabilities": {
+              "descriptive": 0.07127604517765614,
+              "evaluative": 0.9124598786999774,
+              "imperative": 0.016264076122366612
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": true
+        },
+        {
+          "id": "evaluative-8",
+          "text": "Great teamwork on the soup!",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "imperative",
+            "confidence": 0.4240930968835508,
+            "probabilities": {
+              "descriptive": 0.2519840255595994,
+              "evaluative": 0.32392287755684984,
+              "imperative": 0.4240930968835508
+            },
+            "threshold": 0.55,
+            "abstained": true,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": false
+        },
+        {
+          "id": "evaluative-9",
+          "text": "Waiting there was a bad decision.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "evaluative",
+            "confidence": 0.9004057664997945,
+            "probabilities": {
+              "descriptive": 0.06049741185639244,
+              "evaluative": 0.9004057664997945,
+              "imperative": 0.039096821643812917
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": true
+        },
+        {
+          "id": "evaluative-10",
+          "text": "You made the right choice.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "evaluative",
+            "confidence": 0.56798101313928,
+            "probabilities": {
+              "descriptive": 0.21441101136604915,
+              "evaluative": 0.56798101313928,
+              "imperative": 0.21760797549467092
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": true
+        },
+        {
+          "id": "evaluative-11",
+          "text": "That was not a good handoff.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "evaluative",
+            "confidence": 0.8828021855597241,
+            "probabilities": {
+              "descriptive": 0.06721172685228147,
+              "evaluative": 0.8828021855597241,
+              "imperative": 0.04998608758799438
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": true
+        },
+        {
+          "id": "evaluative-12",
+          "text": "Your timing was perfect.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "evaluative",
+            "confidence": 0.8006616415989447,
+            "probabilities": {
+              "descriptive": 0.06547609449090623,
+              "evaluative": 0.8006616415989447,
+              "imperative": 0.13386226391014902
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": true
+        },
+        {
+          "id": "evaluative-13",
+          "text": "I appreciate your help with the dishes.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "imperative",
+            "confidence": 0.3744189842202667,
+            "probabilities": {
+              "descriptive": 0.3622261268948533,
+              "evaluative": 0.26335488888488007,
+              "imperative": 0.3744189842202667
+            },
+            "threshold": 0.55,
+            "abstained": true,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": false
+        },
+        {
+          "id": "evaluative-14",
+          "text": "Your last action was helpful.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "evaluative",
+            "confidence": 0.9244401585404189,
+            "probabilities": {
+              "descriptive": 0.03554775028930863,
+              "evaluative": 0.9244401585404189,
+              "imperative": 0.040012091170272435
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": true
+        },
+        {
+          "id": "evaluative-15",
+          "text": "The way you fetched that onion was inefficient.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "evaluative",
+            "confidence": 0.9336448784501553,
+            "probabilities": {
+              "descriptive": 0.04494260555819023,
+              "evaluative": 0.9336448784501553,
+              "imperative": 0.021412515991654425
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": true
+        },
+        {
+          "id": "evaluative-16",
+          "text": "Dropping the plate there was a mistake.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "evaluative",
+            "confidence": 0.7240432036609896,
+            "probabilities": {
+              "descriptive": 0.1559229849782692,
+              "evaluative": 0.7240432036609896,
+              "imperative": 0.12003381136074104
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": true
+        },
+        {
+          "id": "evaluative-17",
+          "text": "Well done on clearing the route.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "evaluative",
+            "confidence": 0.4721374596383902,
+            "probabilities": {
+              "descriptive": 0.2174812222104134,
+              "evaluative": 0.4721374596383902,
+              "imperative": 0.31038131815119635
+            },
+            "threshold": 0.55,
+            "abstained": true,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": true
+        },
+        {
+          "id": "evaluative-18",
+          "text": "Your move to the right was careless.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "evaluative",
+            "confidence": 0.7238149625583098,
+            "probabilities": {
+              "descriptive": 0.07895590992054324,
+              "evaluative": 0.7238149625583098,
+              "imperative": 0.19722912752114688
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": true
+        },
+        {
+          "id": "evaluative-19",
+          "text": "You were too slow with that order.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "evaluative",
+            "confidence": 0.4743223094743642,
+            "probabilities": {
+              "descriptive": 0.40928503352981777,
+              "evaluative": 0.4743223094743642,
+              "imperative": 0.116392656995818
+            },
+            "threshold": 0.55,
+            "abstained": true,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": true
+        },
+        {
+          "id": "evaluative-20",
+          "text": "That was a clever way to get around the pot.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "evaluative",
+            "confidence": 0.612223350016871,
+            "probabilities": {
+              "descriptive": 0.1835582194857656,
+              "evaluative": 0.612223350016871,
+              "imperative": 0.2042184304973635
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": true
+        },
+        {
+          "id": "imperative-1",
+          "text": "Go to the stove.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "imperative",
+            "confidence": 0.6974527876269017,
+            "probabilities": {
+              "descriptive": 0.13423823300417514,
+              "evaluative": 0.16830897936892322,
+              "imperative": 0.6974527876269017
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": true
+        },
+        {
+          "id": "imperative-2",
+          "text": "Bring me a clean plate.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "imperative",
+            "confidence": 0.37736725605537663,
+            "probabilities": {
+              "descriptive": 0.3181470594894314,
+              "evaluative": 0.3044856844551919,
+              "imperative": 0.37736725605537663
+            },
+            "threshold": 0.55,
+            "abstained": true,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": true
+        },
+        {
+          "id": "imperative-3",
+          "text": "Please collect another onion.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "imperative",
+            "confidence": 0.8789808335440704,
+            "probabilities": {
+              "descriptive": 0.05930491796001289,
+              "evaluative": 0.0617142484959167,
+              "imperative": 0.8789808335440704
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": true
+        },
+        {
+          "id": "imperative-4",
+          "text": "Could you take the soup to the serving window?",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "imperative",
+            "confidence": 0.87677338691822,
+            "probabilities": {
+              "descriptive": 0.05399624501950494,
+              "evaluative": 0.06923036806227507,
+              "imperative": 0.87677338691822
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": true
+        },
+        {
+          "id": "imperative-5",
+          "text": "Stop blocking the doorway.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "imperative",
+            "confidence": 0.7070965690755502,
+            "probabilities": {
+              "descriptive": 0.15998788627615865,
+              "evaluative": 0.13291554464829117,
+              "imperative": 0.7070965690755502
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": true
+        },
+        {
+          "id": "imperative-6",
+          "text": "Don't put the plate on the floor.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "imperative",
+            "confidence": 0.8710232722777018,
+            "probabilities": {
+              "descriptive": 0.05333616482026514,
+              "evaluative": 0.07564056290203307,
+              "imperative": 0.8710232722777018
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": true
+        },
+        {
+          "id": "imperative-7",
+          "text": "Do not move into my path.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "imperative",
+            "confidence": 0.6025249050270824,
+            "probabilities": {
+              "descriptive": 0.0895402872236766,
+              "evaluative": 0.3079348077492409,
+              "imperative": 0.6025249050270824
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": true
+        },
+        {
+          "id": "imperative-8",
+          "text": "You should fetch a dish.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "imperative",
+            "confidence": 0.7998593909122865,
+            "probabilities": {
+              "descriptive": 0.07478916728422845,
+              "evaluative": 0.1253514418034849,
+              "imperative": 0.7998593909122865
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": true
+        },
+        {
+          "id": "imperative-9",
+          "text": "Would you mind waiting beside the sink?",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "imperative",
+            "confidence": 0.7693910042479756,
+            "probabilities": {
+              "descriptive": 0.065206053804267,
+              "evaluative": 0.16540294194775745,
+              "imperative": 0.7693910042479756
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": true
+        },
+        {
+          "id": "imperative-10",
+          "text": "Let me pass.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "descriptive",
+            "confidence": 0.49776738937319415,
+            "probabilities": {
+              "descriptive": 0.49776738937319415,
+              "evaluative": 0.2227988602140699,
+              "imperative": 0.2794337504127361
+            },
+            "threshold": 0.55,
+            "abstained": true,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": false
+        },
+        {
+          "id": "imperative-11",
+          "text": "Keep the middle counter clear.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "descriptive",
+            "confidence": 0.5732204913203034,
+            "probabilities": {
+              "descriptive": 0.5732204913203034,
+              "evaluative": 0.18386356127840311,
+              "imperative": 0.2429159474012935
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": false
+        },
+        {
+          "id": "imperative-12",
+          "text": "Avoid the narrow corridor.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "imperative",
+            "confidence": 0.5352092581033117,
+            "probabilities": {
+              "descriptive": 0.27142172196865905,
+              "evaluative": 0.19336901992802924,
+              "imperative": 0.5352092581033117
+            },
+            "threshold": 0.55,
+            "abstained": true,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": true
+        },
+        {
+          "id": "imperative-13",
+          "text": "Pick up the cooked soup now.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "imperative",
+            "confidence": 0.6977517158595943,
+            "probabilities": {
+              "descriptive": 0.13033439712034084,
+              "evaluative": 0.17191388702006483,
+              "imperative": 0.6977517158595943
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": true
+        },
+        {
+          "id": "imperative-14",
+          "text": "Leave the onion on the counter.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "imperative",
+            "confidence": 0.7635255216318458,
+            "probabilities": {
+              "descriptive": 0.11699465689664577,
+              "evaluative": 0.11947982147150837,
+              "imperative": 0.7635255216318458
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": true
+        },
+        {
+          "id": "imperative-15",
+          "text": "Please do not stand in front of the pot.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "imperative",
+            "confidence": 0.7305757880167941,
+            "probabilities": {
+              "descriptive": 0.18853395353265134,
+              "evaluative": 0.0808902584505544,
+              "imperative": 0.7305757880167941
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": true
+        },
+        {
+          "id": "imperative-16",
+          "text": "Can you move one tile west?",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "evaluative",
+            "confidence": 0.5155839683007403,
+            "probabilities": {
+              "descriptive": 0.18621659553348077,
+              "evaluative": 0.5155839683007403,
+              "imperative": 0.29819943616577893
+            },
+            "threshold": 0.55,
+            "abstained": true,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": false
+        },
+        {
+          "id": "imperative-17",
+          "text": "Try handing me the dish.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "imperative",
+            "confidence": 0.41337269686656036,
+            "probabilities": {
+              "descriptive": 0.3081362235052849,
+              "evaluative": 0.27849107962815467,
+              "imperative": 0.41337269686656036
+            },
+            "threshold": 0.55,
+            "abstained": true,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": true
+        },
+        {
+          "id": "imperative-18",
+          "text": "Make room for the other chef.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "descriptive",
+            "confidence": 0.7374319704827399,
+            "probabilities": {
+              "descriptive": 0.7374319704827399,
+              "evaluative": 0.09203748950009429,
+              "imperative": 0.17053054001716603
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": false
+        },
+        {
+          "id": "imperative-19",
+          "text": "Stay near the serving area.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "descriptive",
+            "confidence": 0.4000027844555249,
+            "probabilities": {
+              "descriptive": 0.4000027844555249,
+              "evaluative": 0.20214763419961596,
+              "imperative": 0.3978495813448592
+            },
+            "threshold": 0.55,
+            "abstained": true,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": false
+        },
+        {
+          "id": "imperative-20",
+          "text": "Wait until the soup is ready.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "imperative",
+            "confidence": 0.5932724701979366,
+            "probabilities": {
+              "descriptive": 0.27733110750799866,
+              "evaluative": 0.1293964222940648,
+              "imperative": 0.5932724701979366
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": true
+        },
+        {
+          "id": "descriptive-1",
+          "text": "The serving window is on the right.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "descriptive",
+            "confidence": 0.5255308338606018,
+            "probabilities": {
+              "descriptive": 0.5255308338606018,
+              "evaluative": 0.17493909040554892,
+              "imperative": 0.29953007573384927
+            },
+            "threshold": 0.55,
+            "abstained": true,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": true
+        },
+        {
+          "id": "descriptive-2",
+          "text": "The onion dispenser is on the left.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "imperative",
+            "confidence": 0.5387684662805258,
+            "probabilities": {
+              "descriptive": 0.2883433097727141,
+              "evaluative": 0.1728882239467601,
+              "imperative": 0.5387684662805258
+            },
+            "threshold": 0.55,
+            "abstained": true,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": false
+        },
+        {
+          "id": "descriptive-3",
+          "text": "There are two onions in the pot.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "descriptive",
+            "confidence": 0.5253269600919637,
+            "probabilities": {
+              "descriptive": 0.5253269600919637,
+              "evaluative": 0.24363600562004192,
+              "imperative": 0.2310370342879944
+            },
+            "threshold": 0.55,
+            "abstained": true,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": true
+        },
+        {
+          "id": "descriptive-4",
+          "text": "I am holding a clean plate.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "descriptive",
+            "confidence": 0.5157323464037626,
+            "probabilities": {
+              "descriptive": 0.5157323464037626,
+              "evaluative": 0.22826750404114238,
+              "imperative": 0.25600014955509487
+            },
+            "threshold": 0.55,
+            "abstained": true,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": true
+        },
+        {
+          "id": "descriptive-5",
+          "text": "The soup is not ready yet.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "imperative",
+            "confidence": 0.6948251455205472,
+            "probabilities": {
+              "descriptive": 0.2186619532534174,
+              "evaluative": 0.08651290122603537,
+              "imperative": 0.6948251455205472
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": false
+        },
+        {
+          "id": "descriptive-6",
+          "text": "You are standing beside the sink.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "evaluative",
+            "confidence": 0.7886791413001509,
+            "probabilities": {
+              "descriptive": 0.08346896736785417,
+              "evaluative": 0.7886791413001509,
+              "imperative": 0.12785189133199495
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": false
+        },
+        {
+          "id": "descriptive-7",
+          "text": "The corridor is blocked.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "descriptive",
+            "confidence": 0.5604559609975881,
+            "probabilities": {
+              "descriptive": 0.5604559609975881,
+              "evaluative": 0.13165341358424718,
+              "imperative": 0.30789062541816475
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": true
+        },
+        {
+          "id": "descriptive-8",
+          "text": "The counter next to the pot is empty.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "imperative",
+            "confidence": 0.7246387876541422,
+            "probabilities": {
+              "descriptive": 0.22573995284954237,
+              "evaluative": 0.04962125949631538,
+              "imperative": 0.7246387876541422
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": false
+        },
+        {
+          "id": "descriptive-9",
+          "text": "I have already delivered the soup.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "evaluative",
+            "confidence": 0.5019379701505595,
+            "probabilities": {
+              "descriptive": 0.24002691989915323,
+              "evaluative": 0.5019379701505595,
+              "imperative": 0.2580351099502873
+            },
+            "threshold": 0.55,
+            "abstained": true,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": false
+        },
+        {
+          "id": "descriptive-10",
+          "text": "There is no plate by the stove.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "descriptive",
+            "confidence": 0.5889863221932534,
+            "probabilities": {
+              "descriptive": 0.5889863221932534,
+              "evaluative": 0.18072904608792992,
+              "imperative": 0.23028463171881658
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": true
+        },
+        {
+          "id": "descriptive-11",
+          "text": "You did not pick up the onion.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "imperative",
+            "confidence": 0.7745107026288074,
+            "probabilities": {
+              "descriptive": 0.051250910824843746,
+              "evaluative": 0.17423838654634882,
+              "imperative": 0.7745107026288074
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": false
+        },
+        {
+          "id": "descriptive-12",
+          "text": "The other chef is carrying a tomato.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "descriptive",
+            "confidence": 0.8805850028341506,
+            "probabilities": {
+              "descriptive": 0.8805850028341506,
+              "evaluative": 0.04662408707969222,
+              "imperative": 0.07279091008615693
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": true
+        },
+        {
+          "id": "descriptive-13",
+          "text": "Our score is twenty.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "descriptive",
+            "confidence": 0.773439814559364,
+            "probabilities": {
+              "descriptive": 0.773439814559364,
+              "evaluative": 0.05766490383872846,
+              "imperative": 0.16889528160190762
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": true
+        },
+        {
+          "id": "descriptive-14",
+          "text": "The order needs three onions.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "descriptive",
+            "confidence": 0.5764509090058764,
+            "probabilities": {
+              "descriptive": 0.5764509090058764,
+              "evaluative": 0.15960359795538223,
+              "imperative": 0.26394549303874143
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": true
+        },
+        {
+          "id": "descriptive-15",
+          "text": "The pot contains no soup.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "descriptive",
+            "confidence": 0.8403317220881252,
+            "probabilities": {
+              "descriptive": 0.8403317220881252,
+              "evaluative": 0.07044167438822856,
+              "imperative": 0.08922660352364631
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": true
+        },
+        {
+          "id": "descriptive-16",
+          "text": "My route goes through the middle.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "descriptive",
+            "confidence": 0.663991541962355,
+            "probabilities": {
+              "descriptive": 0.663991541962355,
+              "evaluative": 0.15688502794558296,
+              "imperative": 0.17912343009206202
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": true
+        },
+        {
+          "id": "descriptive-17",
+          "text": "A dish is sitting on the bottom counter.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "imperative",
+            "confidence": 0.45139837151315504,
+            "probabilities": {
+              "descriptive": 0.41668635661469833,
+              "evaluative": 0.13191527187214658,
+              "imperative": 0.45139837151315504
+            },
+            "threshold": 0.55,
+            "abstained": true,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": false
+        },
+        {
+          "id": "descriptive-18",
+          "text": "You are not in my way.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "imperative",
+            "confidence": 0.5371358624388048,
+            "probabilities": {
+              "descriptive": 0.0962685191154206,
+              "evaluative": 0.3665956184457745,
+              "imperative": 0.5371358624388048
+            },
+            "threshold": 0.55,
+            "abstained": true,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": false
+        },
+        {
+          "id": "descriptive-19",
+          "text": "The onion is still on the floor.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "imperative",
+            "confidence": 0.45816683110974993,
+            "probabilities": {
+              "descriptive": 0.3953387166435212,
+              "evaluative": 0.14649445224672902,
+              "imperative": 0.45816683110974993
+            },
+            "threshold": 0.55,
+            "abstained": true,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": false
+        },
+        {
+          "id": "descriptive-20",
+          "text": "The top counter has a clean plate.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "prediction": {
+            "label": "descriptive",
+            "confidence": 0.6013562370271509,
+            "probabilities": {
+              "descriptive": 0.6013562370271509,
+              "evaluative": 0.16585393084141054,
+              "imperative": 0.2327898321314386
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": true
+        },
+        {
+          "id": "location-left-imperative",
+          "text": "Go to the left counter.",
+          "expected": "imperative",
+          "stratum": "location_counterfactual",
+          "prediction": {
+            "label": "imperative",
+            "confidence": 0.5991177246621081,
+            "probabilities": {
+              "descriptive": 0.16211496429928696,
+              "evaluative": 0.23876731103860493,
+              "imperative": 0.5991177246621081
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": true
+        },
+        {
+          "id": "location-left-descriptive",
+          "text": "The soup is on the left counter.",
+          "expected": "descriptive",
+          "stratum": "location_counterfactual",
+          "prediction": {
+            "label": "imperative",
+            "confidence": 0.4462733732719691,
+            "probabilities": {
+              "descriptive": 0.3447090718083196,
+              "evaluative": 0.20901755491971125,
+              "imperative": 0.4462733732719691
+            },
+            "threshold": 0.55,
+            "abstained": true,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": false
+        },
+        {
+          "id": "location-left-evaluative",
+          "text": "Leaving the soup on the left counter was a bad decision.",
+          "expected": "evaluative",
+          "stratum": "location_counterfactual",
+          "prediction": {
+            "label": "evaluative",
+            "confidence": 0.7788285445551713,
+            "probabilities": {
+              "descriptive": 0.10420008296915537,
+              "evaluative": 0.7788285445551713,
+              "imperative": 0.11697137247567337
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": true
+        },
+        {
+          "id": "location-right-imperative",
+          "text": "Go to the right counter.",
+          "expected": "imperative",
+          "stratum": "location_counterfactual",
+          "prediction": {
+            "label": "imperative",
+            "confidence": 0.5870119925382785,
+            "probabilities": {
+              "descriptive": 0.20457198413065517,
+              "evaluative": 0.20841602333106632,
+              "imperative": 0.5870119925382785
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": true
+        },
+        {
+          "id": "location-right-descriptive",
+          "text": "The soup is on the right counter.",
+          "expected": "descriptive",
+          "stratum": "location_counterfactual",
+          "prediction": {
+            "label": "imperative",
+            "confidence": 0.4238365493412066,
+            "probabilities": {
+              "descriptive": 0.4005225318105661,
+              "evaluative": 0.17564091884822733,
+              "imperative": 0.4238365493412066
+            },
+            "threshold": 0.55,
+            "abstained": true,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": false
+        },
+        {
+          "id": "location-right-evaluative",
+          "text": "Leaving the soup on the right counter was a bad decision.",
+          "expected": "evaluative",
+          "stratum": "location_counterfactual",
+          "prediction": {
+            "label": "evaluative",
+            "confidence": 0.7431974615703311,
+            "probabilities": {
+              "descriptive": 0.12994188812072155,
+              "evaluative": 0.7431974615703311,
+              "imperative": 0.12686065030894733
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": true
+        },
+        {
+          "id": "location-top-imperative",
+          "text": "Go to the top counter.",
+          "expected": "imperative",
+          "stratum": "location_counterfactual",
+          "prediction": {
+            "label": "imperative",
+            "confidence": 0.7297972070388091,
+            "probabilities": {
+              "descriptive": 0.125940379272299,
+              "evaluative": 0.1442624136888919,
+              "imperative": 0.7297972070388091
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": true
+        },
+        {
+          "id": "location-top-descriptive",
+          "text": "The soup is on the top counter.",
+          "expected": "descriptive",
+          "stratum": "location_counterfactual",
+          "prediction": {
+            "label": "imperative",
+            "confidence": 0.5324062017115736,
+            "probabilities": {
+              "descriptive": 0.3370270000216756,
+              "evaluative": 0.13056679826675088,
+              "imperative": 0.5324062017115736
+            },
+            "threshold": 0.55,
+            "abstained": true,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": false
+        },
+        {
+          "id": "location-top-evaluative",
+          "text": "Leaving the soup on the top counter was a bad decision.",
+          "expected": "evaluative",
+          "stratum": "location_counterfactual",
+          "prediction": {
+            "label": "evaluative",
+            "confidence": 0.7690881823559127,
+            "probabilities": {
+              "descriptive": 0.10295123389303044,
+              "evaluative": 0.7690881823559127,
+              "imperative": 0.12796058375105693
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": true
+        },
+        {
+          "id": "location-bottom-imperative",
+          "text": "Go to the bottom counter.",
+          "expected": "imperative",
+          "stratum": "location_counterfactual",
+          "prediction": {
+            "label": "imperative",
+            "confidence": 0.7280881706261112,
+            "probabilities": {
+              "descriptive": 0.12659304382818556,
+              "evaluative": 0.14531878554570332,
+              "imperative": 0.7280881706261112
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": true
+        },
+        {
+          "id": "location-bottom-descriptive",
+          "text": "The soup is on the bottom counter.",
+          "expected": "descriptive",
+          "stratum": "location_counterfactual",
+          "prediction": {
+            "label": "imperative",
+            "confidence": 0.5274646598460981,
+            "probabilities": {
+              "descriptive": 0.34019644086336487,
+              "evaluative": 0.13233889929053694,
+              "imperative": 0.5274646598460981
+            },
+            "threshold": 0.55,
+            "abstained": true,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": false
+        },
+        {
+          "id": "location-bottom-evaluative",
+          "text": "Leaving the soup on the bottom counter was a bad decision.",
+          "expected": "evaluative",
+          "stratum": "location_counterfactual",
+          "prediction": {
+            "label": "evaluative",
+            "confidence": 0.7696391646520785,
+            "probabilities": {
+              "descriptive": 0.10315584425532293,
+              "evaluative": 0.7696391646520785,
+              "imperative": 0.1272049910925987
+            },
+            "threshold": 0.55,
+            "abstained": false,
+            "calibrated": false,
+            "temperatureScaled": false,
+            "independentlyCalibrated": false,
+            "calibrationVersion": null,
+            "modelHash": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+            "scoreKind": "raw_model_softmax_score"
+          },
+          "correct": true
+        }
+      ]
+    }
+  }
+}

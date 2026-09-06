@@ -1,0 +1,29 @@
+{
+  "artifact_version": "direct-fg-clean-v3-research-candidate-v1",
+  "freeze_status": "frozen_not_promoted_baseline",
+  "verified_date": "2026-08-27",
+  "manifest_sha256": "926b1143a8098f2e1596df9a559087ffccf5f8c9bde75fee8c10f261e087f612",
+  "all_manifest_bound_hashes_verified": true,
+  "immutable_files": {
+    "corpus.json": "898e51a9a4c860e6526cbac4823b125bd505927d7a9259e5927adf3cebb29cf8",
+    "evaluation_report.json": "5334db92485f87a1bf74568cd29515d187aba3aa8bb0decb15fd35d06141b2de",
+    "manifest.json": "926b1143a8098f2e1596df9a559087ffccf5f8c9bde75fee8c10f261e087f612",
+    "model.joblib": "0d0b46f3266cb8e8d7757177a6f76dff77cbda89d793f8ce674e31000be150a2"
+  },
+  "bound_code": {
+    "generate_direct_fg_clean_v3.py": "dec51e2bda26e33440ca1d655f6deb62cc5be120978a81d827cc7b717377cb2c",
+    "train_direct_fg_classifier_clean_v3.py": "bef16d640f75f74b285888186d6696ffa177f7b40d0bf658287d8c0963a0ff1e"
+  },
+  "synthetic_final_accuracy": 1.0,
+  "ai_assisted_natural_probe_accuracy": 0.8666666666666667,
+  "ai_assisted_natural_probe_descriptive_recall": 0.6,
+  "not_promoted_reasons": [
+    "The 100% score is synthetic family/scenario-disjoint accuracy, not real-player accuracy.",
+    "Four short descriptive diagnostics were misclassified as Imperative with 88.87%-99.46% confidence.",
+    "The synthetic-only temperature optimum reached the configured lower search bound (0.2), so it is not evidence that confidence is calibrated for player language.",
+    "No independently audited natural human holdout was used."
+  ],
+  "production_promotion_eligible": false,
+  "production_model_modified": false,
+  "successor_experiment": "direct_fg_clean_v4"
+}

@@ -1,0 +1,1147 @@
+{
+  "dataset_sha256": "ddbdc0ed38517865427c01d8ae24b72400fc163034acb857945045a064f258de",
+  "prediction_sha256": "367cfd7bc42d1986310e4b4cc9deca6ec2e3a7f69a76f65c6e17f5ac57f41ba4",
+  "provenance": {
+    "candidate_frozen_before_inference": true,
+    "candidate_training_text_read_by_acceptance_agent": false,
+    "dataset_sha256": "ddbdc0ed38517865427c01d8ae24b72400fc163034acb857945045a064f258de",
+    "generated_at": "2026-09-06T00:58:21.940Z",
+    "hashes": {
+      "E:\\Research\\DURF\\outputs\\synthetic_feedback_v1\\final-v3\\speech_act.json": "1a7327c3fe998f5e35b4422cf84032abbfeb350bbdcf77f531a781b43259bddf",
+      "E:\\Research\\DURF\\outputs\\synthetic_feedback_v1\\final-v3\\grounding.json": "fcb3d9d9a6eacd8d1e2c9bdc12b4469b46b91237ce8e61d167025af304d3f306",
+      "E:\\Research\\DURF\\artifacts\\synthetic-acceptance-20260906\\frozen-round3.json": "ddbdc0ed38517865427c01d8ae24b72400fc163034acb857945045a064f258de",
+      "E:\\Research\\DURF\\web\\lib\\synthetic-browser-models.ts": "7517f2a2e32679636dfab51ca826e825d5b3787714da8ae93cf99f91b6f1763c",
+      "E:\\Research\\DURF\\web\\lib\\browser-models.ts": "43791f52e7cc56d27fe8b754d8f116b16b57849ef93694d1c8b1a3fa08d32fa1",
+      "E:\\Research\\DURF\\web\\lib\\route-inputs.ts": "9ce23fb4d331ff1b88fd0fa1d17b1e21497be588a3fb78f2d2809a61625aef18",
+      "E:\\Research\\DURF\\web\\lib\\game.ts": "25d1ac73ef41205e90a27156f31f8871bddd4742931adfa45c6e92817f739a8b",
+      "E:\\Research\\DURF\\web\\lib\\subgoal-policy.ts": "f936ecec4b16f9ec72de4815e6feb8146dd35bb7329d9c5df5f0facbcd57bbb4"
+    },
+    "speech_model_source_sha256": "07d67d4f8859372b762594461902993d66d0c211c244ac307208f866a27a8fee",
+    "grounding_model_source_sha256": "b01c5c02ce6d2975524a1c940ea52507b8c45d78bc5b26ac616202d8ef38a0d7",
+    "learning_behavior_scope": "Classifier and clause split only; no game action or learning update was executed."
+  },
+  "claim_scope": "independent authorship within the same AI session, not independently human-validated ground truth",
+  "source": "AI-authored synthetic only; no human participant data",
+  "speech_act": {
+    "n": 150,
+    "correct": 143,
+    "accuracy": 0.9533333333333334,
+    "macro_f1": 0.9532912954992826,
+    "per_class": {
+      "evaluative": {
+        "support": 50,
+        "predicted": 47,
+        "precision": 0.9574468085106383,
+        "recall": 0.9,
+        "f1": 0.9278350515463918
+      },
+      "imperative": {
+        "support": 50,
+        "predicted": 50,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "descriptive": {
+        "support": 50,
+        "predicted": 53,
+        "precision": 0.9056603773584906,
+        "recall": 0.96,
+        "f1": 0.9320388349514563
+      }
+    },
+    "confusion_matrix": {
+      "evaluative": {
+        "evaluative": 45,
+        "descriptive": 5
+      },
+      "imperative": {
+        "imperative": 50
+      },
+      "descriptive": {
+        "descriptive": 48,
+        "evaluative": 2
+      }
+    }
+  },
+  "grounding": {
+    "n": 150,
+    "correct": 146,
+    "accuracy": 0.9733333333333334,
+    "macro_f1": 0.9727493297080927,
+    "per_class": {
+      "action": {
+        "support": 55,
+        "predicted": 57,
+        "precision": 0.9649122807017544,
+        "recall": 1.0,
+        "f1": 0.9821428571428572
+      },
+      "feature": {
+        "support": 50,
+        "predicted": 47,
+        "precision": 1.0,
+        "recall": 0.94,
+        "f1": 0.9690721649484536
+      },
+      "trajectory": {
+        "support": 45,
+        "predicted": 46,
+        "precision": 0.9565217391304348,
+        "recall": 0.9777777777777777,
+        "f1": 0.967032967032967
+      }
+    },
+    "confusion_matrix": {
+      "action": {
+        "action": 55
+      },
+      "feature": {
+        "feature": 47,
+        "trajectory": 2,
+        "action": 1
+      },
+      "trajectory": {
+        "trajectory": 44,
+        "action": 1
+      }
+    }
+  },
+  "speech_accepted_only": {
+    "coverage": 0.9866666666666667,
+    "n": 148,
+    "correct": 143,
+    "accuracy": 0.9662162162162162,
+    "macro_f1": 0.9659544901858607,
+    "per_class": {
+      "evaluative": {
+        "support": 48,
+        "predicted": 47,
+        "precision": 0.9574468085106383,
+        "recall": 0.9375,
+        "f1": 0.9473684210526315
+      },
+      "imperative": {
+        "support": 50,
+        "predicted": 50,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "descriptive": {
+        "support": 50,
+        "predicted": 51,
+        "precision": 0.9411764705882353,
+        "recall": 0.96,
+        "f1": 0.9504950495049505
+      }
+    },
+    "confusion_matrix": {
+      "evaluative": {
+        "evaluative": 45,
+        "descriptive": 3
+      },
+      "imperative": {
+        "imperative": 50
+      },
+      "descriptive": {
+        "descriptive": 48,
+        "evaluative": 2
+      }
+    }
+  },
+  "grounding_accepted_only": {
+    "coverage": 1.0,
+    "n": 150,
+    "correct": 146,
+    "accuracy": 0.9733333333333334,
+    "macro_f1": 0.9727493297080927,
+    "per_class": {
+      "action": {
+        "support": 55,
+        "predicted": 57,
+        "precision": 0.9649122807017544,
+        "recall": 1.0,
+        "f1": 0.9821428571428572
+      },
+      "feature": {
+        "support": 50,
+        "predicted": 47,
+        "precision": 1.0,
+        "recall": 0.94,
+        "f1": 0.9690721649484536
+      },
+      "trajectory": {
+        "support": 45,
+        "predicted": 46,
+        "precision": 0.9565217391304348,
+        "recall": 0.9777777777777777,
+        "f1": 0.967032967032967
+      }
+    },
+    "confusion_matrix": {
+      "action": {
+        "action": 55
+      },
+      "feature": {
+        "feature": 47,
+        "trajectory": 2,
+        "action": 1
+      },
+      "trajectory": {
+        "trajectory": 44,
+        "action": 1
+      }
+    }
+  },
+  "strata": {
+    "agent_state": {
+      "n": 5,
+      "speech_correct": 5,
+      "grounding_correct": 4
+    },
+    "completed_fact": {
+      "n": 12,
+      "speech_correct": 11,
+      "grounding_correct": 11
+    },
+    "completed_judgment": {
+      "n": 17,
+      "speech_correct": 17,
+      "grounding_correct": 17
+    },
+    "completed_sequence_fact": {
+      "n": 2,
+      "speech_correct": 2,
+      "grounding_correct": 2
+    },
+    "conditional_request": {
+      "n": 2,
+      "speech_correct": 2,
+      "grounding_correct": 2
+    },
+    "current_state": {
+      "n": 9,
+      "speech_correct": 9,
+      "grounding_correct": 7
+    },
+    "direct_request": {
+      "n": 12,
+      "speech_correct": 12,
+      "grounding_correct": 12
+    },
+    "feature_comparison": {
+      "n": 1,
+      "speech_correct": 1,
+      "grounding_correct": 1
+    },
+    "feature_value": {
+      "n": 8,
+      "speech_correct": 3,
+      "grounding_correct": 8
+    },
+    "future_request": {
+      "n": 2,
+      "speech_correct": 2,
+      "grounding_correct": 2
+    },
+    "future_should": {
+      "n": 1,
+      "speech_correct": 1,
+      "grounding_correct": 1
+    },
+    "future_spatial_request": {
+      "n": 2,
+      "speech_correct": 2,
+      "grounding_correct": 2
+    },
+    "general_rule": {
+      "n": 2,
+      "speech_correct": 1,
+      "grounding_correct": 2
+    },
+    "immediate_request": {
+      "n": 1,
+      "speech_correct": 1,
+      "grounding_correct": 1
+    },
+    "indirect_request": {
+      "n": 10,
+      "speech_correct": 10,
+      "grounding_correct": 10
+    },
+    "negated_agent_state": {
+      "n": 2,
+      "speech_correct": 2,
+      "grounding_correct": 2
+    },
+    "negated_completed_fact": {
+      "n": 2,
+      "speech_correct": 2,
+      "grounding_correct": 2
+    },
+    "negated_judgment": {
+      "n": 3,
+      "speech_correct": 3,
+      "grounding_correct": 3
+    },
+    "negated_request": {
+      "n": 5,
+      "speech_correct": 5,
+      "grounding_correct": 5
+    },
+    "negated_spatial_request": {
+      "n": 1,
+      "speech_correct": 1,
+      "grounding_correct": 1
+    },
+    "negated_spatial_state": {
+      "n": 1,
+      "speech_correct": 1,
+      "grounding_correct": 1
+    },
+    "negated_state": {
+      "n": 2,
+      "speech_correct": 2,
+      "grounding_correct": 2
+    },
+    "negated_value": {
+      "n": 1,
+      "speech_correct": 1,
+      "grounding_correct": 1
+    },
+    "polite_request": {
+      "n": 9,
+      "speech_correct": 9,
+      "grounding_correct": 9
+    },
+    "preference": {
+      "n": 7,
+      "speech_correct": 7,
+      "grounding_correct": 7
+    },
+    "retrospective_counterfactual": {
+      "n": 2,
+      "speech_correct": 2,
+      "grounding_correct": 2
+    },
+    "retrospective_should": {
+      "n": 3,
+      "speech_correct": 3,
+      "grounding_correct": 3
+    },
+    "spatial_request": {
+      "n": 5,
+      "speech_correct": 5,
+      "grounding_correct": 5
+    },
+    "spatial_state": {
+      "n": 9,
+      "speech_correct": 9,
+      "grounding_correct": 9
+    },
+    "spatial_value": {
+      "n": 3,
+      "speech_correct": 3,
+      "grounding_correct": 3
+    },
+    "whole_round_judgment": {
+      "n": 5,
+      "speech_correct": 5,
+      "grounding_correct": 5
+    },
+    "whole_run_fact": {
+      "n": 4,
+      "speech_correct": 4,
+      "grounding_correct": 4
+    }
+  },
+  "mixed_oracle_clause_speech": {
+    "n": 42,
+    "correct": 40,
+    "accuracy": 0.9523809523809523,
+    "macro_f1": 0.953968253968254,
+    "per_class": {
+      "evaluative": {
+        "support": 13,
+        "predicted": 15,
+        "precision": 0.8666666666666667,
+        "recall": 1.0,
+        "f1": 0.9285714285714286
+      },
+      "imperative": {
+        "support": 13,
+        "predicted": 13,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "descriptive": {
+        "support": 16,
+        "predicted": 14,
+        "precision": 1.0,
+        "recall": 0.875,
+        "f1": 0.9333333333333333
+      }
+    },
+    "confusion_matrix": {
+      "evaluative": {
+        "evaluative": 13
+      },
+      "imperative": {
+        "imperative": 13
+      },
+      "descriptive": {
+        "descriptive": 14,
+        "evaluative": 2
+      }
+    }
+  },
+  "mixed_oracle_clause_grounding": {
+    "n": 42,
+    "correct": 42,
+    "accuracy": 1.0,
+    "macro_f1": 1.0,
+    "per_class": {
+      "action": {
+        "support": 15,
+        "predicted": 15,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "feature": {
+        "support": 16,
+        "predicted": 16,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "trajectory": {
+        "support": 11,
+        "predicted": 11,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      }
+    },
+    "confusion_matrix": {
+      "action": {
+        "action": 15
+      },
+      "feature": {
+        "feature": 16
+      },
+      "trajectory": {
+        "trajectory": 11
+      }
+    }
+  },
+  "mixed_component_accuracy": 0.9,
+  "mixed": [
+    {
+      "id": "R3M001",
+      "expected": [
+        "evaluative",
+        "imperative"
+      ],
+      "predicted": [
+        "evaluative",
+        "imperative"
+      ],
+      "accepted_predicted": [
+        "evaluative",
+        "imperative"
+      ],
+      "component_set_correct": true,
+      "accepted_component_set_correct": true,
+      "expected_clause_count": 2,
+      "predicted_clause_count": 2
+    },
+    {
+      "id": "R3M002",
+      "expected": [
+        "descriptive",
+        "imperative"
+      ],
+      "predicted": [
+        "descriptive",
+        "imperative"
+      ],
+      "accepted_predicted": [
+        "imperative"
+      ],
+      "component_set_correct": true,
+      "accepted_component_set_correct": false,
+      "expected_clause_count": 2,
+      "predicted_clause_count": 2
+    },
+    {
+      "id": "R3M003",
+      "expected": [
+        "descriptive",
+        "evaluative"
+      ],
+      "predicted": [
+        "descriptive",
+        "evaluative"
+      ],
+      "accepted_predicted": [
+        "descriptive",
+        "evaluative"
+      ],
+      "component_set_correct": true,
+      "accepted_component_set_correct": true,
+      "expected_clause_count": 2,
+      "predicted_clause_count": 2
+    },
+    {
+      "id": "R3M004",
+      "expected": [
+        "descriptive",
+        "evaluative"
+      ],
+      "predicted": [
+        "evaluative"
+      ],
+      "accepted_predicted": [
+        "evaluative"
+      ],
+      "component_set_correct": false,
+      "accepted_component_set_correct": false,
+      "expected_clause_count": 2,
+      "predicted_clause_count": 2
+    },
+    {
+      "id": "R3M005",
+      "expected": [
+        "descriptive",
+        "imperative"
+      ],
+      "predicted": [
+        "descriptive",
+        "imperative"
+      ],
+      "accepted_predicted": [
+        "descriptive",
+        "imperative"
+      ],
+      "component_set_correct": true,
+      "accepted_component_set_correct": true,
+      "expected_clause_count": 2,
+      "predicted_clause_count": 2
+    },
+    {
+      "id": "R3M006",
+      "expected": [
+        "descriptive",
+        "evaluative"
+      ],
+      "predicted": [
+        "descriptive",
+        "evaluative"
+      ],
+      "accepted_predicted": [
+        "descriptive",
+        "evaluative"
+      ],
+      "component_set_correct": true,
+      "accepted_component_set_correct": true,
+      "expected_clause_count": 2,
+      "predicted_clause_count": 2
+    },
+    {
+      "id": "R3M007",
+      "expected": [
+        "descriptive",
+        "evaluative"
+      ],
+      "predicted": [
+        "descriptive",
+        "evaluative"
+      ],
+      "accepted_predicted": [
+        "descriptive",
+        "evaluative"
+      ],
+      "component_set_correct": true,
+      "accepted_component_set_correct": true,
+      "expected_clause_count": 2,
+      "predicted_clause_count": 2
+    },
+    {
+      "id": "R3M008",
+      "expected": [
+        "descriptive",
+        "imperative"
+      ],
+      "predicted": [
+        "descriptive",
+        "imperative"
+      ],
+      "accepted_predicted": [
+        "descriptive",
+        "imperative"
+      ],
+      "component_set_correct": true,
+      "accepted_component_set_correct": true,
+      "expected_clause_count": 2,
+      "predicted_clause_count": 2
+    },
+    {
+      "id": "R3M009",
+      "expected": [
+        "evaluative",
+        "imperative"
+      ],
+      "predicted": [
+        "evaluative",
+        "imperative"
+      ],
+      "accepted_predicted": [
+        "evaluative",
+        "imperative"
+      ],
+      "component_set_correct": true,
+      "accepted_component_set_correct": true,
+      "expected_clause_count": 2,
+      "predicted_clause_count": 2
+    },
+    {
+      "id": "R3M010",
+      "expected": [
+        "evaluative"
+      ],
+      "predicted": [
+        "evaluative"
+      ],
+      "accepted_predicted": [
+        "evaluative"
+      ],
+      "component_set_correct": true,
+      "accepted_component_set_correct": true,
+      "expected_clause_count": 2,
+      "predicted_clause_count": 2
+    },
+    {
+      "id": "R3M011",
+      "expected": [
+        "descriptive",
+        "imperative"
+      ],
+      "predicted": [
+        "descriptive",
+        "imperative"
+      ],
+      "accepted_predicted": [
+        "descriptive",
+        "imperative"
+      ],
+      "component_set_correct": true,
+      "accepted_component_set_correct": true,
+      "expected_clause_count": 2,
+      "predicted_clause_count": 2
+    },
+    {
+      "id": "R3M012",
+      "expected": [
+        "descriptive",
+        "imperative"
+      ],
+      "predicted": [
+        "descriptive",
+        "imperative"
+      ],
+      "accepted_predicted": [
+        "descriptive",
+        "imperative"
+      ],
+      "component_set_correct": true,
+      "accepted_component_set_correct": true,
+      "expected_clause_count": 3,
+      "predicted_clause_count": 2
+    },
+    {
+      "id": "R3M013",
+      "expected": [
+        "descriptive"
+      ],
+      "predicted": [
+        "descriptive"
+      ],
+      "accepted_predicted": [
+        "descriptive"
+      ],
+      "component_set_correct": true,
+      "accepted_component_set_correct": true,
+      "expected_clause_count": 2,
+      "predicted_clause_count": 1
+    },
+    {
+      "id": "R3M014",
+      "expected": [
+        "evaluative",
+        "imperative"
+      ],
+      "predicted": [
+        "evaluative",
+        "imperative"
+      ],
+      "accepted_predicted": [
+        "evaluative",
+        "imperative"
+      ],
+      "component_set_correct": true,
+      "accepted_component_set_correct": true,
+      "expected_clause_count": 2,
+      "predicted_clause_count": 2
+    },
+    {
+      "id": "R3M015",
+      "expected": [
+        "descriptive",
+        "evaluative"
+      ],
+      "predicted": [
+        "descriptive",
+        "evaluative"
+      ],
+      "accepted_predicted": [
+        "descriptive",
+        "evaluative"
+      ],
+      "component_set_correct": true,
+      "accepted_component_set_correct": true,
+      "expected_clause_count": 2,
+      "predicted_clause_count": 2
+    },
+    {
+      "id": "R3M016",
+      "expected": [
+        "descriptive",
+        "imperative"
+      ],
+      "predicted": [
+        "descriptive",
+        "imperative"
+      ],
+      "accepted_predicted": [
+        "descriptive",
+        "imperative"
+      ],
+      "component_set_correct": true,
+      "accepted_component_set_correct": true,
+      "expected_clause_count": 2,
+      "predicted_clause_count": 2
+    },
+    {
+      "id": "R3M017",
+      "expected": [
+        "evaluative",
+        "imperative"
+      ],
+      "predicted": [
+        "evaluative",
+        "imperative"
+      ],
+      "accepted_predicted": [
+        "evaluative",
+        "imperative"
+      ],
+      "component_set_correct": true,
+      "accepted_component_set_correct": true,
+      "expected_clause_count": 2,
+      "predicted_clause_count": 2
+    },
+    {
+      "id": "R3M018",
+      "expected": [
+        "descriptive",
+        "evaluative"
+      ],
+      "predicted": [
+        "evaluative"
+      ],
+      "accepted_predicted": [
+        "evaluative"
+      ],
+      "component_set_correct": false,
+      "accepted_component_set_correct": false,
+      "expected_clause_count": 2,
+      "predicted_clause_count": 2
+    },
+    {
+      "id": "R3M019",
+      "expected": [
+        "descriptive",
+        "imperative"
+      ],
+      "predicted": [
+        "descriptive",
+        "imperative"
+      ],
+      "accepted_predicted": [
+        "descriptive",
+        "imperative"
+      ],
+      "component_set_correct": true,
+      "accepted_component_set_correct": true,
+      "expected_clause_count": 2,
+      "predicted_clause_count": 2
+    },
+    {
+      "id": "R3M020",
+      "expected": [
+        "descriptive",
+        "evaluative",
+        "imperative"
+      ],
+      "predicted": [
+        "descriptive",
+        "evaluative",
+        "imperative"
+      ],
+      "accepted_predicted": [
+        "descriptive",
+        "evaluative",
+        "imperative"
+      ],
+      "component_set_correct": true,
+      "accepted_component_set_correct": true,
+      "expected_clause_count": 3,
+      "predicted_clause_count": 3
+    }
+  ],
+  "uncertain": {
+    "n": 20,
+    "abstained": 6,
+    "automatic_learning_observed": 0,
+    "learning_gate_unknown": 20,
+    "details": [
+      {
+        "id": "R3U001",
+        "kind": "out_of_domain",
+        "speech_act": "evaluative",
+        "confidence": 0.993752468127694,
+        "abstained": false,
+        "grounding_abstained": false,
+        "learning_applied": null,
+        "uncertainty_reason": null
+      },
+      {
+        "id": "R3U002",
+        "kind": "out_of_domain",
+        "speech_act": "evaluative",
+        "confidence": 0.9066502269845934,
+        "abstained": false,
+        "grounding_abstained": false,
+        "learning_applied": null,
+        "uncertainty_reason": null
+      },
+      {
+        "id": "R3U003",
+        "kind": "out_of_domain",
+        "speech_act": "imperative",
+        "confidence": 0.6882398097130245,
+        "abstained": false,
+        "grounding_abstained": false,
+        "learning_applied": null,
+        "uncertainty_reason": null
+      },
+      {
+        "id": "R3U004",
+        "kind": "out_of_domain",
+        "speech_act": "evaluative",
+        "confidence": 0.8663626332956811,
+        "abstained": false,
+        "grounding_abstained": true,
+        "learning_applied": null,
+        "uncertainty_reason": null
+      },
+      {
+        "id": "R3U005",
+        "kind": "out_of_domain",
+        "speech_act": "evaluative",
+        "confidence": 0.9991064430040919,
+        "abstained": false,
+        "grounding_abstained": false,
+        "learning_applied": null,
+        "uncertainty_reason": null
+      },
+      {
+        "id": "R3U006",
+        "kind": "out_of_domain",
+        "speech_act": "descriptive",
+        "confidence": 0.8442921790033135,
+        "abstained": false,
+        "grounding_abstained": false,
+        "learning_applied": null,
+        "uncertainty_reason": null
+      },
+      {
+        "id": "R3U007",
+        "kind": "out_of_domain",
+        "speech_act": "evaluative",
+        "confidence": 0.8162932482102827,
+        "abstained": false,
+        "grounding_abstained": false,
+        "learning_applied": null,
+        "uncertainty_reason": null
+      },
+      {
+        "id": "R3U008",
+        "kind": "out_of_domain",
+        "speech_act": "imperative",
+        "confidence": 0.7426662827123436,
+        "abstained": false,
+        "grounding_abstained": true,
+        "learning_applied": null,
+        "uncertainty_reason": null
+      },
+      {
+        "id": "R3U009",
+        "kind": "uninterpretable",
+        "speech_act": "evaluative",
+        "confidence": 0.7285608502435271,
+        "abstained": true,
+        "grounding_abstained": true,
+        "learning_applied": null,
+        "uncertainty_reason": "classifier_abstention"
+      },
+      {
+        "id": "R3U010",
+        "kind": "uninterpretable",
+        "speech_act": "evaluative",
+        "confidence": 0.7285608502435271,
+        "abstained": true,
+        "grounding_abstained": true,
+        "learning_applied": null,
+        "uncertainty_reason": "classifier_abstention"
+      },
+      {
+        "id": "R3U011",
+        "kind": "ambiguous",
+        "speech_act": "imperative",
+        "confidence": 0.4947793766658527,
+        "abstained": true,
+        "grounding_abstained": false,
+        "learning_applied": null,
+        "uncertainty_reason": "classifier_abstention"
+      },
+      {
+        "id": "R3U012",
+        "kind": "ambiguous",
+        "speech_act": "descriptive",
+        "confidence": 0.9104156232353354,
+        "abstained": false,
+        "grounding_abstained": false,
+        "learning_applied": null,
+        "uncertainty_reason": null
+      },
+      {
+        "id": "R3U013",
+        "kind": "ambiguous",
+        "speech_act": "evaluative",
+        "confidence": 0.7285608502435271,
+        "abstained": true,
+        "grounding_abstained": true,
+        "learning_applied": null,
+        "uncertainty_reason": "classifier_abstention"
+      },
+      {
+        "id": "R3U014",
+        "kind": "ambiguous",
+        "speech_act": "evaluative",
+        "confidence": 0.8213430416527694,
+        "abstained": false,
+        "grounding_abstained": false,
+        "learning_applied": null,
+        "uncertainty_reason": null
+      },
+      {
+        "id": "R3U015",
+        "kind": "ambiguous",
+        "speech_act": "evaluative",
+        "confidence": 0.5202523961061797,
+        "abstained": true,
+        "grounding_abstained": false,
+        "learning_applied": null,
+        "uncertainty_reason": "classifier_abstention"
+      },
+      {
+        "id": "R3U016",
+        "kind": "ambiguous",
+        "speech_act": "imperative",
+        "confidence": 0.9525327662837924,
+        "abstained": false,
+        "grounding_abstained": false,
+        "learning_applied": null,
+        "uncertainty_reason": null
+      },
+      {
+        "id": "R3U017",
+        "kind": "pragmatically_ambiguous",
+        "speech_act": "imperative",
+        "confidence": 0.8301629902690533,
+        "abstained": false,
+        "grounding_abstained": false,
+        "learning_applied": null,
+        "uncertainty_reason": null
+      },
+      {
+        "id": "R3U018",
+        "kind": "pragmatically_ambiguous",
+        "speech_act": "evaluative",
+        "confidence": 0.9868100450420643,
+        "abstained": false,
+        "grounding_abstained": false,
+        "learning_applied": null,
+        "uncertainty_reason": null
+      },
+      {
+        "id": "R3U019",
+        "kind": "sarcasm_ambiguous",
+        "speech_act": "descriptive",
+        "confidence": 0.9832625799031767,
+        "abstained": false,
+        "grounding_abstained": false,
+        "learning_applied": null,
+        "uncertainty_reason": null
+      },
+      {
+        "id": "R3U020",
+        "kind": "pragmatically_ambiguous",
+        "speech_act": "evaluative",
+        "confidence": 0.455334927763292,
+        "abstained": true,
+        "grounding_abstained": false,
+        "learning_applied": null,
+        "uncertainty_reason": "classifier_abstention"
+      }
+    ]
+  },
+  "failures": [
+    {
+      "id": "R3E031",
+      "text": "The counter near the dishes is a useful place.",
+      "gold_speech_act": "evaluative",
+      "gold_grounding": "feature",
+      "predicted_speech_act": "descriptive",
+      "predicted_grounding": "feature",
+      "confidence": 0.40929460016105745,
+      "abstained": true
+    },
+    {
+      "id": "R3E042",
+      "text": "Loose ingredients in the serving area are a problem.",
+      "gold_speech_act": "evaluative",
+      "gold_grounding": "feature",
+      "predicted_speech_act": "descriptive",
+      "predicted_grounding": "feature",
+      "confidence": 0.9538470891643281,
+      "abstained": false
+    },
+    {
+      "id": "R3E047",
+      "text": "An empty-handed cook beside the ready soup is no help.",
+      "gold_speech_act": "evaluative",
+      "gold_grounding": "feature",
+      "predicted_speech_act": "descriptive",
+      "predicted_grounding": "feature",
+      "confidence": 0.7421637663858679,
+      "abstained": false
+    },
+    {
+      "id": "R3E048",
+      "text": "The pot closest to the dishes is the best one.",
+      "gold_speech_act": "evaluative",
+      "gold_grounding": "feature",
+      "predicted_speech_act": "descriptive",
+      "predicted_grounding": "feature",
+      "confidence": 0.832439841394855,
+      "abstained": false
+    },
+    {
+      "id": "R3E049",
+      "text": "A bowl within reach of the soup makes things easier.",
+      "gold_speech_act": "evaluative",
+      "gold_grounding": "feature",
+      "predicted_speech_act": "descriptive",
+      "predicted_grounding": "feature",
+      "confidence": 0.5211344001635051,
+      "abstained": true
+    },
+    {
+      "id": "R3D010",
+      "text": "I am carrying the bowl that was beside the pot.",
+      "gold_speech_act": "descriptive",
+      "gold_grounding": "feature",
+      "predicted_speech_act": "descriptive",
+      "predicted_grounding": "trajectory",
+      "confidence": 0.7684762480447399,
+      "abstained": false
+    },
+    {
+      "id": "R3D014",
+      "text": "The pot has enough ingredients to start cooking.",
+      "gold_speech_act": "descriptive",
+      "gold_grounding": "feature",
+      "predicted_speech_act": "descriptive",
+      "predicted_grounding": "action",
+      "confidence": 0.6620081444935517,
+      "abstained": false
+    },
+    {
+      "id": "R3D021",
+      "text": "An empty dish is required to collect cooked soup.",
+      "gold_speech_act": "descriptive",
+      "gold_grounding": "feature",
+      "predicted_speech_act": "evaluative",
+      "predicted_grounding": "feature",
+      "confidence": 0.6680321798939619,
+      "abstained": false
+    },
+    {
+      "id": "R3D026",
+      "text": "The round has twenty seconds remaining.",
+      "gold_speech_act": "descriptive",
+      "gold_grounding": "feature",
+      "predicted_speech_act": "descriptive",
+      "predicted_grounding": "trajectory",
+      "confidence": 0.9996704059617729,
+      "abstained": false
+    },
+    {
+      "id": "R3D032",
+      "text": "The other cook put an onion beside the serving point.",
+      "gold_speech_act": "descriptive",
+      "gold_grounding": "trajectory",
+      "predicted_speech_act": "descriptive",
+      "predicted_grounding": "action",
+      "confidence": 0.8570247212444572,
+      "abstained": false
+    },
+    {
+      "id": "R3D033",
+      "text": "You used the upper path for your previous trip.",
+      "gold_speech_act": "descriptive",
+      "gold_grounding": "trajectory",
+      "predicted_speech_act": "evaluative",
+      "predicted_grounding": "trajectory",
+      "confidence": 0.5839303221983064,
+      "abstained": false
+    }
+  ],
+  "predeclared_gates": {
+    "speech_act": true,
+    "grounding": true,
+    "mixed_components": true
+  },
+  "aggregate_predeclared_pass": true,
+  "training_overlap_audit": {
+    "status": "not_run",
+    "sources": [],
+    "normalized_exact_overlap_count": null,
+    "note": "No training data was supplied to this acceptance agent; a separate audit is required."
+  }
+}

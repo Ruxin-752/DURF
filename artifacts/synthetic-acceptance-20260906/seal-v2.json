@@ -1,0 +1,35 @@
+{
+  "dataset_id": "durf-independent-synthetic-acceptance-20260906-grounding-contract-v2",
+  "sha256": "4473f6647e428777f92f03e54a4c6c561976775bf64cb0fe567dfd5c50105ff1",
+  "previous_sha256": "4efe488f045c845dbf176ec7223d689c0d2a743cfb2914624f84fdfb89c75888",
+  "single_count": 150,
+  "speech_act_counts": {
+    "evaluative": 50,
+    "imperative": 50,
+    "descriptive": 50
+  },
+  "grounding_counts": {
+    "action": 55,
+    "trajectory": 43,
+    "feature": 52
+  },
+  "cross_label_counts": {
+    "evaluative/action": 5,
+    "evaluative/trajectory": 25,
+    "evaluative/feature": 20,
+    "imperative/action": 50,
+    "descriptive/feature": 32,
+    "descriptive/trajectory": 18
+  },
+  "mixed_count": 20,
+  "uncertain_count": 20,
+  "grounding_revision_count": 35,
+  "speech_act_gold_changed": false,
+  "texts_changed": false,
+  "candidate_inference_before_revision": false,
+  "contract": {
+    "action": "A requested next/immediate action, an action alternative, or an explicit counterfactual about what should have been done instead.",
+    "feature": "A resource/object/spatial/current state, general rule, preference, or value associated with it.",
+    "trajectory": "An action or sequence that actually occurred, whether reported factually or evaluated, including whole runs."
+  }
+}

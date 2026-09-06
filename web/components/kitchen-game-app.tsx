@@ -8,18 +8,19 @@ import {
   type FormEvent,
 } from 'react';
 import {
-  applyRoute1PaperUpdate,
   applyRoute2Gaussian,
-  classifierVariantFromSearch,
   createFullGaussianPrior,
   createIndependentGaussianPrior,
-  loadBrowserModels,
-  type BrowserModels,
   type FeedbackFormPrediction,
   type FullGaussianState,
   type IndependentGaussianState,
-  type Route1PaperResult,
 } from '@/lib/browser-models';
+import { loadSyntheticGameModels, type GameModels } from '@/lib/synthetic-browser-models';
+import { groundRoute1Feedback } from '@/lib/route1-grounding';
+import { buildGroundingResearchTrace } from '@/lib/grounding-research-trace';
+import { applyGroundedPragmaticUtterance, type GroundedPragmaticRoute1Result } from '@/lib/pragmatic-route1';
+import { scoreVaderSentiment } from '@/lib/vader-sentiment';
+import { researchPayloadFits } from '@/lib/research-limits';
 import {
   BOARD_HEIGHT,
   BOARD_WIDTH,
@@ -27,7 +28,7 @@ import {
   STEPS_PER_SECOND,
   STATIONS,
   TERRAIN_ROWS,
-  chooseAiAction,
+  chooseAiDecision,
   counterKey,
   createGameState,
   itemLabel,
@@ -38,7 +39,19 @@ import {
   type GameAction,
   type GameState,
 } from '@/lib/game';
+import type { RewardWeights } from '@/lib/subgoal-policy';
+import {
+  TICK_SUMMARY_RECEIPT_SCHEMA_VERSION,
+  aiExecutionResult,
+  counterfactualBehaviorChanged,
+  type AiTickReceipt,
+  type PolicyExecutionReceipt,
+} from '@/lib/policy-execution-receipt';
 import { configuredFeedbackRoute } from '@/lib/feedback-route-config';
+import {
+  buildFeedbackRouteTrace,
+  gameForPolicyProposal,
+} from '@/lib/feedback-policy-contract';
 import {
   humanActionForJointStep,
   movementDirectionForKey,
@@ -50,18 +63,23 @@ import {
 } from '@/lib/research-client';
 import {
   SCHEMA_VERSION,
+  FEEDBACK_SEMANTICS_VERSION,
   type PhraseResearchPrediction,
 } from '@/lib/research-types';
 import {
-  actionFeaturesFromText,
   aggregateProbabilities,
   gameFeatureCounts,
-  inferValence,
-  namedFeaturesFromText,
   splitFeedbackPhrases,
   toResearchPrediction,
   topResearchLabel,
 } from '@/lib/route-inputs';
+import {
+  appendTrajectoryStep,
+  featurizeTrajectorySteps,
+  normalizeTrajectoryFeatures,
+  recordTrajectoryStep,
+  type TrajectoryStep,
+} from '@/lib/trajectory-featurizer';
 
 interface VisiblePhrase {
   model: FeedbackFormPrediction;
@@ -70,7 +88,37 @@ interface VisiblePhrase {
 
 interface VisibleFeedback {
   phrases: VisiblePhrase[];
+  outcome?: string;
+  policyImpact?: PolicyImpact;
   error?: string;
+}
+
+interface RewardPolicySnapshot {
+  weights: RewardWeights;
+  revision: number;
+  sourceFeedbackId: string | null;
+  modelHash: string | null;
+}
+
+interface PolicyImpact {
+  feedbackId: string;
+  roundId: string;
+  applied: boolean;
+  revision: number;
+  evaluatedAtTick: number;
+  beforeSubgoal: string;
+  beforeAction: GameAction;
+  afterSubgoal: string;
+  afterAction: GameAction;
+  planChanged: boolean;
+  executionReceipt?: PolicyExecutionReceipt;
+}
+
+interface PendingPolicyReceipt {
+  feedbackId: string;
+  roundId: string;
+  revision: number;
+  previousWeights: RewardWeights;
 }
 
 const LABEL_COPY = {
@@ -112,11 +160,17 @@ function mostChanged(delta: Record<string, number>): Array<[string, number]> {
     .slice(0, 5);
 }
 
-function lowConfidenceCopy(threshold: number, experimental: boolean): string {
-  if (experimental) {
-    return `Below the experimental ${(threshold * 100).toFixed(0)}% diagnostic threshold. Classification is uncertain; the score is not independently calibrated.`;
+function posteriorWeights(features: string[], mean: number[]): RewardWeights {
+  if (features.length !== mean.length) {
+    throw new Error('posterior feature schema does not match its mean');
   }
-  return `Below the model's ${(threshold * 100).toFixed(0)}% decision threshold. Classification is uncertain.`;
+  return Object.fromEntries(
+    features.map((feature, index) => [feature, mean[index]]),
+  ) as RewardWeights;
+}
+
+function subgoalCopy(subgoal: string): string {
+  return subgoal.toLowerCase().replaceAll('_', ' ');
 }
 
 function stationAt(x: number, y: number) {
@@ -175,13 +229,8 @@ function KitchenBoard({ game }: { game: GameState }) {
                 key={chef}
                 title={chef === 'player' ? 'You' : 'AI partner'}
               >
-                <span aria-hidden="true" className="chef-feet" />
                 <span aria-hidden="true" className="chef-body" />
-                <span aria-hidden="true" className="chef-arms" />
-                <span aria-hidden="true" className="chef-apron" />
-                <span aria-hidden="true" className="chef-hair" />
                 <span aria-hidden="true" className="chef-face" />
-                <span aria-hidden="true" className="chef-scarf" />
                 <span aria-hidden="true" className="chef-hat" />
                 <span className="chef-name">{chef === 'player' ? 'YOU' : 'AI'}</span>
                 {data.held && <span aria-hidden="true" className={`held-item item-${data.held}`} />}
@@ -253,7 +302,7 @@ function ProbabilityRows({ phrase }: { phrase: VisiblePhrase }) {
           <div className="probability-row" key={label}>
             <span>{LABEL_COPY[label].name}</span>
             <div
-              aria-label={`${LABEL_COPY[label].name} probability ${(score * 100).toFixed(1)}%`}
+              aria-label={`${LABEL_COPY[label].name} score ${(score * 100).toFixed(1)}%`}
               aria-valuemax={100}
               aria-valuemin={0}
               aria-valuenow={Number((score * 100).toFixed(1))}
@@ -275,31 +324,39 @@ export function KitchenGameApp() {
   const gameRef = useRef(game);
   const [consented, setConsented] = useState(false);
   const [consentChecked, setConsentChecked] = useState(false);
-  const [models, setModels] = useState<BrowserModels | null>(null);
+  const [models, setModels] = useState<GameModels | null>(null);
   const [modelStatus, setModelStatus] = useState<'loading' | 'ready' | 'error'>('loading');
-  const [modelError, setModelError] = useState('');
   const [feedbackText, setFeedbackText] = useState('');
   const [visibleFeedback, setVisibleFeedback] = useState<VisibleFeedback | null>(null);
   const [processingFeedback, setProcessingFeedback] = useState(false);
   const queueRef = useRef<ResearchEventQueue | null>(null);
   const route1Ref = useRef<FullGaussianState | null>(null);
   const route2Ref = useRef<IndependentGaussianState | null>(null);
+  const policyRef = useRef<RewardPolicySnapshot>({
+    weights: {},
+    revision: 0,
+    sourceFeedbackId: null,
+    modelHash: null,
+  });
+  const roundIdRef = useRef<string | null>(null);
+  const roundEpochRef = useRef(0);
+  const trajectoryRef = useRef<TrajectoryStep[]>([]);
+  const processingFeedbackRef = useRef(false);
+  const pendingPolicyReceiptRef = useRef<PendingPolicyReceipt | null>(null);
+  const [awaitingPolicyReceipt, setAwaitingPolicyReceipt] = useState(false);
   const pendingHumanActionRef = useRef<GameAction>('stay');
   const pressedHumanMovementKeysRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     let cancelled = false;
-    let classifierVariant;
-    try {
-      classifierVariant = classifierVariantFromSearch(window.location.search);
-    } catch (error) {
-      setModelError(error instanceof Error ? error.message : 'Invalid classifier query');
+    const requested = new URLSearchParams(window.location.search).getAll('classifier');
+    if (requested.length > 1 || (requested.length === 1 && requested[0] !== 'synthetic-v1')) {
       setModelStatus('error');
       return () => {
         cancelled = true;
       };
     }
-    loadBrowserModels('', classifierVariant)
+    loadSyntheticGameModels()
       .then((loaded) => {
         if (cancelled) return;
         setModels(loaded);
@@ -307,9 +364,8 @@ export function KitchenGameApp() {
         route2Ref.current = createIndependentGaussianPrior(loaded.features);
         setModelStatus('ready');
       })
-      .catch((error) => {
+      .catch(() => {
         if (cancelled) return;
-        setModelError(error instanceof Error ? error.message : 'Unknown loading error');
         setModelStatus('error');
       });
     return () => {
@@ -373,6 +429,7 @@ export function KitchenGameApp() {
     [queueHumanAction],
   );
   const handlePause = useCallback(() => {
+    if (processingFeedbackRef.current) return;
     pendingHumanActionRef.current = 'stay';
     pressedHumanMovementKeysRef.current.clear();
     const type = gameRef.current.status === 'running' ? 'pause' : 'resume';
@@ -427,27 +484,117 @@ export function KitchenGameApp() {
         pressedHumanMovementKeysRef.current,
       );
       pendingHumanActionRef.current = 'stay';
-      const aiAction = chooseAiAction(previous);
+      const activePolicy = policyRef.current;
+      const aiDecision = chooseAiDecision(previous, activePolicy.weights);
+      const aiAction = aiDecision.action;
       const next = stepGame(previous, aiAction, humanAction);
-      gameRef.current = next;
-      setGame(next);
-      queueRef.current?.enqueue('tick_summary', {
+      const roundId = roundIdRef.current;
+      if (!roundId) return;
+      const execution = aiExecutionResult(previous, next, aiAction);
+      const aiReceipt: AiTickReceipt = {
+        roundId,
+        policyRevision: activePolicy.revision,
+        evaluatedAtTick: previous.tick,
+        completedAtTick: next.tick,
+        proposedSubgoal: aiDecision.chosenSubgoal,
+        proposedAction: aiAction,
+        humanAction,
+        ...execution,
+      };
+      const pendingReceipt = pendingPolicyReceiptRef.current;
+      let policyExecutionReceipt: PolicyExecutionReceipt | null = null;
+      if (
+        pendingReceipt &&
+        pendingReceipt.roundId === roundId &&
+        pendingReceipt.revision === activePolicy.revision
+      ) {
+        const counterfactual = chooseAiDecision(previous, pendingReceipt.previousWeights);
+        const counterfactualNext = stepGame(
+          previous,
+          counterfactual.action,
+          humanAction,
+        );
+        const counterfactualComparison = counterfactualBehaviorChanged(
+          next,
+          counterfactualNext,
+        );
+        policyExecutionReceipt = {
+          ...aiReceipt,
+          feedbackId: pendingReceipt.feedbackId,
+          counterfactualSubgoal: counterfactual.chosenSubgoal,
+          counterfactualAction: counterfactual.action,
+          counterfactualContract: 'same_previous_state_same_human_action',
+          ...counterfactualComparison,
+        };
+      }
+      const nextTrajectory = appendTrajectoryStep(
+        trajectoryRef.current,
+        recordTrajectoryStep(previous, next, aiAction, humanAction),
+      );
+      const tickSummaryPayload = {
+        receiptSchemaVersion: TICK_SUMMARY_RECEIPT_SCHEMA_VERSION,
         tick: next.tick,
+        roundId,
         requestedJointActions: { ai: aiAction, human: humanAction },
-        executedJointActions: { ai: aiAction, human: humanAction },
+        aiExecutionReceipt: aiReceipt,
+        ...(policyExecutionReceipt ? { policyExecutionReceipt } : {}),
         stateBefore: gameStateSnapshot(previous),
         stateAfter: gameStateSnapshot(next),
         reward: next.score - previous.score,
         done: next.status === 'finished',
         stepEvents: next.lastStepEvents,
         featureCounts: gameFeatureCounts(next),
-      });
+        recentTrajectoryFeatures: normalizeTrajectoryFeatures(
+          featurizeTrajectorySteps(nextTrajectory),
+        ),
+        learnedPolicy: {
+          revision: activePolicy.revision,
+          sourceFeedbackId: activePolicy.sourceFeedbackId,
+          modelHash: activePolicy.modelHash,
+          chosenSubgoal: aiDecision.chosenSubgoal,
+          evaluatedAtTick: previous.tick,
+          proposedAction: aiAction,
+          actuallyExecuted: execution.actuallyExecuted,
+          executionOutcome: execution.executionOutcome,
+          decisionSource: aiDecision.decisionSource,
+          rewardMargin: aiDecision.rewardMargin,
+          candidateScores: aiDecision.ranking.map(({ subgoal, score }) => ({
+            subgoal,
+            score,
+          })),
+          topContributions: aiDecision.topContributions,
+        },
+      };
+      queueRef.current?.enqueue('tick_summary', tickSummaryPayload);
+
+      trajectoryRef.current = nextTrajectory;
+      gameRef.current = next;
+      setGame(next);
+      if (policyExecutionReceipt && pendingReceipt) {
+        pendingPolicyReceiptRef.current = null;
+        setAwaitingPolicyReceipt(false);
+        setVisibleFeedback((current) =>
+          current?.policyImpact?.feedbackId === pendingReceipt.feedbackId
+            ? {
+                ...current,
+                policyImpact: {
+                  ...current.policyImpact,
+                  executionReceipt: policyExecutionReceipt ?? undefined,
+                },
+              }
+            : current,
+        );
+      }
     }, GAME_STEP_INTERVAL_MS);
     return () => window.clearInterval(timer);
   }, [game.status]);
 
   const startRound = useCallback((consentedAt?: number) => {
     if (!models || modelStatus !== 'ready') return;
+    if (processingFeedbackRef.current) return;
+    const previousRoundId = roundIdRef.current;
+    const cancelledReceipt = pendingPolicyReceiptRef.current;
+    const nextRoundId = crypto.randomUUID();
     if (!queueRef.current) {
       if (consentedAt === undefined) return;
       queueRef.current = new ResearchEventQueue(
@@ -457,16 +604,43 @@ export function KitchenGameApp() {
         consentedAt,
       );
     } else {
-      queueRef.current.enqueue('restart', gameSummary(gameRef.current));
+      queueRef.current.enqueue('restart', {
+        ...gameSummary(gameRef.current),
+        previousRoundId,
+        nextRoundId,
+        resetPolicyRevision: policyRef.current.revision,
+        ...(cancelledReceipt
+          ? {
+              cancelledPolicyReceipt: {
+                receiptSchemaVersion: TICK_SUMMARY_RECEIPT_SCHEMA_VERSION,
+                feedbackId: cancelledReceipt.feedbackId,
+                roundId: cancelledReceipt.roundId,
+                policyRevision: cancelledReceipt.revision,
+                reason: 'round_restarted_before_next_tick',
+              },
+            }
+          : {}),
+      });
     }
+    roundEpochRef.current += 1;
+    roundIdRef.current = nextRoundId;
     route1Ref.current = createFullGaussianPrior(models.features);
     route2Ref.current = createIndependentGaussianPrior(models.features);
+    policyRef.current = {
+      weights: {},
+      revision: 0,
+      sourceFeedbackId: null,
+      modelHash: null,
+    };
+    trajectoryRef.current = [];
+    pendingPolicyReceiptRef.current = null;
     pendingHumanActionRef.current = 'stay';
     pressedHumanMovementKeysRef.current.clear();
     const next = startGame(createGameState());
     gameRef.current = next;
     setGame(next);
     setVisibleFeedback(null);
+    setAwaitingPolicyReceipt(false);
     setFeedbackText('');
   }, [modelStatus, models]);
 
@@ -485,13 +659,51 @@ export function KitchenGameApp() {
   const submitFeedback = async (event: FormEvent) => {
     event.preventDefault();
     const utterance = feedbackText.trim();
-    if (!utterance || !models || game.status === 'waiting') return;
+    const stateAtSubmission = gameRef.current;
+    const roundId = roundIdRef.current;
+    if (
+      !utterance ||
+      !models ||
+      !roundId ||
+      !['running', 'paused'].includes(stateAtSubmission.status) ||
+      processingFeedbackRef.current ||
+      pendingPolicyReceiptRef.current
+    ) {
+      return;
+    }
     const phrases = splitFeedbackPhrases(utterance);
     if (phrases.length === 0) return;
+    const submissionSnapshot = {
+      roundId,
+      roundEpoch: roundEpochRef.current,
+      tick: stateAtSubmission.tick,
+      game: stateAtSubmission,
+      trajectory: [...trajectoryRef.current],
+      policy: {
+        ...policyRef.current,
+        weights: { ...policyRef.current.weights },
+      },
+      route1: route1Ref.current,
+      route2: route2Ref.current,
+    };
+    processingFeedbackRef.current = true;
     setProcessingFeedback(true);
-    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
 
     try {
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+      if (
+        submissionSnapshot.roundEpoch !== roundEpochRef.current ||
+        submissionSnapshot.roundId !== roundIdRef.current
+      ) {
+        return;
+      }
+      if (gameRef.current.status === 'finished') {
+        setVisibleFeedback({
+          phrases: [],
+          error: 'The round ended before the feedback was ready, so it was not applied.',
+        });
+        return;
+      }
       const modelPredictions = phrases.map((phrase) => models.classify(phrase));
       const visiblePhrases = modelPredictions.map((prediction, index) => ({
         model: prediction,
@@ -500,36 +712,46 @@ export function KitchenGameApp() {
       const aggregate = aggregateProbabilities(modelPredictions);
       const lowConfidence = modelPredictions.some((prediction) => prediction.abstained);
       const classifierHash = modelPredictions[0].modelHash;
-      let trace = '';
+      const feedbackId = crypto.randomUUID();
+      const policyBefore = submissionSnapshot.policy;
+      const proposalGame = gameForPolicyProposal(submissionSnapshot.game);
+      const beforeDecision = chooseAiDecision(
+        proposalGame,
+        policyBefore.weights,
+      );
+      const trajectoryFeatures = normalizeTrajectoryFeatures(
+        featurizeTrajectorySteps(submissionSnapshot.trajectory),
+      );
       let outcome = '';
+      let traceResult: 'updated' | 'rejected' = 'updated';
+      let traceReason: string | undefined;
       let changedFeatures: Array<[string, number]> = [];
       let updaterModelHash = classifierHash;
+      let nextPosteriorMean: number[] | null = null;
+      let nextRoute1State = submissionSnapshot.route1;
+      let nextRoute2State = submissionSnapshot.route2;
+      const groundingResults: GroundedPragmaticRoute1Result[] = [];
 
       if (DEPLOYMENT_FEEDBACK_ROUTE === 'route1') {
-        const prior = route1Ref.current ?? createFullGaussianPrior(models.features);
-        let candidate = prior;
-        const results: Route1PaperResult[] = [];
-        if (!lowConfidence) {
-          for (const [index, prediction] of modelPredictions.entries()) {
-            const phraseText = phrases[index];
-            const result = applyRoute1PaperUpdate(candidate, {
-              feedbackForm: prediction.label,
-              feedbackFormConfidence: prediction.confidence,
-              feedbackFormThreshold: prediction.threshold,
-              feedbackFormAbstained: prediction.abstained,
-              trajectoryFeatures: gameFeatureCounts(gameRef.current),
-              actionFeatures: actionFeaturesFromText(phraseText),
-              namedFeatures: namedFeaturesFromText(phraseText),
-              valence: inferValence(phraseText),
-              basePrecision: 2,
-            });
-            results.push(result);
-            candidate = result.state;
-          }
+        const prior = submissionSnapshot.route1 ?? createFullGaussianPrior(models.features);
+        updaterModelHash = models.groundingModelHash;
+        const observations = phrases.map((phraseText) => {
+          const reference = models.ground(phraseText);
+          const grounding = groundRoute1Feedback({
+            text: phraseText, grounding: reference, state: proposalGame, trajectoryFeatures,
+          });
+          return {
+            grounding, sentiment: scoreVaderSentiment(phraseText).compound, basePrecision: 2,
+          };
+        });
+        const transaction = applyGroundedPragmaticUtterance(prior, observations);
+        groundingResults.push(...transaction.results);
+        const candidate = transaction.state;
+        const rejected = transaction.status === 'rejected';
+        if (!rejected) {
+          nextRoute1State = candidate;
+          nextPosteriorMean = candidate.mean;
         }
-        const rejected =
-          lowConfidence || results.some((result) => result.status === 'rejected');
-        if (!rejected) route1Ref.current = candidate;
         const mergedDelta = rejected
           ? {}
           : Object.fromEntries(
@@ -539,85 +761,175 @@ export function KitchenGameApp() {
               ]),
             );
         changedFeatures = mostChanged(mergedDelta);
-        const reason = lowConfidence
-          ? 'feedback_form_low_confidence'
-          : results.find((result) => result.status === 'rejected')?.reason;
+        const reason = transaction.reason;
+        traceResult = rejected ? 'rejected' : 'updated';
+        traceReason = rejected ? reason ?? 'grounding_rejected' : undefined;
         outcome = rejected
           ? `Route 1 did not update the weights: ${reason ?? 'grounding_rejected'}`
-          : `Route 1 updated ${results.length} phrase${results.length === 1 ? '' : 's'} through the paper-aligned pipeline`;
-        trace = rejected
-          ? `u → fG (low confidence/rejected: ${reason ?? 'unknown'}) → no update to w`
-          : 'For each phrase: u → fG (3 classes) → f (trajectory/action/named features) → phrase-specific ζ → one Bayesian update to w. Any rejection rolls back the whole utterance.';
+          : `Route 1 applied ${groundingResults.length} independently grounded pragmatic updates`;
       } else {
-        const prior = route2Ref.current ?? createIndependentGaussianPrior(models.features);
-        const prediction = models.route2(utterance, gameFeatureCounts(gameRef.current));
+        const prior = submissionSnapshot.route2 ?? createIndependentGaussianPrior(models.features);
+        const prediction = models.route2(utterance, trajectoryFeatures);
         const result = applyRoute2Gaussian(prior, prediction.weights, 2);
-        route2Ref.current = result.state;
+        nextRoute2State = result.state;
+        nextPosteriorMean = result.state.mean;
         updaterModelHash = prediction.modelHash;
         changedFeatures = mostChanged(result.delta);
         outcome = `Route 2 used ${prediction.ensembleSize} models to update all ${models.features.length} reward weights`;
-        trace = 'u + trajectory → 10-model ensemble → 53D reward vector → independent-Gaussian update with precision 2 (fG is diagnostic only).';
       }
-      trace = `${trace} Classifier release: variant=${models.classifierVariant}; manifest=${models.classifierManifestPath}; artifact=${models.classifierArtifactPath}; classifier_sha256=${classifierHash}.`;
-      setVisibleFeedback({ phrases: visiblePhrases });
-      const feedbackId = crypto.randomUUID();
-      queueRef.current?.enqueue(
-        'feedback',
-        {
-          utterance,
-          selectedRoute: DEPLOYMENT_FEEDBACK_ROUTE,
-          classifierModelHash: classifierHash,
-          updaterModelHash,
-          calibrated: modelPredictions.every((prediction) => prediction.calibrated),
-          temperatureScaled: modelPredictions.every(
-            (prediction) => prediction.temperatureScaled,
-          ),
-          independentlyCalibrated: modelPredictions.every(
-            (prediction) => prediction.independentlyCalibrated,
-          ),
-          scoreKinds: modelPredictions.map((prediction) => prediction.scoreKind),
-          diagnosticThresholds: modelPredictions.map(
-            (prediction) => prediction.threshold,
-          ),
-          classifierVariant: models.classifierVariant,
-          classifierManifestPath: models.classifierManifestPath,
-          classifierArtifactPath: models.classifierArtifactPath,
-          calibrationVersions: modelPredictions.map(
-            (prediction) => prediction.calibrationVersion,
-          ),
-          outcome,
-          changedFeatures: Object.fromEntries(changedFeatures),
-          gameSnapshot: {
-            tick: gameRef.current.tick,
-            score: gameRef.current.score,
-            features: gameFeatureCounts(gameRef.current),
-          },
-        },
-        {
-          modelHash: updaterModelHash,
-          routeTrace: trace,
-          probabilities: aggregate,
-          feedback: {
-            feedbackId,
-            utterance,
-            route: DEPLOYMENT_FEEDBACK_ROUTE,
-            topLabel: topResearchLabel(aggregate),
-            lowConfidence,
-            probabilities: aggregate,
-            phrases: visiblePhrases.map((phrase) => phrase.research),
-            modelHash: classifierHash,
-            schemaVersion: SCHEMA_VERSION,
-            routeTrace: trace,
-          },
-        },
+      const nextPolicy: RewardPolicySnapshot = nextPosteriorMean
+        ? {
+            weights: posteriorWeights(models.features, nextPosteriorMean),
+            revision: policyBefore.revision + 1,
+            sourceFeedbackId: feedbackId,
+            modelHash: updaterModelHash,
+          }
+        : policyBefore;
+      const afterDecision = chooseAiDecision(
+        proposalGame,
+        nextPolicy.weights,
       );
+      const policyImpact: PolicyImpact = {
+        feedbackId,
+        roundId: submissionSnapshot.roundId,
+        applied: nextPolicy.revision !== policyBefore.revision,
+        revision: nextPolicy.revision,
+        evaluatedAtTick: submissionSnapshot.tick,
+        beforeSubgoal: beforeDecision.chosenSubgoal,
+        beforeAction: beforeDecision.action,
+        afterSubgoal: afterDecision.chosenSubgoal,
+        afterAction: afterDecision.action,
+        planChanged:
+          beforeDecision.chosenSubgoal !== afterDecision.chosenSubgoal ||
+          beforeDecision.action !== afterDecision.action,
+      };
+      const nextPendingReceipt: PendingPolicyReceipt | null = policyImpact.applied
+        ? {
+          feedbackId,
+          roundId: submissionSnapshot.roundId,
+          revision: nextPolicy.revision,
+          previousWeights: { ...policyBefore.weights },
+        }
+        : null;
+      const trace = buildFeedbackRouteTrace({
+        route: DEPLOYMENT_FEEDBACK_ROUTE,
+        result: traceResult,
+        reason: traceReason,
+        classifierVariant: models.classifierVariant,
+        policyRevision: nextPolicy.revision,
+        snapshotStatus: submissionSnapshot.game.status,
+      });
+      const feedbackPayload = {
+        roundId: submissionSnapshot.roundId,
+        submittedAtTick: submissionSnapshot.tick,
+        utterance,
+        selectedRoute: DEPLOYMENT_FEEDBACK_ROUTE,
+        feedbackSemanticsVersion: FEEDBACK_SEMANTICS_VERSION,
+        trainingScope: 'synthetic_only',
+        groundingModelHash: models.groundingModelHash,
+        ...buildGroundingResearchTrace(groundingResults, phrases, traceResult === 'updated'),
+        classifierModelHash: classifierHash,
+        updaterModelHash,
+        calibrated: modelPredictions.every((prediction) => prediction.calibrated),
+        temperatureScaled: modelPredictions.every(
+          (prediction) => prediction.temperatureScaled,
+        ),
+        independentlyCalibrated: modelPredictions.every(
+          (prediction) => prediction.independentlyCalibrated,
+        ),
+        scoreKinds: modelPredictions.map((prediction) => prediction.scoreKind),
+        scorePolicyVersion: 'synthetic-raw-softmax-v1',
+        thresholdPolicy: 'synthetic_dev_threshold_v1',
+        diagnosticThresholds: modelPredictions.map(
+          (prediction) => prediction.threshold,
+        ),
+        classifierVariant: models.classifierVariant,
+        classifierManifestPath: models.classifierManifestPath,
+        classifierArtifactPath: models.classifierArtifactPath,
+        calibrationVersions: modelPredictions.map(
+          (prediction) => prediction.calibrationVersion,
+        ),
+        outcome,
+        policyImpact,
+        policyRevision: nextPolicy.revision,
+        proposedAiDecision: {
+          evaluatedAtTick: submissionSnapshot.tick,
+          snapshotStatus: submissionSnapshot.game.status,
+          proposalEvaluationStatus: proposalGame.status,
+          chosenSubgoal: afterDecision.chosenSubgoal,
+          action: afterDecision.action,
+          decisionSource: afterDecision.decisionSource,
+          rewardMargin: afterDecision.rewardMargin,
+          candidateScores: afterDecision.ranking.map(({ subgoal, score }) => ({
+            subgoal,
+            score,
+          })),
+          topContributions: afterDecision.topContributions,
+        },
+        changedFeatures: Object.fromEntries(changedFeatures),
+        gameSnapshot: {
+          tick: submissionSnapshot.tick,
+          score: submissionSnapshot.game.score,
+          features: gameFeatureCounts(submissionSnapshot.game),
+          recentTrajectoryFeatures: trajectoryFeatures,
+        },
+      };
+      if (!researchPayloadFits(feedbackPayload)) {
+        setVisibleFeedback({
+          phrases: visiblePhrases,
+          outcome: 'Feedback not applied. Try fewer clauses in one message.',
+        });
+        return;
+      }
+      const feedbackMetadata = {
+        modelHash: updaterModelHash,
+        routeTrace: trace,
+        probabilities: aggregate,
+        feedback: {
+          feedbackId,
+          utterance,
+          route: DEPLOYMENT_FEEDBACK_ROUTE,
+          topLabel: topResearchLabel(aggregate),
+          lowConfidence,
+          probabilities: aggregate,
+          phrases: visiblePhrases.map((phrase) => phrase.research),
+          modelHash: classifierHash,
+          schemaVersion: SCHEMA_VERSION,
+          routeTrace: trace,
+        },
+      };
+      if (
+        submissionSnapshot.roundEpoch !== roundEpochRef.current ||
+        submissionSnapshot.roundId !== roundIdRef.current
+      ) {
+        return;
+      }
+      const queue = queueRef.current;
+      if (!queue || queue.enqueue('feedback', feedbackPayload, feedbackMetadata) === null) {
+        throw new Error('Research event queue is unavailable');
+      }
+
+      // Commit the posterior, policy, receipt lock, and UI only after the full
+      // update and its research payload have been constructed and accepted.
+      route1Ref.current = nextRoute1State;
+      route2Ref.current = nextRoute2State;
+      policyRef.current = nextPolicy;
+      pendingPolicyReceiptRef.current = nextPendingReceipt;
+      setAwaitingPolicyReceipt(nextPendingReceipt !== null);
+      if (traceResult === 'updated') {
+        trajectoryRef.current = trajectoryRef.current.filter(
+          (step) => step.stateAfter.tick > submissionSnapshot.tick,
+        );
+      }
+      setVisibleFeedback({ phrases: visiblePhrases, outcome, policyImpact });
       setFeedbackText('');
-    } catch (error) {
+    } catch {
       setVisibleFeedback({
         phrases: [],
-        error: `Feedback processing failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error: 'We could not process that feedback. Please try again.',
       });
     } finally {
+      processingFeedbackRef.current = false;
       setProcessingFeedback(false);
     }
   };
@@ -628,6 +940,11 @@ export function KitchenGameApp() {
     paused: 'Paused',
     finished: 'Shift complete',
   }[game.status];
+  const displayedProposalGame = gameForPolicyProposal(game);
+  const displayedAiDecision = chooseAiDecision(
+    displayedProposalGame,
+    policyRef.current.weights,
+  );
 
   return (
     <main className="site-shell">
@@ -642,9 +959,9 @@ export function KitchenGameApp() {
         <div className="header-badges">
           <span className={`status-pill status-${game.status}`} role="status" aria-live="polite"><i />{statusCopy}</span>
           <span className={`model-pill model-${modelStatus}`} role="status" aria-live="polite">
-            {modelStatus === 'loading' && 'Loading model…'}
-            {modelStatus === 'ready' && 'Language model ready'}
-            {modelStatus === 'error' && 'Model loading failed'}
+            {modelStatus === 'loading' && 'Preparing AI…'}
+            {modelStatus === 'ready' && 'AI ready'}
+            {modelStatus === 'error' && 'AI unavailable'}
           </span>
         </div>
       </header>
@@ -679,6 +996,13 @@ export function KitchenGameApp() {
             <h3>Team Status</h3>
             <div><span className="mini-chef mini-player" />You <strong>{itemLabel(game.player.held)}</strong></div>
             <div><span className="mini-chef mini-ai" />AI partner <strong>{itemLabel(game.partner.held)}</strong></div>
+            <div>
+              <span>AI partner's next move</span>
+              <strong>
+                 {subgoalCopy(displayedAiDecision.chosenSubgoal)}
+                 {game.status === 'paused' ? ' · starts after resume' : ''}
+              </strong>
+            </div>
             <div><span className={`mini-pot pot-${game.pot.stage}`} />Pot <strong>{game.pot.stage === 'empty' ? 'Empty' : game.pot.stage === 'filling' ? `${game.pot.tomatoes} tomato, ${game.pot.onions} onion` : game.pot.stage === 'ready' ? 'Ready' : `Cooking · ${Math.ceil(game.pot.secondsRemaining / STEPS_PER_SECOND)}s`}</strong></div>
           </div>
 
@@ -691,20 +1015,32 @@ export function KitchenGameApp() {
               {game.lastAction}
             </div>
             <div className="toolbar-actions">
-              <button onClick={handlePause} disabled={!['running', 'paused'].includes(game.status)}>
+              <button
+                onClick={handlePause}
+                disabled={
+                  !['running', 'paused'].includes(game.status) || processingFeedback
+                }
+              >
                 {game.status === 'paused' ? 'Resume' : 'Pause'}
               </button>
-              <button onClick={beginRound} disabled={!consented || modelStatus !== 'ready'}>
+              <button
+                onClick={beginRound}
+                disabled={
+                  !consented ||
+                  modelStatus !== 'ready' ||
+                  processingFeedback
+                }
+              >
                 Restart
               </button>
             </div>
           </div>
 
           {modelStatus === 'loading' && (
-            <div className="model-notice" role="status" aria-live="polite"><span className="pixel-loader" />Loading the language model…</div>
+            <div className="model-notice" role="status" aria-live="polite"><span className="pixel-loader" />Preparing your AI partner…</div>
           )}
           {modelStatus === 'error' && (
-            <div className="model-notice notice-error" role="alert">Model files could not be loaded: {modelError}</div>
+            <div className="model-notice notice-error" role="alert">The AI partner could not start. Please reload the page.</div>
           )}
 
           <KitchenBoard game={game} />
@@ -713,7 +1049,12 @@ export function KitchenGameApp() {
               <span>SHIFT COMPLETE</span>
               <strong>{game.score} points</strong>
               <p>{game.ordersCompleted} order{game.ordersCompleted === 1 ? '' : 's'} completed</p>
-              <button onClick={beginRound}>Play again</button>
+              <button
+                onClick={beginRound}
+                disabled={processingFeedback}
+              >
+                Play again
+              </button>
             </div>
           )}
 
@@ -729,14 +1070,8 @@ export function KitchenGameApp() {
           <div className="panel-heading">
             <p>LANGUAGE FEEDBACK</p>
             <h2>Say Something to the AI</h2>
+            <span>English feedback · trained on synthetic examples</span>
           </div>
-
-          {models?.classifierMode === 'experimental-shadow-preview' && (
-            <div className="model-notice experimental-classifier-notice" role="status">
-              <strong>Experimental shadow classifier</strong>
-              <span>Not production. Scores are not independently calibrated. During this trial, this classifier drives the displayed result and Route1 update. Remove <code>?classifier=boundary-shadow-v1</code> from the URL to return to the standard model.</span>
-            </div>
-          )}
 
           <form className="feedback-form" onSubmit={submitFeedback}>
             <label htmlFor="feedback-input">Feedback (up to 500 characters)</label>
@@ -746,9 +1081,30 @@ export function KitchenGameApp() {
               value={feedbackText}
               onChange={(event) => setFeedbackText(event.target.value)}
               placeholder="Example: That last move was bad. Please take a dish instead."
-              disabled={game.status === 'waiting' || modelStatus !== 'ready'}
+              disabled={
+                !['running', 'paused'].includes(game.status) ||
+                modelStatus !== 'ready' ||
+                processingFeedback ||
+                awaitingPolicyReceipt
+              }
             />
-            <div><span>{feedbackText.length}/500</span><button disabled={!feedbackText.trim() || processingFeedback || game.status === 'waiting'}>{processingFeedback ? 'Analyzing…' : 'Submit feedback'}</button></div>
+            <div>
+              <span>{feedbackText.length}/500</span>
+              <button
+                disabled={
+                  !feedbackText.trim() ||
+                  processingFeedback ||
+                  awaitingPolicyReceipt ||
+                  !['running', 'paused'].includes(game.status)
+                }
+              >
+                {processingFeedback
+                  ? 'Analyzing…'
+                  : awaitingPolicyReceipt
+                    ? 'Waiting for the AI move…'
+                    : 'Submit feedback'}
+              </button>
+            </div>
           </form>
 
           <div className="classifier-key">
@@ -760,8 +1116,7 @@ export function KitchenGameApp() {
           {!visibleFeedback && (
             <div className="empty-feedback">
               <div className="speech-pixels" aria-hidden="true"><i /><i /><i /></div>
-              <h3>Phrase-by-phrase classifications appear here</h3>
-              <p>Each phrase shows all three model scores, the top class, and any low-confidence warning.</p>
+              <h3>Your feedback will appear here</h3>
             </div>
           )}
 
@@ -769,6 +1124,29 @@ export function KitchenGameApp() {
             <div className="feedback-results" role="status" aria-live="polite">
               {visibleFeedback.error && (
                 <div className="model-notice notice-error" role="alert">{visibleFeedback.error}</div>
+              )}
+              {visibleFeedback.policyImpact && (
+                <div
+                  className={`model-notice feedback-status ${visibleFeedback.policyImpact.applied ? 'feedback-accepted' : 'feedback-rejected'}`}
+                  data-testid="feedback-status"
+                >
+                  <strong>
+                    {visibleFeedback.policyImpact.applied
+                      ? 'Feedback accepted'
+                      : 'Feedback not applied'}
+                  </strong>
+                  <span>
+                    {visibleFeedback.policyImpact.applied
+                      ? visibleFeedback.policyImpact.executionReceipt
+                        ? visibleFeedback.policyImpact.executionReceipt.behaviorChangeConfirmed
+                          ? 'The AI used it and changed its next move.'
+                          : 'The AI used it; its next move stayed the same.'
+                        : game.status === 'paused'
+                          ? 'The AI will use it after you resume.'
+                          : 'The AI will use it on its next move.'
+                      : 'The AI could not use this feedback. Try a clearer phrase.'}
+                  </span>
+                </div>
               )}
               {visibleFeedback.phrases.map((phrase, index) => {
                 const copy = LABEL_COPY[phrase.research.label];
@@ -778,22 +1156,16 @@ export function KitchenGameApp() {
                     <div className="phrase-number">Phrase {index + 1}</div>
                     <blockquote>{phrase.research.phrase}</blockquote>
                     <div className="prediction-line">
-                      <span style={{ color: uncertain ? 'var(--ink)' : copy.color }}>
-                        {uncertain ? 'Uncertain' : copy.name}
+                      <span style={{ color: copy.color }}>
+                        {copy.name}{uncertain ? ' · uncertain' : ''}
                       </span>
                       <strong>{(phrase.model.confidence * 100).toFixed(1)}%</strong>
                     </div>
                     <ProbabilityRows phrase={phrase} />
-                    <p className={phrase.model.abstained ? 'confidence-warning' : 'confidence-ok'}>
-                      {phrase.model.abstained
-                        ? lowConfidenceCopy(
-                            phrase.model.threshold,
-                            models?.classifierMode === 'experimental-shadow-preview',
-                          )
-                        : models?.classifierMode === 'experimental-shadow-preview'
-                          ? `Experimental model score · not independently calibrated · diagnostic threshold ${(phrase.model.threshold * 100).toFixed(0)}%`
-                          : `Model confidence · not measured accuracy · threshold ${(phrase.model.threshold * 100).toFixed(0)}%`}
-                    </p>
+                    <p className="confidence-warning">Raw model scores · not measured accuracy</p>
+                    {uncertain && (
+                      <p className="confidence-warning">Not sure — try a clearer sentence.</p>
+                    )}
                   </article>
                 );
               })}
@@ -834,7 +1206,7 @@ export function KitchenGameApp() {
             </button>
             {modelStatus === 'error' && (
               <button className="text-button" onClick={() => window.location.reload()}>
-                Retry model loading
+                Reload and try again
               </button>
             )}
           </section>

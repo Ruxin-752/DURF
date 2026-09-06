@@ -1,0 +1,73 @@
+{
+  "version": "direct-fg-clean-v6-independent-core-banks-v1",
+  "status": "failed_independent_semantic_and_surface_review",
+  "quality_gate_passed": false,
+  "production_promotion_eligible": false,
+  "training_performed": false,
+  "model_written": false,
+  "frozen_on_date": "2026-08-27",
+  "frozen_identity": {
+    "generator_sha256": "e58dab19a511bf11afb527d17e9b27a395d02481c8910adface5c58ae75bc741",
+    "canonical_generated_rows_sha256": "b853f97dd4f20a45a350d4dfe474bb0845a3218dd884eba4d31ec3734a32629d",
+    "canonical_hash_scope": "ordered_2160_rows_json_sort_keys_compact_utf8",
+    "rows": 2160
+  },
+  "interpretation": {
+    "generation_structure_audit_passed": true,
+    "independent_semantic_and_surface_review_passed": false,
+    "full_sentence_similarity_zero_is_not_sufficient": true,
+    "reason": "Long outer wrappers hide substantial cross-bank core similarity and several authored sentences violate grounding or natural-language contracts."
+  },
+  "independent_review_findings": {
+    "cross_bank_core_similarity": {
+      "sequence_gte_0_88_pairs": 119,
+      "jaccard_gte_0_70_pairs": 158,
+      "or_pairs": 172,
+      "cross_partition_or_pairs": 101,
+      "train_to_final_eval_or_pairs": 47
+    },
+    "full_sentence_or_pairs": 0,
+    "definite_subject_verb_errors_at_least": 18,
+    "bank_04_non_yield_evaluative_rows_with_wrong_position_or_layout_frame": 120,
+    "yield_descriptive_rows_missing_specific_target_at_least": 24,
+    "descriptive_rows_with_two_or_more_current_present_now_anchors": 294,
+    "lowercase_initial_rows": 540,
+    "rows_without_terminal_punctuation": 360,
+    "verdict_lexicons_reused_verbatim_across_banks": true
+  },
+  "precommitted_nuisance_gate_failures": {
+    "first_token_majority_accuracy": 0.3333333333333333,
+    "prefix_2_majority_accuracy": 0.7611111111111111,
+    "prefix_3_majority_accuracy": 0.9444444444444444,
+    "terminal_punctuation_majority_accuracy": 0.3333333333333333,
+    "initial_case_majority_accuracy": 0.3333333333333333,
+    "token_length_mean": {
+      "evaluative": 18.698611111111113,
+      "imperative": 15.165277777777778,
+      "descriptive": 17.198611111111113
+    },
+    "label_token_length_mean_max_gap": 3.533333333333335,
+    "pairwise_token_length_ks": {
+      "evaluative__imperative": 0.5583333333333333,
+      "evaluative__descriptive": 0.22083333333333333,
+      "imperative__descriptive": 0.3611111111111111
+    },
+    "maximum_pairwise_token_length_ks": 0.5583333333333333
+  },
+  "required_next_version_changes": [
+    "Author bank-specific core clauses that pass raw and entity-masked OR similarity before adding outer frames.",
+    "Make every sentence preserve the typed item, source, target, precondition, and result.",
+    "Remove subject-verb errors and scenario-inappropriate position or layout framing.",
+    "Use bank-specific verdict vocabulary and human-readable punctuation and capitalization.",
+    "Pass independent semantic review before nuisance balancing or any classifier training."
+  ],
+  "provenance": {
+    "ai_assisted_synthetic": true,
+    "human_gold": false,
+    "real_player_data": false,
+    "independent_human_semantic_audit": false,
+    "external_input_files_opened": 0,
+    "old_human_dev_test_frozen_rows_read": 0,
+    "production_or_web_files_changed": false
+  }
+}

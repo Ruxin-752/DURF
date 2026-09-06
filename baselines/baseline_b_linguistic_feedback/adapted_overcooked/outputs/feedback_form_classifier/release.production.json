@@ -1,0 +1,43 @@
+{
+  "schema_version": "durf-feedback-form-release-contract-v1",
+  "model_sha256": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31",
+  "release": {
+    "channel": "production",
+    "status": "active_legacy_default",
+    "default_eligible": true,
+    "promotion_eligible": false,
+    "promotion_status": "legacy_active_not_requalified",
+    "promotion_reason": "No independent current-player evaluation is bound to this model."
+  },
+  "training": {
+    "trained": true,
+    "frozen": true,
+    "report_id": "training"
+  },
+  "claims": {
+    "independent_current_player_accuracy": null,
+    "calibration_independently_validated": false
+  },
+  "display_evidence_id": "paper_human_reference_proxy",
+  "reports": [
+    {
+      "id": "training",
+      "role": "training",
+      "file": "model.report.json",
+      "sha256": "ba00b110f8dfe4c56a97d921cae95911c70a7e2220ba577e2a0b5b80fe2b8e94",
+      "source_model_sha256_fields": [
+        "artifact_model_sha256"
+      ]
+    },
+    {
+      "id": "paper_human_reference_proxy",
+      "role": "diagnostic",
+      "file": "paper_human_frozen_test.report.json",
+      "sha256": "4465bc6540ddaa6507c513a84cab61fb527f3ae82921bbb5fd456ccaf6f28223",
+      "source_model_sha256_fields": [
+        "model_sha256_before",
+        "model_sha256_after"
+      ]
+    }
+  ]
+}

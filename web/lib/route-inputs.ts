@@ -19,19 +19,44 @@ const LABEL_MAP: Record<ModelFeedbackLabel, FeedbackLabel> = {
 export function splitFeedbackPhrases(text: string): string[] {
   return text
     .split(
-      /(?<=\.)\s+|\r?\n+|(?<=[。！？!?;；，,])|(?:但是|不过|然而|然后|接着)|\b(?:but|and then|however|then)\b/giu,
+      /(?<!\be\.g\.)(?<!\bi\.e\.)(?<=[.!?;])\s+|(?<=[。！？；])\s*|\r?\n+|(?:但是|不过|然而)|\b(?:but|however)\b/giu,
     )
     .map((part) =>
       part
         .trim()
         .replace(
-          /^(?:(?:但是|不过|然而|然后|接着)\s*|(?:but|and then|however|then)\b\s*)+/iu,
+          /^(?:(?:但是|不过|然而)\s*|(?:but|however)\b\s*)+/iu,
           '',
         )
         .trim(),
     )
     .filter(Boolean)
+    .flatMap(splitCoordinatedClauses)
     .slice(0, 12);
+}
+
+// Split coordinated clauses without splitting object lists or detaching an
+// if/when condition from its instruction. This is syntax processing, not a
+// classifier override: every resulting clause still goes through both models.
+function splitCoordinatedClauses(text: string): string[] {
+  if (/\b(?:if|unless|when|whenever|until)\b/iu.test(text)) return [text];
+  const startsClause = /^(?:(?:please\s+)?(?:do not|don't|never|stop|avoid|get|grab|fetch|bring|take|put|add|place|set|serve|deliver|move|go|walk|head|wait|stay|yield|clear|use|pick|collect|keep|leave|watch|check|let's|try|remember|prefer|choose)\b|(?:could|would|can|will|should)\s+(?:you|we)\b|(?:you|we|i|it|that|this|there)\s+(?:\w+\s+){0,3}(?:am|is|are|was|were|have|has|had|did|need|needs|want|should|can|could|must|will|helped|wasted|blocked|served|picked|brought|left|took|made|got)\b|(?:the|a|an|our|your)\s+(?:\w+\s+){1,4}(?:is|are|was|were|has|have|needs|contains|helped|wasted)\b)/iu;
+  const separator = /,\s*(?:(?:and|so|then)\s+)?|\s+(?:and\s+then|and|so|then|yet)\s+/giu;
+  const result: string[] = [];
+  let start = 0;
+  for (const match of text.matchAll(separator)) {
+    const right = text.slice(match.index + match[0].length).trim();
+    const left = text.slice(start, match.index).trim();
+    const discoursePrefix = /^(?:please|well|okay|ok|for example|in other words)$/iu.test(left);
+    const sequentialPlan = /\bthen\b/iu.test(match[0]) &&
+      /^(?:please\s+)?(?:get|grab|fetch|bring|take|put|add|serve|move|go|pick|use)\b/iu.test(left);
+    if (left && !discoursePrefix && !sequentialPlan && startsClause.test(right)) {
+      result.push(left);
+      start = match.index + match[0].length;
+    }
+  }
+  result.push(text.slice(start).trim());
+  return result.filter(Boolean);
 }
 
 export function lowConfidenceRouteMessage(
@@ -48,6 +73,14 @@ export function toResearchPrediction(
   phrase: string,
   prediction: FeedbackFormPrediction,
 ): PhraseResearchPrediction {
+  const rawScoreSemantics =
+    prediction.scoreKind === 'raw_model_softmax_score'
+      ? {
+          scoreKind: 'raw_model_softmax_score' as const,
+          thresholdPolicy:
+            prediction.thresholdPolicy ?? 'existing_web_preview_policy_not_validated_in_raw_score_space' as const,
+        }
+      : {};
   return {
     phrase,
     label: LABEL_MAP[prediction.label],
@@ -58,6 +91,7 @@ export function toResearchPrediction(
       Descriptive: prediction.probabilities.descriptive,
     },
     abstained: prediction.abstained,
+    ...rawScoreSemantics,
   };
 }
 

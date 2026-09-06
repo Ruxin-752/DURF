@@ -24,6 +24,7 @@ import argparse
 from collections import Counter, defaultdict
 import hashlib
 import json
+import math
 from pathlib import Path
 import re
 from typing import Iterable
@@ -312,6 +313,66 @@ def _assign_disjoint_splits(
     return participant_splits, updated
 
 
+def _feedback_model_provenance(feedback: dict, event: dict) -> dict:
+    context = f"feedback {feedback['feedback_id']}"
+    classifier_hash = _require_version(feedback, "model_hash", context=context)
+    event_hash = event.get("model_hash")
+    payload = event.get("payload")
+    if isinstance(payload, dict) and "selectedRoute" in payload and payload["selectedRoute"] != feedback.get("route"):
+        raise ValueError(f"{context}: selectedRoute/feedback route mismatch")
+    if isinstance(payload, dict) and (
+        "classifierModelHash" in payload or "updaterModelHash" in payload
+    ):
+        # New clients attach the classifier hash to feedback and the updater
+        # hash to its event. Route 2 legitimately uses two different models.
+        declared_classifier = _require_version(payload, "classifierModelHash", context=context)
+        declared_updater = _require_version(payload, "updaterModelHash", context=context)
+        if not SHA256_PATTERN.fullmatch(declared_classifier) or not SHA256_PATTERN.fullmatch(declared_updater):
+            raise ValueError(f"{context}: explicit model hashes must be lowercase SHA-256")
+        if declared_classifier != classifier_hash:
+            raise ValueError(f"{context}: classifier model hash mismatch")
+        if declared_updater != event_hash:
+            raise ValueError(f"{context}: updater model hash mismatch")
+        separate_grounding = (
+            feedback.get("route") == "route1"
+            and payload.get("feedbackSemanticsVersion") == "speech-act-grounding-v1"
+            and payload.get("groundingModelHash") == declared_updater
+        )
+        if feedback.get("route") != "route2" and not separate_grounding and declared_updater != declared_classifier:
+            raise ValueError(f"{context}: distinct updater model hash requires route2")
+        return {
+            "classifier_model_hash": classifier_hash,
+            "updater_model_hash": declared_updater,
+            "model_provenance": "explicit_classifier_and_updater",
+            **({"feedback_semantics_version": "speech-act-grounding-v1",
+                "grounding_model_hash": declared_updater} if separate_grounding else {}),
+        }
+    if event_hash not in {None, classifier_hash}:
+        raise ValueError(f"{context}: model hash mismatch without explicit provenance")
+    return {
+        "classifier_model_hash": classifier_hash,
+        "updater_model_hash": event_hash,
+        "model_provenance": "legacy_shared_model_hash",
+    }
+
+
+def _numeric_features(value: object, source: str) -> dict[str, float]:
+    if not isinstance(value, dict):
+        raise ValueError(f"{source}: features must be an object")
+    features: dict[str, float] = {}
+    for key, number in value.items():
+        if (
+            not isinstance(key, str)
+            or not key
+            or isinstance(number, bool)
+            or not isinstance(number, (int, float))
+            or not math.isfinite(number)
+        ):
+            raise ValueError(f"{source}: features must contain finite numeric values")
+        features[key] = float(number)
+    return features
+
+
 def _latest_trajectory_features(
     event: dict,
     events_by_session: dict[str, list[dict]],
@@ -319,9 +380,16 @@ def _latest_trajectory_features(
     payload = event.get("payload")
     if isinstance(payload, dict):
         snapshot = payload.get("gameSnapshot")
+        if isinstance(snapshot, dict) and "recentTrajectoryFeatures" in snapshot:
+            # Preserve the actual vector used for inference, including an empty
+            # trajectory; a single-state snapshot is not an equivalent input.
+            return (
+                _numeric_features(snapshot["recentTrajectoryFeatures"], "feedback_recent_trajectory"),
+                "feedback_recent_trajectory",
+            )
         if isinstance(snapshot, dict) and isinstance(snapshot.get("features"), dict):
             return (
-                {str(key): float(value) for key, value in snapshot["features"].items()},
+                _numeric_features(snapshot["features"], "feedback_game_snapshot"),
                 "feedback_game_snapshot",
             )
     session_id = str(event["session_id"])
@@ -339,10 +407,7 @@ def _latest_trajectory_features(
             latest_payload.get("featureCounts"), dict
         ):
             return (
-                {
-                    str(key): float(value)
-                    for key, value in latest_payload["featureCounts"].items()
-                },
+                _numeric_features(latest_payload["featureCounts"], "preceding_tick_summary"),
                 "preceding_tick_summary",
             )
     return {}, "missing"
@@ -356,7 +421,12 @@ def prepare_export(
     split_seed: str = "durf-web-session-split-v1",
     consent_version: str | None = None,
     split_registry_path: Path | None = None,
+    filter_consent_version: str | None = None,
 ) -> dict:
+    if consent_version is not None and filter_consent_version is not None:
+        raise ValueError("consent_version and filter_consent_version are mutually exclusive")
+    if filter_consent_version is not None and not SAFE_VERSION.fullmatch(filter_consent_version):
+        raise ValueError("invalid filter_consent_version")
     if not isinstance(initialize_split_registry, bool) or (
         initialize_split_registry == (split_registry_path is not None)
     ):
@@ -406,6 +476,35 @@ def prepare_export(
         _require_version(row, "schema_version", context=f"event {event_id}")
         events_by_session[session_id].append(row)
 
+    source_record_counts = {
+        "sessions": len(sessions), "events": len(events), "feedback": len(feedback_rows)
+    }
+    selected_rows = rows
+    if filter_consent_version is not None:
+        # Select a complete session cohort. Validate links before filtering so
+        # a corrupt cross-session feedback row is not silently discarded.
+        for feedback_id, feedback in feedback_rows.items():
+            linked_event = events.get(feedback.get("event_id"))
+            if (
+                feedback.get("session_id") not in sessions
+                or linked_event is None
+                or linked_event.get("session_id") != feedback.get("session_id")
+                or linked_event.get("event_type") != "feedback"
+            ):
+                raise ValueError(f"feedback {feedback_id}: invalid event/session link before consent filter")
+        sessions = {
+            key: row for key, row in sessions.items()
+            if row.get("consent_version") == filter_consent_version
+        }
+        events = {key: row for key, row in events.items() if row["session_id"] in sessions}
+        feedback_rows = {
+            key: row for key, row in feedback_rows.items() if row["session_id"] in sessions
+        }
+        events_by_session = {
+            key: values for key, values in events_by_session.items() if key in sessions
+        }
+        selected_rows = [row for row in rows if row.get("session_id") in sessions]
+
     task_rows: list[dict] = []
     join_rows: list[dict] = []
     route2_rows: list[dict] = []
@@ -434,11 +533,8 @@ def prepare_export(
             session, "anonymous_user_id", context=f"session {session_id}"
         )
         participant_key = _stable_id("participant", anonymous_user_id)
-        model_hash = _require_version(
-            feedback, "model_hash", context=f"feedback {feedback_id}"
-        )
-        if event_row.get("model_hash") not in {None, model_hash}:
-            raise ValueError(f"feedback {feedback_id}: model hash mismatch")
+        model_provenance = _feedback_model_provenance(feedback, event_row)
+        model_hash = model_provenance["classifier_model_hash"]
         utterance = _require_text(
             feedback, "utterance", context=f"feedback {feedback_id}"
         )
@@ -459,6 +555,8 @@ def prepare_export(
                 "group_id": session_id,
                 "route2_trajectory_features": trajectory_features,
                 "trajectory_source": trajectory_source,
+                "trajectory_is_exact_model_input": trajectory_source == "feedback_recent_trajectory",
+                **model_provenance,
                 "supervision_status": "unlabeled_no_independent_reward_target",
                 "eligible_for_route2_supervised_training": False,
                 "online_model_prediction_is_gold": False,
@@ -506,6 +604,7 @@ def prepare_export(
                     "route": feedback.get("route"),
                     "route_trace": feedback.get("route_trace"),
                     "model_hash": model_hash,
+                    **model_provenance,
                     "online_prediction": {
                         "label": phrase_row.get("label"),
                         "confidence": phrase_row.get("confidence"),
@@ -552,6 +651,20 @@ def prepare_export(
         "stage": "prepared_for_blind_human_annotation",
         "source_export": str(export_path.resolve()),
         "source_export_sha256": _sha256_file(export_path),
+        "consent_selection": {
+            "mode": "filter_session_cohort" if filter_consent_version is not None else (
+                "strict_feedback_consent_match" if consent_version is not None else "unfiltered"
+            ),
+            "version": filter_consent_version if filter_consent_version is not None else consent_version,
+            "source_record_counts": source_record_counts,
+            "excluded_record_counts": {
+                "sessions": source_record_counts["sessions"] - len(sessions),
+                "events": source_record_counts["events"] - len(events),
+                "feedback": source_record_counts["feedback"] - len(feedback_rows),
+            },
+            "selected_records_sha256": _sha256_bytes(_canonical_bytes(selected_rows)),
+            "selected_hash_encoding": "canonical_json_array_in_source_order",
+        },
         "record_counts": {
             "sessions": len(sessions),
             "events": len(events),
@@ -808,7 +921,9 @@ def _build_parser() -> argparse.ArgumentParser:
         type=Path,
         help="Previous run's append-only split_registry.json.",
     )
-    prepare.add_argument("--consent-version")
+    consent = prepare.add_mutually_exclusive_group()
+    consent.add_argument("--consent-version", help="Strictly reject feedback from other consent versions; never filter.")
+    consent.add_argument("--filter-consent-version", help="Explicitly retain only matching sessions and their linked events/feedback; audit exclusions.")
 
     finalize = subparsers.add_parser("finalize-classifier")
     finalize.add_argument("--tasks", type=Path, required=True)
@@ -829,6 +944,7 @@ def main() -> int:
             split_seed=args.split_seed,
             consent_version=args.consent_version,
             split_registry_path=args.split_registry,
+            filter_consent_version=args.filter_consent_version,
         )
     else:
         report = finalize_classifier_annotations(

@@ -1,0 +1,77 @@
+{
+  "authoring_informed_by_model_error_analysis": true,
+  "base_corpus": {
+    "path": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\data\\feedback_form_hard_train.v1.json",
+    "rows": 144,
+    "sha256": "657c20bf9c62518869b925be7b68433142c3f7617fb67b83dd71b38129823cd2"
+  },
+  "canonical_label_counts": {
+    "Descriptive": 216,
+    "Evaluative": 216,
+    "Imperative": 216
+  },
+  "cross_label_exact_conflict_count": 0,
+  "generation": "deterministic_template_expansion",
+  "groups": 216,
+  "holdout_leakage_gate": {
+    "development_text_used_for_leakage_filter": true,
+    "exact_overlap_count": 0,
+    "frozen_file_opened": false,
+    "frozen_group_hash_count": 12,
+    "frozen_text_hash_count": 96,
+    "group_overlap_count": 0,
+    "groups_rejected": {
+      "exact_text": 0,
+      "group_token": 0,
+      "near_text": 0
+    },
+    "heldout_contents_output": false,
+    "inputs": [
+      {
+        "path": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\data\\human_feedback_form_dev.json",
+        "sha256": "b3b33a3f2e1db4a6274b5999f3aba1e4d60f6562ca8155b7c27f002693f6e248",
+        "split_filter": "all_rows",
+        "text_rows_used_for_gate": 6
+      },
+      {
+        "path": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\data\\paper_feedback_form_human_dev.v1.json",
+        "sha256": "adae98ac5bde654a56e6a318917058fec1a80220b2cd13584cba2c80a3cd2f6a",
+        "split_filter": "all_rows",
+        "text_rows_used_for_gate": 99
+      }
+    ],
+    "labels_used": false,
+    "metrics_computed": false,
+    "near_duplicate_threshold": 0.94,
+    "near_overlap_count": 0,
+    "paper_manifest": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\feedback_form_classifier\\paper_human_benchmark.v1.manifest.json",
+    "paper_manifest_sha256": "0888653076a7fc74f9708ba34fce1991c9cf9a76d54c3ab41d8ecd9e35ecca48",
+    "test_files_opened": false,
+    "test_text_used_for_leakage_filter": false
+  },
+  "independent_human_semantic_audit": false,
+  "label_counts": {
+    "descriptive": 216,
+    "evaluative": 216,
+    "imperative": 216
+  },
+  "normalized_duplicate_count": 0,
+  "output": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\data\\feedback_form_boundary_train.v1.json",
+  "output_sha256": "0d52e35a096b1dc502f47653d9090f206a0ac6af732e5f8fd48cfbd35566e4ca",
+  "provenance_fields": [
+    "source",
+    "label_source",
+    "group_id",
+    "template_family"
+  ],
+  "reference_type_used_as_target": false,
+  "row_filtering_uses_model_predictions": false,
+  "rows": 648,
+  "rows_before_leakage_filter": 648,
+  "runtime_generation_uses_llm": false,
+  "split": "train",
+  "target_definition": "surface_feedback_form_fG_speech_act",
+  "template_authoring": "ai_assisted_codex",
+  "train_only": true,
+  "version": "feedback-form-boundary-train-v1"
+}

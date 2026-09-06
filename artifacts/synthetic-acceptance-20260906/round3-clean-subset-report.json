@@ -1,0 +1,286 @@
+{
+  "analysis_kind": "secondary_clean_subset_from_frozen_predictions",
+  "source": "Synthetic only; independently authored but the original corpus had incidental exact training overlaps.",
+  "not_a_new_inference_or_blind_evaluation": true,
+  "primary_report_unchanged": "round3-report.json",
+  "primary_report_sha256": "cf19179a69f4173a26de23e00f90dcdf72d0c44371fde24ca5588e4b315ffada",
+  "dataset_sha256": "ddbdc0ed38517865427c01d8ae24b72400fc163034acb857945045a064f258de",
+  "predictions_sha256": "367cfd7bc42d1986310e4b4cc9deca6ec2e3a7f69a76f65c6e17f5ac57f41ba4",
+  "overlap_audit": {
+    "path": "round3-training-overlap.json",
+    "sha256": "73ef7dd3aa4612a9637760a5ba8b91083fa20a050aa304b6266151396da5c72f",
+    "training_exact_matches": 2,
+    "development_exact_matches": 0,
+    "audit_performed_by": "root agent; this script does not read training text"
+  },
+  "exclusions": {
+    "single": [
+      "R3E019"
+    ],
+    "oracle_clause": [
+      "R3M012:C3"
+    ],
+    "whole_mixed_message": [
+      "R3M012"
+    ],
+    "whole_message_reason": "Conservatively remove the complete mixed message containing the overlapping clause from the secondary component-set metric."
+  },
+  "speech_act": {
+    "n": 149,
+    "correct": 142,
+    "accuracy": 0.9530201342281879,
+    "macro_f1": 0.9527848748083803,
+    "per_class": {
+      "evaluative": {
+        "support": 49,
+        "predicted": 46,
+        "precision": 0.9565217391304348,
+        "recall": 0.8979591836734694,
+        "f1": 0.9263157894736843
+      },
+      "imperative": {
+        "support": 50,
+        "predicted": 50,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "descriptive": {
+        "support": 50,
+        "predicted": 53,
+        "precision": 0.9056603773584906,
+        "recall": 0.96,
+        "f1": 0.9320388349514563
+      }
+    },
+    "confusion_matrix": {
+      "evaluative": {
+        "evaluative": 44,
+        "descriptive": 5
+      },
+      "imperative": {
+        "imperative": 50
+      },
+      "descriptive": {
+        "descriptive": 48,
+        "evaluative": 2
+      }
+    }
+  },
+  "grounding": {
+    "n": 149,
+    "correct": 145,
+    "accuracy": 0.9731543624161074,
+    "macro_f1": 0.972502385640924,
+    "per_class": {
+      "action": {
+        "support": 55,
+        "predicted": 57,
+        "precision": 0.9649122807017544,
+        "recall": 1.0,
+        "f1": 0.9821428571428572
+      },
+      "feature": {
+        "support": 50,
+        "predicted": 47,
+        "precision": 1.0,
+        "recall": 0.94,
+        "f1": 0.9690721649484536
+      },
+      "trajectory": {
+        "support": 44,
+        "predicted": 45,
+        "precision": 0.9555555555555556,
+        "recall": 0.9772727272727273,
+        "f1": 0.9662921348314608
+      }
+    },
+    "confusion_matrix": {
+      "action": {
+        "action": 55
+      },
+      "feature": {
+        "feature": 47,
+        "trajectory": 2,
+        "action": 1
+      },
+      "trajectory": {
+        "trajectory": 43,
+        "action": 1
+      }
+    }
+  },
+  "mixed_oracle_clause_speech": {
+    "n": 41,
+    "correct": 39,
+    "accuracy": 0.9512195121951219,
+    "macro_f1": 0.953968253968254,
+    "per_class": {
+      "evaluative": {
+        "support": 13,
+        "predicted": 15,
+        "precision": 0.8666666666666667,
+        "recall": 1.0,
+        "f1": 0.9285714285714286
+      },
+      "imperative": {
+        "support": 12,
+        "predicted": 12,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "descriptive": {
+        "support": 16,
+        "predicted": 14,
+        "precision": 1.0,
+        "recall": 0.875,
+        "f1": 0.9333333333333333
+      }
+    },
+    "confusion_matrix": {
+      "evaluative": {
+        "evaluative": 13
+      },
+      "imperative": {
+        "imperative": 12
+      },
+      "descriptive": {
+        "descriptive": 14,
+        "evaluative": 2
+      }
+    }
+  },
+  "mixed_oracle_clause_grounding": {
+    "n": 41,
+    "correct": 41,
+    "accuracy": 1.0,
+    "macro_f1": 1.0,
+    "per_class": {
+      "action": {
+        "support": 14,
+        "predicted": 14,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "feature": {
+        "support": 16,
+        "predicted": 16,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "trajectory": {
+        "support": 11,
+        "predicted": 11,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      }
+    },
+    "confusion_matrix": {
+      "action": {
+        "action": 14
+      },
+      "feature": {
+        "feature": 16
+      },
+      "trajectory": {
+        "trajectory": 11
+      }
+    }
+  },
+  "mixed_component_n": 19,
+  "mixed_component_correct": 17,
+  "mixed_component_accuracy": 0.8947368421052632,
+  "mixed": [
+    {
+      "id": "R3M001",
+      "correct": true
+    },
+    {
+      "id": "R3M002",
+      "correct": true
+    },
+    {
+      "id": "R3M003",
+      "correct": true
+    },
+    {
+      "id": "R3M004",
+      "correct": false
+    },
+    {
+      "id": "R3M005",
+      "correct": true
+    },
+    {
+      "id": "R3M006",
+      "correct": true
+    },
+    {
+      "id": "R3M007",
+      "correct": true
+    },
+    {
+      "id": "R3M008",
+      "correct": true
+    },
+    {
+      "id": "R3M009",
+      "correct": true
+    },
+    {
+      "id": "R3M010",
+      "correct": true
+    },
+    {
+      "id": "R3M011",
+      "correct": true
+    },
+    {
+      "id": "R3M013",
+      "correct": true
+    },
+    {
+      "id": "R3M014",
+      "correct": true
+    },
+    {
+      "id": "R3M015",
+      "correct": true
+    },
+    {
+      "id": "R3M016",
+      "correct": true
+    },
+    {
+      "id": "R3M017",
+      "correct": true
+    },
+    {
+      "id": "R3M018",
+      "correct": false
+    },
+    {
+      "id": "R3M019",
+      "correct": true
+    },
+    {
+      "id": "R3M020",
+      "correct": true
+    }
+  ],
+  "predeclared_gates": {
+    "speech_act": true,
+    "grounding": true,
+    "mixed_components": true
+  },
+  "aggregate_predeclared_pass": true,
+  "limitations": [
+    "Removing exact matches does not prove template or distribution independence.",
+    "Labels are AI-authored, not human-validated.",
+    "The known evaluative/feature weakness remains; this analysis excludes a correctly classified trajectory evaluation."
+  ]
+}

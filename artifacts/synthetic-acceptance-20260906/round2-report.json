@@ -1,0 +1,1559 @@
+{
+  "dataset_sha256": "23c4272190395efa3e9b9791f68b75fda502a9019c85ab2ae5e120d8fc999fea",
+  "prediction_sha256": "f4e4db4d2c3449486bc79bd8fff23950b9d04c5c3521a81d83cef28f8b4ff1fd",
+  "provenance": {
+    "candidate_frozen_before_inference": true,
+    "candidate_training_text_read_by_acceptance_agent": false,
+    "dataset_sha256": "23c4272190395efa3e9b9791f68b75fda502a9019c85ab2ae5e120d8fc999fea",
+    "generated_at": "2026-09-06T00:46:35.755Z",
+    "hashes": {
+      "E:\\Research\\DURF\\outputs\\synthetic_feedback_v1\\final-v2\\speech_act.json": "799b2d30c263e6d10115b229125736434277a23f76c7bed261e0760524284ef9",
+      "E:\\Research\\DURF\\outputs\\synthetic_feedback_v1\\final-v2\\grounding.json": "485f2d03603dc18fbfb813c8c879ce54303d01bad88d340df4197f33ac9f0125",
+      "E:\\Research\\DURF\\artifacts\\synthetic-acceptance-20260906\\frozen-next-v2.json": "23c4272190395efa3e9b9791f68b75fda502a9019c85ab2ae5e120d8fc999fea",
+      "E:\\Research\\DURF\\web\\lib\\synthetic-browser-models.ts": "7517f2a2e32679636dfab51ca826e825d5b3787714da8ae93cf99f91b6f1763c",
+      "E:\\Research\\DURF\\web\\lib\\browser-models.ts": "43791f52e7cc56d27fe8b754d8f116b16b57849ef93694d1c8b1a3fa08d32fa1",
+      "E:\\Research\\DURF\\web\\lib\\route-inputs.ts": "9ce23fb4d331ff1b88fd0fa1d17b1e21497be588a3fb78f2d2809a61625aef18",
+      "E:\\Research\\DURF\\web\\lib\\game.ts": "25d1ac73ef41205e90a27156f31f8871bddd4742931adfa45c6e92817f739a8b",
+      "E:\\Research\\DURF\\web\\lib\\subgoal-policy.ts": "f936ecec4b16f9ec72de4815e6feb8146dd35bb7329d9c5df5f0facbcd57bbb4"
+    },
+    "speech_model_source_sha256": "42bd850dbf158abc4a46cb1bc72ce44a9941136afeb609b17c34ccd2d195437e",
+    "grounding_model_source_sha256": "d896c375a9807030bfb7e53386cce104309080a1aa0d75929e48cf93b9c175af",
+    "learning_behavior_scope": "Classifier and clause split only; no game action or learning update was executed."
+  },
+  "claim_scope": "independent authorship within the same AI session, not independently human-validated ground truth",
+  "source": "AI-authored synthetic only; no human participant data",
+  "speech_act": {
+    "n": 150,
+    "correct": 123,
+    "accuracy": 0.82,
+    "macro_f1": 0.8154872010274717,
+    "per_class": {
+      "evaluative": {
+        "support": 50,
+        "predicted": 39,
+        "precision": 0.8461538461538461,
+        "recall": 0.66,
+        "f1": 0.7415730337078651
+      },
+      "imperative": {
+        "support": 50,
+        "predicted": 57,
+        "precision": 0.8421052631578947,
+        "recall": 0.96,
+        "f1": 0.8971962616822429
+      },
+      "descriptive": {
+        "support": 50,
+        "predicted": 54,
+        "precision": 0.7777777777777778,
+        "recall": 0.84,
+        "f1": 0.8076923076923077
+      }
+    },
+    "confusion_matrix": {
+      "evaluative": {
+        "evaluative": 33,
+        "descriptive": 10,
+        "imperative": 7
+      },
+      "imperative": {
+        "imperative": 48,
+        "descriptive": 2
+      },
+      "descriptive": {
+        "descriptive": 42,
+        "evaluative": 6,
+        "imperative": 2
+      }
+    }
+  },
+  "grounding": {
+    "n": 150,
+    "correct": 115,
+    "accuracy": 0.7666666666666667,
+    "macro_f1": 0.7663643043180998,
+    "per_class": {
+      "action": {
+        "support": 55,
+        "predicted": 53,
+        "precision": 0.8301886792452831,
+        "recall": 0.8,
+        "f1": 0.8148148148148149
+      },
+      "feature": {
+        "support": 50,
+        "predicted": 51,
+        "precision": 0.6862745098039216,
+        "recall": 0.7,
+        "f1": 0.693069306930693
+      },
+      "trajectory": {
+        "support": 45,
+        "predicted": 46,
+        "precision": 0.782608695652174,
+        "recall": 0.8,
+        "f1": 0.7912087912087912
+      }
+    },
+    "confusion_matrix": {
+      "action": {
+        "action": 44,
+        "feature": 9,
+        "trajectory": 2
+      },
+      "feature": {
+        "feature": 35,
+        "trajectory": 8,
+        "action": 7
+      },
+      "trajectory": {
+        "trajectory": 36,
+        "action": 2,
+        "feature": 7
+      }
+    }
+  },
+  "speech_accepted_only": {
+    "coverage": 0.9666666666666667,
+    "n": 145,
+    "correct": 122,
+    "accuracy": 0.8413793103448276,
+    "macro_f1": 0.8368045979588709,
+    "per_class": {
+      "evaluative": {
+        "support": 48,
+        "predicted": 37,
+        "precision": 0.8918918918918919,
+        "recall": 0.6875,
+        "f1": 0.7764705882352941
+      },
+      "imperative": {
+        "support": 50,
+        "predicted": 56,
+        "precision": 0.8571428571428571,
+        "recall": 0.96,
+        "f1": 0.9056603773584904
+      },
+      "descriptive": {
+        "support": 47,
+        "predicted": 52,
+        "precision": 0.7884615384615384,
+        "recall": 0.8723404255319149,
+        "f1": 0.8282828282828283
+      }
+    },
+    "confusion_matrix": {
+      "evaluative": {
+        "evaluative": 33,
+        "descriptive": 9,
+        "imperative": 6
+      },
+      "imperative": {
+        "imperative": 48,
+        "descriptive": 2
+      },
+      "descriptive": {
+        "descriptive": 41,
+        "evaluative": 4,
+        "imperative": 2
+      }
+    }
+  },
+  "grounding_accepted_only": {
+    "coverage": 0.9,
+    "n": 135,
+    "correct": 109,
+    "accuracy": 0.8074074074074075,
+    "macro_f1": 0.805593840160244,
+    "per_class": {
+      "action": {
+        "support": 46,
+        "predicted": 51,
+        "precision": 0.8235294117647058,
+        "recall": 0.9130434782608695,
+        "f1": 0.865979381443299
+      },
+      "feature": {
+        "support": 47,
+        "predicted": 41,
+        "precision": 0.7804878048780488,
+        "recall": 0.6808510638297872,
+        "f1": 0.7272727272727273
+      },
+      "trajectory": {
+        "support": 42,
+        "predicted": 43,
+        "precision": 0.813953488372093,
+        "recall": 0.8333333333333334,
+        "f1": 0.8235294117647058
+      }
+    },
+    "confusion_matrix": {
+      "action": {
+        "action": 42,
+        "feature": 4
+      },
+      "feature": {
+        "feature": 32,
+        "trajectory": 8,
+        "action": 7
+      },
+      "trajectory": {
+        "trajectory": 35,
+        "action": 2,
+        "feature": 5
+      }
+    }
+  },
+  "strata": {
+    "agent_state": {
+      "n": 2,
+      "speech_correct": 2,
+      "grounding_correct": 1
+    },
+    "completed_fact": {
+      "n": 11,
+      "speech_correct": 8,
+      "grounding_correct": 8
+    },
+    "completed_judgment": {
+      "n": 15,
+      "speech_correct": 9,
+      "grounding_correct": 14
+    },
+    "completed_sequence_fact": {
+      "n": 3,
+      "speech_correct": 3,
+      "grounding_correct": 3
+    },
+    "conditional_request": {
+      "n": 3,
+      "speech_correct": 3,
+      "grounding_correct": 3
+    },
+    "current_state": {
+      "n": 11,
+      "speech_correct": 10,
+      "grounding_correct": 10
+    },
+    "direct_request": {
+      "n": 14,
+      "speech_correct": 12,
+      "grounding_correct": 8
+    },
+    "feature_comparison": {
+      "n": 2,
+      "speech_correct": 2,
+      "grounding_correct": 2
+    },
+    "feature_value": {
+      "n": 7,
+      "speech_correct": 5,
+      "grounding_correct": 5
+    },
+    "future_should": {
+      "n": 1,
+      "speech_correct": 1,
+      "grounding_correct": 1
+    },
+    "future_spatial_request": {
+      "n": 2,
+      "speech_correct": 2,
+      "grounding_correct": 2
+    },
+    "general_rule": {
+      "n": 3,
+      "speech_correct": 3,
+      "grounding_correct": 3
+    },
+    "immediate_request": {
+      "n": 1,
+      "speech_correct": 1,
+      "grounding_correct": 1
+    },
+    "indirect_request": {
+      "n": 11,
+      "speech_correct": 11,
+      "grounding_correct": 10
+    },
+    "negated_completed_fact": {
+      "n": 2,
+      "speech_correct": 2,
+      "grounding_correct": 1
+    },
+    "negated_judgment": {
+      "n": 3,
+      "speech_correct": 3,
+      "grounding_correct": 2
+    },
+    "negated_request": {
+      "n": 5,
+      "speech_correct": 5,
+      "grounding_correct": 4
+    },
+    "negated_spatial_request": {
+      "n": 1,
+      "speech_correct": 1,
+      "grounding_correct": 1
+    },
+    "negated_spatial_state": {
+      "n": 1,
+      "speech_correct": 0,
+      "grounding_correct": 1
+    },
+    "negated_state": {
+      "n": 3,
+      "speech_correct": 2,
+      "grounding_correct": 3
+    },
+    "overall_judgment": {
+      "n": 7,
+      "speech_correct": 4,
+      "grounding_correct": 6
+    },
+    "polite_request": {
+      "n": 5,
+      "speech_correct": 5,
+      "grounding_correct": 4
+    },
+    "polite_spatial_request": {
+      "n": 1,
+      "speech_correct": 1,
+      "grounding_correct": 1
+    },
+    "preference": {
+      "n": 7,
+      "speech_correct": 4,
+      "grounding_correct": 3
+    },
+    "retrospective_counterfactual": {
+      "n": 5,
+      "speech_correct": 5,
+      "grounding_correct": 5
+    },
+    "spatial_request": {
+      "n": 6,
+      "speech_correct": 6,
+      "grounding_correct": 4
+    },
+    "spatial_state": {
+      "n": 10,
+      "speech_correct": 8,
+      "grounding_correct": 5
+    },
+    "spatial_value": {
+      "n": 4,
+      "speech_correct": 1,
+      "grounding_correct": 2
+    },
+    "whole_run_fact": {
+      "n": 4,
+      "speech_correct": 4,
+      "grounding_correct": 2
+    }
+  },
+  "mixed_oracle_clause_speech": {
+    "n": 42,
+    "correct": 40,
+    "accuracy": 0.9523809523809523,
+    "macro_f1": 0.953968253968254,
+    "per_class": {
+      "evaluative": {
+        "support": 14,
+        "predicted": 16,
+        "precision": 0.875,
+        "recall": 1.0,
+        "f1": 0.9333333333333333
+      },
+      "imperative": {
+        "support": 13,
+        "predicted": 13,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0
+      },
+      "descriptive": {
+        "support": 15,
+        "predicted": 13,
+        "precision": 1.0,
+        "recall": 0.8666666666666667,
+        "f1": 0.9285714285714286
+      }
+    },
+    "confusion_matrix": {
+      "evaluative": {
+        "evaluative": 14
+      },
+      "imperative": {
+        "imperative": 13
+      },
+      "descriptive": {
+        "descriptive": 13,
+        "evaluative": 2
+      }
+    }
+  },
+  "mixed_oracle_clause_grounding": {
+    "n": 42,
+    "correct": 35,
+    "accuracy": 0.8333333333333334,
+    "macro_f1": 0.8381956208043165,
+    "per_class": {
+      "action": {
+        "support": 15,
+        "predicted": 13,
+        "precision": 0.9230769230769231,
+        "recall": 0.8,
+        "f1": 0.8571428571428571
+      },
+      "feature": {
+        "support": 16,
+        "predicted": 17,
+        "precision": 0.7647058823529411,
+        "recall": 0.8125,
+        "f1": 0.787878787878788
+      },
+      "trajectory": {
+        "support": 11,
+        "predicted": 12,
+        "precision": 0.8333333333333334,
+        "recall": 0.9090909090909091,
+        "f1": 0.8695652173913043
+      }
+    },
+    "confusion_matrix": {
+      "action": {
+        "action": 12,
+        "feature": 3
+      },
+      "feature": {
+        "feature": 13,
+        "trajectory": 2,
+        "action": 1
+      },
+      "trajectory": {
+        "trajectory": 10,
+        "feature": 1
+      }
+    }
+  },
+  "mixed_component_accuracy": 0.9,
+  "mixed": [
+    {
+      "id": "NM001",
+      "expected": [
+        "evaluative",
+        "imperative"
+      ],
+      "predicted": [
+        "evaluative",
+        "imperative"
+      ],
+      "accepted_predicted": [
+        "imperative"
+      ],
+      "component_set_correct": true,
+      "accepted_component_set_correct": false,
+      "expected_clause_count": 2,
+      "predicted_clause_count": 2
+    },
+    {
+      "id": "NM002",
+      "expected": [
+        "descriptive",
+        "imperative"
+      ],
+      "predicted": [
+        "descriptive",
+        "imperative"
+      ],
+      "accepted_predicted": [
+        "descriptive",
+        "imperative"
+      ],
+      "component_set_correct": true,
+      "accepted_component_set_correct": true,
+      "expected_clause_count": 2,
+      "predicted_clause_count": 2
+    },
+    {
+      "id": "NM003",
+      "expected": [
+        "descriptive",
+        "evaluative"
+      ],
+      "predicted": [
+        "evaluative"
+      ],
+      "accepted_predicted": [
+        "evaluative"
+      ],
+      "component_set_correct": false,
+      "accepted_component_set_correct": false,
+      "expected_clause_count": 2,
+      "predicted_clause_count": 1
+    },
+    {
+      "id": "NM004",
+      "expected": [
+        "descriptive",
+        "evaluative"
+      ],
+      "predicted": [
+        "descriptive",
+        "evaluative"
+      ],
+      "accepted_predicted": [
+        "descriptive",
+        "evaluative"
+      ],
+      "component_set_correct": true,
+      "accepted_component_set_correct": true,
+      "expected_clause_count": 2,
+      "predicted_clause_count": 2
+    },
+    {
+      "id": "NM005",
+      "expected": [
+        "evaluative",
+        "imperative"
+      ],
+      "predicted": [
+        "evaluative",
+        "imperative"
+      ],
+      "accepted_predicted": [
+        "evaluative",
+        "imperative"
+      ],
+      "component_set_correct": true,
+      "accepted_component_set_correct": true,
+      "expected_clause_count": 2,
+      "predicted_clause_count": 2
+    },
+    {
+      "id": "NM006",
+      "expected": [
+        "descriptive",
+        "imperative"
+      ],
+      "predicted": [
+        "descriptive",
+        "imperative"
+      ],
+      "accepted_predicted": [
+        "descriptive",
+        "imperative"
+      ],
+      "component_set_correct": true,
+      "accepted_component_set_correct": true,
+      "expected_clause_count": 2,
+      "predicted_clause_count": 2
+    },
+    {
+      "id": "NM007",
+      "expected": [
+        "descriptive",
+        "imperative"
+      ],
+      "predicted": [
+        "descriptive",
+        "imperative"
+      ],
+      "accepted_predicted": [
+        "descriptive",
+        "imperative"
+      ],
+      "component_set_correct": true,
+      "accepted_component_set_correct": true,
+      "expected_clause_count": 2,
+      "predicted_clause_count": 2
+    },
+    {
+      "id": "NM008",
+      "expected": [
+        "descriptive",
+        "evaluative"
+      ],
+      "predicted": [
+        "descriptive",
+        "evaluative"
+      ],
+      "accepted_predicted": [
+        "descriptive",
+        "evaluative"
+      ],
+      "component_set_correct": true,
+      "accepted_component_set_correct": true,
+      "expected_clause_count": 2,
+      "predicted_clause_count": 2
+    },
+    {
+      "id": "NM009",
+      "expected": [
+        "descriptive",
+        "evaluative"
+      ],
+      "predicted": [
+        "descriptive",
+        "evaluative"
+      ],
+      "accepted_predicted": [
+        "descriptive",
+        "evaluative"
+      ],
+      "component_set_correct": true,
+      "accepted_component_set_correct": true,
+      "expected_clause_count": 2,
+      "predicted_clause_count": 2
+    },
+    {
+      "id": "NM010",
+      "expected": [
+        "evaluative",
+        "imperative"
+      ],
+      "predicted": [
+        "evaluative",
+        "imperative"
+      ],
+      "accepted_predicted": [
+        "evaluative",
+        "imperative"
+      ],
+      "component_set_correct": true,
+      "accepted_component_set_correct": true,
+      "expected_clause_count": 2,
+      "predicted_clause_count": 2
+    },
+    {
+      "id": "NM011",
+      "expected": [
+        "descriptive",
+        "imperative"
+      ],
+      "predicted": [
+        "descriptive",
+        "imperative"
+      ],
+      "accepted_predicted": [
+        "descriptive",
+        "imperative"
+      ],
+      "component_set_correct": true,
+      "accepted_component_set_correct": true,
+      "expected_clause_count": 3,
+      "predicted_clause_count": 2
+    },
+    {
+      "id": "NM012",
+      "expected": [
+        "evaluative"
+      ],
+      "predicted": [
+        "evaluative"
+      ],
+      "accepted_predicted": [
+        "evaluative"
+      ],
+      "component_set_correct": true,
+      "accepted_component_set_correct": true,
+      "expected_clause_count": 2,
+      "predicted_clause_count": 3
+    },
+    {
+      "id": "NM013",
+      "expected": [
+        "evaluative",
+        "imperative"
+      ],
+      "predicted": [
+        "evaluative",
+        "imperative"
+      ],
+      "accepted_predicted": [
+        "evaluative",
+        "imperative"
+      ],
+      "component_set_correct": true,
+      "accepted_component_set_correct": true,
+      "expected_clause_count": 2,
+      "predicted_clause_count": 2
+    },
+    {
+      "id": "NM014",
+      "expected": [
+        "descriptive",
+        "imperative"
+      ],
+      "predicted": [
+        "descriptive",
+        "imperative"
+      ],
+      "accepted_predicted": [
+        "descriptive",
+        "imperative"
+      ],
+      "component_set_correct": true,
+      "accepted_component_set_correct": true,
+      "expected_clause_count": 2,
+      "predicted_clause_count": 2
+    },
+    {
+      "id": "NM015",
+      "expected": [
+        "descriptive",
+        "evaluative"
+      ],
+      "predicted": [
+        "descriptive",
+        "evaluative"
+      ],
+      "accepted_predicted": [
+        "descriptive",
+        "evaluative"
+      ],
+      "component_set_correct": true,
+      "accepted_component_set_correct": true,
+      "expected_clause_count": 2,
+      "predicted_clause_count": 2
+    },
+    {
+      "id": "NM016",
+      "expected": [
+        "descriptive"
+      ],
+      "predicted": [
+        "descriptive"
+      ],
+      "accepted_predicted": [
+        "descriptive"
+      ],
+      "component_set_correct": true,
+      "accepted_component_set_correct": true,
+      "expected_clause_count": 2,
+      "predicted_clause_count": 2
+    },
+    {
+      "id": "NM017",
+      "expected": [
+        "evaluative",
+        "imperative"
+      ],
+      "predicted": [
+        "evaluative",
+        "imperative"
+      ],
+      "accepted_predicted": [
+        "evaluative",
+        "imperative"
+      ],
+      "component_set_correct": true,
+      "accepted_component_set_correct": true,
+      "expected_clause_count": 2,
+      "predicted_clause_count": 2
+    },
+    {
+      "id": "NM018",
+      "expected": [
+        "descriptive",
+        "imperative"
+      ],
+      "predicted": [
+        "evaluative",
+        "imperative"
+      ],
+      "accepted_predicted": [
+        "evaluative",
+        "imperative"
+      ],
+      "component_set_correct": false,
+      "accepted_component_set_correct": false,
+      "expected_clause_count": 2,
+      "predicted_clause_count": 2
+    },
+    {
+      "id": "NM019",
+      "expected": [
+        "descriptive",
+        "evaluative"
+      ],
+      "predicted": [
+        "descriptive",
+        "evaluative"
+      ],
+      "accepted_predicted": [
+        "descriptive",
+        "evaluative"
+      ],
+      "component_set_correct": true,
+      "accepted_component_set_correct": true,
+      "expected_clause_count": 2,
+      "predicted_clause_count": 2
+    },
+    {
+      "id": "NM020",
+      "expected": [
+        "descriptive",
+        "evaluative",
+        "imperative"
+      ],
+      "predicted": [
+        "descriptive",
+        "evaluative",
+        "imperative"
+      ],
+      "accepted_predicted": [
+        "descriptive",
+        "evaluative",
+        "imperative"
+      ],
+      "component_set_correct": true,
+      "accepted_component_set_correct": true,
+      "expected_clause_count": 3,
+      "predicted_clause_count": 3
+    }
+  ],
+  "uncertain": {
+    "n": 20,
+    "abstained": 3,
+    "automatic_learning_observed": 0,
+    "learning_gate_unknown": 20,
+    "details": [
+      {
+        "id": "NU001",
+        "kind": "out_of_domain",
+        "speech_act": "evaluative",
+        "confidence": 0.9997657450999083,
+        "abstained": false,
+        "grounding_abstained": false,
+        "learning_applied": null,
+        "uncertainty_reason": null
+      },
+      {
+        "id": "NU002",
+        "kind": "out_of_domain",
+        "speech_act": "evaluative",
+        "confidence": 0.941702401138972,
+        "abstained": false,
+        "grounding_abstained": false,
+        "learning_applied": null,
+        "uncertainty_reason": null
+      },
+      {
+        "id": "NU003",
+        "kind": "out_of_domain",
+        "speech_act": "imperative",
+        "confidence": 0.9999139123891738,
+        "abstained": false,
+        "grounding_abstained": false,
+        "learning_applied": null,
+        "uncertainty_reason": null
+      },
+      {
+        "id": "NU004",
+        "kind": "out_of_domain",
+        "speech_act": "evaluative",
+        "confidence": 0.5608241743361171,
+        "abstained": false,
+        "grounding_abstained": false,
+        "learning_applied": null,
+        "uncertainty_reason": null
+      },
+      {
+        "id": "NU005",
+        "kind": "out_of_domain",
+        "speech_act": "evaluative",
+        "confidence": 0.9999998045240892,
+        "abstained": false,
+        "grounding_abstained": false,
+        "learning_applied": null,
+        "uncertainty_reason": null
+      },
+      {
+        "id": "NU006",
+        "kind": "out_of_domain",
+        "speech_act": "descriptive",
+        "confidence": 0.9973743710175701,
+        "abstained": false,
+        "grounding_abstained": false,
+        "learning_applied": null,
+        "uncertainty_reason": null
+      },
+      {
+        "id": "NU007",
+        "kind": "out_of_domain",
+        "speech_act": "descriptive",
+        "confidence": 0.9989089414417962,
+        "abstained": false,
+        "grounding_abstained": false,
+        "learning_applied": null,
+        "uncertainty_reason": null
+      },
+      {
+        "id": "NU008",
+        "kind": "out_of_domain",
+        "speech_act": "evaluative",
+        "confidence": 0.8275242858917738,
+        "abstained": false,
+        "grounding_abstained": false,
+        "learning_applied": null,
+        "uncertainty_reason": null
+      },
+      {
+        "id": "NU009",
+        "kind": "uninterpretable",
+        "speech_act": "evaluative",
+        "confidence": 0.41618460577986754,
+        "abstained": true,
+        "grounding_abstained": true,
+        "learning_applied": null,
+        "uncertainty_reason": "classifier_abstention"
+      },
+      {
+        "id": "NU010",
+        "kind": "ambiguous",
+        "speech_act": "evaluative",
+        "confidence": 0.41618460577986754,
+        "abstained": true,
+        "grounding_abstained": true,
+        "learning_applied": null,
+        "uncertainty_reason": "classifier_abstention"
+      },
+      {
+        "id": "NU011",
+        "kind": "ambiguous",
+        "speech_act": "descriptive",
+        "confidence": 0.9988951610230058,
+        "abstained": false,
+        "grounding_abstained": false,
+        "learning_applied": null,
+        "uncertainty_reason": null
+      },
+      {
+        "id": "NU012",
+        "kind": "ambiguous",
+        "speech_act": "evaluative",
+        "confidence": 0.43870460848521875,
+        "abstained": true,
+        "grounding_abstained": false,
+        "learning_applied": null,
+        "uncertainty_reason": "classifier_abstention"
+      },
+      {
+        "id": "NU013",
+        "kind": "ambiguous",
+        "speech_act": "descriptive",
+        "confidence": 0.9909289090544371,
+        "abstained": false,
+        "grounding_abstained": false,
+        "learning_applied": null,
+        "uncertainty_reason": null
+      },
+      {
+        "id": "NU014",
+        "kind": "ambiguous",
+        "speech_act": "evaluative",
+        "confidence": 0.9976339318217355,
+        "abstained": false,
+        "grounding_abstained": false,
+        "learning_applied": null,
+        "uncertainty_reason": null
+      },
+      {
+        "id": "NU015",
+        "kind": "pragmatically_ambiguous",
+        "speech_act": "imperative",
+        "confidence": 0.9977563221139616,
+        "abstained": false,
+        "grounding_abstained": false,
+        "learning_applied": null,
+        "uncertainty_reason": null
+      },
+      {
+        "id": "NU016",
+        "kind": "pragmatically_ambiguous",
+        "speech_act": "imperative",
+        "confidence": 0.9963153421084014,
+        "abstained": false,
+        "grounding_abstained": false,
+        "learning_applied": null,
+        "uncertainty_reason": null
+      },
+      {
+        "id": "NU017",
+        "kind": "ambiguous",
+        "speech_act": "evaluative",
+        "confidence": 0.6555565197613212,
+        "abstained": false,
+        "grounding_abstained": false,
+        "learning_applied": null,
+        "uncertainty_reason": null
+      },
+      {
+        "id": "NU018",
+        "kind": "ambiguous",
+        "speech_act": "imperative",
+        "confidence": 0.8249711027657178,
+        "abstained": false,
+        "grounding_abstained": false,
+        "learning_applied": null,
+        "uncertainty_reason": null
+      },
+      {
+        "id": "NU019",
+        "kind": "sarcasm_ambiguous",
+        "speech_act": "evaluative",
+        "confidence": 0.9896298147398424,
+        "abstained": false,
+        "grounding_abstained": false,
+        "learning_applied": null,
+        "uncertainty_reason": null
+      },
+      {
+        "id": "NU020",
+        "kind": "pragmatically_ambiguous",
+        "speech_act": "evaluative",
+        "confidence": 0.5961584231372891,
+        "abstained": false,
+        "grounding_abstained": false,
+        "learning_applied": null,
+        "uncertainty_reason": null
+      }
+    ]
+  },
+  "failures": [
+    {
+      "id": "NE002",
+      "text": "You handled the rush brilliantly.",
+      "gold_speech_act": "evaluative",
+      "gold_grounding": "trajectory",
+      "predicted_speech_act": "descriptive",
+      "predicted_grounding": "trajectory",
+      "confidence": 0.9994174745909731,
+      "abstained": false
+    },
+    {
+      "id": "NE004",
+      "text": "I give your performance in this round a thumbs up.",
+      "gold_speech_act": "evaluative",
+      "gold_grounding": "trajectory",
+      "predicted_speech_act": "imperative",
+      "predicted_grounding": "trajectory",
+      "confidence": 0.6150908703108415,
+      "abstained": false
+    },
+    {
+      "id": "NE005",
+      "text": "What an awful decision to leave the burner idle!",
+      "gold_speech_act": "evaluative",
+      "gold_grounding": "trajectory",
+      "predicted_speech_act": "imperative",
+      "predicted_grounding": "action",
+      "confidence": 0.7380076200265414,
+      "abstained": false
+    },
+    {
+      "id": "NE006",
+      "text": "That was not the right moment to grab a tomato.",
+      "gold_speech_act": "evaluative",
+      "gold_grounding": "trajectory",
+      "predicted_speech_act": "evaluative",
+      "predicted_grounding": "feature",
+      "confidence": 0.6796373355912464,
+      "abstained": false
+    },
+    {
+      "id": "NE008",
+      "text": "You deserve credit for the last delivery.",
+      "gold_speech_act": "evaluative",
+      "gold_grounding": "trajectory",
+      "predicted_speech_act": "imperative",
+      "predicted_grounding": "trajectory",
+      "confidence": 0.5151240741940539,
+      "abstained": true
+    },
+    {
+      "id": "NE012",
+      "text": "That last move gets a thumbs down from me.",
+      "gold_speech_act": "evaluative",
+      "gold_grounding": "trajectory",
+      "predicted_speech_act": "imperative",
+      "predicted_grounding": "trajectory",
+      "confidence": 0.9984819988241109,
+      "abstained": false
+    },
+    {
+      "id": "NE014",
+      "text": "I am disappointed in the route you just took.",
+      "gold_speech_act": "evaluative",
+      "gold_grounding": "trajectory",
+      "predicted_speech_act": "descriptive",
+      "predicted_grounding": "trajectory",
+      "confidence": 0.99692616709535,
+      "abstained": false
+    },
+    {
+      "id": "NE028",
+      "text": "Having every pot occupied is a disadvantage.",
+      "gold_speech_act": "evaluative",
+      "gold_grounding": "feature",
+      "predicted_speech_act": "descriptive",
+      "predicted_grounding": "feature",
+      "confidence": 0.9391612904623403,
+      "abstained": false
+    },
+    {
+      "id": "NE031",
+      "text": "I am a fan of the worktop between the cookers.",
+      "gold_speech_act": "evaluative",
+      "gold_grounding": "feature",
+      "predicted_speech_act": "descriptive",
+      "predicted_grounding": "trajectory",
+      "confidence": 0.9945134058357008,
+      "abstained": false
+    },
+    {
+      "id": "NE032",
+      "text": "The supply cupboard is in an awkward position.",
+      "gold_speech_act": "evaluative",
+      "gold_grounding": "feature",
+      "predicted_speech_act": "descriptive",
+      "predicted_grounding": "feature",
+      "confidence": 0.8360750389696321,
+      "abstained": false
+    },
+    {
+      "id": "NE034",
+      "text": "Two cooks sharing that tiny nook is an inefficient arrangement.",
+      "gold_speech_act": "evaluative",
+      "gold_grounding": "feature",
+      "predicted_speech_act": "evaluative",
+      "predicted_grounding": "trajectory",
+      "confidence": 0.9896054984021486,
+      "abstained": false
+    },
+    {
+      "id": "NE035",
+      "text": "I consider a free delivery lane essential.",
+      "gold_speech_act": "evaluative",
+      "gold_grounding": "feature",
+      "predicted_speech_act": "imperative",
+      "predicted_grounding": "action",
+      "confidence": 0.9993665894403679,
+      "abstained": false
+    },
+    {
+      "id": "NE037",
+      "text": "The layout around the burners is poorly designed.",
+      "gold_speech_act": "evaluative",
+      "gold_grounding": "feature",
+      "predicted_speech_act": "evaluative",
+      "predicted_grounding": "trajectory",
+      "confidence": 0.6994606205623012,
+      "abstained": false
+    },
+    {
+      "id": "NE038",
+      "text": "I cannot stand the cramped approach to the hatch.",
+      "gold_speech_act": "evaluative",
+      "gold_grounding": "feature",
+      "predicted_speech_act": "imperative",
+      "predicted_grounding": "action",
+      "confidence": 0.9151503909739621,
+      "abstained": false
+    },
+    {
+      "id": "NE040",
+      "text": "The bottleneck next to the cupboard is horrible.",
+      "gold_speech_act": "evaluative",
+      "gold_grounding": "feature",
+      "predicted_speech_act": "descriptive",
+      "predicted_grounding": "feature",
+      "confidence": 0.5327232963034534,
+      "abstained": true
+    },
+    {
+      "id": "NE042",
+      "text": "I would rate this serving area highly.",
+      "gold_speech_act": "evaluative",
+      "gold_grounding": "feature",
+      "predicted_speech_act": "imperative",
+      "predicted_grounding": "action",
+      "confidence": 0.9909752332763127,
+      "abstained": false
+    },
+    {
+      "id": "NE043",
+      "text": "The long walk from storage to the cooker is a drawback.",
+      "gold_speech_act": "evaluative",
+      "gold_grounding": "feature",
+      "predicted_speech_act": "descriptive",
+      "predicted_grounding": "action",
+      "confidence": 0.7508351311568593,
+      "abstained": false
+    },
+    {
+      "id": "NE044",
+      "text": "I find this corner easier to work in than the opposite one.",
+      "gold_speech_act": "evaluative",
+      "gold_grounding": "feature",
+      "predicted_speech_act": "evaluative",
+      "predicted_grounding": "trajectory",
+      "confidence": 0.8543237260383448,
+      "abstained": false
+    },
+    {
+      "id": "NE046",
+      "text": "That attempt was a huge improvement on the previous round.",
+      "gold_speech_act": "evaluative",
+      "gold_grounding": "trajectory",
+      "predicted_speech_act": "descriptive",
+      "predicted_grounding": "trajectory",
+      "confidence": 0.9615780432846845,
+      "abstained": false
+    },
+    {
+      "id": "NE047",
+      "text": "There is a lot to like about how you completed those orders.",
+      "gold_speech_act": "evaluative",
+      "gold_grounding": "trajectory",
+      "predicted_speech_act": "evaluative",
+      "predicted_grounding": "feature",
+      "confidence": 0.9970362875416922,
+      "abstained": false
+    },
+    {
+      "id": "NE048",
+      "text": "Your cooperation during this shift fell short.",
+      "gold_speech_act": "evaluative",
+      "gold_grounding": "trajectory",
+      "predicted_speech_act": "descriptive",
+      "predicted_grounding": "trajectory",
+      "confidence": 0.8301703296256087,
+      "abstained": false
+    },
+    {
+      "id": "NE050",
+      "text": "You nailed the final handoff.",
+      "gold_speech_act": "evaluative",
+      "gold_grounding": "trajectory",
+      "predicted_speech_act": "descriptive",
+      "predicted_grounding": "trajectory",
+      "confidence": 0.9994174745909731,
+      "abstained": false
+    },
+    {
+      "id": "NI001",
+      "text": "Pass the dish across before I reach the stove.",
+      "gold_speech_act": "imperative",
+      "gold_grounding": "action",
+      "predicted_speech_act": "imperative",
+      "predicted_grounding": "feature",
+      "confidence": 0.979154957685854,
+      "abstained": false
+    },
+    {
+      "id": "NI003",
+      "text": "Can you collect what is on the middle bench?",
+      "gold_speech_act": "imperative",
+      "gold_grounding": "action",
+      "predicted_speech_act": "imperative",
+      "predicted_grounding": "feature",
+      "confidence": 0.6985669594984716,
+      "abstained": false
+    },
+    {
+      "id": "NI007",
+      "text": "Bring your onion to the burner with two tomatoes.",
+      "gold_speech_act": "imperative",
+      "gold_grounding": "action",
+      "predicted_speech_act": "descriptive",
+      "predicted_grounding": "feature",
+      "confidence": 0.727303929385467,
+      "abstained": false
+    },
+    {
+      "id": "NI014",
+      "text": "Do not discard anything from the full saucepan.",
+      "gold_speech_act": "imperative",
+      "gold_grounding": "action",
+      "predicted_speech_act": "imperative",
+      "predicted_grounding": "feature",
+      "confidence": 0.9637706623806335,
+      "abstained": false
+    },
+    {
+      "id": "NI024",
+      "text": "Hand over the ingredient you are carrying.",
+      "gold_speech_act": "imperative",
+      "gold_grounding": "action",
+      "predicted_speech_act": "descriptive",
+      "predicted_grounding": "trajectory",
+      "confidence": 0.9864846689388699,
+      "abstained": false
+    },
+    {
+      "id": "NI030",
+      "text": "Take the object off the bench nearest the door.",
+      "gold_speech_act": "imperative",
+      "gold_grounding": "action",
+      "predicted_speech_act": "imperative",
+      "predicted_grounding": "feature",
+      "confidence": 0.9553757727724955,
+      "abstained": false
+    },
+    {
+      "id": "NI031",
+      "text": "Please leave the bottom cooker for my tomatoes.",
+      "gold_speech_act": "imperative",
+      "gold_grounding": "action",
+      "predicted_speech_act": "imperative",
+      "predicted_grounding": "feature",
+      "confidence": 0.9998938683945442,
+      "abstained": false
+    },
+    {
+      "id": "NI036",
+      "text": "Use the free space beyond the dish rack.",
+      "gold_speech_act": "imperative",
+      "gold_grounding": "action",
+      "predicted_speech_act": "imperative",
+      "predicted_grounding": "feature",
+      "confidence": 0.748747358230153,
+      "abstained": false
+    },
+    {
+      "id": "NI045",
+      "text": "Keep that soup in your hands until you reach the hatch.",
+      "gold_speech_act": "imperative",
+      "gold_grounding": "action",
+      "predicted_speech_act": "imperative",
+      "predicted_grounding": "trajectory",
+      "confidence": 0.972719174901264,
+      "abstained": false
+    },
+    {
+      "id": "NI046",
+      "text": "Try the open aisle on the far side this time.",
+      "gold_speech_act": "imperative",
+      "gold_grounding": "action",
+      "predicted_speech_act": "imperative",
+      "predicted_grounding": "feature",
+      "confidence": 0.8240905536751871,
+      "abstained": false
+    },
+    {
+      "id": "NI048",
+      "text": "Make a space on the bench for this bowl.",
+      "gold_speech_act": "imperative",
+      "gold_grounding": "action",
+      "predicted_speech_act": "imperative",
+      "predicted_grounding": "feature",
+      "confidence": 0.9761798838515299,
+      "abstained": false
+    },
+    {
+      "id": "ND003",
+      "text": "There is a cooker at each end of this bench.",
+      "gold_speech_act": "descriptive",
+      "gold_grounding": "feature",
+      "predicted_speech_act": "evaluative",
+      "predicted_grounding": "feature",
+      "confidence": 0.6227604541004389,
+      "abstained": false
+    },
+    {
+      "id": "ND006",
+      "text": "Your partner has two counter tiles between them and the hatch.",
+      "gold_speech_act": "descriptive",
+      "gold_grounding": "feature",
+      "predicted_speech_act": "descriptive",
+      "predicted_grounding": "trajectory",
+      "confidence": 0.9973899185585334,
+      "abstained": false
+    },
+    {
+      "id": "ND009",
+      "text": "I have an onion in my hands.",
+      "gold_speech_act": "descriptive",
+      "gold_grounding": "feature",
+      "predicted_speech_act": "evaluative",
+      "predicted_grounding": "feature",
+      "confidence": 0.899084164050936,
+      "abstained": false
+    },
+    {
+      "id": "ND010",
+      "text": "Both saucepans contain the same ingredients.",
+      "gold_speech_act": "descriptive",
+      "gold_grounding": "feature",
+      "predicted_speech_act": "descriptive",
+      "predicted_grounding": "trajectory",
+      "confidence": 0.866157289088493,
+      "abstained": false
+    },
+    {
+      "id": "ND011",
+      "text": "The bench beneath the timer holds a plate.",
+      "gold_speech_act": "descriptive",
+      "gold_grounding": "feature",
+      "predicted_speech_act": "descriptive",
+      "predicted_grounding": "action",
+      "confidence": 0.8374642049690347,
+      "abstained": false
+    },
+    {
+      "id": "ND013",
+      "text": "The way around the island passes the dish rack.",
+      "gold_speech_act": "descriptive",
+      "gold_grounding": "feature",
+      "predicted_speech_act": "imperative",
+      "predicted_grounding": "action",
+      "confidence": 0.6254541723856814,
+      "abstained": false
+    },
+    {
+      "id": "ND015",
+      "text": "The cook in blue is looking toward the wall.",
+      "gold_speech_act": "descriptive",
+      "gold_grounding": "feature",
+      "predicted_speech_act": "descriptive",
+      "predicted_grounding": "trajectory",
+      "confidence": 0.9987668871372385,
+      "abstained": false
+    },
+    {
+      "id": "ND022",
+      "text": "The narrowest aisle has room for one cook.",
+      "gold_speech_act": "descriptive",
+      "gold_grounding": "feature",
+      "predicted_speech_act": "descriptive",
+      "predicted_grounding": "action",
+      "confidence": 0.9558709293105202,
+      "abstained": false
+    },
+    {
+      "id": "ND025",
+      "text": "Neither of the nearby counters holds a dish.",
+      "gold_speech_act": "descriptive",
+      "gold_grounding": "feature",
+      "predicted_speech_act": "evaluative",
+      "predicted_grounding": "feature",
+      "confidence": 0.7578724915425505,
+      "abstained": false
+    },
+    {
+      "id": "ND026",
+      "text": "There is no gap between the wall and that stove.",
+      "gold_speech_act": "descriptive",
+      "gold_grounding": "feature",
+      "predicted_speech_act": "evaluative",
+      "predicted_grounding": "feature",
+      "confidence": 0.5464389349215282,
+      "abstained": true
+    },
+    {
+      "id": "ND027",
+      "text": "The tile below your partner is a serving point.",
+      "gold_speech_act": "descriptive",
+      "gold_grounding": "feature",
+      "predicted_speech_act": "descriptive",
+      "predicted_grounding": "trajectory",
+      "confidence": 0.9896995584409284,
+      "abstained": false
+    },
+    {
+      "id": "ND032",
+      "text": "The blue cook deposited a tomato in the saucepan.",
+      "gold_speech_act": "descriptive",
+      "gold_grounding": "trajectory",
+      "predicted_speech_act": "descriptive",
+      "predicted_grounding": "action",
+      "confidence": 0.8583428416347605,
+      "abstained": false
+    },
+    {
+      "id": "ND034",
+      "text": "Your most recent interaction removed an onion from storage.",
+      "gold_speech_act": "descriptive",
+      "gold_grounding": "trajectory",
+      "predicted_speech_act": "evaluative",
+      "predicted_grounding": "feature",
+      "confidence": 0.4527997127460547,
+      "abstained": true
+    },
+    {
+      "id": "ND036",
+      "text": "The last bowl reached the hatch before the bell.",
+      "gold_speech_act": "descriptive",
+      "gold_grounding": "trajectory",
+      "predicted_speech_act": "imperative",
+      "predicted_grounding": "trajectory",
+      "confidence": 0.8917734280479602,
+      "abstained": false
+    },
+    {
+      "id": "ND038",
+      "text": "The other cook stopped at the end of the aisle.",
+      "gold_speech_act": "descriptive",
+      "gold_grounding": "trajectory",
+      "predicted_speech_act": "descriptive",
+      "predicted_grounding": "feature",
+      "confidence": 0.8757955635441329,
+      "abstained": false
+    },
+    {
+      "id": "ND039",
+      "text": "No dish changed hands on the previous turn.",
+      "gold_speech_act": "descriptive",
+      "gold_grounding": "trajectory",
+      "predicted_speech_act": "descriptive",
+      "predicted_grounding": "feature",
+      "confidence": 0.9941209738149368,
+      "abstained": false
+    },
+    {
+      "id": "ND041",
+      "text": "The score increased when your last soup was delivered.",
+      "gold_speech_act": "descriptive",
+      "gold_grounding": "trajectory",
+      "predicted_speech_act": "evaluative",
+      "predicted_grounding": "trajectory",
+      "confidence": 0.7337158185119671,
+      "abstained": false
+    },
+    {
+      "id": "ND046",
+      "text": "The completed shift lasted eight hundred steps.",
+      "gold_speech_act": "descriptive",
+      "gold_grounding": "trajectory",
+      "predicted_speech_act": "descriptive",
+      "predicted_grounding": "feature",
+      "confidence": 0.9887173224645422,
+      "abstained": false
+    },
+    {
+      "id": "ND049",
+      "text": "The previous game ended with four dishes on the counters.",
+      "gold_speech_act": "descriptive",
+      "gold_grounding": "trajectory",
+      "predicted_speech_act": "descriptive",
+      "predicted_grounding": "feature",
+      "confidence": 0.9980801534247571,
+      "abstained": false
+    }
+  ],
+  "predeclared_gates": {
+    "speech_act": false,
+    "grounding": false,
+    "mixed_components": true
+  },
+  "aggregate_predeclared_pass": false,
+  "training_overlap_audit": {
+    "status": "not_run",
+    "sources": [],
+    "normalized_exact_overlap_count": null,
+    "note": "No training data was supplied to this acceptance agent; a separate audit is required."
+  }
+}

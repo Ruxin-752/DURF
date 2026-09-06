@@ -1,0 +1,4380 @@
+{
+  "schema": "durf-frozen-candidate-audit-v1",
+  "date": "2026-09-06",
+  "runtime": {
+    "python": "3.10.20 | packaged by Anaconda, Inc. | (main, Mar 11 2026, 17:42:35) [MSC v.1942 64 bit (AMD64)]",
+    "sklearn": "1.7.2"
+  },
+  "scope": "Agent-authored diagnostic; not human gold or current-player accuracy. Frozen human test files are not opened by this script. Models and training rows are never written.",
+  "models": {
+    "direct_fg_v2": {
+      "model_path": "baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\feedback_form_classifier_candidates\\direct_fg_v2\\model.joblib",
+      "model_sha256": "c06d2ab585f8abe3cced01ebbcb0958188b793ddd720893d9a2d71705a19d268",
+      "score_semantics": "Raw predict_proba for comparison; historical temperature is recorded but not applied. Argmax is unchanged by positive temperature.",
+      "historical_calibration": {
+        "method": "temperature_scaling",
+        "temperature": 0.5071073061004073,
+        "version": "direct-fg-v2-temperature-selection-dev-v1",
+        "fit_split": "direct_fg_near_component_disjoint_dev",
+        "fit_split_used_for_model_selection": true,
+        "independently_validated": false
+      },
+      "rows": 72,
+      "correct": 60,
+      "accuracy": 0.8333333333333334,
+      "macro_f1": 0.8311287477954145,
+      "per_class": {
+        "evaluative": {
+          "precision": 0.9166666666666666,
+          "recall": 0.9166666666666666,
+          "f1-score": 0.9166666666666666,
+          "support": 24.0
+        },
+        "imperative": {
+          "precision": 0.8888888888888888,
+          "recall": 0.6666666666666666,
+          "f1-score": 0.7619047619047619,
+          "support": 24.0
+        },
+        "descriptive": {
+          "precision": 0.7333333333333333,
+          "recall": 0.9166666666666666,
+          "f1-score": 0.8148148148148148,
+          "support": 24.0
+        }
+      },
+      "label_order": [
+        "evaluative",
+        "imperative",
+        "descriptive"
+      ],
+      "confusion_matrix": [
+        [
+          22,
+          1,
+          1
+        ],
+        [
+          1,
+          16,
+          7
+        ],
+        [
+          1,
+          1,
+          22
+        ]
+      ],
+      "prediction_rows": [
+        {
+          "id": "evaluative-1",
+          "text": "Nice work!",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.08486914566893348,
+            "evaluative": 0.8841173649323668,
+            "imperative": 0.03101348939869962
+          }
+        },
+        {
+          "id": "evaluative-2",
+          "text": "That was a terrible move.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.0004445795086592323,
+            "evaluative": 0.9991559918036071,
+            "imperative": 0.0003994286877335809
+          }
+        },
+        {
+          "id": "evaluative-3",
+          "text": "You handled that order well.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.00021886076746478904,
+            "evaluative": 0.9996653177701441,
+            "imperative": 0.0001158214623913032
+          }
+        },
+        {
+          "id": "evaluative-4",
+          "text": "Your last delivery was excellent.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.0001442722473091345,
+            "evaluative": 0.9996362834883874,
+            "imperative": 0.00021944426430353583
+          }
+        },
+        {
+          "id": "evaluative-5",
+          "text": "I liked how you avoided the collision.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.000866733459667335,
+            "evaluative": 0.9990272981260057,
+            "imperative": 0.00010596841432700483
+          }
+        },
+        {
+          "id": "evaluative-6",
+          "text": "You did a poor job of sharing the counter.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.13702468628175496,
+            "evaluative": 0.7331552511758218,
+            "imperative": 0.1298200625424233
+          }
+        },
+        {
+          "id": "evaluative-7",
+          "text": "That detour was unnecessary.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.030119618923725465,
+            "evaluative": 0.9691421620725752,
+            "imperative": 0.0007382190036992842
+          }
+        },
+        {
+          "id": "evaluative-8",
+          "text": "Great teamwork on the soup!",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.19632830662395714,
+            "evaluative": 0.718699401252586,
+            "imperative": 0.08497229212345693
+          }
+        },
+        {
+          "id": "evaluative-9",
+          "text": "Waiting there was a bad decision.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.058180961187185846,
+            "evaluative": 0.9354168039291244,
+            "imperative": 0.006402234883689819
+          }
+        },
+        {
+          "id": "evaluative-10",
+          "text": "You made the right choice.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.00029714892826802355,
+            "evaluative": 0.9931539260096018,
+            "imperative": 0.006548925062130189
+          }
+        },
+        {
+          "id": "evaluative-11",
+          "text": "That was not a good handoff.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.00020002159656969397,
+            "evaluative": 0.9997022851561976,
+            "imperative": 9.769324723251541e-05
+          }
+        },
+        {
+          "id": "evaluative-12",
+          "text": "Your timing was perfect.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.025228932009761902,
+            "evaluative": 0.9616158104136072,
+            "imperative": 0.013155257576630674
+          }
+        },
+        {
+          "id": "evaluative-13",
+          "text": "I appreciate your help with the dishes.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": false,
+          "raw_scores": {
+            "descriptive": 0.07425623196291453,
+            "evaluative": 0.24969907208371658,
+            "imperative": 0.6760446959533689
+          }
+        },
+        {
+          "id": "evaluative-14",
+          "text": "Your last action was helpful.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.00017822684587244297,
+            "evaluative": 0.9997646427253241,
+            "imperative": 5.713042880348974e-05
+          }
+        },
+        {
+          "id": "evaluative-15",
+          "text": "The way you fetched that onion was inefficient.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.00011719670605567098,
+            "evaluative": 0.9995219686251923,
+            "imperative": 0.0003608346687521488
+          }
+        },
+        {
+          "id": "evaluative-16",
+          "text": "Dropping the plate there was a mistake.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.3269004129288894,
+            "evaluative": 0.6034248169555249,
+            "imperative": 0.06967477011558576
+          }
+        },
+        {
+          "id": "evaluative-17",
+          "text": "Well done on clearing the route.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "descriptive",
+          "correct": false,
+          "raw_scores": {
+            "descriptive": 0.6856997887873668,
+            "evaluative": 0.28112118106749323,
+            "imperative": 0.03317903014513993
+          }
+        },
+        {
+          "id": "evaluative-18",
+          "text": "Your move to the right was careless.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.0005299103765845719,
+            "evaluative": 0.9434886547093988,
+            "imperative": 0.05598143491401669
+          }
+        },
+        {
+          "id": "evaluative-19",
+          "text": "You were too slow with that order.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.0016857100454429686,
+            "evaluative": 0.9893915444265048,
+            "imperative": 0.008922745528052334
+          }
+        },
+        {
+          "id": "evaluative-20",
+          "text": "That was a clever way to get around the pot.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.009920636756899038,
+            "evaluative": 0.9201651851177176,
+            "imperative": 0.0699141781253833
+          }
+        },
+        {
+          "id": "imperative-1",
+          "text": "Go to the stove.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.43196149529209465,
+            "evaluative": 0.09065227804380817,
+            "imperative": 0.4773862266640972
+          }
+        },
+        {
+          "id": "imperative-2",
+          "text": "Bring me a clean plate.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.14730116471485716,
+            "evaluative": 0.013772014901553465,
+            "imperative": 0.8389268203835893
+          }
+        },
+        {
+          "id": "imperative-3",
+          "text": "Please collect another onion.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.04896981407342997,
+            "evaluative": 0.001972940676759905,
+            "imperative": 0.94905724524981
+          }
+        },
+        {
+          "id": "imperative-4",
+          "text": "Could you take the soup to the serving window?",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.0005152325471751799,
+            "evaluative": 0.0003815711484043077,
+            "imperative": 0.9991031963044206
+          }
+        },
+        {
+          "id": "imperative-5",
+          "text": "Stop blocking the doorway.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "descriptive",
+          "correct": false,
+          "raw_scores": {
+            "descriptive": 0.9149295447167096,
+            "evaluative": 0.016963823260539915,
+            "imperative": 0.06810663202275041
+          }
+        },
+        {
+          "id": "imperative-6",
+          "text": "Don't put the plate on the floor.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.0002558228842258893,
+            "evaluative": 0.003608901859342192,
+            "imperative": 0.9961352752564319
+          }
+        },
+        {
+          "id": "imperative-7",
+          "text": "Do not move into my path.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.03068549834680166,
+            "evaluative": 0.0362316218988267,
+            "imperative": 0.9330828797543718
+          }
+        },
+        {
+          "id": "imperative-8",
+          "text": "You should fetch a dish.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.0017520802222892012,
+            "evaluative": 0.0248727244606736,
+            "imperative": 0.9733751953170373
+          }
+        },
+        {
+          "id": "imperative-9",
+          "text": "Would you mind waiting beside the sink?",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.04843210004266077,
+            "evaluative": 0.0596685367983516,
+            "imperative": 0.8918993631589877
+          }
+        },
+        {
+          "id": "imperative-10",
+          "text": "Let me pass.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.012763434361908958,
+            "evaluative": 0.04753453875573976,
+            "imperative": 0.9397020268823514
+          }
+        },
+        {
+          "id": "imperative-11",
+          "text": "Keep the middle counter clear.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.05203551970486603,
+            "evaluative": 0.006717209312781463,
+            "imperative": 0.9412472709823525
+          }
+        },
+        {
+          "id": "imperative-12",
+          "text": "Avoid the narrow corridor.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "descriptive",
+          "correct": false,
+          "raw_scores": {
+            "descriptive": 0.4556146897359938,
+            "evaluative": 0.1364010026257254,
+            "imperative": 0.4079843076382808
+          }
+        },
+        {
+          "id": "imperative-13",
+          "text": "Pick up the cooked soup now.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.000838950386997464,
+            "evaluative": 0.002719069946198649,
+            "imperative": 0.9964419796668038
+          }
+        },
+        {
+          "id": "imperative-14",
+          "text": "Leave the onion on the counter.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.012955447528936596,
+            "evaluative": 0.004514222827279799,
+            "imperative": 0.9825303296437837
+          }
+        },
+        {
+          "id": "imperative-15",
+          "text": "Please do not stand in front of the pot.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.0012400675582415453,
+            "evaluative": 0.0007313443612915272,
+            "imperative": 0.9980285880804669
+          }
+        },
+        {
+          "id": "imperative-16",
+          "text": "Can you move one tile west?",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.02473146543299001,
+            "evaluative": 0.059102547966793956,
+            "imperative": 0.916165986600216
+          }
+        },
+        {
+          "id": "imperative-17",
+          "text": "Try handing me the dish.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.04228452505712832,
+            "evaluative": 0.026708257643586957,
+            "imperative": 0.9310072172992848
+          }
+        },
+        {
+          "id": "imperative-18",
+          "text": "Make room for the other chef.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": false,
+          "raw_scores": {
+            "descriptive": 0.3280100444597711,
+            "evaluative": 0.49921636683113857,
+            "imperative": 0.1727735887090904
+          }
+        },
+        {
+          "id": "imperative-19",
+          "text": "Stay near the serving area.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "descriptive",
+          "correct": false,
+          "raw_scores": {
+            "descriptive": 0.9918334412493567,
+            "evaluative": 0.002535422595613578,
+            "imperative": 0.005631136155029751
+          }
+        },
+        {
+          "id": "imperative-20",
+          "text": "Wait until the soup is ready.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "descriptive",
+          "correct": false,
+          "raw_scores": {
+            "descriptive": 0.9797370286089497,
+            "evaluative": 0.009416642368019305,
+            "imperative": 0.0108463290230308
+          }
+        },
+        {
+          "id": "descriptive-1",
+          "text": "The serving window is on the right.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "descriptive",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.8752490850588065,
+            "evaluative": 0.04989711742063417,
+            "imperative": 0.07485379752055947
+          }
+        },
+        {
+          "id": "descriptive-2",
+          "text": "The onion dispenser is on the left.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "descriptive",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.9882972232995995,
+            "evaluative": 0.007130137483532486,
+            "imperative": 0.004572639216868165
+          }
+        },
+        {
+          "id": "descriptive-3",
+          "text": "There are two onions in the pot.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "descriptive",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.9733267084235367,
+            "evaluative": 0.0035507242619133785,
+            "imperative": 0.02312256731454985
+          }
+        },
+        {
+          "id": "descriptive-4",
+          "text": "I am holding a clean plate.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "descriptive",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.9923039200316336,
+            "evaluative": 0.0036102085416164576,
+            "imperative": 0.004085871426749934
+          }
+        },
+        {
+          "id": "descriptive-5",
+          "text": "The soup is not ready yet.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "descriptive",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.9782864195915434,
+            "evaluative": 0.00813549387994203,
+            "imperative": 0.01357808652851451
+          }
+        },
+        {
+          "id": "descriptive-6",
+          "text": "You are standing beside the sink.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "descriptive",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.9929183962786411,
+            "evaluative": 0.005810508240381123,
+            "imperative": 0.0012710954809776799
+          }
+        },
+        {
+          "id": "descriptive-7",
+          "text": "The corridor is blocked.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "descriptive",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.9786586097031517,
+            "evaluative": 0.01707163077393911,
+            "imperative": 0.004269759522909163
+          }
+        },
+        {
+          "id": "descriptive-8",
+          "text": "The counter next to the pot is empty.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "descriptive",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.9442100097979003,
+            "evaluative": 0.0018859262230192565,
+            "imperative": 0.05390406397908059
+          }
+        },
+        {
+          "id": "descriptive-9",
+          "text": "I have already delivered the soup.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": false,
+          "raw_scores": {
+            "descriptive": 0.43542748871021825,
+            "evaluative": 0.46962088541725233,
+            "imperative": 0.09495162587252932
+          }
+        },
+        {
+          "id": "descriptive-10",
+          "text": "There is no plate by the stove.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "descriptive",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.9904001284582046,
+            "evaluative": 0.00215388061140344,
+            "imperative": 0.007445990930392101
+          }
+        },
+        {
+          "id": "descriptive-11",
+          "text": "You did not pick up the onion.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": false,
+          "raw_scores": {
+            "descriptive": 0.004745732058622048,
+            "evaluative": 0.17193665297108643,
+            "imperative": 0.8233176149702914
+          }
+        },
+        {
+          "id": "descriptive-12",
+          "text": "The other chef is carrying a tomato.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "descriptive",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.985652264347925,
+            "evaluative": 0.0018100846140174977,
+            "imperative": 0.01253765103805747
+          }
+        },
+        {
+          "id": "descriptive-13",
+          "text": "Our score is twenty.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "descriptive",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.9779542003447351,
+            "evaluative": 0.020045399464883432,
+            "imperative": 0.002000400190381411
+          }
+        },
+        {
+          "id": "descriptive-14",
+          "text": "The order needs three onions.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "descriptive",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.9601504285091624,
+            "evaluative": 0.02602626834942655,
+            "imperative": 0.013823303141411085
+          }
+        },
+        {
+          "id": "descriptive-15",
+          "text": "The pot contains no soup.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "descriptive",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.7606472859454626,
+            "evaluative": 0.02878453931794226,
+            "imperative": 0.2105681747365951
+          }
+        },
+        {
+          "id": "descriptive-16",
+          "text": "My route goes through the middle.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "descriptive",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.795795165663385,
+            "evaluative": 0.06516593402334835,
+            "imperative": 0.13903890031326652
+          }
+        },
+        {
+          "id": "descriptive-17",
+          "text": "A dish is sitting on the bottom counter.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "descriptive",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.9895727859518361,
+            "evaluative": 0.004673678022541783,
+            "imperative": 0.005753536025622156
+          }
+        },
+        {
+          "id": "descriptive-18",
+          "text": "You are not in my way.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "descriptive",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.9036277874735287,
+            "evaluative": 0.07440895478599996,
+            "imperative": 0.021963257740471413
+          }
+        },
+        {
+          "id": "descriptive-19",
+          "text": "The onion is still on the floor.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "descriptive",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.9656010644129053,
+            "evaluative": 0.020560264858700276,
+            "imperative": 0.013838670728394505
+          }
+        },
+        {
+          "id": "descriptive-20",
+          "text": "The top counter has a clean plate.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "descriptive",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.9769039592674995,
+            "evaluative": 0.006188706066225546,
+            "imperative": 0.016907334666274774
+          }
+        },
+        {
+          "id": "location-left-imperative",
+          "text": "Go to the left counter.",
+          "expected": "imperative",
+          "stratum": "location_counterfactual",
+          "label": "descriptive",
+          "correct": false,
+          "raw_scores": {
+            "descriptive": 0.8554325632502088,
+            "evaluative": 0.025813535276121905,
+            "imperative": 0.11875390147366943
+          }
+        },
+        {
+          "id": "location-left-descriptive",
+          "text": "The soup is on the left counter.",
+          "expected": "descriptive",
+          "stratum": "location_counterfactual",
+          "label": "descriptive",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.9919141982602845,
+            "evaluative": 0.0044038961760610295,
+            "imperative": 0.003681905563654437
+          }
+        },
+        {
+          "id": "location-left-evaluative",
+          "text": "Leaving the soup on the left counter was a bad decision.",
+          "expected": "evaluative",
+          "stratum": "location_counterfactual",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.06507814139554728,
+            "evaluative": 0.9261143424498568,
+            "imperative": 0.008807516154595825
+          }
+        },
+        {
+          "id": "location-right-imperative",
+          "text": "Go to the right counter.",
+          "expected": "imperative",
+          "stratum": "location_counterfactual",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.19841011495931454,
+            "evaluative": 0.09421870314105585,
+            "imperative": 0.7073711818996297
+          }
+        },
+        {
+          "id": "location-right-descriptive",
+          "text": "The soup is on the right counter.",
+          "expected": "descriptive",
+          "stratum": "location_counterfactual",
+          "label": "descriptive",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.8948014424028031,
+            "evaluative": 0.04182029606034839,
+            "imperative": 0.06337826153684865
+          }
+        },
+        {
+          "id": "location-right-evaluative",
+          "text": "Leaving the soup on the right counter was a bad decision.",
+          "expected": "evaluative",
+          "stratum": "location_counterfactual",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.016119863931800597,
+            "evaluative": 0.9679668410077653,
+            "imperative": 0.015913295060434037
+          }
+        },
+        {
+          "id": "location-top-imperative",
+          "text": "Go to the top counter.",
+          "expected": "imperative",
+          "stratum": "location_counterfactual",
+          "label": "descriptive",
+          "correct": false,
+          "raw_scores": {
+            "descriptive": 0.7192072308562437,
+            "evaluative": 0.019430629995212077,
+            "imperative": 0.2613621391485443
+          }
+        },
+        {
+          "id": "location-top-descriptive",
+          "text": "The soup is on the top counter.",
+          "expected": "descriptive",
+          "stratum": "location_counterfactual",
+          "label": "descriptive",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.9839506659796764,
+            "evaluative": 0.0036866784611825636,
+            "imperative": 0.012362655559141237
+          }
+        },
+        {
+          "id": "location-top-evaluative",
+          "text": "Leaving the soup on the top counter was a bad decision.",
+          "expected": "evaluative",
+          "stratum": "location_counterfactual",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.13549907401675054,
+            "evaluative": 0.8376173677434857,
+            "imperative": 0.02688355823976372
+          }
+        },
+        {
+          "id": "location-bottom-imperative",
+          "text": "Go to the bottom counter.",
+          "expected": "imperative",
+          "stratum": "location_counterfactual",
+          "label": "descriptive",
+          "correct": false,
+          "raw_scores": {
+            "descriptive": 0.6470211563857332,
+            "evaluative": 0.015119959142013742,
+            "imperative": 0.337858884472253
+          }
+        },
+        {
+          "id": "location-bottom-descriptive",
+          "text": "The soup is on the bottom counter.",
+          "expected": "descriptive",
+          "stratum": "location_counterfactual",
+          "label": "descriptive",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.9882680262063218,
+            "evaluative": 0.003072173814538824,
+            "imperative": 0.008659799979139331
+          }
+        },
+        {
+          "id": "location-bottom-evaluative",
+          "text": "Leaving the soup on the bottom counter was a bad decision.",
+          "expected": "evaluative",
+          "stratum": "location_counterfactual",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.0510285660771414,
+            "evaluative": 0.9331349859903134,
+            "imperative": 0.015836447932545118
+          }
+        }
+      ],
+      "diagnostic_without_exact_train_overlap": {
+        "model_path": "baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\feedback_form_classifier_candidates\\direct_fg_v2\\model.joblib",
+        "model_sha256": "c06d2ab585f8abe3cced01ebbcb0958188b793ddd720893d9a2d71705a19d268",
+        "score_semantics": "Raw predict_proba for comparison; historical temperature is recorded but not applied. Argmax is unchanged by positive temperature.",
+        "historical_calibration": {
+          "method": "temperature_scaling",
+          "temperature": 0.5071073061004073,
+          "version": "direct-fg-v2-temperature-selection-dev-v1",
+          "fit_split": "direct_fg_near_component_disjoint_dev",
+          "fit_split_used_for_model_selection": true,
+          "independently_validated": false
+        },
+        "rows": 72,
+        "correct": 60,
+        "accuracy": 0.8333333333333334,
+        "macro_f1": 0.8311287477954145,
+        "per_class": {
+          "evaluative": {
+            "precision": 0.9166666666666666,
+            "recall": 0.9166666666666666,
+            "f1-score": 0.9166666666666666,
+            "support": 24.0
+          },
+          "imperative": {
+            "precision": 0.8888888888888888,
+            "recall": 0.6666666666666666,
+            "f1-score": 0.7619047619047619,
+            "support": 24.0
+          },
+          "descriptive": {
+            "precision": 0.7333333333333333,
+            "recall": 0.9166666666666666,
+            "f1-score": 0.8148148148148148,
+            "support": 24.0
+          }
+        },
+        "label_order": [
+          "evaluative",
+          "imperative",
+          "descriptive"
+        ],
+        "confusion_matrix": [
+          [
+            22,
+            1,
+            1
+          ],
+          [
+            1,
+            16,
+            7
+          ],
+          [
+            1,
+            1,
+            22
+          ]
+        ]
+      },
+      "manifest_sha256": "fa64960b0be3e61368d5a49dfb3425c900d521068fb57deb312852ce6e765394",
+      "saved_release_claims": {
+        "quality_status": "passed_research_candidate_not_promoted",
+        "promotion_status": "not_promoted",
+        "test_and_frozen_access": {
+          "frozen_files_opened": false,
+          "human_test_files_opened": false,
+          "metrics_computed": false,
+          "mixed_test_containers_opened": false
+        }
+      }
+    },
+    "direct_fg_clean_v3": {
+      "model_path": "baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\feedback_form_classifier_candidates\\direct_fg_clean_v3\\model.joblib",
+      "model_sha256": "0d0b46f3266cb8e8d7757177a6f76dff77cbda89d793f8ce674e31000be150a2",
+      "score_semantics": "Raw predict_proba for comparison; historical temperature is recorded but not applied. Argmax is unchanged by positive temperature.",
+      "historical_calibration": {
+        "method": "temperature_scaling",
+        "version": "clean-v3-independent-calibration-v1",
+        "temperature": 0.2,
+        "fit_split": "calibration",
+        "fit_split_used_for_model_selection": false,
+        "final_eval_used": false
+      },
+      "rows": 72,
+      "correct": 52,
+      "accuracy": 0.7222222222222222,
+      "macro_f1": 0.6936914306448124,
+      "per_class": {
+        "evaluative": {
+          "precision": 0.9545454545454546,
+          "recall": 0.875,
+          "f1-score": 0.9130434782608695,
+          "support": 24.0
+        },
+        "imperative": {
+          "precision": 0.5581395348837209,
+          "recall": 1.0,
+          "f1-score": 0.7164179104477612,
+          "support": 24.0
+        },
+        "descriptive": {
+          "precision": 1.0,
+          "recall": 0.2916666666666667,
+          "f1-score": 0.45161290322580644,
+          "support": 24.0
+        }
+      },
+      "label_order": [
+        "evaluative",
+        "imperative",
+        "descriptive"
+      ],
+      "confusion_matrix": [
+        [
+          21,
+          3,
+          0
+        ],
+        [
+          0,
+          24,
+          0
+        ],
+        [
+          1,
+          16,
+          7
+        ]
+      ],
+      "prediction_rows": [
+        {
+          "id": "evaluative-1",
+          "text": "Nice work!",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": false,
+          "raw_scores": {
+            "descriptive": 0.085874683526106,
+            "evaluative": 0.17866309529773058,
+            "imperative": 0.7354622211761634
+          }
+        },
+        {
+          "id": "evaluative-2",
+          "text": "That was a terrible move.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.01670987750426792,
+            "evaluative": 0.9692462651923308,
+            "imperative": 0.014043857303401379
+          }
+        },
+        {
+          "id": "evaluative-3",
+          "text": "You handled that order well.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.16272812522797286,
+            "evaluative": 0.7439839356472628,
+            "imperative": 0.09328793912476438
+          }
+        },
+        {
+          "id": "evaluative-4",
+          "text": "Your last delivery was excellent.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.030567799535654718,
+            "evaluative": 0.8430294655376417,
+            "imperative": 0.1264027349267037
+          }
+        },
+        {
+          "id": "evaluative-5",
+          "text": "I liked how you avoided the collision.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.1065910696626912,
+            "evaluative": 0.4911211605162277,
+            "imperative": 0.4022877698210811
+          }
+        },
+        {
+          "id": "evaluative-6",
+          "text": "You did a poor job of sharing the counter.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.06746486609147588,
+            "evaluative": 0.6053832207753655,
+            "imperative": 0.32715191313315845
+          }
+        },
+        {
+          "id": "evaluative-7",
+          "text": "That detour was unnecessary.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.028838875740282058,
+            "evaluative": 0.9594693308932286,
+            "imperative": 0.011691793366489267
+          }
+        },
+        {
+          "id": "evaluative-8",
+          "text": "Great teamwork on the soup!",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": false,
+          "raw_scores": {
+            "descriptive": 0.1384181629789265,
+            "evaluative": 0.29676526796140135,
+            "imperative": 0.5648165690596723
+          }
+        },
+        {
+          "id": "evaluative-9",
+          "text": "Waiting there was a bad decision.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.1135378757796817,
+            "evaluative": 0.633990577484671,
+            "imperative": 0.25247154673564737
+          }
+        },
+        {
+          "id": "evaluative-10",
+          "text": "You made the right choice.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.1199242096198193,
+            "evaluative": 0.7196993477307437,
+            "imperative": 0.16037644264943696
+          }
+        },
+        {
+          "id": "evaluative-11",
+          "text": "That was not a good handoff.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.05875478155605444,
+            "evaluative": 0.8892499860779823,
+            "imperative": 0.051995232365963186
+          }
+        },
+        {
+          "id": "evaluative-12",
+          "text": "Your timing was perfect.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.011971764340418647,
+            "evaluative": 0.8852552982230707,
+            "imperative": 0.10277293743651048
+          }
+        },
+        {
+          "id": "evaluative-13",
+          "text": "I appreciate your help with the dishes.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": false,
+          "raw_scores": {
+            "descriptive": 0.056860133508916236,
+            "evaluative": 0.17837570282554382,
+            "imperative": 0.7647641636655399
+          }
+        },
+        {
+          "id": "evaluative-14",
+          "text": "Your last action was helpful.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.004969870429619049,
+            "evaluative": 0.9811700491480516,
+            "imperative": 0.013860080422329455
+          }
+        },
+        {
+          "id": "evaluative-15",
+          "text": "The way you fetched that onion was inefficient.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.029549572175141946,
+            "evaluative": 0.9330201356008193,
+            "imperative": 0.03743029222403879
+          }
+        },
+        {
+          "id": "evaluative-16",
+          "text": "Dropping the plate there was a mistake.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.13008970694204267,
+            "evaluative": 0.56970817933992,
+            "imperative": 0.30020211371803723
+          }
+        },
+        {
+          "id": "evaluative-17",
+          "text": "Well done on clearing the route.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.1758326954203964,
+            "evaluative": 0.43636759701860384,
+            "imperative": 0.38779970756099985
+          }
+        },
+        {
+          "id": "evaluative-18",
+          "text": "Your move to the right was careless.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.0481256083944597,
+            "evaluative": 0.47874175718887074,
+            "imperative": 0.47313263441666953
+          }
+        },
+        {
+          "id": "evaluative-19",
+          "text": "You were too slow with that order.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.19721036038632148,
+            "evaluative": 0.5490437438602026,
+            "imperative": 0.25374589575347584
+          }
+        },
+        {
+          "id": "evaluative-20",
+          "text": "That was a clever way to get around the pot.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.0506291408277697,
+            "evaluative": 0.6596026898614507,
+            "imperative": 0.28976816931077964
+          }
+        },
+        {
+          "id": "imperative-1",
+          "text": "Go to the stove.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.026875979822942427,
+            "evaluative": 0.0608047262557933,
+            "imperative": 0.9123192939212642
+          }
+        },
+        {
+          "id": "imperative-2",
+          "text": "Bring me a clean plate.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.07211294783254706,
+            "evaluative": 0.0761116661476256,
+            "imperative": 0.8517753860198274
+          }
+        },
+        {
+          "id": "imperative-3",
+          "text": "Please collect another onion.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.034979808554113846,
+            "evaluative": 0.05047850959766544,
+            "imperative": 0.9145416818482207
+          }
+        },
+        {
+          "id": "imperative-4",
+          "text": "Could you take the soup to the serving window?",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.010878482119635295,
+            "evaluative": 0.020258924312798975,
+            "imperative": 0.9688625935675658
+          }
+        },
+        {
+          "id": "imperative-5",
+          "text": "Stop blocking the doorway.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.1503768555421992,
+            "evaluative": 0.17982450835799269,
+            "imperative": 0.669798636099808
+          }
+        },
+        {
+          "id": "imperative-6",
+          "text": "Don't put the plate on the floor.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.09683337405412197,
+            "evaluative": 0.3152727860621957,
+            "imperative": 0.5878938398836824
+          }
+        },
+        {
+          "id": "imperative-7",
+          "text": "Do not move into my path.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.04736438679410569,
+            "evaluative": 0.2744604714981452,
+            "imperative": 0.6781751417077491
+          }
+        },
+        {
+          "id": "imperative-8",
+          "text": "You should fetch a dish.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.026500888060742616,
+            "evaluative": 0.0666442556190696,
+            "imperative": 0.9068548563201877
+          }
+        },
+        {
+          "id": "imperative-9",
+          "text": "Would you mind waiting beside the sink?",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.0707852453062062,
+            "evaluative": 0.19135217228331924,
+            "imperative": 0.7378625824104746
+          }
+        },
+        {
+          "id": "imperative-10",
+          "text": "Let me pass.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.14936849930076124,
+            "evaluative": 0.23756346466483386,
+            "imperative": 0.613068036034405
+          }
+        },
+        {
+          "id": "imperative-11",
+          "text": "Keep the middle counter clear.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.18025800374862194,
+            "evaluative": 0.10809688573757502,
+            "imperative": 0.711645110513803
+          }
+        },
+        {
+          "id": "imperative-12",
+          "text": "Avoid the narrow corridor.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.14643164878253845,
+            "evaluative": 0.20241314786260922,
+            "imperative": 0.6511552033548524
+          }
+        },
+        {
+          "id": "imperative-13",
+          "text": "Pick up the cooked soup now.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.06069997580100618,
+            "evaluative": 0.15760942466741268,
+            "imperative": 0.7816905995315812
+          }
+        },
+        {
+          "id": "imperative-14",
+          "text": "Leave the onion on the counter.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.11294227779340513,
+            "evaluative": 0.14524392889379234,
+            "imperative": 0.7418137933128025
+          }
+        },
+        {
+          "id": "imperative-15",
+          "text": "Please do not stand in front of the pot.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.08209599323866931,
+            "evaluative": 0.0835833956827728,
+            "imperative": 0.8343206110785579
+          }
+        },
+        {
+          "id": "imperative-16",
+          "text": "Can you move one tile west?",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.06060810706240887,
+            "evaluative": 0.32591038896776364,
+            "imperative": 0.6134815039698275
+          }
+        },
+        {
+          "id": "imperative-17",
+          "text": "Try handing me the dish.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.19354177826146118,
+            "evaluative": 0.10307563484999387,
+            "imperative": 0.7033825868885449
+          }
+        },
+        {
+          "id": "imperative-18",
+          "text": "Make room for the other chef.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.15052604359815197,
+            "evaluative": 0.0830707209510068,
+            "imperative": 0.7664032354508412
+          }
+        },
+        {
+          "id": "imperative-19",
+          "text": "Stay near the serving area.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.10553749120559099,
+            "evaluative": 0.046423954719845444,
+            "imperative": 0.8480385540745636
+          }
+        },
+        {
+          "id": "imperative-20",
+          "text": "Wait until the soup is ready.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.16780315957007202,
+            "evaluative": 0.15352334724808686,
+            "imperative": 0.6786734931818411
+          }
+        },
+        {
+          "id": "descriptive-1",
+          "text": "The serving window is on the right.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "descriptive",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.5285794040146082,
+            "evaluative": 0.1365890980008478,
+            "imperative": 0.3348314979845439
+          }
+        },
+        {
+          "id": "descriptive-2",
+          "text": "The onion dispenser is on the left.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": false,
+          "raw_scores": {
+            "descriptive": 0.35012023439215595,
+            "evaluative": 0.18251893230018584,
+            "imperative": 0.4673608333076581
+          }
+        },
+        {
+          "id": "descriptive-3",
+          "text": "There are two onions in the pot.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "descriptive",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.49532321250601014,
+            "evaluative": 0.05958124193198135,
+            "imperative": 0.4450955455620085
+          }
+        },
+        {
+          "id": "descriptive-4",
+          "text": "I am holding a clean plate.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": false,
+          "raw_scores": {
+            "descriptive": 0.17348177618142133,
+            "evaluative": 0.10353762631704551,
+            "imperative": 0.7229805975015331
+          }
+        },
+        {
+          "id": "descriptive-5",
+          "text": "The soup is not ready yet.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": false,
+          "raw_scores": {
+            "descriptive": 0.22942576856115918,
+            "evaluative": 0.17591718280157,
+            "imperative": 0.5946570486372709
+          }
+        },
+        {
+          "id": "descriptive-6",
+          "text": "You are standing beside the sink.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": false,
+          "raw_scores": {
+            "descriptive": 0.2535343538876658,
+            "evaluative": 0.2661995556346389,
+            "imperative": 0.48026609047769525
+          }
+        },
+        {
+          "id": "descriptive-7",
+          "text": "The corridor is blocked.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "descriptive",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.713238422313761,
+            "evaluative": 0.09771191938450836,
+            "imperative": 0.18904965830173068
+          }
+        },
+        {
+          "id": "descriptive-8",
+          "text": "The counter next to the pot is empty.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": false,
+          "raw_scores": {
+            "descriptive": 0.08246783985476587,
+            "evaluative": 0.028794720536560653,
+            "imperative": 0.8887374396086736
+          }
+        },
+        {
+          "id": "descriptive-9",
+          "text": "I have already delivered the soup.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": false,
+          "raw_scores": {
+            "descriptive": 0.1339036168407032,
+            "evaluative": 0.17204711490121807,
+            "imperative": 0.6940492682580788
+          }
+        },
+        {
+          "id": "descriptive-10",
+          "text": "There is no plate by the stove.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "descriptive",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.43476199408295024,
+            "evaluative": 0.14136950062886378,
+            "imperative": 0.42386850528818587
+          }
+        },
+        {
+          "id": "descriptive-11",
+          "text": "You did not pick up the onion.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": false,
+          "raw_scores": {
+            "descriptive": 0.03959857867755886,
+            "evaluative": 0.39210246443496527,
+            "imperative": 0.5682989568874759
+          }
+        },
+        {
+          "id": "descriptive-12",
+          "text": "The other chef is carrying a tomato.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "descriptive",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.6750306304774137,
+            "evaluative": 0.051409820636533,
+            "imperative": 0.2735595488860532
+          }
+        },
+        {
+          "id": "descriptive-13",
+          "text": "Our score is twenty.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": false,
+          "raw_scores": {
+            "descriptive": 0.4319580565084227,
+            "evaluative": 0.1328089745776415,
+            "imperative": 0.4352329689139358
+          }
+        },
+        {
+          "id": "descriptive-14",
+          "text": "The order needs three onions.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": false,
+          "raw_scores": {
+            "descriptive": 0.43260121877081464,
+            "evaluative": 0.09908165375253081,
+            "imperative": 0.46831712747665466
+          }
+        },
+        {
+          "id": "descriptive-15",
+          "text": "The pot contains no soup.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "descriptive",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.4810056305008083,
+            "evaluative": 0.10180344980384105,
+            "imperative": 0.41719091969535066
+          }
+        },
+        {
+          "id": "descriptive-16",
+          "text": "My route goes through the middle.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": false,
+          "raw_scores": {
+            "descriptive": 0.2876677243685976,
+            "evaluative": 0.18260852595589144,
+            "imperative": 0.529723749675511
+          }
+        },
+        {
+          "id": "descriptive-17",
+          "text": "A dish is sitting on the bottom counter.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": false,
+          "raw_scores": {
+            "descriptive": 0.3833620889938389,
+            "evaluative": 0.13503156654602524,
+            "imperative": 0.48160634446013584
+          }
+        },
+        {
+          "id": "descriptive-18",
+          "text": "You are not in my way.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": false,
+          "raw_scores": {
+            "descriptive": 0.07795859395094693,
+            "evaluative": 0.680877180796188,
+            "imperative": 0.24116422525286507
+          }
+        },
+        {
+          "id": "descriptive-19",
+          "text": "The onion is still on the floor.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": false,
+          "raw_scores": {
+            "descriptive": 0.36028243203323274,
+            "evaluative": 0.21665429321913168,
+            "imperative": 0.42306327474763555
+          }
+        },
+        {
+          "id": "descriptive-20",
+          "text": "The top counter has a clean plate.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": false,
+          "raw_scores": {
+            "descriptive": 0.3376082651146196,
+            "evaluative": 0.11948185056199916,
+            "imperative": 0.5429098843233812
+          }
+        },
+        {
+          "id": "location-left-imperative",
+          "text": "Go to the left counter.",
+          "expected": "imperative",
+          "stratum": "location_counterfactual",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.04366722767087989,
+            "evaluative": 0.057121321382182275,
+            "imperative": 0.8992114509469379
+          }
+        },
+        {
+          "id": "location-left-descriptive",
+          "text": "The soup is on the left counter.",
+          "expected": "descriptive",
+          "stratum": "location_counterfactual",
+          "label": "imperative",
+          "correct": false,
+          "raw_scores": {
+            "descriptive": 0.3226806132470534,
+            "evaluative": 0.16337751594626304,
+            "imperative": 0.5139418708066836
+          }
+        },
+        {
+          "id": "location-left-evaluative",
+          "text": "Leaving the soup on the left counter was a bad decision.",
+          "expected": "evaluative",
+          "stratum": "location_counterfactual",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.10279707914026438,
+            "evaluative": 0.6159830070367368,
+            "imperative": 0.2812199138229989
+          }
+        },
+        {
+          "id": "location-right-imperative",
+          "text": "Go to the right counter.",
+          "expected": "imperative",
+          "stratum": "location_counterfactual",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.10773604133193189,
+            "evaluative": 0.05215892635496731,
+            "imperative": 0.8401050323131007
+          }
+        },
+        {
+          "id": "location-right-descriptive",
+          "text": "The soup is on the right counter.",
+          "expected": "descriptive",
+          "stratum": "location_counterfactual",
+          "label": "descriptive",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.5450624256378044,
+            "evaluative": 0.11144211279563664,
+            "imperative": 0.34349546156655897
+          }
+        },
+        {
+          "id": "location-right-evaluative",
+          "text": "Leaving the soup on the right counter was a bad decision.",
+          "expected": "evaluative",
+          "stratum": "location_counterfactual",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.1768860437657276,
+            "evaluative": 0.5723724537365437,
+            "imperative": 0.25074150249772875
+          }
+        },
+        {
+          "id": "location-top-imperative",
+          "text": "Go to the top counter.",
+          "expected": "imperative",
+          "stratum": "location_counterfactual",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.023491571431939664,
+            "evaluative": 0.021340567817562724,
+            "imperative": 0.9551678607504976
+          }
+        },
+        {
+          "id": "location-top-descriptive",
+          "text": "The soup is on the top counter.",
+          "expected": "descriptive",
+          "stratum": "location_counterfactual",
+          "label": "imperative",
+          "correct": false,
+          "raw_scores": {
+            "descriptive": 0.3557715961012573,
+            "evaluative": 0.09500923105197506,
+            "imperative": 0.5492191728467676
+          }
+        },
+        {
+          "id": "location-top-evaluative",
+          "text": "Leaving the soup on the top counter was a bad decision.",
+          "expected": "evaluative",
+          "stratum": "location_counterfactual",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.09963171723329722,
+            "evaluative": 0.6094337558458895,
+            "imperative": 0.29093452692081323
+          }
+        },
+        {
+          "id": "location-bottom-imperative",
+          "text": "Go to the bottom counter.",
+          "expected": "imperative",
+          "stratum": "location_counterfactual",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.02597536010869338,
+            "evaluative": 0.023355155932786396,
+            "imperative": 0.9506694839585201
+          }
+        },
+        {
+          "id": "location-bottom-descriptive",
+          "text": "The soup is on the bottom counter.",
+          "expected": "descriptive",
+          "stratum": "location_counterfactual",
+          "label": "imperative",
+          "correct": false,
+          "raw_scores": {
+            "descriptive": 0.3809047251848131,
+            "evaluative": 0.09835991934566078,
+            "imperative": 0.5207353554695262
+          }
+        },
+        {
+          "id": "location-bottom-evaluative",
+          "text": "Leaving the soup on the bottom counter was a bad decision.",
+          "expected": "evaluative",
+          "stratum": "location_counterfactual",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.10195806060114244,
+            "evaluative": 0.616902551740992,
+            "imperative": 0.2811393876578655
+          }
+        }
+      ],
+      "diagnostic_without_exact_train_overlap": {
+        "model_path": "baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\feedback_form_classifier_candidates\\direct_fg_clean_v3\\model.joblib",
+        "model_sha256": "0d0b46f3266cb8e8d7757177a6f76dff77cbda89d793f8ce674e31000be150a2",
+        "score_semantics": "Raw predict_proba for comparison; historical temperature is recorded but not applied. Argmax is unchanged by positive temperature.",
+        "historical_calibration": {
+          "method": "temperature_scaling",
+          "version": "clean-v3-independent-calibration-v1",
+          "temperature": 0.2,
+          "fit_split": "calibration",
+          "fit_split_used_for_model_selection": false,
+          "final_eval_used": false
+        },
+        "rows": 72,
+        "correct": 52,
+        "accuracy": 0.7222222222222222,
+        "macro_f1": 0.6936914306448124,
+        "per_class": {
+          "evaluative": {
+            "precision": 0.9545454545454546,
+            "recall": 0.875,
+            "f1-score": 0.9130434782608695,
+            "support": 24.0
+          },
+          "imperative": {
+            "precision": 0.5581395348837209,
+            "recall": 1.0,
+            "f1-score": 0.7164179104477612,
+            "support": 24.0
+          },
+          "descriptive": {
+            "precision": 1.0,
+            "recall": 0.2916666666666667,
+            "f1-score": 0.45161290322580644,
+            "support": 24.0
+          }
+        },
+        "label_order": [
+          "evaluative",
+          "imperative",
+          "descriptive"
+        ],
+        "confusion_matrix": [
+          [
+            21,
+            3,
+            0
+          ],
+          [
+            0,
+            24,
+            0
+          ],
+          [
+            1,
+            16,
+            7
+          ]
+        ]
+      },
+      "manifest_sha256": "926b1143a8098f2e1596df9a559087ffccf5f8c9bde75fee8c10f261e087f612",
+      "saved_release_claims": {
+        "status": "passed_research_candidate",
+        "production_promotion_eligible": false,
+        "provenance": {
+          "ai_assisted": true,
+          "dev_test_frozen_membership_files_read": 0,
+          "five_class_reference_classifier_used_as_target": false,
+          "human_gold": false,
+          "human_rows_read": 0,
+          "independent_human_semantic_audit": false,
+          "old_synthetic_rows_read": 0,
+          "prior_error_informed": true,
+          "reference_type_used_as_target": false
+        }
+      }
+    },
+    "direct_fg_clean_v4": {
+      "model_path": "baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\feedback_form_classifier_candidates\\direct_fg_clean_v4\\model.joblib",
+      "model_sha256": "ec22916795d58583caf746d8dca61fab49b75a7f1d60d9db91411c02e8c04be7",
+      "score_semantics": "Raw predict_proba for comparison; historical temperature is recorded but not applied. Argmax is unchanged by positive temperature.",
+      "historical_calibration": {
+        "method": "temperature_scaling",
+        "version": "clean-v3-independent-calibration-v1",
+        "temperature": 0.2,
+        "fit_split": "calibration",
+        "fit_split_used_for_model_selection": false,
+        "final_eval_used": false,
+        "confidence_claim_scope": "synthetic_only_not_player_validated"
+      },
+      "rows": 72,
+      "correct": 61,
+      "accuracy": 0.8472222222222222,
+      "macro_f1": 0.8468773096821877,
+      "per_class": {
+        "evaluative": {
+          "precision": 0.875,
+          "recall": 0.875,
+          "f1-score": 0.875,
+          "support": 24.0
+        },
+        "imperative": {
+          "precision": 0.7419354838709677,
+          "recall": 0.9583333333333334,
+          "f1-score": 0.8363636363636363,
+          "support": 24.0
+        },
+        "descriptive": {
+          "precision": 1.0,
+          "recall": 0.7083333333333334,
+          "f1-score": 0.8292682926829268,
+          "support": 24.0
+        }
+      },
+      "label_order": [
+        "evaluative",
+        "imperative",
+        "descriptive"
+      ],
+      "confusion_matrix": [
+        [
+          21,
+          3,
+          0
+        ],
+        [
+          1,
+          23,
+          0
+        ],
+        [
+          2,
+          5,
+          17
+        ]
+      ],
+      "prediction_rows": [
+        {
+          "id": "evaluative-1",
+          "text": "Nice work!",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": false,
+          "raw_scores": {
+            "descriptive": 0.20941616911290142,
+            "evaluative": 0.23254806377410264,
+            "imperative": 0.558035767112996
+          }
+        },
+        {
+          "id": "evaluative-2",
+          "text": "That was a terrible move.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.03229259539176212,
+            "evaluative": 0.9571706264150552,
+            "imperative": 0.010536778193182625
+          }
+        },
+        {
+          "id": "evaluative-3",
+          "text": "You handled that order well.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.22452670356191773,
+            "evaluative": 0.6590279472543387,
+            "imperative": 0.1164453491837436
+          }
+        },
+        {
+          "id": "evaluative-4",
+          "text": "Your last delivery was excellent.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.06763337658435792,
+            "evaluative": 0.8518445532034593,
+            "imperative": 0.08052207021218288
+          }
+        },
+        {
+          "id": "evaluative-5",
+          "text": "I liked how you avoided the collision.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.10278473616775202,
+            "evaluative": 0.7500769085101607,
+            "imperative": 0.14713835532208722
+          }
+        },
+        {
+          "id": "evaluative-6",
+          "text": "You did a poor job of sharing the counter.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.21926814731442498,
+            "evaluative": 0.5585562374032781,
+            "imperative": 0.22217561528229707
+          }
+        },
+        {
+          "id": "evaluative-7",
+          "text": "That detour was unnecessary.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.09241434510068208,
+            "evaluative": 0.8805146938095572,
+            "imperative": 0.027070961089760842
+          }
+        },
+        {
+          "id": "evaluative-8",
+          "text": "Great teamwork on the soup!",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": false,
+          "raw_scores": {
+            "descriptive": 0.30455385995838896,
+            "evaluative": 0.28418409975987247,
+            "imperative": 0.41126204028173863
+          }
+        },
+        {
+          "id": "evaluative-9",
+          "text": "Waiting there was a bad decision.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.14122400422180276,
+            "evaluative": 0.7631940090461231,
+            "imperative": 0.09558198673207413
+          }
+        },
+        {
+          "id": "evaluative-10",
+          "text": "You made the right choice.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.2446796927636213,
+            "evaluative": 0.558841004236766,
+            "imperative": 0.19647930299961272
+          }
+        },
+        {
+          "id": "evaluative-11",
+          "text": "That was not a good handoff.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.057512169416618866,
+            "evaluative": 0.9181471339041366,
+            "imperative": 0.024340696679244666
+          }
+        },
+        {
+          "id": "evaluative-12",
+          "text": "Your timing was perfect.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.04968145465690361,
+            "evaluative": 0.8440377972434776,
+            "imperative": 0.10628074809961874
+          }
+        },
+        {
+          "id": "evaluative-13",
+          "text": "I appreciate your help with the dishes.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": false,
+          "raw_scores": {
+            "descriptive": 0.12581562780637834,
+            "evaluative": 0.27773310344294144,
+            "imperative": 0.5964512687506802
+          }
+        },
+        {
+          "id": "evaluative-14",
+          "text": "Your last action was helpful.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.038422951672096535,
+            "evaluative": 0.9001363561143264,
+            "imperative": 0.06144069221357715
+          }
+        },
+        {
+          "id": "evaluative-15",
+          "text": "The way you fetched that onion was inefficient.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.07708132231630566,
+            "evaluative": 0.8668196278771179,
+            "imperative": 0.056099049806576554
+          }
+        },
+        {
+          "id": "evaluative-16",
+          "text": "Dropping the plate there was a mistake.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.21992354056395064,
+            "evaluative": 0.5268032352094929,
+            "imperative": 0.2532732242265564
+          }
+        },
+        {
+          "id": "evaluative-17",
+          "text": "Well done on clearing the route.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.28439252328595027,
+            "evaluative": 0.37151379110115335,
+            "imperative": 0.34409368561289644
+          }
+        },
+        {
+          "id": "evaluative-18",
+          "text": "Your move to the right was careless.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.0852315405547451,
+            "evaluative": 0.6196349581980183,
+            "imperative": 0.29513350124723664
+          }
+        },
+        {
+          "id": "evaluative-19",
+          "text": "You were too slow with that order.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.2335928498568062,
+            "evaluative": 0.5377724786450672,
+            "imperative": 0.22863467149812663
+          }
+        },
+        {
+          "id": "evaluative-20",
+          "text": "That was a clever way to get around the pot.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.09687870340545171,
+            "evaluative": 0.625717767285491,
+            "imperative": 0.2774035293090574
+          }
+        },
+        {
+          "id": "imperative-1",
+          "text": "Go to the stove.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.08221995519051661,
+            "evaluative": 0.1705512428694454,
+            "imperative": 0.747228801940038
+          }
+        },
+        {
+          "id": "imperative-2",
+          "text": "Bring me a clean plate.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.19845807861827627,
+            "evaluative": 0.16088394888572835,
+            "imperative": 0.6406579724959953
+          }
+        },
+        {
+          "id": "imperative-3",
+          "text": "Please collect another onion.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.09745746269305663,
+            "evaluative": 0.08105961284528874,
+            "imperative": 0.8214829244616546
+          }
+        },
+        {
+          "id": "imperative-4",
+          "text": "Could you take the soup to the serving window?",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.04754080713799531,
+            "evaluative": 0.07865659917830696,
+            "imperative": 0.8738025936836977
+          }
+        },
+        {
+          "id": "imperative-5",
+          "text": "Stop blocking the doorway.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.36713127678455737,
+            "evaluative": 0.21786445008978522,
+            "imperative": 0.41500427312565735
+          }
+        },
+        {
+          "id": "imperative-6",
+          "text": "Don't put the plate on the floor.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.17021584971379064,
+            "evaluative": 0.2041920029155644,
+            "imperative": 0.625592147370645
+          }
+        },
+        {
+          "id": "imperative-7",
+          "text": "Do not move into my path.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.08409398417897272,
+            "evaluative": 0.434413017758972,
+            "imperative": 0.4814929980620553
+          }
+        },
+        {
+          "id": "imperative-8",
+          "text": "You should fetch a dish.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.0773950008061802,
+            "evaluative": 0.15985837917356477,
+            "imperative": 0.762746620020255
+          }
+        },
+        {
+          "id": "imperative-9",
+          "text": "Would you mind waiting beside the sink?",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.1253441284168012,
+            "evaluative": 0.2689259976754082,
+            "imperative": 0.6057298739077905
+          }
+        },
+        {
+          "id": "imperative-10",
+          "text": "Let me pass.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.25465979942801087,
+            "evaluative": 0.3150124189804001,
+            "imperative": 0.43032778159158896
+          }
+        },
+        {
+          "id": "imperative-11",
+          "text": "Keep the middle counter clear.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.314033262652104,
+            "evaluative": 0.17073122981744424,
+            "imperative": 0.5152355075304518
+          }
+        },
+        {
+          "id": "imperative-12",
+          "text": "Avoid the narrow corridor.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.3291113968541022,
+            "evaluative": 0.216274821484507,
+            "imperative": 0.45461378166139077
+          }
+        },
+        {
+          "id": "imperative-13",
+          "text": "Pick up the cooked soup now.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.05313126277094169,
+            "evaluative": 0.07489990317148935,
+            "imperative": 0.8719688340575691
+          }
+        },
+        {
+          "id": "imperative-14",
+          "text": "Leave the onion on the counter.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.2974892526099945,
+            "evaluative": 0.1609276003372747,
+            "imperative": 0.5415831470527309
+          }
+        },
+        {
+          "id": "imperative-15",
+          "text": "Please do not stand in front of the pot.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.2058259242262033,
+            "evaluative": 0.11508291184069616,
+            "imperative": 0.6790911639331004
+          }
+        },
+        {
+          "id": "imperative-16",
+          "text": "Can you move one tile west?",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": false,
+          "raw_scores": {
+            "descriptive": 0.12093059210594069,
+            "evaluative": 0.6001513382004571,
+            "imperative": 0.27891806969360233
+          }
+        },
+        {
+          "id": "imperative-17",
+          "text": "Try handing me the dish.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.3921844537209331,
+            "evaluative": 0.14273550058792847,
+            "imperative": 0.46508004569113837
+          }
+        },
+        {
+          "id": "imperative-18",
+          "text": "Make room for the other chef.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.38851727948811765,
+            "evaluative": 0.11795322838716447,
+            "imperative": 0.4935294921247178
+          }
+        },
+        {
+          "id": "imperative-19",
+          "text": "Stay near the serving area.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.3510835079677772,
+            "evaluative": 0.13827519664412996,
+            "imperative": 0.5106412953880929
+          }
+        },
+        {
+          "id": "imperative-20",
+          "text": "Wait until the soup is ready.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.2998827573600767,
+            "evaluative": 0.21138057192179763,
+            "imperative": 0.4887366707181258
+          }
+        },
+        {
+          "id": "descriptive-1",
+          "text": "The serving window is on the right.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "descriptive",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.659875895928321,
+            "evaluative": 0.10664663302082646,
+            "imperative": 0.23347747105085256
+          }
+        },
+        {
+          "id": "descriptive-2",
+          "text": "The onion dispenser is on the left.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "descriptive",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.48741217603334336,
+            "evaluative": 0.1681947941827719,
+            "imperative": 0.34439302978388475
+          }
+        },
+        {
+          "id": "descriptive-3",
+          "text": "There are two onions in the pot.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "descriptive",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.5979161922218973,
+            "evaluative": 0.07971095201236973,
+            "imperative": 0.32237285576573294
+          }
+        },
+        {
+          "id": "descriptive-4",
+          "text": "I am holding a clean plate.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": false,
+          "raw_scores": {
+            "descriptive": 0.3848009623288957,
+            "evaluative": 0.17350485866058019,
+            "imperative": 0.4416941790105242
+          }
+        },
+        {
+          "id": "descriptive-5",
+          "text": "The soup is not ready yet.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": false,
+          "raw_scores": {
+            "descriptive": 0.3216833855778087,
+            "evaluative": 0.19619660624368426,
+            "imperative": 0.4821200081785069
+          }
+        },
+        {
+          "id": "descriptive-6",
+          "text": "You are standing beside the sink.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": false,
+          "raw_scores": {
+            "descriptive": 0.34317261110375713,
+            "evaluative": 0.35427941439405664,
+            "imperative": 0.30254797450218623
+          }
+        },
+        {
+          "id": "descriptive-7",
+          "text": "The corridor is blocked.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "descriptive",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.6935997805300366,
+            "evaluative": 0.1298349827815935,
+            "imperative": 0.17656523668836982
+          }
+        },
+        {
+          "id": "descriptive-8",
+          "text": "The counter next to the pot is empty.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": false,
+          "raw_scores": {
+            "descriptive": 0.10247816872549714,
+            "evaluative": 0.0671518119511842,
+            "imperative": 0.8303700193233187
+          }
+        },
+        {
+          "id": "descriptive-9",
+          "text": "I have already delivered the soup.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": false,
+          "raw_scores": {
+            "descriptive": 0.34859168656822676,
+            "evaluative": 0.2494341896969323,
+            "imperative": 0.4019741237348409
+          }
+        },
+        {
+          "id": "descriptive-10",
+          "text": "There is no plate by the stove.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "descriptive",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.4643200193764241,
+            "evaluative": 0.1666290479897338,
+            "imperative": 0.3690509326338421
+          }
+        },
+        {
+          "id": "descriptive-11",
+          "text": "You did not pick up the onion.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": false,
+          "raw_scores": {
+            "descriptive": 0.09103490142820402,
+            "evaluative": 0.37765062901869895,
+            "imperative": 0.531314469553097
+          }
+        },
+        {
+          "id": "descriptive-12",
+          "text": "The other chef is carrying a tomato.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "descriptive",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.8424295558307936,
+            "evaluative": 0.050960739319400865,
+            "imperative": 0.10660970484980535
+          }
+        },
+        {
+          "id": "descriptive-13",
+          "text": "Our score is twenty.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "descriptive",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.5216137309410218,
+            "evaluative": 0.17016006393294972,
+            "imperative": 0.30822620512602844
+          }
+        },
+        {
+          "id": "descriptive-14",
+          "text": "The order needs three onions.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "descriptive",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.48217915579892295,
+            "evaluative": 0.13348247093693202,
+            "imperative": 0.3843383732641451
+          }
+        },
+        {
+          "id": "descriptive-15",
+          "text": "The pot contains no soup.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "descriptive",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.44725268171190435,
+            "evaluative": 0.1454310400598199,
+            "imperative": 0.4073162782282757
+          }
+        },
+        {
+          "id": "descriptive-16",
+          "text": "My route goes through the middle.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "descriptive",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.3613636010297223,
+            "evaluative": 0.2998006711608799,
+            "imperative": 0.3388357278093978
+          }
+        },
+        {
+          "id": "descriptive-17",
+          "text": "A dish is sitting on the bottom counter.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "descriptive",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.621789244707574,
+            "evaluative": 0.11710366047112655,
+            "imperative": 0.26110709482129935
+          }
+        },
+        {
+          "id": "descriptive-18",
+          "text": "You are not in my way.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": false,
+          "raw_scores": {
+            "descriptive": 0.1549160495193157,
+            "evaluative": 0.6017901064480237,
+            "imperative": 0.24329384403266058
+          }
+        },
+        {
+          "id": "descriptive-19",
+          "text": "The onion is still on the floor.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "descriptive",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.47618327322177184,
+            "evaluative": 0.19347245822990866,
+            "imperative": 0.33034426854831944
+          }
+        },
+        {
+          "id": "descriptive-20",
+          "text": "The top counter has a clean plate.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "descriptive",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.5490103784563357,
+            "evaluative": 0.14782387457144955,
+            "imperative": 0.3031657469722148
+          }
+        },
+        {
+          "id": "location-left-imperative",
+          "text": "Go to the left counter.",
+          "expected": "imperative",
+          "stratum": "location_counterfactual",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.14515253465670183,
+            "evaluative": 0.16603360144012352,
+            "imperative": 0.6888138639031746
+          }
+        },
+        {
+          "id": "location-left-descriptive",
+          "text": "The soup is on the left counter.",
+          "expected": "descriptive",
+          "stratum": "location_counterfactual",
+          "label": "descriptive",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.5785562521555416,
+            "evaluative": 0.17348651999503747,
+            "imperative": 0.247957227849421
+          }
+        },
+        {
+          "id": "location-left-evaluative",
+          "text": "Leaving the soup on the left counter was a bad decision.",
+          "expected": "evaluative",
+          "stratum": "location_counterfactual",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.17930274192928536,
+            "evaluative": 0.7082595306109744,
+            "imperative": 0.11243772745974034
+          }
+        },
+        {
+          "id": "location-right-imperative",
+          "text": "Go to the right counter.",
+          "expected": "imperative",
+          "stratum": "location_counterfactual",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.2306144597288541,
+            "evaluative": 0.10646988022634539,
+            "imperative": 0.6629156600448005
+          }
+        },
+        {
+          "id": "location-right-descriptive",
+          "text": "The soup is on the right counter.",
+          "expected": "descriptive",
+          "stratum": "location_counterfactual",
+          "label": "descriptive",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.7123353295187326,
+            "evaluative": 0.09724354709621785,
+            "imperative": 0.19042112338504966
+          }
+        },
+        {
+          "id": "location-right-evaluative",
+          "text": "Leaving the soup on the right counter was a bad decision.",
+          "expected": "evaluative",
+          "stratum": "location_counterfactual",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.26920909984647046,
+            "evaluative": 0.6113912063491815,
+            "imperative": 0.11939969380434798
+          }
+        },
+        {
+          "id": "location-top-imperative",
+          "text": "Go to the top counter.",
+          "expected": "imperative",
+          "stratum": "location_counterfactual",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.09458065455187038,
+            "evaluative": 0.08238901744862828,
+            "imperative": 0.8230303279995013
+          }
+        },
+        {
+          "id": "location-top-descriptive",
+          "text": "The soup is on the top counter.",
+          "expected": "descriptive",
+          "stratum": "location_counterfactual",
+          "label": "descriptive",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.6333755362869338,
+            "evaluative": 0.10128964514715903,
+            "imperative": 0.2653348185659073
+          }
+        },
+        {
+          "id": "location-top-evaluative",
+          "text": "Leaving the soup on the top counter was a bad decision.",
+          "expected": "evaluative",
+          "stratum": "location_counterfactual",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.17835423143184984,
+            "evaluative": 0.7012484080144128,
+            "imperative": 0.12039736055373737
+          }
+        },
+        {
+          "id": "location-bottom-imperative",
+          "text": "Go to the bottom counter.",
+          "expected": "imperative",
+          "stratum": "location_counterfactual",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.10651526158407246,
+            "evaluative": 0.09426041516855922,
+            "imperative": 0.7992243232473684
+          }
+        },
+        {
+          "id": "location-bottom-descriptive",
+          "text": "The soup is on the bottom counter.",
+          "expected": "descriptive",
+          "stratum": "location_counterfactual",
+          "label": "descriptive",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.6486446243642247,
+            "evaluative": 0.10672518561621203,
+            "imperative": 0.24463019001956332
+          }
+        },
+        {
+          "id": "location-bottom-evaluative",
+          "text": "Leaving the soup on the bottom counter was a bad decision.",
+          "expected": "evaluative",
+          "stratum": "location_counterfactual",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.18093389747272773,
+            "evaluative": 0.703317640739712,
+            "imperative": 0.1157484617875602
+          }
+        }
+      ],
+      "diagnostic_without_exact_train_overlap": {
+        "model_path": "baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\feedback_form_classifier_candidates\\direct_fg_clean_v4\\model.joblib",
+        "model_sha256": "ec22916795d58583caf746d8dca61fab49b75a7f1d60d9db91411c02e8c04be7",
+        "score_semantics": "Raw predict_proba for comparison; historical temperature is recorded but not applied. Argmax is unchanged by positive temperature.",
+        "historical_calibration": {
+          "method": "temperature_scaling",
+          "version": "clean-v3-independent-calibration-v1",
+          "temperature": 0.2,
+          "fit_split": "calibration",
+          "fit_split_used_for_model_selection": false,
+          "final_eval_used": false,
+          "confidence_claim_scope": "synthetic_only_not_player_validated"
+        },
+        "rows": 72,
+        "correct": 61,
+        "accuracy": 0.8472222222222222,
+        "macro_f1": 0.8468773096821877,
+        "per_class": {
+          "evaluative": {
+            "precision": 0.875,
+            "recall": 0.875,
+            "f1-score": 0.875,
+            "support": 24.0
+          },
+          "imperative": {
+            "precision": 0.7419354838709677,
+            "recall": 0.9583333333333334,
+            "f1-score": 0.8363636363636363,
+            "support": 24.0
+          },
+          "descriptive": {
+            "precision": 1.0,
+            "recall": 0.7083333333333334,
+            "f1-score": 0.8292682926829268,
+            "support": 24.0
+          }
+        },
+        "label_order": [
+          "evaluative",
+          "imperative",
+          "descriptive"
+        ],
+        "confusion_matrix": [
+          [
+            21,
+            3,
+            0
+          ],
+          [
+            1,
+            23,
+            0
+          ],
+          [
+            2,
+            5,
+            17
+          ]
+        ]
+      },
+      "manifest_sha256": "dac6db5b1cd0feaa4d1f1a71ef9d7bbfdfa604ab92a02642c5238a99e4e05be0",
+      "saved_release_claims": {
+        "status": "failed_research_candidate",
+        "production_promotion_eligible": false,
+        "provenance": {
+          "ai_assisted": true,
+          "dev_test_frozen_membership_files_read": 0,
+          "five_class_reference_classifier_used_as_target": false,
+          "human_gold": false,
+          "human_rows_read": 0,
+          "independent_human_semantic_audit": false,
+          "old_synthetic_rows_read": 0,
+          "prior_error_informed": true,
+          "reference_type_used_as_target": false,
+          "v3_artifact_files_read": 0,
+          "v3_natural_probe_error_informed": true
+        },
+        "confidence_ready_for_player_ui": false
+      }
+    },
+    "direct_fg_boundary_shadow_v1_model": {
+      "model_path": "baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\feedback_form_classifier_candidates\\direct_fg_boundary_shadow_v1_model\\model.joblib",
+      "model_sha256": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+      "score_semantics": "Raw predict_proba for comparison; historical temperature is recorded but not applied. Argmax is unchanged by positive temperature.",
+      "historical_calibration": {
+        "temperature": 0.0823618560384671
+      },
+      "rows": 72,
+      "correct": 52,
+      "accuracy": 0.7222222222222222,
+      "macro_f1": 0.7135443921158208,
+      "per_class": {
+        "evaluative": {
+          "precision": 0.88,
+          "recall": 0.9166666666666666,
+          "f1-score": 0.8979591836734694,
+          "support": 24.0
+        },
+        "imperative": {
+          "precision": 0.59375,
+          "recall": 0.7916666666666666,
+          "f1-score": 0.6785714285714286,
+          "support": 24.0
+        },
+        "descriptive": {
+          "precision": 0.7333333333333333,
+          "recall": 0.4583333333333333,
+          "f1-score": 0.5641025641025641,
+          "support": 24.0
+        }
+      },
+      "label_order": [
+        "evaluative",
+        "imperative",
+        "descriptive"
+      ],
+      "confusion_matrix": [
+        [
+          22,
+          2,
+          0
+        ],
+        [
+          1,
+          19,
+          4
+        ],
+        [
+          2,
+          11,
+          11
+        ]
+      ],
+      "prediction_rows": [
+        {
+          "id": "evaluative-1",
+          "text": "Nice work!",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.1584141084714458,
+            "evaluative": 0.7024315338996928,
+            "imperative": 0.13915435762886136
+          }
+        },
+        {
+          "id": "evaluative-2",
+          "text": "That was a terrible move.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.02930553310530125,
+            "evaluative": 0.9599348079802238,
+            "imperative": 0.01075965891447496
+          }
+        },
+        {
+          "id": "evaluative-3",
+          "text": "You handled that order well.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.07747343442369184,
+            "evaluative": 0.8987154662891307,
+            "imperative": 0.023811099287177572
+          }
+        },
+        {
+          "id": "evaluative-4",
+          "text": "Your last delivery was excellent.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.0408651589821209,
+            "evaluative": 0.8670010624263561,
+            "imperative": 0.09213377859152291
+          }
+        },
+        {
+          "id": "evaluative-5",
+          "text": "I liked how you avoided the collision.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.058520523161721606,
+            "evaluative": 0.7993794622986665,
+            "imperative": 0.14210001453961177
+          }
+        },
+        {
+          "id": "evaluative-6",
+          "text": "You did a poor job of sharing the counter.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.12602319109759266,
+            "evaluative": 0.6997603254812331,
+            "imperative": 0.17421648342117424
+          }
+        },
+        {
+          "id": "evaluative-7",
+          "text": "That detour was unnecessary.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.07127604517765611,
+            "evaluative": 0.9124598786999774,
+            "imperative": 0.016264076122366612
+          }
+        },
+        {
+          "id": "evaluative-8",
+          "text": "Great teamwork on the soup!",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": false,
+          "raw_scores": {
+            "descriptive": 0.2519840255595993,
+            "evaluative": 0.3239228775568498,
+            "imperative": 0.42409309688355085
+          }
+        },
+        {
+          "id": "evaluative-9",
+          "text": "Waiting there was a bad decision.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.06049741185639241,
+            "evaluative": 0.9004057664997945,
+            "imperative": 0.039096821643812917
+          }
+        },
+        {
+          "id": "evaluative-10",
+          "text": "You made the right choice.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.21441101136604915,
+            "evaluative": 0.56798101313928,
+            "imperative": 0.21760797549467092
+          }
+        },
+        {
+          "id": "evaluative-11",
+          "text": "That was not a good handoff.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.06721172685228147,
+            "evaluative": 0.8828021855597241,
+            "imperative": 0.04998608758799443
+          }
+        },
+        {
+          "id": "evaluative-12",
+          "text": "Your timing was perfect.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.06547609449090623,
+            "evaluative": 0.8006616415989447,
+            "imperative": 0.13386226391014902
+          }
+        },
+        {
+          "id": "evaluative-13",
+          "text": "I appreciate your help with the dishes.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": false,
+          "raw_scores": {
+            "descriptive": 0.3622261268948533,
+            "evaluative": 0.26335488888488007,
+            "imperative": 0.3744189842202667
+          }
+        },
+        {
+          "id": "evaluative-14",
+          "text": "Your last action was helpful.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.03554775028930857,
+            "evaluative": 0.9244401585404189,
+            "imperative": 0.040012091170272435
+          }
+        },
+        {
+          "id": "evaluative-15",
+          "text": "The way you fetched that onion was inefficient.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.044942605558190234,
+            "evaluative": 0.9336448784501553,
+            "imperative": 0.021412515991654425
+          }
+        },
+        {
+          "id": "evaluative-16",
+          "text": "Dropping the plate there was a mistake.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.1559229849782692,
+            "evaluative": 0.7240432036609898,
+            "imperative": 0.12003381136074104
+          }
+        },
+        {
+          "id": "evaluative-17",
+          "text": "Well done on clearing the route.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.21748122221041344,
+            "evaluative": 0.4721374596383902,
+            "imperative": 0.3103813181511964
+          }
+        },
+        {
+          "id": "evaluative-18",
+          "text": "Your move to the right was careless.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.07895590992054323,
+            "evaluative": 0.7238149625583099,
+            "imperative": 0.19722912752114682
+          }
+        },
+        {
+          "id": "evaluative-19",
+          "text": "You were too slow with that order.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.4092850335298179,
+            "evaluative": 0.4743223094743642,
+            "imperative": 0.116392656995818
+          }
+        },
+        {
+          "id": "evaluative-20",
+          "text": "That was a clever way to get around the pot.",
+          "expected": "evaluative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.1835582194857656,
+            "evaluative": 0.612223350016871,
+            "imperative": 0.2042184304973635
+          }
+        },
+        {
+          "id": "imperative-1",
+          "text": "Go to the stove.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.13423823300417514,
+            "evaluative": 0.16830897936892322,
+            "imperative": 0.6974527876269017
+          }
+        },
+        {
+          "id": "imperative-2",
+          "text": "Bring me a clean plate.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.3181470594894314,
+            "evaluative": 0.304485684455192,
+            "imperative": 0.3773672560553767
+          }
+        },
+        {
+          "id": "imperative-3",
+          "text": "Please collect another onion.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.05930491796001291,
+            "evaluative": 0.06171424849591667,
+            "imperative": 0.8789808335440704
+          }
+        },
+        {
+          "id": "imperative-4",
+          "text": "Could you take the soup to the serving window?",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.05399624501950495,
+            "evaluative": 0.06923036806227513,
+            "imperative": 0.8767733869182198
+          }
+        },
+        {
+          "id": "imperative-5",
+          "text": "Stop blocking the doorway.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.15998788627615868,
+            "evaluative": 0.13291554464829125,
+            "imperative": 0.7070965690755502
+          }
+        },
+        {
+          "id": "imperative-6",
+          "text": "Don't put the plate on the floor.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.05333616482026516,
+            "evaluative": 0.07564056290203303,
+            "imperative": 0.8710232722777018
+          }
+        },
+        {
+          "id": "imperative-7",
+          "text": "Do not move into my path.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.0895402872236766,
+            "evaluative": 0.30793480774924087,
+            "imperative": 0.6025249050270824
+          }
+        },
+        {
+          "id": "imperative-8",
+          "text": "You should fetch a dish.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.07478916728422841,
+            "evaluative": 0.1253514418034848,
+            "imperative": 0.7998593909122869
+          }
+        },
+        {
+          "id": "imperative-9",
+          "text": "Would you mind waiting beside the sink?",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.06520605380426694,
+            "evaluative": 0.1654029419477574,
+            "imperative": 0.7693910042479757
+          }
+        },
+        {
+          "id": "imperative-10",
+          "text": "Let me pass.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "descriptive",
+          "correct": false,
+          "raw_scores": {
+            "descriptive": 0.49776738937319404,
+            "evaluative": 0.22279886021406986,
+            "imperative": 0.27943375041273605
+          }
+        },
+        {
+          "id": "imperative-11",
+          "text": "Keep the middle counter clear.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "descriptive",
+          "correct": false,
+          "raw_scores": {
+            "descriptive": 0.5732204913203034,
+            "evaluative": 0.18386356127840311,
+            "imperative": 0.2429159474012935
+          }
+        },
+        {
+          "id": "imperative-12",
+          "text": "Avoid the narrow corridor.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.27142172196865916,
+            "evaluative": 0.19336901992802927,
+            "imperative": 0.5352092581033115
+          }
+        },
+        {
+          "id": "imperative-13",
+          "text": "Pick up the cooked soup now.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.1303343971203409,
+            "evaluative": 0.17191388702006483,
+            "imperative": 0.6977517158595943
+          }
+        },
+        {
+          "id": "imperative-14",
+          "text": "Leave the onion on the counter.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.11699465689664576,
+            "evaluative": 0.11947982147150836,
+            "imperative": 0.7635255216318458
+          }
+        },
+        {
+          "id": "imperative-15",
+          "text": "Please do not stand in front of the pot.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.18853395353265134,
+            "evaluative": 0.0808902584505544,
+            "imperative": 0.7305757880167941
+          }
+        },
+        {
+          "id": "imperative-16",
+          "text": "Can you move one tile west?",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": false,
+          "raw_scores": {
+            "descriptive": 0.1862165955334808,
+            "evaluative": 0.5155839683007403,
+            "imperative": 0.29819943616577893
+          }
+        },
+        {
+          "id": "imperative-17",
+          "text": "Try handing me the dish.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.3081362235052849,
+            "evaluative": 0.2784910796281547,
+            "imperative": 0.4133726968665604
+          }
+        },
+        {
+          "id": "imperative-18",
+          "text": "Make room for the other chef.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "descriptive",
+          "correct": false,
+          "raw_scores": {
+            "descriptive": 0.7374319704827396,
+            "evaluative": 0.09203748950009429,
+            "imperative": 0.17053054001716597
+          }
+        },
+        {
+          "id": "imperative-19",
+          "text": "Stay near the serving area.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "descriptive",
+          "correct": false,
+          "raw_scores": {
+            "descriptive": 0.40000278445552484,
+            "evaluative": 0.20214763419961593,
+            "imperative": 0.3978495813448592
+          }
+        },
+        {
+          "id": "imperative-20",
+          "text": "Wait until the soup is ready.",
+          "expected": "imperative",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.2773311075079986,
+            "evaluative": 0.1293964222940648,
+            "imperative": 0.5932724701979366
+          }
+        },
+        {
+          "id": "descriptive-1",
+          "text": "The serving window is on the right.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "descriptive",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.5255308338606018,
+            "evaluative": 0.1749390904055489,
+            "imperative": 0.29953007573384927
+          }
+        },
+        {
+          "id": "descriptive-2",
+          "text": "The onion dispenser is on the left.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": false,
+          "raw_scores": {
+            "descriptive": 0.2883433097727141,
+            "evaluative": 0.17288822394676007,
+            "imperative": 0.5387684662805258
+          }
+        },
+        {
+          "id": "descriptive-3",
+          "text": "There are two onions in the pot.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "descriptive",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.5253269600919637,
+            "evaluative": 0.24363600562004195,
+            "imperative": 0.23103703428799446
+          }
+        },
+        {
+          "id": "descriptive-4",
+          "text": "I am holding a clean plate.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "descriptive",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.5157323464037628,
+            "evaluative": 0.22826750404114235,
+            "imperative": 0.2560001495550948
+          }
+        },
+        {
+          "id": "descriptive-5",
+          "text": "The soup is not ready yet.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": false,
+          "raw_scores": {
+            "descriptive": 0.21866195325341728,
+            "evaluative": 0.08651290122603535,
+            "imperative": 0.6948251455205473
+          }
+        },
+        {
+          "id": "descriptive-6",
+          "text": "You are standing beside the sink.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": false,
+          "raw_scores": {
+            "descriptive": 0.08346896736785418,
+            "evaluative": 0.788679141300151,
+            "imperative": 0.1278518913319949
+          }
+        },
+        {
+          "id": "descriptive-7",
+          "text": "The corridor is blocked.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "descriptive",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.5604559609975881,
+            "evaluative": 0.13165341358424715,
+            "imperative": 0.30789062541816475
+          }
+        },
+        {
+          "id": "descriptive-8",
+          "text": "The counter next to the pot is empty.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": false,
+          "raw_scores": {
+            "descriptive": 0.22573995284954235,
+            "evaluative": 0.049621259496315365,
+            "imperative": 0.7246387876541424
+          }
+        },
+        {
+          "id": "descriptive-9",
+          "text": "I have already delivered the soup.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "evaluative",
+          "correct": false,
+          "raw_scores": {
+            "descriptive": 0.24002691989915323,
+            "evaluative": 0.5019379701505594,
+            "imperative": 0.25803510995028733
+          }
+        },
+        {
+          "id": "descriptive-10",
+          "text": "There is no plate by the stove.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "descriptive",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.5889863221932535,
+            "evaluative": 0.18072904608792995,
+            "imperative": 0.23028463171881658
+          }
+        },
+        {
+          "id": "descriptive-11",
+          "text": "You did not pick up the onion.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": false,
+          "raw_scores": {
+            "descriptive": 0.05125091082484373,
+            "evaluative": 0.17423838654634877,
+            "imperative": 0.7745107026288075
+          }
+        },
+        {
+          "id": "descriptive-12",
+          "text": "The other chef is carrying a tomato.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "descriptive",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.8805850028341506,
+            "evaluative": 0.04662408707969222,
+            "imperative": 0.07279091008615696
+          }
+        },
+        {
+          "id": "descriptive-13",
+          "text": "Our score is twenty.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "descriptive",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.773439814559364,
+            "evaluative": 0.05766490383872846,
+            "imperative": 0.16889528160190762
+          }
+        },
+        {
+          "id": "descriptive-14",
+          "text": "The order needs three onions.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "descriptive",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.5764509090058764,
+            "evaluative": 0.15960359795538223,
+            "imperative": 0.26394549303874143
+          }
+        },
+        {
+          "id": "descriptive-15",
+          "text": "The pot contains no soup.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "descriptive",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.8403317220881252,
+            "evaluative": 0.07044167438822856,
+            "imperative": 0.08922660352364627
+          }
+        },
+        {
+          "id": "descriptive-16",
+          "text": "My route goes through the middle.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "descriptive",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.663991541962355,
+            "evaluative": 0.15688502794558296,
+            "imperative": 0.17912343009206205
+          }
+        },
+        {
+          "id": "descriptive-17",
+          "text": "A dish is sitting on the bottom counter.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": false,
+          "raw_scores": {
+            "descriptive": 0.4166863566146984,
+            "evaluative": 0.13191527187214663,
+            "imperative": 0.45139837151315504
+          }
+        },
+        {
+          "id": "descriptive-18",
+          "text": "You are not in my way.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": false,
+          "raw_scores": {
+            "descriptive": 0.0962685191154206,
+            "evaluative": 0.36659561844577454,
+            "imperative": 0.5371358624388048
+          }
+        },
+        {
+          "id": "descriptive-19",
+          "text": "The onion is still on the floor.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "imperative",
+          "correct": false,
+          "raw_scores": {
+            "descriptive": 0.3953387166435212,
+            "evaluative": 0.14649445224672902,
+            "imperative": 0.45816683110974993
+          }
+        },
+        {
+          "id": "descriptive-20",
+          "text": "The top counter has a clean plate.",
+          "expected": "descriptive",
+          "stratum": "single_clause",
+          "label": "descriptive",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.6013562370271508,
+            "evaluative": 0.1658539308414105,
+            "imperative": 0.23278983213143867
+          }
+        },
+        {
+          "id": "location-left-imperative",
+          "text": "Go to the left counter.",
+          "expected": "imperative",
+          "stratum": "location_counterfactual",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.16211496429928696,
+            "evaluative": 0.23876731103860496,
+            "imperative": 0.5991177246621081
+          }
+        },
+        {
+          "id": "location-left-descriptive",
+          "text": "The soup is on the left counter.",
+          "expected": "descriptive",
+          "stratum": "location_counterfactual",
+          "label": "imperative",
+          "correct": false,
+          "raw_scores": {
+            "descriptive": 0.34470907180831956,
+            "evaluative": 0.2090175549197112,
+            "imperative": 0.4462733732719691
+          }
+        },
+        {
+          "id": "location-left-evaluative",
+          "text": "Leaving the soup on the left counter was a bad decision.",
+          "expected": "evaluative",
+          "stratum": "location_counterfactual",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.10420008296915534,
+            "evaluative": 0.7788285445551714,
+            "imperative": 0.11697137247567334
+          }
+        },
+        {
+          "id": "location-right-imperative",
+          "text": "Go to the right counter.",
+          "expected": "imperative",
+          "stratum": "location_counterfactual",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.20457198413065525,
+            "evaluative": 0.2084160233310664,
+            "imperative": 0.5870119925382784
+          }
+        },
+        {
+          "id": "location-right-descriptive",
+          "text": "The soup is on the right counter.",
+          "expected": "descriptive",
+          "stratum": "location_counterfactual",
+          "label": "imperative",
+          "correct": false,
+          "raw_scores": {
+            "descriptive": 0.4005225318105661,
+            "evaluative": 0.17564091884822738,
+            "imperative": 0.42383654934120646
+          }
+        },
+        {
+          "id": "location-right-evaluative",
+          "text": "Leaving the soup on the right counter was a bad decision.",
+          "expected": "evaluative",
+          "stratum": "location_counterfactual",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.12994188812072166,
+            "evaluative": 0.743197461570331,
+            "imperative": 0.12686065030894733
+          }
+        },
+        {
+          "id": "location-top-imperative",
+          "text": "Go to the top counter.",
+          "expected": "imperative",
+          "stratum": "location_counterfactual",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.12594037927229895,
+            "evaluative": 0.14426241368889187,
+            "imperative": 0.7297972070388092
+          }
+        },
+        {
+          "id": "location-top-descriptive",
+          "text": "The soup is on the top counter.",
+          "expected": "descriptive",
+          "stratum": "location_counterfactual",
+          "label": "imperative",
+          "correct": false,
+          "raw_scores": {
+            "descriptive": 0.3370270000216757,
+            "evaluative": 0.13056679826675088,
+            "imperative": 0.5324062017115735
+          }
+        },
+        {
+          "id": "location-top-evaluative",
+          "text": "Leaving the soup on the top counter was a bad decision.",
+          "expected": "evaluative",
+          "stratum": "location_counterfactual",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.10295123389303046,
+            "evaluative": 0.7690881823559126,
+            "imperative": 0.12796058375105693
+          }
+        },
+        {
+          "id": "location-bottom-imperative",
+          "text": "Go to the bottom counter.",
+          "expected": "imperative",
+          "stratum": "location_counterfactual",
+          "label": "imperative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.1265930438281855,
+            "evaluative": 0.14531878554570327,
+            "imperative": 0.7280881706261112
+          }
+        },
+        {
+          "id": "location-bottom-descriptive",
+          "text": "The soup is on the bottom counter.",
+          "expected": "descriptive",
+          "stratum": "location_counterfactual",
+          "label": "imperative",
+          "correct": false,
+          "raw_scores": {
+            "descriptive": 0.34019644086336487,
+            "evaluative": 0.13233889929053694,
+            "imperative": 0.5274646598460981
+          }
+        },
+        {
+          "id": "location-bottom-evaluative",
+          "text": "Leaving the soup on the bottom counter was a bad decision.",
+          "expected": "evaluative",
+          "stratum": "location_counterfactual",
+          "label": "evaluative",
+          "correct": true,
+          "raw_scores": {
+            "descriptive": 0.10315584425532295,
+            "evaluative": 0.7696391646520783,
+            "imperative": 0.12720499109259858
+          }
+        }
+      ],
+      "diagnostic_without_exact_train_overlap": {
+        "model_path": "baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\feedback_form_classifier_candidates\\direct_fg_boundary_shadow_v1_model\\model.joblib",
+        "model_sha256": "40b03b2f9a88a71f7f5334d61f77176bcde01b86b7f8f277422c3038be4e1a55",
+        "score_semantics": "Raw predict_proba for comparison; historical temperature is recorded but not applied. Argmax is unchanged by positive temperature.",
+        "historical_calibration": {
+          "temperature": 0.0823618560384671
+        },
+        "rows": 72,
+        "correct": 52,
+        "accuracy": 0.7222222222222222,
+        "macro_f1": 0.7135443921158208,
+        "per_class": {
+          "evaluative": {
+            "precision": 0.88,
+            "recall": 0.9166666666666666,
+            "f1-score": 0.8979591836734694,
+            "support": 24.0
+          },
+          "imperative": {
+            "precision": 0.59375,
+            "recall": 0.7916666666666666,
+            "f1-score": 0.6785714285714286,
+            "support": 24.0
+          },
+          "descriptive": {
+            "precision": 0.7333333333333333,
+            "recall": 0.4583333333333333,
+            "f1-score": 0.5641025641025641,
+            "support": 24.0
+          }
+        },
+        "label_order": [
+          "evaluative",
+          "imperative",
+          "descriptive"
+        ],
+        "confusion_matrix": [
+          [
+            22,
+            2,
+            0
+          ],
+          [
+            1,
+            19,
+            4
+          ],
+          [
+            2,
+            11,
+            11
+          ]
+        ]
+      },
+      "manifest_sha256": "60258ce84ed959aa75f91c6bb43cd02975c3377300b8b0426fd2aeb223db5bee",
+      "saved_release_claims": {
+        "status": "shadow_diagnostic_only",
+        "promotion_eligible": false
+      }
+    }
+  },
+  "corpora": {
+    "direct_fg_v2": {
+      "path": "baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\data\\direct_fg_classifier_corpus.v2.json",
+      "sha256": "67f282eebd40c2b9fa2b00376e1dab145d27ef45471678ae2ad0e809a0f228b2",
+      "rows": 917,
+      "split_counts": {
+        "dev": 162,
+        "train": 755
+      },
+      "normalized_exact_overlap_across_partitions": {
+        "dev:train": 0
+      },
+      "diagnostic_exact_train_overlaps": [],
+      "known_metadata_overlap": {
+        "group_id": {
+          "dev:train": 0
+        },
+        "split_family": {
+          "dev:train": 0
+        }
+      }
+    },
+    "direct_fg_clean_v3": {
+      "path": "baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\feedback_form_classifier_candidates\\direct_fg_clean_v3\\corpus.json",
+      "sha256": "898e51a9a4c860e6526cbac4823b125bd505927d7a9259e5927adf3cebb29cf8",
+      "rows": 1440,
+      "split_counts": {
+        "train": 1020,
+        "calibration": 120,
+        "final_eval": 300
+      },
+      "normalized_exact_overlap_across_partitions": {
+        "train:calibration": 0,
+        "train:final_eval": 0,
+        "calibration:final_eval": 0
+      },
+      "diagnostic_exact_train_overlaps": [],
+      "known_metadata_overlap": {
+        "component_id": {
+          "train:calibration": 0,
+          "train:final_eval": 0,
+          "calibration:final_eval": 0
+        },
+        "surface_family": {
+          "train:calibration": 0,
+          "train:final_eval": 0,
+          "calibration:final_eval": 0
+        },
+        "scenario_group": {
+          "train:calibration": 0,
+          "train:final_eval": 0,
+          "calibration:final_eval": 0
+        }
+      }
+    },
+    "direct_fg_clean_v4": {
+      "path": "baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\feedback_form_classifier_candidates\\direct_fg_clean_v4\\corpus.json",
+      "sha256": "e0193f2399c4e0172c95389963aea20e6e438af45c46a245ca99896dec90c075",
+      "rows": 2160,
+      "split_counts": {
+        "train": 1620,
+        "calibration": 90,
+        "final_eval": 450
+      },
+      "normalized_exact_overlap_across_partitions": {
+        "train:calibration": 0,
+        "train:final_eval": 0,
+        "calibration:final_eval": 0
+      },
+      "diagnostic_exact_train_overlaps": [],
+      "known_metadata_overlap": {
+        "component_id": {
+          "train:calibration": 0,
+          "train:final_eval": 0,
+          "calibration:final_eval": 0
+        },
+        "surface_family": {
+          "train:calibration": 0,
+          "train:final_eval": 0,
+          "calibration:final_eval": 0
+        },
+        "scenario_group": {
+          "train:calibration": 0,
+          "train:final_eval": 0,
+          "calibration:final_eval": 0
+        }
+      }
+    },
+    "direct_fg_boundary_shadow_v1_model": {
+      "path": "baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\feedback_form_classifier_candidates\\direct_fg_boundary_shadow_v1_model\\train.locked.json",
+      "sha256": "ab1179a593a6661b925dfa2db0d2272a7fe69c54dda67cd6859cfd6611a88edc",
+      "rows": 240,
+      "split_counts": {
+        "train": 240
+      },
+      "normalized_exact_overlap_across_partitions": {},
+      "diagnostic_exact_train_overlaps": [],
+      "known_metadata_overlap": {
+        "surface_family": {}
+      }
+    }
+  }
+}

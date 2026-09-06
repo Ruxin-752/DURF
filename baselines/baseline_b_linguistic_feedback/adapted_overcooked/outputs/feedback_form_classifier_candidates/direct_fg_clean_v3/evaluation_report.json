@@ -1,0 +1,3981 @@
+{
+  "calibration": {
+    "calibrated_nll": 0.018769357854508426,
+    "final_eval_used": false,
+    "fit_rows": 120,
+    "fit_split": "calibration",
+    "fit_split_used_for_model_selection": false,
+    "method": "temperature_scaling",
+    "raw_nll": 0.19003399142424673,
+    "search": "deterministic_log_grid_plus_local_linear_refinement",
+    "temperature": 0.2,
+    "version": "clean-v3-independent-calibration-v1"
+  },
+  "claim_scope": "synthetic_current_ontology_family_and_scenario_disjoint_final_eval",
+  "dependencies": {
+    "external_dependencies": {
+      "joblib": {
+        "module_file": "E:\\miniconda\\envs\\pantheonrl_env\\Lib\\site-packages\\joblib\\__init__.py",
+        "module_file_sha256": "5bed10f143569bbad2266640f5eabe8a172428ce8944abce9b597c48de38a624",
+        "version": "1.5.3"
+      },
+      "numpy": {
+        "module_file": "E:\\miniconda\\envs\\pantheonrl_env\\Lib\\site-packages\\numpy\\__init__.py",
+        "module_file_sha256": "150b19558caf78c0e3cc6994ec652399e972595ca649cea1a69c801ef23e4b1c",
+        "version": "1.26.4"
+      },
+      "sklearn": {
+        "module_file": "E:\\miniconda\\envs\\pantheonrl_env\\Lib\\site-packages\\sklearn\\__init__.py",
+        "module_file_sha256": "74ec19c08428cc2bc2e3aa1256e075cdaf1aad93440e4469c82bb7a9e5ae3562",
+        "version": "1.7.2"
+      }
+    },
+    "local_code": {
+      "generator": {
+        "path": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\scripts\\generate_direct_fg_clean_v3.py",
+        "sha256": "dec51e2bda26e33440ca1d655f6deb62cc5be120978a81d827cc7b717377cb2c"
+      },
+      "trainer": {
+        "path": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\scripts\\train_direct_fg_classifier_clean_v3.py",
+        "sha256": "bef16d640f75f74b285888186d6696ffa177f7b40d0bf658287d8c0963a0ff1e"
+      }
+    },
+    "python": {
+      "executable": "E:\\miniconda\\envs\\pantheonrl_env\\python.exe",
+      "platform": "Windows-10-10.0.26200-SP0",
+      "version": "3.10.20 | packaged by Anaconda, Inc. | (main, Mar 11 2026, 17:42:35) [MSC v.1942 64 bit (AMD64)]"
+    }
+  },
+  "final_synthetic_evaluation": {
+    "accuracy": 1.0,
+    "confusion_matrix": [
+      [
+        100,
+        0,
+        0
+      ],
+      [
+        0,
+        100,
+        0
+      ],
+      [
+        0,
+        0,
+        100
+      ]
+    ],
+    "fixed_confidence_threshold": {
+      "abstained_rows": 0,
+      "accuracy_when_covered": 1.0,
+      "coverage": 1.0,
+      "covered_rows": 300,
+      "selected_before_final_eval": true,
+      "threshold": 0.55
+    },
+    "label_order": [
+      "evaluative",
+      "imperative",
+      "descriptive"
+    ],
+    "macro_f1": 1.0,
+    "model_or_temperature_mutated": false,
+    "per_class_recall": {
+      "descriptive": 1.0,
+      "evaluative": 1.0,
+      "imperative": 1.0
+    },
+    "probability_metrics": {
+      "brier_score_multiclass": 2.0586798292003426e-06,
+      "expected_calibration_error_10_bins": 0.00013090330673892758,
+      "mean_confidence": 0.9998690966932611,
+      "negative_log_likelihood": 0.00013142387635666213
+    },
+    "rows": 300,
+    "selection_role": "none_frozen_final_evaluation_only"
+  },
+  "frozen_model_state_sha256_after_final": "06995effc9d636f6672a80ed8ad98a413ffc96920f029ae431d397b5ab64a41e",
+  "frozen_model_state_sha256_before_final": "06995effc9d636f6672a80ed8ad98a413ffc96920f029ae431d397b5ab64a41e",
+  "generation": {
+    "ai_assisted": true,
+    "external_input_files_opened": 0,
+    "forbidden_ontology_hits": 0,
+    "human_gold": false,
+    "independent_human_semantic_audit": false,
+    "label_counts": {
+      "descriptive": 480,
+      "evaluative": 480,
+      "imperative": 480
+    },
+    "normalized_unique_rows": 1440,
+    "prior_error_informed": true,
+    "real_player_accuracy_claim": false,
+    "reference_type_used": false,
+    "rows": 1440,
+    "scenario_count": 24,
+    "single_speech_act_failures": 0,
+    "style_limit": "synthetic finite-frame English; not natural-player gold",
+    "surface_family_counts": {
+      "descriptive": 48,
+      "evaluative": 48,
+      "imperative": 48
+    },
+    "surface_grammar_failures": 0,
+    "target_source": "direct_surface_semantic_contract",
+    "version": "direct-fg-clean-v3-current-ontology-v1"
+  },
+  "natural_probe": {
+    "errors": [
+      {
+        "expected": "descriptive",
+        "predicted": "imperative",
+        "text": "The ready soup is in the pot."
+      },
+      {
+        "expected": "descriptive",
+        "predicted": "imperative",
+        "text": "An onion is on an accessible counter."
+      },
+      {
+        "expected": "descriptive",
+        "predicted": "imperative",
+        "text": "The serving station accepts soup in a dish."
+      },
+      {
+        "expected": "descriptive",
+        "predicted": "imperative",
+        "text": "The access tile in front of the pot is clear."
+      }
+    ],
+    "included_in_pass_gate": false,
+    "included_in_selection": false,
+    "metrics": {
+      "accuracy": 0.8666666666666667,
+      "confusion_matrix": [
+        [
+          10,
+          0,
+          0
+        ],
+        [
+          0,
+          10,
+          0
+        ],
+        [
+          0,
+          4,
+          6
+        ]
+      ],
+      "label_order": [
+        "evaluative",
+        "imperative",
+        "descriptive"
+      ],
+      "macro_f1": 0.8611111111111112,
+      "per_class_recall": {
+        "descriptive": 0.6,
+        "evaluative": 1.0,
+        "imperative": 1.0
+      },
+      "rows": 30
+    },
+    "provenance": "ai_assisted_targeted_diagnostic_not_human_gold"
+  },
+  "not_a_real_player_accuracy_claim": true,
+  "production_promotion_blocker": "requires independently audited natural human holdout",
+  "production_promotion_eligible": false,
+  "provenance": {
+    "ai_assisted": true,
+    "dev_test_frozen_membership_files_read": 0,
+    "five_class_reference_classifier_used_as_target": false,
+    "human_gold": false,
+    "human_rows_read": 0,
+    "independent_human_semantic_audit": false,
+    "old_synthetic_rows_read": 0,
+    "prior_error_informed": true,
+    "reference_type_used_as_target": false
+  },
+  "seed": 73129,
+  "selected_hyperparameters": {
+    "C": 2.0,
+    "class_weight": null,
+    "min_df": 1
+  },
+  "selection": {
+    "calibration_rows_seen": 0,
+    "candidate_count": 24,
+    "candidates": [
+      {
+        "config": {
+          "C": 0.5,
+          "class_weight": null,
+          "min_df": 1
+        },
+        "fold_metrics": [
+          {
+            "accuracy": 0.969047619047619,
+            "confusion_matrix": [
+              [
+                140,
+                0,
+                0
+              ],
+              [
+                7,
+                132,
+                1
+              ],
+              [
+                0,
+                5,
+                135
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9689797392401801,
+            "per_class_recall": {
+              "descriptive": 0.9642857142857143,
+              "evaluative": 1.0,
+              "imperative": 0.9428571428571428
+            },
+            "rows": 420
+          },
+          {
+            "accuracy": 0.9619047619047619,
+            "confusion_matrix": [
+              [
+                140,
+                0,
+                0
+              ],
+              [
+                0,
+                140,
+                0
+              ],
+              [
+                0,
+                16,
+                124
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9617799617799618,
+            "per_class_recall": {
+              "descriptive": 0.8857142857142857,
+              "evaluative": 1.0,
+              "imperative": 1.0
+            },
+            "rows": 420
+          },
+          {
+            "accuracy": 0.9166666666666666,
+            "confusion_matrix": [
+              [
+                40,
+                0,
+                0
+              ],
+              [
+                0,
+                30,
+                10
+              ],
+              [
+                0,
+                0,
+                40
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9153439153439153,
+            "per_class_recall": {
+              "descriptive": 1.0,
+              "evaluative": 1.0,
+              "imperative": 0.75
+            },
+            "rows": 120
+          },
+          {
+            "accuracy": 1.0,
+            "confusion_matrix": [
+              [
+                20,
+                0,
+                0
+              ],
+              [
+                0,
+                20,
+                0
+              ],
+              [
+                0,
+                0,
+                20
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 1.0,
+            "per_class_recall": {
+              "descriptive": 1.0,
+              "evaluative": 1.0,
+              "imperative": 1.0
+            },
+            "rows": 60
+          }
+        ],
+        "mean_accuracy": 0.9619047619047619,
+        "mean_macro_f1": 0.9615259040910143,
+        "mean_per_class_recall": {
+          "descriptive": 0.9625,
+          "evaluative": 1.0,
+          "imperative": 0.9232142857142858
+        },
+        "minimum_mean_recall": 0.9232142857142858
+      },
+      {
+        "config": {
+          "C": 0.5,
+          "class_weight": "balanced",
+          "min_df": 1
+        },
+        "fold_metrics": [
+          {
+            "accuracy": 0.969047619047619,
+            "confusion_matrix": [
+              [
+                140,
+                0,
+                0
+              ],
+              [
+                7,
+                132,
+                1
+              ],
+              [
+                0,
+                5,
+                135
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9689797392401801,
+            "per_class_recall": {
+              "descriptive": 0.9642857142857143,
+              "evaluative": 1.0,
+              "imperative": 0.9428571428571428
+            },
+            "rows": 420
+          },
+          {
+            "accuracy": 0.9619047619047619,
+            "confusion_matrix": [
+              [
+                140,
+                0,
+                0
+              ],
+              [
+                0,
+                140,
+                0
+              ],
+              [
+                0,
+                16,
+                124
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9617799617799618,
+            "per_class_recall": {
+              "descriptive": 0.8857142857142857,
+              "evaluative": 1.0,
+              "imperative": 1.0
+            },
+            "rows": 420
+          },
+          {
+            "accuracy": 0.9166666666666666,
+            "confusion_matrix": [
+              [
+                40,
+                0,
+                0
+              ],
+              [
+                0,
+                30,
+                10
+              ],
+              [
+                0,
+                0,
+                40
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9153439153439153,
+            "per_class_recall": {
+              "descriptive": 1.0,
+              "evaluative": 1.0,
+              "imperative": 0.75
+            },
+            "rows": 120
+          },
+          {
+            "accuracy": 1.0,
+            "confusion_matrix": [
+              [
+                20,
+                0,
+                0
+              ],
+              [
+                0,
+                20,
+                0
+              ],
+              [
+                0,
+                0,
+                20
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 1.0,
+            "per_class_recall": {
+              "descriptive": 1.0,
+              "evaluative": 1.0,
+              "imperative": 1.0
+            },
+            "rows": 60
+          }
+        ],
+        "mean_accuracy": 0.9619047619047619,
+        "mean_macro_f1": 0.9615259040910143,
+        "mean_per_class_recall": {
+          "descriptive": 0.9625,
+          "evaluative": 1.0,
+          "imperative": 0.9232142857142858
+        },
+        "minimum_mean_recall": 0.9232142857142858
+      },
+      {
+        "config": {
+          "C": 1.0,
+          "class_weight": null,
+          "min_df": 1
+        },
+        "fold_metrics": [
+          {
+            "accuracy": 0.969047619047619,
+            "confusion_matrix": [
+              [
+                140,
+                0,
+                0
+              ],
+              [
+                7,
+                132,
+                1
+              ],
+              [
+                0,
+                5,
+                135
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9689797392401801,
+            "per_class_recall": {
+              "descriptive": 0.9642857142857143,
+              "evaluative": 1.0,
+              "imperative": 0.9428571428571428
+            },
+            "rows": 420
+          },
+          {
+            "accuracy": 0.9619047619047619,
+            "confusion_matrix": [
+              [
+                140,
+                0,
+                0
+              ],
+              [
+                0,
+                140,
+                0
+              ],
+              [
+                0,
+                16,
+                124
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9617799617799618,
+            "per_class_recall": {
+              "descriptive": 0.8857142857142857,
+              "evaluative": 1.0,
+              "imperative": 1.0
+            },
+            "rows": 420
+          },
+          {
+            "accuracy": 0.9166666666666666,
+            "confusion_matrix": [
+              [
+                40,
+                0,
+                0
+              ],
+              [
+                0,
+                30,
+                10
+              ],
+              [
+                0,
+                0,
+                40
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9153439153439153,
+            "per_class_recall": {
+              "descriptive": 1.0,
+              "evaluative": 1.0,
+              "imperative": 0.75
+            },
+            "rows": 120
+          },
+          {
+            "accuracy": 1.0,
+            "confusion_matrix": [
+              [
+                20,
+                0,
+                0
+              ],
+              [
+                0,
+                20,
+                0
+              ],
+              [
+                0,
+                0,
+                20
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 1.0,
+            "per_class_recall": {
+              "descriptive": 1.0,
+              "evaluative": 1.0,
+              "imperative": 1.0
+            },
+            "rows": 60
+          }
+        ],
+        "mean_accuracy": 0.9619047619047619,
+        "mean_macro_f1": 0.9615259040910143,
+        "mean_per_class_recall": {
+          "descriptive": 0.9625,
+          "evaluative": 1.0,
+          "imperative": 0.9232142857142858
+        },
+        "minimum_mean_recall": 0.9232142857142858
+      },
+      {
+        "config": {
+          "C": 1.0,
+          "class_weight": "balanced",
+          "min_df": 1
+        },
+        "fold_metrics": [
+          {
+            "accuracy": 0.969047619047619,
+            "confusion_matrix": [
+              [
+                140,
+                0,
+                0
+              ],
+              [
+                7,
+                132,
+                1
+              ],
+              [
+                0,
+                5,
+                135
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9689797392401801,
+            "per_class_recall": {
+              "descriptive": 0.9642857142857143,
+              "evaluative": 1.0,
+              "imperative": 0.9428571428571428
+            },
+            "rows": 420
+          },
+          {
+            "accuracy": 0.9619047619047619,
+            "confusion_matrix": [
+              [
+                140,
+                0,
+                0
+              ],
+              [
+                0,
+                140,
+                0
+              ],
+              [
+                0,
+                16,
+                124
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9617799617799618,
+            "per_class_recall": {
+              "descriptive": 0.8857142857142857,
+              "evaluative": 1.0,
+              "imperative": 1.0
+            },
+            "rows": 420
+          },
+          {
+            "accuracy": 0.9166666666666666,
+            "confusion_matrix": [
+              [
+                40,
+                0,
+                0
+              ],
+              [
+                0,
+                30,
+                10
+              ],
+              [
+                0,
+                0,
+                40
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9153439153439153,
+            "per_class_recall": {
+              "descriptive": 1.0,
+              "evaluative": 1.0,
+              "imperative": 0.75
+            },
+            "rows": 120
+          },
+          {
+            "accuracy": 1.0,
+            "confusion_matrix": [
+              [
+                20,
+                0,
+                0
+              ],
+              [
+                0,
+                20,
+                0
+              ],
+              [
+                0,
+                0,
+                20
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 1.0,
+            "per_class_recall": {
+              "descriptive": 1.0,
+              "evaluative": 1.0,
+              "imperative": 1.0
+            },
+            "rows": 60
+          }
+        ],
+        "mean_accuracy": 0.9619047619047619,
+        "mean_macro_f1": 0.9615259040910143,
+        "mean_per_class_recall": {
+          "descriptive": 0.9625,
+          "evaluative": 1.0,
+          "imperative": 0.9232142857142858
+        },
+        "minimum_mean_recall": 0.9232142857142858
+      },
+      {
+        "config": {
+          "C": 2.0,
+          "class_weight": null,
+          "min_df": 1
+        },
+        "fold_metrics": [
+          {
+            "accuracy": 0.969047619047619,
+            "confusion_matrix": [
+              [
+                140,
+                0,
+                0
+              ],
+              [
+                7,
+                132,
+                1
+              ],
+              [
+                0,
+                5,
+                135
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9689797392401801,
+            "per_class_recall": {
+              "descriptive": 0.9642857142857143,
+              "evaluative": 1.0,
+              "imperative": 0.9428571428571428
+            },
+            "rows": 420
+          },
+          {
+            "accuracy": 0.9642857142857143,
+            "confusion_matrix": [
+              [
+                140,
+                0,
+                0
+              ],
+              [
+                0,
+                140,
+                0
+              ],
+              [
+                0,
+                15,
+                125
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9641829229293254,
+            "per_class_recall": {
+              "descriptive": 0.8928571428571429,
+              "evaluative": 1.0,
+              "imperative": 1.0
+            },
+            "rows": 420
+          },
+          {
+            "accuracy": 0.9166666666666666,
+            "confusion_matrix": [
+              [
+                40,
+                0,
+                0
+              ],
+              [
+                0,
+                30,
+                10
+              ],
+              [
+                0,
+                0,
+                40
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9153439153439153,
+            "per_class_recall": {
+              "descriptive": 1.0,
+              "evaluative": 1.0,
+              "imperative": 0.75
+            },
+            "rows": 120
+          },
+          {
+            "accuracy": 1.0,
+            "confusion_matrix": [
+              [
+                20,
+                0,
+                0
+              ],
+              [
+                0,
+                20,
+                0
+              ],
+              [
+                0,
+                0,
+                20
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 1.0,
+            "per_class_recall": {
+              "descriptive": 1.0,
+              "evaluative": 1.0,
+              "imperative": 1.0
+            },
+            "rows": 60
+          }
+        ],
+        "mean_accuracy": 0.9625,
+        "mean_macro_f1": 0.9621266443783552,
+        "mean_per_class_recall": {
+          "descriptive": 0.9642857142857143,
+          "evaluative": 1.0,
+          "imperative": 0.9232142857142858
+        },
+        "minimum_mean_recall": 0.9232142857142858
+      },
+      {
+        "config": {
+          "C": 2.0,
+          "class_weight": "balanced",
+          "min_df": 1
+        },
+        "fold_metrics": [
+          {
+            "accuracy": 0.969047619047619,
+            "confusion_matrix": [
+              [
+                140,
+                0,
+                0
+              ],
+              [
+                7,
+                132,
+                1
+              ],
+              [
+                0,
+                5,
+                135
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9689797392401801,
+            "per_class_recall": {
+              "descriptive": 0.9642857142857143,
+              "evaluative": 1.0,
+              "imperative": 0.9428571428571428
+            },
+            "rows": 420
+          },
+          {
+            "accuracy": 0.9642857142857143,
+            "confusion_matrix": [
+              [
+                140,
+                0,
+                0
+              ],
+              [
+                0,
+                140,
+                0
+              ],
+              [
+                0,
+                15,
+                125
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9641829229293254,
+            "per_class_recall": {
+              "descriptive": 0.8928571428571429,
+              "evaluative": 1.0,
+              "imperative": 1.0
+            },
+            "rows": 420
+          },
+          {
+            "accuracy": 0.9166666666666666,
+            "confusion_matrix": [
+              [
+                40,
+                0,
+                0
+              ],
+              [
+                0,
+                30,
+                10
+              ],
+              [
+                0,
+                0,
+                40
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9153439153439153,
+            "per_class_recall": {
+              "descriptive": 1.0,
+              "evaluative": 1.0,
+              "imperative": 0.75
+            },
+            "rows": 120
+          },
+          {
+            "accuracy": 1.0,
+            "confusion_matrix": [
+              [
+                20,
+                0,
+                0
+              ],
+              [
+                0,
+                20,
+                0
+              ],
+              [
+                0,
+                0,
+                20
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 1.0,
+            "per_class_recall": {
+              "descriptive": 1.0,
+              "evaluative": 1.0,
+              "imperative": 1.0
+            },
+            "rows": 60
+          }
+        ],
+        "mean_accuracy": 0.9625,
+        "mean_macro_f1": 0.9621266443783552,
+        "mean_per_class_recall": {
+          "descriptive": 0.9642857142857143,
+          "evaluative": 1.0,
+          "imperative": 0.9232142857142858
+        },
+        "minimum_mean_recall": 0.9232142857142858
+      },
+      {
+        "config": {
+          "C": 4.0,
+          "class_weight": null,
+          "min_df": 1
+        },
+        "fold_metrics": [
+          {
+            "accuracy": 0.969047619047619,
+            "confusion_matrix": [
+              [
+                140,
+                0,
+                0
+              ],
+              [
+                7,
+                132,
+                1
+              ],
+              [
+                0,
+                5,
+                135
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9689797392401801,
+            "per_class_recall": {
+              "descriptive": 0.9642857142857143,
+              "evaluative": 1.0,
+              "imperative": 0.9428571428571428
+            },
+            "rows": 420
+          },
+          {
+            "accuracy": 0.9666666666666667,
+            "confusion_matrix": [
+              [
+                140,
+                0,
+                0
+              ],
+              [
+                0,
+                140,
+                0
+              ],
+              [
+                0,
+                14,
+                126
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9665831244778613,
+            "per_class_recall": {
+              "descriptive": 0.9,
+              "evaluative": 1.0,
+              "imperative": 1.0
+            },
+            "rows": 420
+          },
+          {
+            "accuracy": 0.9083333333333333,
+            "confusion_matrix": [
+              [
+                40,
+                0,
+                0
+              ],
+              [
+                0,
+                29,
+                11
+              ],
+              [
+                0,
+                0,
+                40
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9065668630886021,
+            "per_class_recall": {
+              "descriptive": 1.0,
+              "evaluative": 1.0,
+              "imperative": 0.725
+            },
+            "rows": 120
+          },
+          {
+            "accuracy": 1.0,
+            "confusion_matrix": [
+              [
+                20,
+                0,
+                0
+              ],
+              [
+                0,
+                20,
+                0
+              ],
+              [
+                0,
+                0,
+                20
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 1.0,
+            "per_class_recall": {
+              "descriptive": 1.0,
+              "evaluative": 1.0,
+              "imperative": 1.0
+            },
+            "rows": 60
+          }
+        ],
+        "mean_accuracy": 0.9610119047619048,
+        "mean_macro_f1": 0.9605324317016609,
+        "mean_per_class_recall": {
+          "descriptive": 0.9660714285714286,
+          "evaluative": 1.0,
+          "imperative": 0.9169642857142857
+        },
+        "minimum_mean_recall": 0.9169642857142857
+      },
+      {
+        "config": {
+          "C": 4.0,
+          "class_weight": "balanced",
+          "min_df": 1
+        },
+        "fold_metrics": [
+          {
+            "accuracy": 0.969047619047619,
+            "confusion_matrix": [
+              [
+                140,
+                0,
+                0
+              ],
+              [
+                7,
+                132,
+                1
+              ],
+              [
+                0,
+                5,
+                135
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9689797392401801,
+            "per_class_recall": {
+              "descriptive": 0.9642857142857143,
+              "evaluative": 1.0,
+              "imperative": 0.9428571428571428
+            },
+            "rows": 420
+          },
+          {
+            "accuracy": 0.9666666666666667,
+            "confusion_matrix": [
+              [
+                140,
+                0,
+                0
+              ],
+              [
+                0,
+                140,
+                0
+              ],
+              [
+                0,
+                14,
+                126
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9665831244778613,
+            "per_class_recall": {
+              "descriptive": 0.9,
+              "evaluative": 1.0,
+              "imperative": 1.0
+            },
+            "rows": 420
+          },
+          {
+            "accuracy": 0.9083333333333333,
+            "confusion_matrix": [
+              [
+                40,
+                0,
+                0
+              ],
+              [
+                0,
+                29,
+                11
+              ],
+              [
+                0,
+                0,
+                40
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9065668630886021,
+            "per_class_recall": {
+              "descriptive": 1.0,
+              "evaluative": 1.0,
+              "imperative": 0.725
+            },
+            "rows": 120
+          },
+          {
+            "accuracy": 1.0,
+            "confusion_matrix": [
+              [
+                20,
+                0,
+                0
+              ],
+              [
+                0,
+                20,
+                0
+              ],
+              [
+                0,
+                0,
+                20
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 1.0,
+            "per_class_recall": {
+              "descriptive": 1.0,
+              "evaluative": 1.0,
+              "imperative": 1.0
+            },
+            "rows": 60
+          }
+        ],
+        "mean_accuracy": 0.9610119047619048,
+        "mean_macro_f1": 0.9605324317016609,
+        "mean_per_class_recall": {
+          "descriptive": 0.9660714285714286,
+          "evaluative": 1.0,
+          "imperative": 0.9169642857142857
+        },
+        "minimum_mean_recall": 0.9169642857142857
+      },
+      {
+        "config": {
+          "C": 8.0,
+          "class_weight": null,
+          "min_df": 1
+        },
+        "fold_metrics": [
+          {
+            "accuracy": 0.969047619047619,
+            "confusion_matrix": [
+              [
+                140,
+                0,
+                0
+              ],
+              [
+                7,
+                132,
+                1
+              ],
+              [
+                0,
+                5,
+                135
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9689797392401801,
+            "per_class_recall": {
+              "descriptive": 0.9642857142857143,
+              "evaluative": 1.0,
+              "imperative": 0.9428571428571428
+            },
+            "rows": 420
+          },
+          {
+            "accuracy": 0.9666666666666667,
+            "confusion_matrix": [
+              [
+                140,
+                0,
+                0
+              ],
+              [
+                0,
+                140,
+                0
+              ],
+              [
+                0,
+                14,
+                126
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9665831244778613,
+            "per_class_recall": {
+              "descriptive": 0.9,
+              "evaluative": 1.0,
+              "imperative": 1.0
+            },
+            "rows": 420
+          },
+          {
+            "accuracy": 0.9083333333333333,
+            "confusion_matrix": [
+              [
+                40,
+                0,
+                0
+              ],
+              [
+                0,
+                29,
+                11
+              ],
+              [
+                0,
+                0,
+                40
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9065668630886021,
+            "per_class_recall": {
+              "descriptive": 1.0,
+              "evaluative": 1.0,
+              "imperative": 0.725
+            },
+            "rows": 120
+          },
+          {
+            "accuracy": 1.0,
+            "confusion_matrix": [
+              [
+                20,
+                0,
+                0
+              ],
+              [
+                0,
+                20,
+                0
+              ],
+              [
+                0,
+                0,
+                20
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 1.0,
+            "per_class_recall": {
+              "descriptive": 1.0,
+              "evaluative": 1.0,
+              "imperative": 1.0
+            },
+            "rows": 60
+          }
+        ],
+        "mean_accuracy": 0.9610119047619048,
+        "mean_macro_f1": 0.9605324317016609,
+        "mean_per_class_recall": {
+          "descriptive": 0.9660714285714286,
+          "evaluative": 1.0,
+          "imperative": 0.9169642857142857
+        },
+        "minimum_mean_recall": 0.9169642857142857
+      },
+      {
+        "config": {
+          "C": 8.0,
+          "class_weight": "balanced",
+          "min_df": 1
+        },
+        "fold_metrics": [
+          {
+            "accuracy": 0.969047619047619,
+            "confusion_matrix": [
+              [
+                140,
+                0,
+                0
+              ],
+              [
+                7,
+                132,
+                1
+              ],
+              [
+                0,
+                5,
+                135
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9689797392401801,
+            "per_class_recall": {
+              "descriptive": 0.9642857142857143,
+              "evaluative": 1.0,
+              "imperative": 0.9428571428571428
+            },
+            "rows": 420
+          },
+          {
+            "accuracy": 0.9666666666666667,
+            "confusion_matrix": [
+              [
+                140,
+                0,
+                0
+              ],
+              [
+                0,
+                140,
+                0
+              ],
+              [
+                0,
+                14,
+                126
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9665831244778613,
+            "per_class_recall": {
+              "descriptive": 0.9,
+              "evaluative": 1.0,
+              "imperative": 1.0
+            },
+            "rows": 420
+          },
+          {
+            "accuracy": 0.9083333333333333,
+            "confusion_matrix": [
+              [
+                40,
+                0,
+                0
+              ],
+              [
+                0,
+                29,
+                11
+              ],
+              [
+                0,
+                0,
+                40
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9065668630886021,
+            "per_class_recall": {
+              "descriptive": 1.0,
+              "evaluative": 1.0,
+              "imperative": 0.725
+            },
+            "rows": 120
+          },
+          {
+            "accuracy": 1.0,
+            "confusion_matrix": [
+              [
+                20,
+                0,
+                0
+              ],
+              [
+                0,
+                20,
+                0
+              ],
+              [
+                0,
+                0,
+                20
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 1.0,
+            "per_class_recall": {
+              "descriptive": 1.0,
+              "evaluative": 1.0,
+              "imperative": 1.0
+            },
+            "rows": 60
+          }
+        ],
+        "mean_accuracy": 0.9610119047619048,
+        "mean_macro_f1": 0.9605324317016609,
+        "mean_per_class_recall": {
+          "descriptive": 0.9660714285714286,
+          "evaluative": 1.0,
+          "imperative": 0.9169642857142857
+        },
+        "minimum_mean_recall": 0.9169642857142857
+      },
+      {
+        "config": {
+          "C": 16.0,
+          "class_weight": null,
+          "min_df": 1
+        },
+        "fold_metrics": [
+          {
+            "accuracy": 0.969047619047619,
+            "confusion_matrix": [
+              [
+                140,
+                0,
+                0
+              ],
+              [
+                7,
+                132,
+                1
+              ],
+              [
+                0,
+                5,
+                135
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9689797392401801,
+            "per_class_recall": {
+              "descriptive": 0.9642857142857143,
+              "evaluative": 1.0,
+              "imperative": 0.9428571428571428
+            },
+            "rows": 420
+          },
+          {
+            "accuracy": 0.9666666666666667,
+            "confusion_matrix": [
+              [
+                140,
+                0,
+                0
+              ],
+              [
+                0,
+                140,
+                0
+              ],
+              [
+                0,
+                14,
+                126
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9665831244778613,
+            "per_class_recall": {
+              "descriptive": 0.9,
+              "evaluative": 1.0,
+              "imperative": 1.0
+            },
+            "rows": 420
+          },
+          {
+            "accuracy": 0.9083333333333333,
+            "confusion_matrix": [
+              [
+                40,
+                0,
+                0
+              ],
+              [
+                0,
+                29,
+                11
+              ],
+              [
+                0,
+                0,
+                40
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9065668630886021,
+            "per_class_recall": {
+              "descriptive": 1.0,
+              "evaluative": 1.0,
+              "imperative": 0.725
+            },
+            "rows": 120
+          },
+          {
+            "accuracy": 1.0,
+            "confusion_matrix": [
+              [
+                20,
+                0,
+                0
+              ],
+              [
+                0,
+                20,
+                0
+              ],
+              [
+                0,
+                0,
+                20
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 1.0,
+            "per_class_recall": {
+              "descriptive": 1.0,
+              "evaluative": 1.0,
+              "imperative": 1.0
+            },
+            "rows": 60
+          }
+        ],
+        "mean_accuracy": 0.9610119047619048,
+        "mean_macro_f1": 0.9605324317016609,
+        "mean_per_class_recall": {
+          "descriptive": 0.9660714285714286,
+          "evaluative": 1.0,
+          "imperative": 0.9169642857142857
+        },
+        "minimum_mean_recall": 0.9169642857142857
+      },
+      {
+        "config": {
+          "C": 16.0,
+          "class_weight": "balanced",
+          "min_df": 1
+        },
+        "fold_metrics": [
+          {
+            "accuracy": 0.969047619047619,
+            "confusion_matrix": [
+              [
+                140,
+                0,
+                0
+              ],
+              [
+                7,
+                132,
+                1
+              ],
+              [
+                0,
+                5,
+                135
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9689797392401801,
+            "per_class_recall": {
+              "descriptive": 0.9642857142857143,
+              "evaluative": 1.0,
+              "imperative": 0.9428571428571428
+            },
+            "rows": 420
+          },
+          {
+            "accuracy": 0.9666666666666667,
+            "confusion_matrix": [
+              [
+                140,
+                0,
+                0
+              ],
+              [
+                0,
+                140,
+                0
+              ],
+              [
+                0,
+                14,
+                126
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9665831244778613,
+            "per_class_recall": {
+              "descriptive": 0.9,
+              "evaluative": 1.0,
+              "imperative": 1.0
+            },
+            "rows": 420
+          },
+          {
+            "accuracy": 0.9083333333333333,
+            "confusion_matrix": [
+              [
+                40,
+                0,
+                0
+              ],
+              [
+                0,
+                29,
+                11
+              ],
+              [
+                0,
+                0,
+                40
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9065668630886021,
+            "per_class_recall": {
+              "descriptive": 1.0,
+              "evaluative": 1.0,
+              "imperative": 0.725
+            },
+            "rows": 120
+          },
+          {
+            "accuracy": 1.0,
+            "confusion_matrix": [
+              [
+                20,
+                0,
+                0
+              ],
+              [
+                0,
+                20,
+                0
+              ],
+              [
+                0,
+                0,
+                20
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 1.0,
+            "per_class_recall": {
+              "descriptive": 1.0,
+              "evaluative": 1.0,
+              "imperative": 1.0
+            },
+            "rows": 60
+          }
+        ],
+        "mean_accuracy": 0.9610119047619048,
+        "mean_macro_f1": 0.9605324317016609,
+        "mean_per_class_recall": {
+          "descriptive": 0.9660714285714286,
+          "evaluative": 1.0,
+          "imperative": 0.9169642857142857
+        },
+        "minimum_mean_recall": 0.9169642857142857
+      },
+      {
+        "config": {
+          "C": 0.5,
+          "class_weight": null,
+          "min_df": 2
+        },
+        "fold_metrics": [
+          {
+            "accuracy": 0.9619047619047619,
+            "confusion_matrix": [
+              [
+                140,
+                0,
+                0
+              ],
+              [
+                10,
+                129,
+                1
+              ],
+              [
+                0,
+                5,
+                135
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9617946501201954,
+            "per_class_recall": {
+              "descriptive": 0.9642857142857143,
+              "evaluative": 1.0,
+              "imperative": 0.9214285714285714
+            },
+            "rows": 420
+          },
+          {
+            "accuracy": 0.9619047619047619,
+            "confusion_matrix": [
+              [
+                140,
+                0,
+                0
+              ],
+              [
+                0,
+                140,
+                0
+              ],
+              [
+                0,
+                16,
+                124
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9617799617799618,
+            "per_class_recall": {
+              "descriptive": 0.8857142857142857,
+              "evaluative": 1.0,
+              "imperative": 1.0
+            },
+            "rows": 420
+          },
+          {
+            "accuracy": 0.9083333333333333,
+            "confusion_matrix": [
+              [
+                40,
+                0,
+                0
+              ],
+              [
+                0,
+                29,
+                11
+              ],
+              [
+                0,
+                0,
+                40
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9065668630886021,
+            "per_class_recall": {
+              "descriptive": 1.0,
+              "evaluative": 1.0,
+              "imperative": 0.725
+            },
+            "rows": 120
+          },
+          {
+            "accuracy": 1.0,
+            "confusion_matrix": [
+              [
+                20,
+                0,
+                0
+              ],
+              [
+                0,
+                20,
+                0
+              ],
+              [
+                0,
+                0,
+                20
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 1.0,
+            "per_class_recall": {
+              "descriptive": 1.0,
+              "evaluative": 1.0,
+              "imperative": 1.0
+            },
+            "rows": 60
+          }
+        ],
+        "mean_accuracy": 0.9580357142857143,
+        "mean_macro_f1": 0.9575353687471898,
+        "mean_per_class_recall": {
+          "descriptive": 0.9625,
+          "evaluative": 1.0,
+          "imperative": 0.9116071428571428
+        },
+        "minimum_mean_recall": 0.9116071428571428
+      },
+      {
+        "config": {
+          "C": 0.5,
+          "class_weight": "balanced",
+          "min_df": 2
+        },
+        "fold_metrics": [
+          {
+            "accuracy": 0.9619047619047619,
+            "confusion_matrix": [
+              [
+                140,
+                0,
+                0
+              ],
+              [
+                10,
+                129,
+                1
+              ],
+              [
+                0,
+                5,
+                135
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9617946501201954,
+            "per_class_recall": {
+              "descriptive": 0.9642857142857143,
+              "evaluative": 1.0,
+              "imperative": 0.9214285714285714
+            },
+            "rows": 420
+          },
+          {
+            "accuracy": 0.9619047619047619,
+            "confusion_matrix": [
+              [
+                140,
+                0,
+                0
+              ],
+              [
+                0,
+                140,
+                0
+              ],
+              [
+                0,
+                16,
+                124
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9617799617799618,
+            "per_class_recall": {
+              "descriptive": 0.8857142857142857,
+              "evaluative": 1.0,
+              "imperative": 1.0
+            },
+            "rows": 420
+          },
+          {
+            "accuracy": 0.9083333333333333,
+            "confusion_matrix": [
+              [
+                40,
+                0,
+                0
+              ],
+              [
+                0,
+                29,
+                11
+              ],
+              [
+                0,
+                0,
+                40
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9065668630886021,
+            "per_class_recall": {
+              "descriptive": 1.0,
+              "evaluative": 1.0,
+              "imperative": 0.725
+            },
+            "rows": 120
+          },
+          {
+            "accuracy": 1.0,
+            "confusion_matrix": [
+              [
+                20,
+                0,
+                0
+              ],
+              [
+                0,
+                20,
+                0
+              ],
+              [
+                0,
+                0,
+                20
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 1.0,
+            "per_class_recall": {
+              "descriptive": 1.0,
+              "evaluative": 1.0,
+              "imperative": 1.0
+            },
+            "rows": 60
+          }
+        ],
+        "mean_accuracy": 0.9580357142857143,
+        "mean_macro_f1": 0.9575353687471898,
+        "mean_per_class_recall": {
+          "descriptive": 0.9625,
+          "evaluative": 1.0,
+          "imperative": 0.9116071428571428
+        },
+        "minimum_mean_recall": 0.9116071428571428
+      },
+      {
+        "config": {
+          "C": 1.0,
+          "class_weight": null,
+          "min_df": 2
+        },
+        "fold_metrics": [
+          {
+            "accuracy": 0.9619047619047619,
+            "confusion_matrix": [
+              [
+                140,
+                0,
+                0
+              ],
+              [
+                10,
+                129,
+                1
+              ],
+              [
+                0,
+                5,
+                135
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9617946501201954,
+            "per_class_recall": {
+              "descriptive": 0.9642857142857143,
+              "evaluative": 1.0,
+              "imperative": 0.9214285714285714
+            },
+            "rows": 420
+          },
+          {
+            "accuracy": 0.9642857142857143,
+            "confusion_matrix": [
+              [
+                140,
+                0,
+                0
+              ],
+              [
+                0,
+                140,
+                0
+              ],
+              [
+                0,
+                15,
+                125
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9641829229293254,
+            "per_class_recall": {
+              "descriptive": 0.8928571428571429,
+              "evaluative": 1.0,
+              "imperative": 1.0
+            },
+            "rows": 420
+          },
+          {
+            "accuracy": 0.9083333333333333,
+            "confusion_matrix": [
+              [
+                40,
+                0,
+                0
+              ],
+              [
+                0,
+                29,
+                11
+              ],
+              [
+                0,
+                0,
+                40
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9065668630886021,
+            "per_class_recall": {
+              "descriptive": 1.0,
+              "evaluative": 1.0,
+              "imperative": 0.725
+            },
+            "rows": 120
+          },
+          {
+            "accuracy": 1.0,
+            "confusion_matrix": [
+              [
+                20,
+                0,
+                0
+              ],
+              [
+                0,
+                20,
+                0
+              ],
+              [
+                0,
+                0,
+                20
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 1.0,
+            "per_class_recall": {
+              "descriptive": 1.0,
+              "evaluative": 1.0,
+              "imperative": 1.0
+            },
+            "rows": 60
+          }
+        ],
+        "mean_accuracy": 0.9586309523809524,
+        "mean_macro_f1": 0.9581361090345307,
+        "mean_per_class_recall": {
+          "descriptive": 0.9642857142857143,
+          "evaluative": 1.0,
+          "imperative": 0.9116071428571428
+        },
+        "minimum_mean_recall": 0.9116071428571428
+      },
+      {
+        "config": {
+          "C": 1.0,
+          "class_weight": "balanced",
+          "min_df": 2
+        },
+        "fold_metrics": [
+          {
+            "accuracy": 0.9619047619047619,
+            "confusion_matrix": [
+              [
+                140,
+                0,
+                0
+              ],
+              [
+                10,
+                129,
+                1
+              ],
+              [
+                0,
+                5,
+                135
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9617946501201954,
+            "per_class_recall": {
+              "descriptive": 0.9642857142857143,
+              "evaluative": 1.0,
+              "imperative": 0.9214285714285714
+            },
+            "rows": 420
+          },
+          {
+            "accuracy": 0.9642857142857143,
+            "confusion_matrix": [
+              [
+                140,
+                0,
+                0
+              ],
+              [
+                0,
+                140,
+                0
+              ],
+              [
+                0,
+                15,
+                125
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9641829229293254,
+            "per_class_recall": {
+              "descriptive": 0.8928571428571429,
+              "evaluative": 1.0,
+              "imperative": 1.0
+            },
+            "rows": 420
+          },
+          {
+            "accuracy": 0.9083333333333333,
+            "confusion_matrix": [
+              [
+                40,
+                0,
+                0
+              ],
+              [
+                0,
+                29,
+                11
+              ],
+              [
+                0,
+                0,
+                40
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9065668630886021,
+            "per_class_recall": {
+              "descriptive": 1.0,
+              "evaluative": 1.0,
+              "imperative": 0.725
+            },
+            "rows": 120
+          },
+          {
+            "accuracy": 1.0,
+            "confusion_matrix": [
+              [
+                20,
+                0,
+                0
+              ],
+              [
+                0,
+                20,
+                0
+              ],
+              [
+                0,
+                0,
+                20
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 1.0,
+            "per_class_recall": {
+              "descriptive": 1.0,
+              "evaluative": 1.0,
+              "imperative": 1.0
+            },
+            "rows": 60
+          }
+        ],
+        "mean_accuracy": 0.9586309523809524,
+        "mean_macro_f1": 0.9581361090345307,
+        "mean_per_class_recall": {
+          "descriptive": 0.9642857142857143,
+          "evaluative": 1.0,
+          "imperative": 0.9116071428571428
+        },
+        "minimum_mean_recall": 0.9116071428571428
+      },
+      {
+        "config": {
+          "C": 2.0,
+          "class_weight": null,
+          "min_df": 2
+        },
+        "fold_metrics": [
+          {
+            "accuracy": 0.9642857142857143,
+            "confusion_matrix": [
+              [
+                140,
+                0,
+                0
+              ],
+              [
+                9,
+                130,
+                1
+              ],
+              [
+                0,
+                5,
+                135
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9641911821692174,
+            "per_class_recall": {
+              "descriptive": 0.9642857142857143,
+              "evaluative": 1.0,
+              "imperative": 0.9285714285714286
+            },
+            "rows": 420
+          },
+          {
+            "accuracy": 0.9666666666666667,
+            "confusion_matrix": [
+              [
+                140,
+                0,
+                0
+              ],
+              [
+                0,
+                140,
+                0
+              ],
+              [
+                0,
+                14,
+                126
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9665831244778613,
+            "per_class_recall": {
+              "descriptive": 0.9,
+              "evaluative": 1.0,
+              "imperative": 1.0
+            },
+            "rows": 420
+          },
+          {
+            "accuracy": 0.9083333333333333,
+            "confusion_matrix": [
+              [
+                40,
+                0,
+                0
+              ],
+              [
+                0,
+                29,
+                11
+              ],
+              [
+                0,
+                0,
+                40
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9065668630886021,
+            "per_class_recall": {
+              "descriptive": 1.0,
+              "evaluative": 1.0,
+              "imperative": 0.725
+            },
+            "rows": 120
+          },
+          {
+            "accuracy": 1.0,
+            "confusion_matrix": [
+              [
+                20,
+                0,
+                0
+              ],
+              [
+                0,
+                20,
+                0
+              ],
+              [
+                0,
+                0,
+                20
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 1.0,
+            "per_class_recall": {
+              "descriptive": 1.0,
+              "evaluative": 1.0,
+              "imperative": 1.0
+            },
+            "rows": 60
+          }
+        ],
+        "mean_accuracy": 0.9598214285714286,
+        "mean_macro_f1": 0.9593352924339202,
+        "mean_per_class_recall": {
+          "descriptive": 0.9660714285714286,
+          "evaluative": 1.0,
+          "imperative": 0.9133928571428571
+        },
+        "minimum_mean_recall": 0.9133928571428571
+      },
+      {
+        "config": {
+          "C": 2.0,
+          "class_weight": "balanced",
+          "min_df": 2
+        },
+        "fold_metrics": [
+          {
+            "accuracy": 0.9642857142857143,
+            "confusion_matrix": [
+              [
+                140,
+                0,
+                0
+              ],
+              [
+                9,
+                130,
+                1
+              ],
+              [
+                0,
+                5,
+                135
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9641911821692174,
+            "per_class_recall": {
+              "descriptive": 0.9642857142857143,
+              "evaluative": 1.0,
+              "imperative": 0.9285714285714286
+            },
+            "rows": 420
+          },
+          {
+            "accuracy": 0.9666666666666667,
+            "confusion_matrix": [
+              [
+                140,
+                0,
+                0
+              ],
+              [
+                0,
+                140,
+                0
+              ],
+              [
+                0,
+                14,
+                126
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9665831244778613,
+            "per_class_recall": {
+              "descriptive": 0.9,
+              "evaluative": 1.0,
+              "imperative": 1.0
+            },
+            "rows": 420
+          },
+          {
+            "accuracy": 0.9083333333333333,
+            "confusion_matrix": [
+              [
+                40,
+                0,
+                0
+              ],
+              [
+                0,
+                29,
+                11
+              ],
+              [
+                0,
+                0,
+                40
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9065668630886021,
+            "per_class_recall": {
+              "descriptive": 1.0,
+              "evaluative": 1.0,
+              "imperative": 0.725
+            },
+            "rows": 120
+          },
+          {
+            "accuracy": 1.0,
+            "confusion_matrix": [
+              [
+                20,
+                0,
+                0
+              ],
+              [
+                0,
+                20,
+                0
+              ],
+              [
+                0,
+                0,
+                20
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 1.0,
+            "per_class_recall": {
+              "descriptive": 1.0,
+              "evaluative": 1.0,
+              "imperative": 1.0
+            },
+            "rows": 60
+          }
+        ],
+        "mean_accuracy": 0.9598214285714286,
+        "mean_macro_f1": 0.9593352924339202,
+        "mean_per_class_recall": {
+          "descriptive": 0.9660714285714286,
+          "evaluative": 1.0,
+          "imperative": 0.9133928571428571
+        },
+        "minimum_mean_recall": 0.9133928571428571
+      },
+      {
+        "config": {
+          "C": 4.0,
+          "class_weight": null,
+          "min_df": 2
+        },
+        "fold_metrics": [
+          {
+            "accuracy": 0.9642857142857143,
+            "confusion_matrix": [
+              [
+                140,
+                0,
+                0
+              ],
+              [
+                9,
+                130,
+                1
+              ],
+              [
+                0,
+                5,
+                135
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9641911821692174,
+            "per_class_recall": {
+              "descriptive": 0.9642857142857143,
+              "evaluative": 1.0,
+              "imperative": 0.9285714285714286
+            },
+            "rows": 420
+          },
+          {
+            "accuracy": 0.9666666666666667,
+            "confusion_matrix": [
+              [
+                140,
+                0,
+                0
+              ],
+              [
+                0,
+                140,
+                0
+              ],
+              [
+                0,
+                14,
+                126
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9665831244778613,
+            "per_class_recall": {
+              "descriptive": 0.9,
+              "evaluative": 1.0,
+              "imperative": 1.0
+            },
+            "rows": 420
+          },
+          {
+            "accuracy": 0.9083333333333333,
+            "confusion_matrix": [
+              [
+                40,
+                0,
+                0
+              ],
+              [
+                0,
+                29,
+                11
+              ],
+              [
+                0,
+                0,
+                40
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9065668630886021,
+            "per_class_recall": {
+              "descriptive": 1.0,
+              "evaluative": 1.0,
+              "imperative": 0.725
+            },
+            "rows": 120
+          },
+          {
+            "accuracy": 1.0,
+            "confusion_matrix": [
+              [
+                20,
+                0,
+                0
+              ],
+              [
+                0,
+                20,
+                0
+              ],
+              [
+                0,
+                0,
+                20
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 1.0,
+            "per_class_recall": {
+              "descriptive": 1.0,
+              "evaluative": 1.0,
+              "imperative": 1.0
+            },
+            "rows": 60
+          }
+        ],
+        "mean_accuracy": 0.9598214285714286,
+        "mean_macro_f1": 0.9593352924339202,
+        "mean_per_class_recall": {
+          "descriptive": 0.9660714285714286,
+          "evaluative": 1.0,
+          "imperative": 0.9133928571428571
+        },
+        "minimum_mean_recall": 0.9133928571428571
+      },
+      {
+        "config": {
+          "C": 4.0,
+          "class_weight": "balanced",
+          "min_df": 2
+        },
+        "fold_metrics": [
+          {
+            "accuracy": 0.9642857142857143,
+            "confusion_matrix": [
+              [
+                140,
+                0,
+                0
+              ],
+              [
+                9,
+                130,
+                1
+              ],
+              [
+                0,
+                5,
+                135
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9641911821692174,
+            "per_class_recall": {
+              "descriptive": 0.9642857142857143,
+              "evaluative": 1.0,
+              "imperative": 0.9285714285714286
+            },
+            "rows": 420
+          },
+          {
+            "accuracy": 0.9666666666666667,
+            "confusion_matrix": [
+              [
+                140,
+                0,
+                0
+              ],
+              [
+                0,
+                140,
+                0
+              ],
+              [
+                0,
+                14,
+                126
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9665831244778613,
+            "per_class_recall": {
+              "descriptive": 0.9,
+              "evaluative": 1.0,
+              "imperative": 1.0
+            },
+            "rows": 420
+          },
+          {
+            "accuracy": 0.9083333333333333,
+            "confusion_matrix": [
+              [
+                40,
+                0,
+                0
+              ],
+              [
+                0,
+                29,
+                11
+              ],
+              [
+                0,
+                0,
+                40
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9065668630886021,
+            "per_class_recall": {
+              "descriptive": 1.0,
+              "evaluative": 1.0,
+              "imperative": 0.725
+            },
+            "rows": 120
+          },
+          {
+            "accuracy": 1.0,
+            "confusion_matrix": [
+              [
+                20,
+                0,
+                0
+              ],
+              [
+                0,
+                20,
+                0
+              ],
+              [
+                0,
+                0,
+                20
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 1.0,
+            "per_class_recall": {
+              "descriptive": 1.0,
+              "evaluative": 1.0,
+              "imperative": 1.0
+            },
+            "rows": 60
+          }
+        ],
+        "mean_accuracy": 0.9598214285714286,
+        "mean_macro_f1": 0.9593352924339202,
+        "mean_per_class_recall": {
+          "descriptive": 0.9660714285714286,
+          "evaluative": 1.0,
+          "imperative": 0.9133928571428571
+        },
+        "minimum_mean_recall": 0.9133928571428571
+      },
+      {
+        "config": {
+          "C": 8.0,
+          "class_weight": null,
+          "min_df": 2
+        },
+        "fold_metrics": [
+          {
+            "accuracy": 0.9666666666666667,
+            "confusion_matrix": [
+              [
+                140,
+                0,
+                0
+              ],
+              [
+                8,
+                131,
+                1
+              ],
+              [
+                0,
+                5,
+                135
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.96658615136876,
+            "per_class_recall": {
+              "descriptive": 0.9642857142857143,
+              "evaluative": 1.0,
+              "imperative": 0.9357142857142857
+            },
+            "rows": 420
+          },
+          {
+            "accuracy": 0.9666666666666667,
+            "confusion_matrix": [
+              [
+                140,
+                0,
+                0
+              ],
+              [
+                0,
+                140,
+                0
+              ],
+              [
+                0,
+                14,
+                126
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9665831244778613,
+            "per_class_recall": {
+              "descriptive": 0.9,
+              "evaluative": 1.0,
+              "imperative": 1.0
+            },
+            "rows": 420
+          },
+          {
+            "accuracy": 0.9083333333333333,
+            "confusion_matrix": [
+              [
+                40,
+                0,
+                0
+              ],
+              [
+                0,
+                29,
+                11
+              ],
+              [
+                0,
+                0,
+                40
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9065668630886021,
+            "per_class_recall": {
+              "descriptive": 1.0,
+              "evaluative": 1.0,
+              "imperative": 0.725
+            },
+            "rows": 120
+          },
+          {
+            "accuracy": 1.0,
+            "confusion_matrix": [
+              [
+                20,
+                0,
+                0
+              ],
+              [
+                0,
+                20,
+                0
+              ],
+              [
+                0,
+                0,
+                20
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 1.0,
+            "per_class_recall": {
+              "descriptive": 1.0,
+              "evaluative": 1.0,
+              "imperative": 1.0
+            },
+            "rows": 60
+          }
+        ],
+        "mean_accuracy": 0.9604166666666667,
+        "mean_macro_f1": 0.9599340347338059,
+        "mean_per_class_recall": {
+          "descriptive": 0.9660714285714286,
+          "evaluative": 1.0,
+          "imperative": 0.9151785714285714
+        },
+        "minimum_mean_recall": 0.9151785714285714
+      },
+      {
+        "config": {
+          "C": 8.0,
+          "class_weight": "balanced",
+          "min_df": 2
+        },
+        "fold_metrics": [
+          {
+            "accuracy": 0.9666666666666667,
+            "confusion_matrix": [
+              [
+                140,
+                0,
+                0
+              ],
+              [
+                8,
+                131,
+                1
+              ],
+              [
+                0,
+                5,
+                135
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.96658615136876,
+            "per_class_recall": {
+              "descriptive": 0.9642857142857143,
+              "evaluative": 1.0,
+              "imperative": 0.9357142857142857
+            },
+            "rows": 420
+          },
+          {
+            "accuracy": 0.9666666666666667,
+            "confusion_matrix": [
+              [
+                140,
+                0,
+                0
+              ],
+              [
+                0,
+                140,
+                0
+              ],
+              [
+                0,
+                14,
+                126
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9665831244778613,
+            "per_class_recall": {
+              "descriptive": 0.9,
+              "evaluative": 1.0,
+              "imperative": 1.0
+            },
+            "rows": 420
+          },
+          {
+            "accuracy": 0.9083333333333333,
+            "confusion_matrix": [
+              [
+                40,
+                0,
+                0
+              ],
+              [
+                0,
+                29,
+                11
+              ],
+              [
+                0,
+                0,
+                40
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9065668630886021,
+            "per_class_recall": {
+              "descriptive": 1.0,
+              "evaluative": 1.0,
+              "imperative": 0.725
+            },
+            "rows": 120
+          },
+          {
+            "accuracy": 1.0,
+            "confusion_matrix": [
+              [
+                20,
+                0,
+                0
+              ],
+              [
+                0,
+                20,
+                0
+              ],
+              [
+                0,
+                0,
+                20
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 1.0,
+            "per_class_recall": {
+              "descriptive": 1.0,
+              "evaluative": 1.0,
+              "imperative": 1.0
+            },
+            "rows": 60
+          }
+        ],
+        "mean_accuracy": 0.9604166666666667,
+        "mean_macro_f1": 0.9599340347338059,
+        "mean_per_class_recall": {
+          "descriptive": 0.9660714285714286,
+          "evaluative": 1.0,
+          "imperative": 0.9151785714285714
+        },
+        "minimum_mean_recall": 0.9151785714285714
+      },
+      {
+        "config": {
+          "C": 16.0,
+          "class_weight": null,
+          "min_df": 2
+        },
+        "fold_metrics": [
+          {
+            "accuracy": 0.9666666666666667,
+            "confusion_matrix": [
+              [
+                140,
+                0,
+                0
+              ],
+              [
+                8,
+                131,
+                1
+              ],
+              [
+                0,
+                5,
+                135
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.96658615136876,
+            "per_class_recall": {
+              "descriptive": 0.9642857142857143,
+              "evaluative": 1.0,
+              "imperative": 0.9357142857142857
+            },
+            "rows": 420
+          },
+          {
+            "accuracy": 0.9666666666666667,
+            "confusion_matrix": [
+              [
+                140,
+                0,
+                0
+              ],
+              [
+                0,
+                140,
+                0
+              ],
+              [
+                0,
+                14,
+                126
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9665831244778613,
+            "per_class_recall": {
+              "descriptive": 0.9,
+              "evaluative": 1.0,
+              "imperative": 1.0
+            },
+            "rows": 420
+          },
+          {
+            "accuracy": 0.9083333333333333,
+            "confusion_matrix": [
+              [
+                40,
+                0,
+                0
+              ],
+              [
+                0,
+                29,
+                11
+              ],
+              [
+                0,
+                0,
+                40
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9065668630886021,
+            "per_class_recall": {
+              "descriptive": 1.0,
+              "evaluative": 1.0,
+              "imperative": 0.725
+            },
+            "rows": 120
+          },
+          {
+            "accuracy": 1.0,
+            "confusion_matrix": [
+              [
+                20,
+                0,
+                0
+              ],
+              [
+                0,
+                20,
+                0
+              ],
+              [
+                0,
+                0,
+                20
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 1.0,
+            "per_class_recall": {
+              "descriptive": 1.0,
+              "evaluative": 1.0,
+              "imperative": 1.0
+            },
+            "rows": 60
+          }
+        ],
+        "mean_accuracy": 0.9604166666666667,
+        "mean_macro_f1": 0.9599340347338059,
+        "mean_per_class_recall": {
+          "descriptive": 0.9660714285714286,
+          "evaluative": 1.0,
+          "imperative": 0.9151785714285714
+        },
+        "minimum_mean_recall": 0.9151785714285714
+      },
+      {
+        "config": {
+          "C": 16.0,
+          "class_weight": "balanced",
+          "min_df": 2
+        },
+        "fold_metrics": [
+          {
+            "accuracy": 0.9666666666666667,
+            "confusion_matrix": [
+              [
+                140,
+                0,
+                0
+              ],
+              [
+                8,
+                131,
+                1
+              ],
+              [
+                0,
+                5,
+                135
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.96658615136876,
+            "per_class_recall": {
+              "descriptive": 0.9642857142857143,
+              "evaluative": 1.0,
+              "imperative": 0.9357142857142857
+            },
+            "rows": 420
+          },
+          {
+            "accuracy": 0.9666666666666667,
+            "confusion_matrix": [
+              [
+                140,
+                0,
+                0
+              ],
+              [
+                0,
+                140,
+                0
+              ],
+              [
+                0,
+                14,
+                126
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9665831244778613,
+            "per_class_recall": {
+              "descriptive": 0.9,
+              "evaluative": 1.0,
+              "imperative": 1.0
+            },
+            "rows": 420
+          },
+          {
+            "accuracy": 0.9083333333333333,
+            "confusion_matrix": [
+              [
+                40,
+                0,
+                0
+              ],
+              [
+                0,
+                29,
+                11
+              ],
+              [
+                0,
+                0,
+                40
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 0.9065668630886021,
+            "per_class_recall": {
+              "descriptive": 1.0,
+              "evaluative": 1.0,
+              "imperative": 0.725
+            },
+            "rows": 120
+          },
+          {
+            "accuracy": 1.0,
+            "confusion_matrix": [
+              [
+                20,
+                0,
+                0
+              ],
+              [
+                0,
+                20,
+                0
+              ],
+              [
+                0,
+                0,
+                20
+              ]
+            ],
+            "label_order": [
+              "evaluative",
+              "imperative",
+              "descriptive"
+            ],
+            "macro_f1": 1.0,
+            "per_class_recall": {
+              "descriptive": 1.0,
+              "evaluative": 1.0,
+              "imperative": 1.0
+            },
+            "rows": 60
+          }
+        ],
+        "mean_accuracy": 0.9604166666666667,
+        "mean_macro_f1": 0.9599340347338059,
+        "mean_per_class_recall": {
+          "descriptive": 0.9660714285714286,
+          "evaluative": 1.0,
+          "imperative": 0.9151785714285714
+        },
+        "minimum_mean_recall": 0.9151785714285714
+      }
+    ],
+    "final_eval_rows_seen": 0,
+    "group_count": 4,
+    "n_splits": 4,
+    "selected": {
+      "config": {
+        "C": 2.0,
+        "class_weight": null,
+        "min_df": 1
+      },
+      "fold_metrics": [
+        {
+          "accuracy": 0.969047619047619,
+          "confusion_matrix": [
+            [
+              140,
+              0,
+              0
+            ],
+            [
+              7,
+              132,
+              1
+            ],
+            [
+              0,
+              5,
+              135
+            ]
+          ],
+          "label_order": [
+            "evaluative",
+            "imperative",
+            "descriptive"
+          ],
+          "macro_f1": 0.9689797392401801,
+          "per_class_recall": {
+            "descriptive": 0.9642857142857143,
+            "evaluative": 1.0,
+            "imperative": 0.9428571428571428
+          },
+          "rows": 420
+        },
+        {
+          "accuracy": 0.9642857142857143,
+          "confusion_matrix": [
+            [
+              140,
+              0,
+              0
+            ],
+            [
+              0,
+              140,
+              0
+            ],
+            [
+              0,
+              15,
+              125
+            ]
+          ],
+          "label_order": [
+            "evaluative",
+            "imperative",
+            "descriptive"
+          ],
+          "macro_f1": 0.9641829229293254,
+          "per_class_recall": {
+            "descriptive": 0.8928571428571429,
+            "evaluative": 1.0,
+            "imperative": 1.0
+          },
+          "rows": 420
+        },
+        {
+          "accuracy": 0.9166666666666666,
+          "confusion_matrix": [
+            [
+              40,
+              0,
+              0
+            ],
+            [
+              0,
+              30,
+              10
+            ],
+            [
+              0,
+              0,
+              40
+            ]
+          ],
+          "label_order": [
+            "evaluative",
+            "imperative",
+            "descriptive"
+          ],
+          "macro_f1": 0.9153439153439153,
+          "per_class_recall": {
+            "descriptive": 1.0,
+            "evaluative": 1.0,
+            "imperative": 0.75
+          },
+          "rows": 120
+        },
+        {
+          "accuracy": 1.0,
+          "confusion_matrix": [
+            [
+              20,
+              0,
+              0
+            ],
+            [
+              0,
+              20,
+              0
+            ],
+            [
+              0,
+              0,
+              20
+            ]
+          ],
+          "label_order": [
+            "evaluative",
+            "imperative",
+            "descriptive"
+          ],
+          "macro_f1": 1.0,
+          "per_class_recall": {
+            "descriptive": 1.0,
+            "evaluative": 1.0,
+            "imperative": 1.0
+          },
+          "rows": 60
+        }
+      ],
+      "mean_accuracy": 0.9625,
+      "mean_macro_f1": 0.9621266443783552,
+      "mean_per_class_recall": {
+        "descriptive": 0.9642857142857143,
+        "evaluative": 1.0,
+        "imperative": 0.9232142857142858
+      },
+      "minimum_mean_recall": 0.9232142857142858
+    },
+    "selection_scope": "train_group_cv_only",
+    "vectorizer_refit_inside_each_fold": true
+  },
+  "split": {
+    "component_graph": {
+      "both_edges": 1539,
+      "component_count": 7,
+      "component_sizes_desc": [
+        420,
+        420,
+        240,
+        120,
+        120,
+        60,
+        60
+      ],
+      "edge_rule": "sequence_matcher_gte_0.88_OR_token_jaccard_gte_0.70",
+      "exact_edges": 0,
+      "jaccard_edges": 2633,
+      "largest_component_rows": 420,
+      "length_prefilter_used": false,
+      "sequence_edges": 1818,
+      "sequence_threshold": 0.88,
+      "token_jaccard_threshold": 0.7
+    },
+    "cross_partition_similarity_counts": {
+      "normalized_exact": 0,
+      "sequence_matcher_at_least_0_88": 0,
+      "token_jaccard_at_least_0_70": 0
+    },
+    "pairwise_group_overlap": {
+      "calibration__final_eval": {
+        "component_id": 0,
+        "grounding_id": 0,
+        "normalized_text": 0,
+        "scenario_group": 0,
+        "surface_family": 0
+      },
+      "train__calibration": {
+        "component_id": 0,
+        "grounding_id": 0,
+        "normalized_text": 0,
+        "scenario_group": 0,
+        "surface_family": 0
+      },
+      "train__final_eval": {
+        "component_id": 0,
+        "grounding_id": 0,
+        "normalized_text": 0,
+        "scenario_group": 0,
+        "surface_family": 0
+      }
+    },
+    "partitions": {
+      "calibration": {
+        "component_count": 1,
+        "label_counts": {
+          "descriptive": 40,
+          "evaluative": 40,
+          "imperative": 40
+        },
+        "rows": 120,
+        "scenario_ids": [
+          "yield_lower_corridor",
+          "yield_upper_corridor"
+        ],
+        "surface_family_count": 12
+      },
+      "final_eval": {
+        "component_count": 2,
+        "label_counts": {
+          "descriptive": 100,
+          "evaluative": 100,
+          "imperative": 100
+        },
+        "rows": 300,
+        "scenario_ids": [
+          "plate_ready_soup",
+          "stash_dish",
+          "stash_onion",
+          "stash_soup",
+          "stash_tomato"
+        ],
+        "surface_family_count": 30
+      },
+      "train": {
+        "component_count": 4,
+        "label_counts": {
+          "descriptive": 340,
+          "evaluative": 340,
+          "imperative": 340
+        },
+        "rows": 1020,
+        "scenario_ids": [
+          "clear_pot_access",
+          "clear_serving_access",
+          "complete_with_onion",
+          "complete_with_tomato",
+          "get_dish_counter",
+          "get_dish_dispenser",
+          "get_onion_counter",
+          "get_onion_dispenser",
+          "get_soup_counter",
+          "get_tomato_counter",
+          "get_tomato_dispenser",
+          "put_onion_after_tomato",
+          "put_onion_empty_pot",
+          "put_second_tomato",
+          "put_tomato_empty_pot",
+          "serve_held_soup",
+          "wait_while_cooking"
+        ],
+        "surface_family_count": 102
+      }
+    },
+    "seed": 73129,
+    "similarity_quality_gate_passed": true,
+    "target_fractions": {
+      "calibration": 0.1,
+      "final_eval": 0.2,
+      "train": 0.7
+    }
+  },
+  "status": "passed_research_candidate",
+  "status_checks": {
+    "each_final_eval_recall_at_least_0_85": true,
+    "external_input_files_opened_zero": true,
+    "final_eval_accuracy_at_least_0_87": true,
+    "final_eval_macro_f1_at_least_0_87": true,
+    "forbidden_ontology_hits_zero": true,
+    "frozen_final_eval_did_not_mutate_model": true,
+    "generation_balanced": true,
+    "generation_rows_at_least_1440": true,
+    "independent_calibration": true,
+    "reference_type_not_used": true,
+    "single_speech_act_failures_zero": true,
+    "strict_jaccard_cross_split_zero": true,
+    "strict_sequence_cross_split_zero": true,
+    "surface_grammar_failures_zero": true,
+    "train_only_model_selection": true
+  },
+  "version": "direct-fg-clean-v3-research-candidate-v1"
+}

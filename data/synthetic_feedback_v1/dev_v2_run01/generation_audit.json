@@ -1,0 +1,21 @@
+{
+  "development_scope": "Model development and C selection; no independent accuracy claim.",
+  "excluded_train_dev_text_collisions": [
+    {
+      "family": "object_contents",
+      "text": "The nearest counter has no ingredients on it."
+    }
+  ],
+  "exposed_source_sha256": "4473f6647e428777f92f03e54a4c6c561976775bf64cb0fe567dfd5c50105ff1",
+  "human_data": false,
+  "new_independent_test_read": false,
+  "new_training_rows": 39456,
+  "previous_acceptance_now_exposed_dev": true,
+  "train_dev_normalized_overlap": 0,
+  "train_label_counts": {
+    "descriptive": 13285,
+    "evaluative": 26315,
+    "imperative": 12727
+  },
+  "training_group_count": 113
+}

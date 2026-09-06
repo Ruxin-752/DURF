@@ -1,0 +1,102 @@
+{
+  "target_semantics": "paper_grounding",
+  "recipe": {
+    "family": "paper_word_unigram_bigram_tfidf_logistic_regression",
+    "ngram_range": [
+      1,
+      2
+    ],
+    "min_df": 5,
+    "sublinear_tf": true,
+    "stop_words": "english",
+    "C": 1.0,
+    "class_weight": null,
+    "raw_text_instead_of_author_domain_preprocessing": true,
+    "vectorizer_fit_on_train_only": true,
+    "group_disjoint_instead_of_author_random_row_split": true,
+    "model_selection": "one_prespecified_recipe_no_dev_search"
+  },
+  "source": "https://arxiv.org/pdf/2009.14715",
+  "sklearn_version": "1.8.0",
+  "train_sha256": "fb5bf05403769d74c14782b53ca9f2d65f1587387b4c8fdf036dba06bcd89929",
+  "dev_sha256": "adae98ac5bde654a56e6a318917058fec1a80220b2cd13584cba2c80a3cd2f6a",
+  "model_sha256": "647eb77dc20c4d0a5ad06cc0bd9ed894365ac4d11a7ccbb0b49f7835612d2119",
+  "split_audit": {
+    "group_overlap": 0,
+    "normalized_text_overlap": 0,
+    "near_duplicate_audit": "not_performed",
+    "frozen_test_opened": false
+  },
+  "train_rows": 448,
+  "dev_rows": 99,
+  "train_labels": {
+    "descriptive": 187,
+    "imperative": 88,
+    "evaluative": 173
+  },
+  "dev_labels": {
+    "evaluative": 51,
+    "imperative": 15,
+    "descriptive": 33
+  },
+  "dev_accuracy": 0.8585858585858586,
+  "dev_classification": {
+    "descriptive": {
+      "precision": 0.8823529411764706,
+      "recall": 0.9090909090909091,
+      "f1-score": 0.8955223880597015,
+      "support": 33.0
+    },
+    "evaluative": {
+      "precision": 0.8775510204081632,
+      "recall": 0.8431372549019608,
+      "f1-score": 0.86,
+      "support": 51.0
+    },
+    "imperative": {
+      "precision": 0.75,
+      "recall": 0.8,
+      "f1-score": 0.7741935483870968,
+      "support": 15.0
+    },
+    "accuracy": 0.8585858585858586,
+    "macro avg": {
+      "precision": 0.8366346538615446,
+      "recall": 0.8507427213309566,
+      "f1-score": 0.8432386454822661,
+      "support": 99.0
+    },
+    "weighted avg": {
+      "precision": 0.8598257484812107,
+      "recall": 0.8585858585858586,
+      "f1-score": 0.8588398185027939,
+      "support": 99.0
+    }
+  },
+  "dev_confusion_matrix": [
+    [
+      30,
+      3,
+      0
+    ],
+    [
+      4,
+      43,
+      4
+    ],
+    [
+      0,
+      3,
+      12
+    ]
+  ],
+  "confusion_matrix_label_order": [
+    "descriptive",
+    "evaluative",
+    "imperative"
+  ],
+  "production_promotion_eligible": false,
+  "reason": "Development experiment only; no independent kitchen human test or release approval.",
+  "scores_are_probability_of_correctness": false,
+  "routing_threshold_validated": false
+}

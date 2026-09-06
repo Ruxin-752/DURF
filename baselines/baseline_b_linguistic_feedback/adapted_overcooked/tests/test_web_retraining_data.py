@@ -84,7 +84,7 @@ def export_rows() -> list[dict]:
     return rows
 
 
-def prepare_without_filesystem():
+def prepare_without_filesystem(rows=None, **options):
     jsonl_writes: list[tuple[Path, list[dict]]] = []
     json_writes: list[tuple[Path, object]] = []
 
@@ -95,7 +95,7 @@ def prepare_without_filesystem():
         json_writes.append((path, value))
 
     with (
-        patch.object(pipeline, "_read_jsonl", return_value=export_rows()),
+        patch.object(pipeline, "_read_jsonl", return_value=export_rows() if rows is None else rows),
         patch.object(pipeline, "_write_jsonl", side_effect=capture_jsonl),
         patch.object(pipeline, "_write_json", side_effect=capture_json),
         patch.object(pipeline, "_sha256_file", return_value="f" * 64),
@@ -106,6 +106,7 @@ def prepare_without_filesystem():
             Path("prepared"),
             initialize_split_registry=True,
             split_seed="test-seed",
+            **options,
         )
     tasks = next(rows for path, rows in jsonl_writes if path.name == "feedback_annotation_tasks.jsonl")
     joins = next(rows for path, rows in jsonl_writes if path.name == "feedback_annotation_join.jsonl")
@@ -132,6 +133,134 @@ def prepare_manifest(tasks_hash: str = "f" * 64, join_hash: str = "f" * 64) -> d
 
 
 class WebRetrainingDataTests(unittest.TestCase):
+    def test_consent_filter_keeps_complete_cohort_and_audits_excluded_records(self):
+        rows = export_rows()
+        rows[3]["consent_version"] = "old-consent"
+        manifest, tasks, joins, route2 = prepare_without_filesystem(rows, filter_consent_version="consent-v1")
+        self.assertEqual(len(tasks), 2)
+        self.assertEqual({r["session_id"] for r in joins}, {"session-1", "session-3"})
+        self.assertEqual({r["session_id"] for r in route2}, {"session-1", "session-3"})
+        self.assertEqual(manifest["record_counts"]["events"], 2)
+        selection = manifest["consent_selection"]
+        self.assertEqual(selection["mode"], "filter_session_cohort")
+        self.assertEqual(selection["excluded_record_counts"], {"sessions": 1, "events": 1, "feedback": 1})
+        self.assertEqual(selection["source_record_counts"], {"sessions": 3, "events": 3, "feedback": 3})
+        self.assertEqual(selection["selected_records_sha256"], hashlib.sha256(pipeline._canonical_bytes(rows[:3] + rows[6:])).hexdigest())
+        # Strict mode retains its previous rejection behavior.
+        with self.assertRaisesRegex(ValueError, "consent_version does not match"):
+            prepare_without_filesystem(rows, consent_version="consent-v1")
+
+    def test_consent_filter_rejects_cross_session_links_before_exclusion(self):
+        rows = export_rows()
+        rows[0]["consent_version"] = "old-consent"
+        rows[2]["event_id"] = "event-2"
+        with self.assertRaisesRegex(ValueError, "invalid event/session link before consent filter"):
+            prepare_without_filesystem(rows, filter_consent_version="consent-v1")
+
+    def test_consent_modes_are_mutually_exclusive(self):
+        with self.assertRaisesRegex(ValueError, "mutually exclusive"):
+            prepare_without_filesystem(consent_version="consent-v1", filter_consent_version="consent-v1")
+
+    def test_route2_keeps_distinct_bound_model_hashes_and_actual_trajectory(self):
+        rows = export_rows()[:3]
+        rows[1]["model_hash"] = "b" * 64
+        rows[1]["payload"].update({
+            "classifierModelHash": "a" * 64,
+            "updaterModelHash": "b" * 64,
+        })
+        rows[1]["payload"]["gameSnapshot"]["recentTrajectoryFeatures"] = {"pick_onion": 0.25}
+        rows[2]["route"] = "route2"
+        _, tasks, joins, route2 = prepare_without_filesystem(rows)
+        self.assertEqual(len(tasks), 1)
+        self.assertEqual(route2[0]["route2_trajectory_features"], {"pick_onion": 0.25})
+        self.assertEqual(route2[0]["trajectory_source"], "feedback_recent_trajectory")
+        self.assertTrue(route2[0]["trajectory_is_exact_model_input"])
+        for output in (joins[0], route2[0]):
+            self.assertEqual(output["classifier_model_hash"], "a" * 64)
+            self.assertEqual(output["updater_model_hash"], "b" * 64)
+            self.assertEqual(output["model_provenance"], "explicit_classifier_and_updater")
+        self.assertFalse(route2[0]["eligible_for_route2_supervised_training"])
+
+    def test_route2_rejects_missing_or_mismatched_model_provenance(self):
+        variants = (
+            ({}, "without explicit provenance"),
+            ({"classifierModelHash": "a" * 64}, "updaterModelHash"),
+            ({"updaterModelHash": "b" * 64}, "classifierModelHash"),
+            ({"classifierModelHash": "c" * 64, "updaterModelHash": "b" * 64}, "classifier model hash mismatch"),
+            ({"classifierModelHash": "a" * 64, "updaterModelHash": "c" * 64}, "updater model hash mismatch"),
+        )
+        for payload, message in variants:
+            with self.subTest(payload=payload):
+                rows = export_rows()[:3]
+                rows[1]["model_hash"] = "b" * 64
+                rows[1]["payload"].update(payload)
+                rows[2]["route"] = "route2"
+                with self.assertRaisesRegex(ValueError, message):
+                    prepare_without_filesystem(rows)
+
+    def test_explicit_provenance_is_checked_even_when_event_and_feedback_hashes_match(self):
+        rows = export_rows()[:3]
+        rows[1]["payload"].update({"classifierModelHash": "a" * 64, "updaterModelHash": "b" * 64})
+        with self.assertRaisesRegex(ValueError, "updater model hash mismatch"):
+            prepare_without_filesystem(rows)
+
+    def test_explicit_model_hashes_require_lowercase_sha256_and_route2_for_distinct_models(self):
+        for invalid_hash in ("foo", "a" * 63, "A" * 64, "g" * 64):
+            with self.subTest(invalid_hash=invalid_hash):
+                rows = export_rows()[:3]
+                rows[1]["model_hash"] = rows[2]["model_hash"] = invalid_hash
+                rows[1]["payload"].update({"classifierModelHash": invalid_hash, "updaterModelHash": invalid_hash})
+                with self.assertRaisesRegex(ValueError, "lowercase SHA-256"):
+                    prepare_without_filesystem(rows)
+        rows = export_rows()[:3]
+        rows[1]["model_hash"] = "b" * 64
+        rows[1]["payload"].update({"classifierModelHash": "a" * 64, "updaterModelHash": "b" * 64})
+        with self.assertRaisesRegex(ValueError, "distinct updater model hash requires route2"):
+            prepare_without_filesystem(rows)
+
+    def test_selected_route_must_match_feedback_route_when_present(self):
+        for explicit in (False, True):
+            with self.subTest(explicit=explicit):
+                rows = export_rows()[:3]
+                rows[1]["payload"]["selectedRoute"] = "route2"
+                if explicit:
+                    rows[1]["payload"].update({"classifierModelHash": "a" * 64, "updaterModelHash": "a" * 64})
+                with self.assertRaisesRegex(ValueError, "selectedRoute/feedback route mismatch"):
+                    prepare_without_filesystem(rows)
+
+    def test_separate_route1_grounding_requires_version_and_matching_binding(self):
+        rows = export_rows()[:3]
+        rows[1]["model_hash"] = "b" * 64
+        rows[1]["payload"].update({
+            "selectedRoute": "route1",
+            "classifierModelHash": "a" * 64,
+            "updaterModelHash": "b" * 64,
+            "groundingModelHash": "b" * 64,
+            "feedbackSemanticsVersion": "speech-act-grounding-v1",
+        })
+        _, _, joins, candidates = prepare_without_filesystem(rows)
+        for output in (joins[0], candidates[0]):
+            self.assertEqual(output["grounding_model_hash"], "b" * 64)
+            self.assertEqual(output["feedback_semantics_version"], "speech-act-grounding-v1")
+        rows[1]["payload"]["groundingModelHash"] = "c" * 64
+        with self.assertRaisesRegex(ValueError, "distinct updater"):
+            prepare_without_filesystem(rows)
+
+    def test_empty_actual_trajectory_does_not_fall_back_to_state_snapshot(self):
+        rows = export_rows()[:3]
+        rows[1]["payload"]["gameSnapshot"]["recentTrajectoryFeatures"] = {}
+        _, _, _, route2 = prepare_without_filesystem(rows)
+        self.assertEqual(route2[0]["route2_trajectory_features"], {})
+        self.assertTrue(route2[0]["trajectory_is_exact_model_input"])
+
+    def test_malformed_actual_trajectory_fails_instead_of_silent_fallback(self):
+        for vector in (None, [], {"pick_onion": True}, {"pick_onion": "0.2"}, {"pick_onion": float("nan")}, {"pick_onion": float("inf")}):
+            with self.subTest(vector=vector):
+                rows = export_rows()[:3]
+                rows[1]["payload"]["gameSnapshot"]["recentTrajectoryFeatures"] = vector
+                with self.assertRaisesRegex(ValueError, "feedback_recent_trajectory"):
+                    prepare_without_filesystem(rows)
+
     def test_prepare_blinds_predictions_and_keeps_participants_disjoint(self):
         manifest, tasks, joins, route2 = prepare_without_filesystem()
         self.assertEqual(len(tasks), 3)
@@ -148,6 +277,7 @@ class WebRetrainingDataTests(unittest.TestCase):
             all(row["eligible_for_route2_supervised_training"] is False for row in route2)
         )
         self.assertEqual(route2[0]["route2_trajectory_features"], {"pick_onion": 1.0})
+        self.assertFalse(route2[0]["trajectory_is_exact_model_input"])
         self.assertFalse(manifest["route2"]["model_predictions_used_as_reward_targets"])
 
     def test_registry_keeps_later_same_text_participant_in_old_frozen_split(self):

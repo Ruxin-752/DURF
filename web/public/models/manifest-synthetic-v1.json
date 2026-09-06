@@ -1,0 +1,33 @@
+{
+  "schema_version": "durf-synthetic-feedback-release-v1",
+  "training_scope": "synthetic_only",
+  "supported_language": "en",
+  "release_id": "durf-synthetic-v3-20260906",
+  "models": {
+    "speech_act": {
+      "path": "/models/synthetic-speech_act-1a7327c3fe998f5e35b4422cf84032abbfeb350bbdcf77f531a781b43259bddf.json",
+      "sha256": "1a7327c3fe998f5e35b4422cf84032abbfeb350bbdcf77f531a781b43259bddf"
+    },
+    "grounding": {
+      "path": "/models/synthetic-grounding-fcb3d9d9a6eacd8d1e2c9bdc12b4469b46b91237ce8e61d167025af304d3f306.json",
+      "sha256": "fcb3d9d9a6eacd8d1e2c9bdc12b4469b46b91237ce8e61d167025af304d3f306"
+    },
+    "route2": {
+      "path": "/models/route2-v5.json",
+      "sha256": "fa9ddb2aff1a451713e62417fcd3bca56a9e06987fbc6d7dbec2cf1651b80177"
+    }
+  },
+  "evidence": {
+    "speech_model_sha256": "07d67d4f8859372b762594461902993d66d0c211c244ac307208f866a27a8fee",
+    "grounding_model_sha256": "b01c5c02ce6d2975524a1c940ea52507b8c45d78bc5b26ac616202d8ef38a0d7",
+    "synthetic_test_sha256": "ddbdc0ed38517865427c01d8ae24b72400fc163034acb857945045a064f258de",
+    "report_sha256": "cf19179a69f4173a26de23e00f90dcdf72d0c44371fde24ca5588e4b315ffada",
+    "stateful_report_sha256": "5834ae8aff215698f99219456a79f7b34ae406bb36fbf09bc651c6f0158d2478",
+    "speech_accuracy": 0.9533333333333334,
+    "speech_macro_f1": 0.9532912954992826,
+    "grounding_accuracy": 0.9733333333333334,
+    "rows": 150,
+    "human_accuracy": null,
+    "passed": true
+  }
+}

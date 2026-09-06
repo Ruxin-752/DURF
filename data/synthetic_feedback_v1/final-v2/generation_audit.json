@@ -1,0 +1,30 @@
+{
+  "development_scope": "Model development and C selection; no independent accuracy claim.",
+  "excluded_train_dev_text_collisions": [
+    {
+      "family": "pronoun_commands",
+      "text": "Serve it."
+    },
+    {
+      "family": "plain_object_state",
+      "text": "The upper stove is empty."
+    },
+    {
+      "family": "object_contents",
+      "text": "The nearest counter has no ingredients on it."
+    }
+  ],
+  "exposed_source_sha256": "4473f6647e428777f92f03e54a4c6c561976775bf64cb0fe567dfd5c50105ff1",
+  "human_data": false,
+  "inherited_train_rows_removed_for_dev_overlap": 4,
+  "new_independent_test_read": false,
+  "new_training_rows": 49591,
+  "previous_acceptance_now_exposed_dev": true,
+  "train_dev_normalized_overlap": 0,
+  "train_label_counts": {
+    "descriptive": 17670,
+    "evaluative": 28565,
+    "imperative": 16227
+  },
+  "training_group_count": 127
+}

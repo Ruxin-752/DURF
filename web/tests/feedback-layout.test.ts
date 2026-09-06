@@ -19,14 +19,16 @@ describe('feedback probability layout', () => {
     );
   });
 
-  it('allows long labels and confidence copy to wrap without covering siblings', () => {
+  it('allows long labels and uncertainty copy to wrap without covering siblings', () => {
     expect(styles).toMatch(/\.probability-row\s*>\s*span\s*{[^}]*overflow-wrap:\s*anywhere;/s);
-    expect(styles).toMatch(/\.confidence-ok\s*{[^}]*overflow-wrap:\s*anywhere;/s);
+    expect(styles).toMatch(/\.confidence-warning\s*{[^}]*overflow-wrap:\s*anywhere;/s);
     expect(styles).toMatch(/\.prediction-line strong\s*{[^}]*white-space:\s*nowrap;/s);
   });
 
-  it('does not present a model score as measured accuracy', () => {
-    expect(component).toContain('Model confidence · not measured accuracy');
+  it('keeps technical score explanations out of the player view', () => {
+    expect(component).not.toContain('Model confidence · not measured accuracy');
+    expect(component).not.toContain('accuracy estimates');
+    expect(component).not.toContain('diagnostic threshold');
     expect(component).not.toContain('Calibrated confidence');
   });
 });

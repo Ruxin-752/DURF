@@ -1,0 +1,1837 @@
+{
+  "schema_version": 1,
+  "dataset_id": "durf-independent-synthetic-acceptance-20260906",
+  "source": "AI-authored synthetic only; no human participant data",
+  "independence": {
+    "candidate_training_text_read": false,
+    "candidate_generator_read": false,
+    "candidate_inference_before_freeze": false,
+    "use": "one final evaluation after candidate and inference code freeze; no tuning on this set",
+    "limitation": "independent authorship within the same AI session, not independently human-validated ground truth"
+  },
+  "contract": {
+    "speech_act": {
+      "evaluative": "Judgment, praise, criticism, regret about past choices, or expressed object preference/value.",
+      "imperative": "Request or instruction for a future/immediate action, including polite indirect requests.",
+      "descriptive": "Factual state or event report without explicit judgment or requested action."
+    },
+    "grounding": {
+      "action": "A particular action, move, or requested next action, including its retrospective judgment.",
+      "feature": "An object, spatial relation, current state, or its value/preference.",
+      "trajectory": "An entire run/round/session or multi-action sequence considered together."
+    },
+    "mixed": "Evaluate component speech-act presence and gold clauses separately; one class need not fit the whole message.",
+    "uncertain": "Excluded from forced three-class accuracy; report confidence/abstention and learning-gate behavior separately."
+  },
+  "predeclared_checks": {
+    "speech_act_macro_f1_min": 0.87,
+    "speech_act_each_class_recall_min": 0.85,
+    "grounding_macro_f1_min": 0.87,
+    "grounding_each_class_recall_min": 0.85,
+    "mixed_message_component_set_accuracy_min": 0.85,
+    "critical_strata": [
+      "retrospective_should",
+      "future_should",
+      "spatial_state",
+      "spatial_request",
+      "object_value",
+      "past_action_fact"
+    ],
+    "notes": "Synthetic acceptance only. Critical systematic failures and unsupported learning behavior must be reported regardless of aggregate score."
+  },
+  "singles": [
+    {
+      "id": "E001",
+      "text": "You should have left that onion on the worktop.",
+      "speech_act": "evaluative",
+      "grounding": "action",
+      "stratum": "retrospective_should",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "E002",
+      "text": "Turning toward the empty pot was a bad decision.",
+      "speech_act": "evaluative",
+      "grounding": "action",
+      "stratum": "past_action_judgment",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "E003",
+      "text": "That last trip to the serving hatch was excellent.",
+      "speech_act": "evaluative",
+      "grounding": "action",
+      "stratum": "past_action_judgment",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "E004",
+      "text": "You ought to have waited until the soup was ready.",
+      "speech_act": "evaluative",
+      "grounding": "action",
+      "stratum": "retrospective_should",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "E005",
+      "text": "Picking up the dirty bowl was the wrong move.",
+      "speech_act": "evaluative",
+      "grounding": "action",
+      "stratum": "past_action_judgment",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "E006",
+      "text": "I liked how you stepped aside for the other cook.",
+      "speech_act": "evaluative",
+      "grounding": "action",
+      "stratum": "past_action_judgment",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "E007",
+      "text": "You did not make a mistake by facing the stove.",
+      "speech_act": "evaluative",
+      "grounding": "action",
+      "stratum": "negated_judgment",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "E008",
+      "text": "Delivering that order so quickly was impressive.",
+      "speech_act": "evaluative",
+      "grounding": "action",
+      "stratum": "past_action_judgment",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "E009",
+      "text": "It was unhelpful to carry the tomato back again.",
+      "speech_act": "evaluative",
+      "grounding": "action",
+      "stratum": "past_action_judgment",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "E010",
+      "text": "You should not have put the full bowl down there.",
+      "speech_act": "evaluative",
+      "grounding": "action",
+      "stratum": "retrospective_should",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "E011",
+      "text": "Great job fetching the plate from the lower shelf.",
+      "speech_act": "evaluative",
+      "grounding": "action",
+      "stratum": "past_action_judgment",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "E012",
+      "text": "Your choice to take the upper passage was sensible.",
+      "speech_act": "evaluative",
+      "grounding": "action",
+      "stratum": "spatial_judgment",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "E013",
+      "text": "I disapprove of your last ingredient pickup.",
+      "speech_act": "evaluative",
+      "grounding": "action",
+      "stratum": "past_action_judgment",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "E014",
+      "text": "Staying by that counter was not useful.",
+      "speech_act": "evaluative",
+      "grounding": "action",
+      "stratum": "negated_judgment",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "E015",
+      "text": "Well done for letting your partner through.",
+      "speech_act": "evaluative",
+      "grounding": "action",
+      "stratum": "past_action_judgment",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "E016",
+      "text": "The turn you just made to the right was wasteful.",
+      "speech_act": "evaluative",
+      "grounding": "action",
+      "stratum": "spatial_judgment",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "E017",
+      "text": "I wish you had served that bowl before the timer ran out.",
+      "speech_act": "evaluative",
+      "grounding": "action",
+      "stratum": "retrospective_regret",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "E018",
+      "text": "You would have done better to leave the ladle alone.",
+      "speech_act": "evaluative",
+      "grounding": "action",
+      "stratum": "retrospective_counterfactual",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "E019",
+      "text": "Failing to collect the soup was disappointing.",
+      "speech_act": "evaluative",
+      "grounding": "action",
+      "stratum": "past_action_judgment",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "E020",
+      "text": "That was a clever way to pass the ingredient across.",
+      "speech_act": "evaluative",
+      "grounding": "action",
+      "stratum": "past_action_judgment",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "E021",
+      "text": "I prefer the counter beside the onion crate.",
+      "speech_act": "evaluative",
+      "grounding": "feature",
+      "stratum": "preference",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "E022",
+      "text": "The left hand passage is a poor route.",
+      "speech_act": "evaluative",
+      "grounding": "feature",
+      "stratum": "spatial_value",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "E023",
+      "text": "The serving hatch on the right is very convenient.",
+      "speech_act": "evaluative",
+      "grounding": "feature",
+      "stratum": "spatial_value",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "E024",
+      "text": "An unoccupied stove is valuable.",
+      "speech_act": "evaluative",
+      "grounding": "feature",
+      "stratum": "object_value",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "E025",
+      "text": "Dirty bowls are no use to us.",
+      "speech_act": "evaluative",
+      "grounding": "feature",
+      "stratum": "object_value",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "E026",
+      "text": "That waiting area is a terrible place to stand.",
+      "speech_act": "evaluative",
+      "grounding": "feature",
+      "stratum": "spatial_value",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "E027",
+      "text": "A clear path between the cooks is helpful.",
+      "speech_act": "evaluative",
+      "grounding": "feature",
+      "stratum": "object_value",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "E028",
+      "text": "This short route is better than the long one.",
+      "speech_act": "evaluative",
+      "grounding": "feature",
+      "stratum": "comparison",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "E029",
+      "text": "I dislike the cramped corner by the sink.",
+      "speech_act": "evaluative",
+      "grounding": "feature",
+      "stratum": "preference",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "E030",
+      "text": "Finished soup is worth more than loose onions.",
+      "speech_act": "evaluative",
+      "grounding": "feature",
+      "stratum": "comparison",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "E031",
+      "text": "The northern worktop is not a good storage spot.",
+      "speech_act": "evaluative",
+      "grounding": "feature",
+      "stratum": "negated_value",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "E032",
+      "text": "I value clean plates more than spare tomatoes.",
+      "speech_act": "evaluative",
+      "grounding": "feature",
+      "stratum": "preference",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "E033",
+      "text": "The lower corridor is wonderfully spacious.",
+      "speech_act": "evaluative",
+      "grounding": "feature",
+      "stratum": "spatial_value",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "E034",
+      "text": "A pot with three ingredients is ideal.",
+      "speech_act": "evaluative",
+      "grounding": "feature",
+      "stratum": "object_value",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "E035",
+      "text": "The rightmost shelf is the worst one.",
+      "speech_act": "evaluative",
+      "grounding": "feature",
+      "stratum": "spatial_value",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "E036",
+      "text": "I am pleased with the empty space near the hatch.",
+      "speech_act": "evaluative",
+      "grounding": "feature",
+      "stratum": "object_value",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "E037",
+      "text": "That blocked square is a nuisance.",
+      "speech_act": "evaluative",
+      "grounding": "feature",
+      "stratum": "object_value",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "E038",
+      "text": "The spare ladle is useless here.",
+      "speech_act": "evaluative",
+      "grounding": "feature",
+      "stratum": "object_value",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "E039",
+      "text": "The central stove is my favorite.",
+      "speech_act": "evaluative",
+      "grounding": "feature",
+      "stratum": "preference",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "E040",
+      "text": "Having an onion ready beside the pot is beneficial.",
+      "speech_act": "evaluative",
+      "grounding": "feature",
+      "stratum": "object_value",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "E041",
+      "text": "Your teamwork throughout that round was excellent.",
+      "speech_act": "evaluative",
+      "grounding": "trajectory",
+      "stratum": "whole_round_judgment",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "E042",
+      "text": "The entire run was a disappointment.",
+      "speech_act": "evaluative",
+      "grounding": "trajectory",
+      "stratum": "whole_round_judgment",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "E043",
+      "text": "Overall, you played that kitchen very well.",
+      "speech_act": "evaluative",
+      "grounding": "trajectory",
+      "stratum": "whole_round_judgment",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "E044",
+      "text": "I am unhappy with how the whole shift went.",
+      "speech_act": "evaluative",
+      "grounding": "trajectory",
+      "stratum": "whole_round_judgment",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "E045",
+      "text": "That sequence of deliveries was well coordinated.",
+      "speech_act": "evaluative",
+      "grounding": "trajectory",
+      "stratum": "sequence_judgment",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "E046",
+      "text": "Your overall performance was not bad.",
+      "speech_act": "evaluative",
+      "grounding": "trajectory",
+      "stratum": "negated_judgment",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "E047",
+      "text": "The way you managed the last five orders was inefficient.",
+      "speech_act": "evaluative",
+      "grounding": "trajectory",
+      "stratum": "sequence_judgment",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "E048",
+      "text": "I loved the cooperation across the whole session.",
+      "speech_act": "evaluative",
+      "grounding": "trajectory",
+      "stratum": "whole_round_judgment",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "E049",
+      "text": "Taken as a whole, that attempt was successful.",
+      "speech_act": "evaluative",
+      "grounding": "trajectory",
+      "stratum": "whole_round_judgment",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "E050",
+      "text": "All that wandering around the kitchen was pointless.",
+      "speech_act": "evaluative",
+      "grounding": "trajectory",
+      "stratum": "sequence_judgment",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "I001",
+      "text": "Carry the next onion over to the pot.",
+      "speech_act": "imperative",
+      "grounding": "action",
+      "stratum": "direct_request",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "I002",
+      "text": "Please face the worktop beneath you.",
+      "speech_act": "imperative",
+      "grounding": "action",
+      "stratum": "polite_spatial_request",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "I003",
+      "text": "Could you leave the upper passage clear?",
+      "speech_act": "imperative",
+      "grounding": "action",
+      "stratum": "indirect_request",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "I004",
+      "text": "Would you bring me an empty bowl?",
+      "speech_act": "imperative",
+      "grounding": "action",
+      "stratum": "indirect_request",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "I005",
+      "text": "Do not take the tomato from my side.",
+      "speech_act": "imperative",
+      "grounding": "action",
+      "stratum": "negated_request",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "I006",
+      "text": "Stop walking toward the blocked corner.",
+      "speech_act": "imperative",
+      "grounding": "action",
+      "stratum": "negated_spatial_request",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "I007",
+      "text": "Let the other cook pass before you move.",
+      "speech_act": "imperative",
+      "grounding": "action",
+      "stratum": "direct_request",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "I008",
+      "text": "I would like you to fetch a plate now.",
+      "speech_act": "imperative",
+      "grounding": "action",
+      "stratum": "indirect_request",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "I009",
+      "text": "Make your next turn to the left.",
+      "speech_act": "imperative",
+      "grounding": "action",
+      "stratum": "spatial_request",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "I010",
+      "text": "Put that cooked soup through the serving hatch.",
+      "speech_act": "imperative",
+      "grounding": "action",
+      "stratum": "direct_request",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "I011",
+      "text": "Would you mind waiting beside the empty shelf?",
+      "speech_act": "imperative",
+      "grounding": "action",
+      "stratum": "indirect_request",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "I012",
+      "text": "Keep your hands free until the onion arrives.",
+      "speech_act": "imperative",
+      "grounding": "action",
+      "stratum": "direct_request",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "I013",
+      "text": "Leave that dirty dish where it is.",
+      "speech_act": "imperative",
+      "grounding": "action",
+      "stratum": "direct_request",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "I014",
+      "text": "Go around the stove on its eastern side.",
+      "speech_act": "imperative",
+      "grounding": "action",
+      "stratum": "spatial_request",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "I015",
+      "text": "Please do not step into my path.",
+      "speech_act": "imperative",
+      "grounding": "action",
+      "stratum": "negated_request",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "I016",
+      "text": "Take one step backward from the counter.",
+      "speech_act": "imperative",
+      "grounding": "action",
+      "stratum": "spatial_request",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "I017",
+      "text": "Pick up the ingredient directly in front of you.",
+      "speech_act": "imperative",
+      "grounding": "action",
+      "stratum": "spatial_request",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "I018",
+      "text": "Will you handle the next delivery, please?",
+      "speech_act": "imperative",
+      "grounding": "action",
+      "stratum": "indirect_request",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "I019",
+      "text": "I need you to fill the empty pot.",
+      "speech_act": "imperative",
+      "grounding": "action",
+      "stratum": "indirect_request",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "I020",
+      "text": "Turn away from the sink and face the crate.",
+      "speech_act": "imperative",
+      "grounding": "action",
+      "stratum": "spatial_request",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "I021",
+      "text": "Hold on to that bowl for a moment.",
+      "speech_act": "imperative",
+      "grounding": "action",
+      "stratum": "direct_request",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "I022",
+      "text": "Avoid putting onions on the delivery tile.",
+      "speech_act": "imperative",
+      "grounding": "action",
+      "stratum": "negated_request",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "I023",
+      "text": "Bring the finished dish here after it cooks.",
+      "speech_act": "imperative",
+      "grounding": "action",
+      "stratum": "future_request",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "I024",
+      "text": "Let us use the lower passage for the next trip.",
+      "speech_act": "imperative",
+      "grounding": "action",
+      "stratum": "collaborative_request",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "I025",
+      "text": "Be sure to collect the soup before leaving.",
+      "speech_act": "imperative",
+      "grounding": "action",
+      "stratum": "direct_request",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "I026",
+      "text": "How about you carry the plate this time?",
+      "speech_act": "imperative",
+      "grounding": "action",
+      "stratum": "indirect_request",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "I027",
+      "text": "Get out of the narrow corridor, please.",
+      "speech_act": "imperative",
+      "grounding": "action",
+      "stratum": "polite_spatial_request",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "I028",
+      "text": "Try staying near the stove on this turn.",
+      "speech_act": "imperative",
+      "grounding": "action",
+      "stratum": "direct_request",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "I029",
+      "text": "It would help if you passed me that onion now.",
+      "speech_act": "imperative",
+      "grounding": "action",
+      "stratum": "indirect_request",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "I030",
+      "text": "Could you please stop circling the island?",
+      "speech_act": "imperative",
+      "grounding": "action",
+      "stratum": "negated_indirect_request",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "I031",
+      "text": "Do not serve the unfinished soup.",
+      "speech_act": "imperative",
+      "grounding": "action",
+      "stratum": "negated_request",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "I032",
+      "text": "Start chopping the next ingredient.",
+      "speech_act": "imperative",
+      "grounding": "action",
+      "stratum": "direct_request",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "I033",
+      "text": "Wait until I have crossed the doorway.",
+      "speech_act": "imperative",
+      "grounding": "action",
+      "stratum": "direct_request",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "I034",
+      "text": "Set the bowl on the counter to your right.",
+      "speech_act": "imperative",
+      "grounding": "action",
+      "stratum": "spatial_request",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "I035",
+      "text": "For the next order, collect the tomato first.",
+      "speech_act": "imperative",
+      "grounding": "action",
+      "stratum": "future_request",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "I036",
+      "text": "You should bring a clean dish on your next trip.",
+      "speech_act": "imperative",
+      "grounding": "action",
+      "stratum": "future_should",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "I037",
+      "text": "You need to step aside now.",
+      "speech_act": "imperative",
+      "grounding": "action",
+      "stratum": "immediate_request",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "I038",
+      "text": "Please swap places with me beside the pot.",
+      "speech_act": "imperative",
+      "grounding": "action",
+      "stratum": "polite_request",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "I039",
+      "text": "Make sure the spare plate stays on the shelf.",
+      "speech_act": "imperative",
+      "grounding": "action",
+      "stratum": "direct_request",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "I040",
+      "text": "I want you to take the shorter passage next.",
+      "speech_act": "imperative",
+      "grounding": "action",
+      "stratum": "indirect_request",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "I041",
+      "text": "Could I ask you to fetch the missing onion?",
+      "speech_act": "imperative",
+      "grounding": "action",
+      "stratum": "indirect_request",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "I042",
+      "text": "Do me a favor and serve the waiting bowl.",
+      "speech_act": "imperative",
+      "grounding": "action",
+      "stratum": "indirect_request",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "I043",
+      "text": "Please wait instead of picking anything up.",
+      "speech_act": "imperative",
+      "grounding": "action",
+      "stratum": "negated_request",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "I044",
+      "text": "Stay out of the square in front of the hatch.",
+      "speech_act": "imperative",
+      "grounding": "action",
+      "stratum": "negated_spatial_request",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "I045",
+      "text": "Let go of the tomato at the nearest worktop.",
+      "speech_act": "imperative",
+      "grounding": "action",
+      "stratum": "direct_request",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "I046",
+      "text": "Move two squares south when the path opens.",
+      "speech_act": "imperative",
+      "grounding": "action",
+      "stratum": "future_spatial_request",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "I047",
+      "text": "Check the pot before you grab another ingredient.",
+      "speech_act": "imperative",
+      "grounding": "action",
+      "stratum": "direct_request",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "I048",
+      "text": "Please return that ladle to the sink.",
+      "speech_act": "imperative",
+      "grounding": "action",
+      "stratum": "polite_request",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "I049",
+      "text": "Would you be able to give your partner the bowl now?",
+      "speech_act": "imperative",
+      "grounding": "action",
+      "stratum": "indirect_request",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "I050",
+      "text": "On the next turn, choose the passage above the stove.",
+      "speech_act": "imperative",
+      "grounding": "action",
+      "stratum": "future_spatial_request",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "D001",
+      "text": "The onion crate stands beyond the lower counter.",
+      "speech_act": "descriptive",
+      "grounding": "feature",
+      "stratum": "spatial_state",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "D002",
+      "text": "There are two clean bowls by the sink.",
+      "speech_act": "descriptive",
+      "grounding": "feature",
+      "stratum": "object_state",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "D003",
+      "text": "The serving hatch is opposite the stove.",
+      "speech_act": "descriptive",
+      "grounding": "feature",
+      "stratum": "spatial_state",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "D004",
+      "text": "No soup is ready yet.",
+      "speech_act": "descriptive",
+      "grounding": "feature",
+      "stratum": "negated_state",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "D005",
+      "text": "The right hand corridor has a cook in it.",
+      "speech_act": "descriptive",
+      "grounding": "feature",
+      "stratum": "spatial_state",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "D006",
+      "text": "This pot contains one tomato and two onions.",
+      "speech_act": "descriptive",
+      "grounding": "feature",
+      "stratum": "object_state",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "D007",
+      "text": "The plate rack is not on your left.",
+      "speech_act": "descriptive",
+      "grounding": "feature",
+      "stratum": "negated_spatial_state",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "D008",
+      "text": "An empty square separates the two worktops.",
+      "speech_act": "descriptive",
+      "grounding": "feature",
+      "stratum": "spatial_state",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "D009",
+      "text": "The onion on the north shelf is still there.",
+      "speech_act": "descriptive",
+      "grounding": "feature",
+      "stratum": "spatial_state",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "D010",
+      "text": "The timer shows twelve seconds remaining.",
+      "speech_act": "descriptive",
+      "grounding": "feature",
+      "stratum": "object_state",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "D011",
+      "text": "Your partner is holding a full bowl.",
+      "speech_act": "descriptive",
+      "grounding": "feature",
+      "stratum": "agent_state",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "D012",
+      "text": "Nothing is blocking the bottom passage.",
+      "speech_act": "descriptive",
+      "grounding": "feature",
+      "stratum": "negated_state",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "D013",
+      "text": "The pot behind you has begun to simmer.",
+      "speech_act": "descriptive",
+      "grounding": "feature",
+      "stratum": "object_state",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "D014",
+      "text": "Both cooks are facing the same stove.",
+      "speech_act": "descriptive",
+      "grounding": "feature",
+      "stratum": "agent_state",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "D015",
+      "text": "The nearest counter has no ingredients on it.",
+      "speech_act": "descriptive",
+      "grounding": "feature",
+      "stratum": "negated_state",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "D016",
+      "text": "The tomato crate sits above the dish rack.",
+      "speech_act": "descriptive",
+      "grounding": "feature",
+      "stratum": "spatial_state",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "D017",
+      "text": "One bowl remains beside the delivery window.",
+      "speech_act": "descriptive",
+      "grounding": "feature",
+      "stratum": "object_state",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "D018",
+      "text": "The eastern doorway is closed.",
+      "speech_act": "descriptive",
+      "grounding": "feature",
+      "stratum": "spatial_state",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "D019",
+      "text": "Your hands are empty.",
+      "speech_act": "descriptive",
+      "grounding": "feature",
+      "stratum": "agent_state",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "D020",
+      "text": "There is a spare plate between the pots.",
+      "speech_act": "descriptive",
+      "grounding": "feature",
+      "stratum": "spatial_state",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "D021",
+      "text": "The soup needs another six ticks to finish.",
+      "speech_act": "descriptive",
+      "grounding": "feature",
+      "stratum": "object_state",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "D022",
+      "text": "The top passage connects the two halves of the kitchen.",
+      "speech_act": "descriptive",
+      "grounding": "feature",
+      "stratum": "spatial_state",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "D023",
+      "text": "Three onions are sitting in the central pot.",
+      "speech_act": "descriptive",
+      "grounding": "feature",
+      "stratum": "object_state",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "D024",
+      "text": "I am standing next to the lower stove.",
+      "speech_act": "descriptive",
+      "grounding": "feature",
+      "stratum": "agent_state",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "D025",
+      "text": "The order displayed above us is tomato soup.",
+      "speech_act": "descriptive",
+      "grounding": "feature",
+      "stratum": "object_state",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "D026",
+      "text": "The left hand tile is a counter, not a floor tile.",
+      "speech_act": "descriptive",
+      "grounding": "feature",
+      "stratum": "negated_spatial_state",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "D027",
+      "text": "That bowl has soup in it.",
+      "speech_act": "descriptive",
+      "grounding": "feature",
+      "stratum": "object_state",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "D028",
+      "text": "The nearest ingredient source is behind the wall.",
+      "speech_act": "descriptive",
+      "grounding": "feature",
+      "stratum": "spatial_state",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "D029",
+      "text": "The southern pot is empty.",
+      "speech_act": "descriptive",
+      "grounding": "feature",
+      "stratum": "object_state",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "D030",
+      "text": "Your partner is not carrying an onion.",
+      "speech_act": "descriptive",
+      "grounding": "feature",
+      "stratum": "negated_agent_state",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "D031",
+      "text": "The serving station lies to the west of both pots.",
+      "speech_act": "descriptive",
+      "grounding": "feature",
+      "stratum": "spatial_state",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "D032",
+      "text": "Two worktops occupy the corner beside the crate.",
+      "speech_act": "descriptive",
+      "grounding": "feature",
+      "stratum": "spatial_state",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "D033",
+      "text": "You placed an onion on the shelf a moment ago.",
+      "speech_act": "descriptive",
+      "grounding": "action",
+      "stratum": "past_action_fact",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "D034",
+      "text": "The other cook just turned north.",
+      "speech_act": "descriptive",
+      "grounding": "action",
+      "stratum": "past_spatial_fact",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "D035",
+      "text": "You did not pick up the bowl on that turn.",
+      "speech_act": "descriptive",
+      "grounding": "action",
+      "stratum": "negated_past_fact",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "D036",
+      "text": "I watched you cross the lower passage.",
+      "speech_act": "descriptive",
+      "grounding": "action",
+      "stratum": "past_spatial_fact",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "D037",
+      "text": "The last action was a step toward the sink.",
+      "speech_act": "descriptive",
+      "grounding": "action",
+      "stratum": "past_action_fact",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "D038",
+      "text": "You served one soup while I was waiting.",
+      "speech_act": "descriptive",
+      "grounding": "action",
+      "stratum": "past_action_fact",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "D039",
+      "text": "Your partner dropped the tomato by the pot.",
+      "speech_act": "descriptive",
+      "grounding": "action",
+      "stratum": "past_action_fact",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "D040",
+      "text": "You stayed still during the previous tick.",
+      "speech_act": "descriptive",
+      "grounding": "action",
+      "stratum": "past_action_fact",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "D041",
+      "text": "The onion was moved from the rack to the worktop.",
+      "speech_act": "descriptive",
+      "grounding": "action",
+      "stratum": "past_action_fact",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "D042",
+      "text": "You turned left after reaching the corner.",
+      "speech_act": "descriptive",
+      "grounding": "action",
+      "stratum": "past_spatial_fact",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "D043",
+      "text": "No ingredient was collected on the last turn.",
+      "speech_act": "descriptive",
+      "grounding": "action",
+      "stratum": "negated_past_fact",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "D044",
+      "text": "The cook handed the plate across the island.",
+      "speech_act": "descriptive",
+      "grounding": "action",
+      "stratum": "past_action_fact",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "D045",
+      "text": "During that round, you delivered four bowls of soup.",
+      "speech_act": "descriptive",
+      "grounding": "trajectory",
+      "stratum": "whole_round_fact",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "D046",
+      "text": "The session ended after two minutes.",
+      "speech_act": "descriptive",
+      "grounding": "trajectory",
+      "stratum": "whole_round_fact",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "D047",
+      "text": "Across the entire run, there were nine deliveries.",
+      "speech_act": "descriptive",
+      "grounding": "trajectory",
+      "stratum": "whole_round_fact",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "D048",
+      "text": "You spent half of that round near the stove.",
+      "speech_act": "descriptive",
+      "grounding": "trajectory",
+      "stratum": "whole_round_fact",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "D049",
+      "text": "The last three orders all used onions.",
+      "speech_act": "descriptive",
+      "grounding": "trajectory",
+      "stratum": "sequence_fact",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "D050",
+      "text": "Neither cook served any soup during that session.",
+      "speech_act": "descriptive",
+      "grounding": "trajectory",
+      "stratum": "negated_whole_round_fact",
+      "origin": "synthetic_acceptance_agent"
+    }
+  ],
+  "mixed": [
+    {
+      "id": "M001",
+      "text": "Nice delivery, but fetch another bowl now.",
+      "expected_speech_acts": [
+        "evaluative",
+        "imperative"
+      ],
+      "clauses": [
+        {
+          "text": "Nice delivery",
+          "speech_act": "evaluative",
+          "grounding": "action"
+        },
+        {
+          "text": "fetch another bowl now",
+          "speech_act": "imperative",
+          "grounding": "action"
+        }
+      ],
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "M002",
+      "text": "The upper stove is empty, so put an onion in it.",
+      "expected_speech_acts": [
+        "descriptive",
+        "imperative"
+      ],
+      "clauses": [
+        {
+          "text": "The upper stove is empty",
+          "speech_act": "descriptive",
+          "grounding": "feature"
+        },
+        {
+          "text": "put an onion in it",
+          "speech_act": "imperative",
+          "grounding": "action"
+        }
+      ],
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "M003",
+      "text": "You should have waited; please serve the bowl now.",
+      "expected_speech_acts": [
+        "evaluative",
+        "imperative"
+      ],
+      "clauses": [
+        {
+          "text": "You should have waited",
+          "speech_act": "evaluative",
+          "grounding": "action"
+        },
+        {
+          "text": "please serve the bowl now",
+          "speech_act": "imperative",
+          "grounding": "action"
+        }
+      ],
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "M004",
+      "text": "That corner is inconvenient, and a bowl is sitting there.",
+      "expected_speech_acts": [
+        "descriptive",
+        "evaluative"
+      ],
+      "clauses": [
+        {
+          "text": "That corner is inconvenient",
+          "speech_act": "evaluative",
+          "grounding": "feature"
+        },
+        {
+          "text": "a bowl is sitting there",
+          "speech_act": "descriptive",
+          "grounding": "feature"
+        }
+      ],
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "M005",
+      "text": "You collected the tomato, but that was a poor choice.",
+      "expected_speech_acts": [
+        "descriptive",
+        "evaluative"
+      ],
+      "clauses": [
+        {
+          "text": "You collected the tomato",
+          "speech_act": "descriptive",
+          "grounding": "action"
+        },
+        {
+          "text": "that was a poor choice",
+          "speech_act": "evaluative",
+          "grounding": "action"
+        }
+      ],
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "M006",
+      "text": "Move beside the pot; your partner is at the sink.",
+      "expected_speech_acts": [
+        "descriptive",
+        "imperative"
+      ],
+      "clauses": [
+        {
+          "text": "Move beside the pot",
+          "speech_act": "imperative",
+          "grounding": "action"
+        },
+        {
+          "text": "your partner is at the sink",
+          "speech_act": "descriptive",
+          "grounding": "feature"
+        }
+      ],
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "M007",
+      "text": "I like the shorter route, so use it for the next delivery.",
+      "expected_speech_acts": [
+        "evaluative",
+        "imperative"
+      ],
+      "clauses": [
+        {
+          "text": "I like the shorter route",
+          "speech_act": "evaluative",
+          "grounding": "feature"
+        },
+        {
+          "text": "use it for the next delivery",
+          "speech_act": "imperative",
+          "grounding": "action"
+        }
+      ],
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "M008",
+      "text": "Do not take the plate; it already holds soup.",
+      "expected_speech_acts": [
+        "descriptive",
+        "imperative"
+      ],
+      "clauses": [
+        {
+          "text": "Do not take the plate",
+          "speech_act": "imperative",
+          "grounding": "action"
+        },
+        {
+          "text": "it already holds soup",
+          "speech_act": "descriptive",
+          "grounding": "feature"
+        }
+      ],
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "M009",
+      "text": "Great teamwork this round; there are two orders remaining.",
+      "expected_speech_acts": [
+        "descriptive",
+        "evaluative"
+      ],
+      "clauses": [
+        {
+          "text": "Great teamwork this round",
+          "speech_act": "evaluative",
+          "grounding": "trajectory"
+        },
+        {
+          "text": "there are two orders remaining",
+          "speech_act": "descriptive",
+          "grounding": "feature"
+        }
+      ],
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "M010",
+      "text": "The doorway is clear, and the southern path is excellent.",
+      "expected_speech_acts": [
+        "descriptive",
+        "evaluative"
+      ],
+      "clauses": [
+        {
+          "text": "The doorway is clear",
+          "speech_act": "descriptive",
+          "grounding": "feature"
+        },
+        {
+          "text": "the southern path is excellent",
+          "speech_act": "evaluative",
+          "grounding": "feature"
+        }
+      ],
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "M011",
+      "text": "You ought to have used the empty stove, but the central pot is full now.",
+      "expected_speech_acts": [
+        "descriptive",
+        "evaluative"
+      ],
+      "clauses": [
+        {
+          "text": "You ought to have used the empty stove",
+          "speech_act": "evaluative",
+          "grounding": "action"
+        },
+        {
+          "text": "the central pot is full now",
+          "speech_act": "descriptive",
+          "grounding": "feature"
+        }
+      ],
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "M012",
+      "text": "The soup is ready; bring a bowl, and serve it.",
+      "expected_speech_acts": [
+        "descriptive",
+        "imperative"
+      ],
+      "clauses": [
+        {
+          "text": "The soup is ready",
+          "speech_act": "descriptive",
+          "grounding": "feature"
+        },
+        {
+          "text": "bring a bowl",
+          "speech_act": "imperative",
+          "grounding": "action"
+        },
+        {
+          "text": "serve it",
+          "speech_act": "imperative",
+          "grounding": "action"
+        }
+      ],
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "M013",
+      "text": "That was a wasteful trip; keep the next onion near the stove.",
+      "expected_speech_acts": [
+        "evaluative",
+        "imperative"
+      ],
+      "clauses": [
+        {
+          "text": "That was a wasteful trip",
+          "speech_act": "evaluative",
+          "grounding": "action"
+        },
+        {
+          "text": "keep the next onion near the stove",
+          "speech_act": "imperative",
+          "grounding": "action"
+        }
+      ],
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "M014",
+      "text": "Could you step aside? The passage behind you is blocked.",
+      "expected_speech_acts": [
+        "descriptive",
+        "imperative"
+      ],
+      "clauses": [
+        {
+          "text": "Could you step aside?",
+          "speech_act": "imperative",
+          "grounding": "action"
+        },
+        {
+          "text": "The passage behind you is blocked",
+          "speech_act": "descriptive",
+          "grounding": "feature"
+        }
+      ],
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "M015",
+      "text": "You moved toward the crate, and your partner picked up a bowl.",
+      "expected_speech_acts": [
+        "descriptive"
+      ],
+      "clauses": [
+        {
+          "text": "You moved toward the crate",
+          "speech_act": "descriptive",
+          "grounding": "action"
+        },
+        {
+          "text": "your partner picked up a bowl",
+          "speech_act": "descriptive",
+          "grounding": "action"
+        }
+      ],
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "M016",
+      "text": "Please carry the tomato; I do not like this crowded shelf.",
+      "expected_speech_acts": [
+        "evaluative",
+        "imperative"
+      ],
+      "clauses": [
+        {
+          "text": "Please carry the tomato",
+          "speech_act": "imperative",
+          "grounding": "action"
+        },
+        {
+          "text": "I do not like this crowded shelf",
+          "speech_act": "evaluative",
+          "grounding": "feature"
+        }
+      ],
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "M017",
+      "text": "Your whole run was efficient, but leaving that bowl was a mistake.",
+      "expected_speech_acts": [
+        "evaluative"
+      ],
+      "clauses": [
+        {
+          "text": "Your whole run was efficient",
+          "speech_act": "evaluative",
+          "grounding": "trajectory"
+        },
+        {
+          "text": "leaving that bowl was a mistake",
+          "speech_act": "evaluative",
+          "grounding": "action"
+        }
+      ],
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "M018",
+      "text": "There is no onion in the pot; could you add one, please?",
+      "expected_speech_acts": [
+        "descriptive",
+        "imperative"
+      ],
+      "clauses": [
+        {
+          "text": "There is no onion in the pot",
+          "speech_act": "descriptive",
+          "grounding": "feature"
+        },
+        {
+          "text": "could you add one, please?",
+          "speech_act": "imperative",
+          "grounding": "action"
+        }
+      ],
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "M019",
+      "text": "Excellent handoff! The other cook now has the plate; wait here.",
+      "expected_speech_acts": [
+        "descriptive",
+        "evaluative",
+        "imperative"
+      ],
+      "clauses": [
+        {
+          "text": "Excellent handoff!",
+          "speech_act": "evaluative",
+          "grounding": "action"
+        },
+        {
+          "text": "The other cook now has the plate",
+          "speech_act": "descriptive",
+          "grounding": "feature"
+        },
+        {
+          "text": "wait here",
+          "speech_act": "imperative",
+          "grounding": "action"
+        }
+      ],
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "M020",
+      "text": "The last shift had six deliveries; overall, the teamwork was poor.",
+      "expected_speech_acts": [
+        "descriptive",
+        "evaluative"
+      ],
+      "clauses": [
+        {
+          "text": "The last shift had six deliveries",
+          "speech_act": "descriptive",
+          "grounding": "trajectory"
+        },
+        {
+          "text": "overall, the teamwork was poor",
+          "speech_act": "evaluative",
+          "grounding": "trajectory"
+        }
+      ],
+      "origin": "synthetic_acceptance_agent"
+    }
+  ],
+  "uncertain": [
+    {
+      "id": "U001",
+      "text": "Hello there!",
+      "kind": "out_of_domain",
+      "reason": "Greeting supplies no task feedback.",
+      "expected_policy": "abstain_or_explicit_uncertainty_no_automatic_learning",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "U002",
+      "text": "What time is it in London?",
+      "kind": "out_of_domain",
+      "reason": "Unrelated information question.",
+      "expected_policy": "abstain_or_explicit_uncertainty_no_automatic_learning",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "U003",
+      "text": "My favorite movie has a chef in it.",
+      "kind": "out_of_domain",
+      "reason": "Kitchen vocabulary does not make a game evaluation.",
+      "expected_policy": "abstain_or_explicit_uncertainty_no_automatic_learning",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "U004",
+      "text": "Purple elephants dance on the moon.",
+      "kind": "out_of_domain",
+      "reason": "No game-relevant referent.",
+      "expected_policy": "abstain_or_explicit_uncertainty_no_automatic_learning",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "U005",
+      "text": "Thank you for chatting with me.",
+      "kind": "out_of_domain",
+      "reason": "Social thanks without a game referent.",
+      "expected_policy": "abstain_or_explicit_uncertainty_no_automatic_learning",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "U006",
+      "text": "Do you speak Spanish?",
+      "kind": "out_of_domain",
+      "reason": "Meta conversation question.",
+      "expected_policy": "abstain_or_explicit_uncertainty_no_automatic_learning",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "U007",
+      "text": "I will be away tomorrow.",
+      "kind": "out_of_domain",
+      "reason": "Personal scheduling, not kitchen state.",
+      "expected_policy": "abstain_or_explicit_uncertainty_no_automatic_learning",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "U008",
+      "text": "What is the capital of France?",
+      "kind": "out_of_domain",
+      "reason": "External knowledge question.",
+      "expected_policy": "abstain_or_explicit_uncertainty_no_automatic_learning",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "U009",
+      "text": "asdf qwer zxcv",
+      "kind": "uninterpretable",
+      "reason": "Keyboard noise.",
+      "expected_policy": "abstain_or_explicit_uncertainty_no_automatic_learning",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "U010",
+      "text": "...",
+      "kind": "uninterpretable",
+      "reason": "No semantic proposition.",
+      "expected_policy": "abstain_or_explicit_uncertainty_no_automatic_learning",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "U011",
+      "text": "Left?",
+      "kind": "ambiguous",
+      "reason": "Could ask position, suggest motion, or question a past turn.",
+      "expected_policy": "abstain_or_explicit_uncertainty_no_automatic_learning",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "U012",
+      "text": "That bowl.",
+      "kind": "ambiguous",
+      "reason": "Bare referent gives no speech act.",
+      "expected_policy": "abstain_or_explicit_uncertainty_no_automatic_learning",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "U013",
+      "text": "We need soup.",
+      "kind": "ambiguous",
+      "reason": "Could report an objective or indirectly request production.",
+      "expected_policy": "abstain_or_explicit_uncertainty_no_automatic_learning",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "U014",
+      "text": "You should go left.",
+      "kind": "ambiguous",
+      "reason": "Without timing may advise a future action or criticize prior play.",
+      "expected_policy": "abstain_or_explicit_uncertainty_no_automatic_learning",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "U015",
+      "text": "The pot is empty again.",
+      "kind": "pragmatically_ambiguous",
+      "reason": "Literal state may function as a reproach or request.",
+      "expected_policy": "abstain_or_explicit_uncertainty_no_automatic_learning",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "U016",
+      "text": "Really?",
+      "kind": "ambiguous",
+      "reason": "Could be surprise, criticism, or a question.",
+      "expected_policy": "abstain_or_explicit_uncertainty_no_automatic_learning",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "U017",
+      "text": "I could use a plate.",
+      "kind": "pragmatically_ambiguous",
+      "reason": "May be a preference, capability statement, or indirect request.",
+      "expected_policy": "abstain_or_explicit_uncertainty_no_automatic_learning",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "U018",
+      "text": "Interesting move.",
+      "kind": "ambiguous",
+      "reason": "Valence and purpose depend on context.",
+      "expected_policy": "abstain_or_explicit_uncertainty_no_automatic_learning",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "U019",
+      "text": "Are you going to serve that?",
+      "kind": "pragmatically_ambiguous",
+      "reason": "Could ask intention or pressure an action.",
+      "expected_policy": "abstain_or_explicit_uncertainty_no_automatic_learning",
+      "origin": "synthetic_acceptance_agent"
+    },
+    {
+      "id": "U020",
+      "text": "Sure, keep blocking the door.",
+      "kind": "sarcasm_ambiguous",
+      "reason": "Literal permission and sarcastic criticism differ.",
+      "expected_policy": "abstain_or_explicit_uncertainty_no_automatic_learning",
+      "origin": "synthetic_acceptance_agent"
+    }
+  ]
+}

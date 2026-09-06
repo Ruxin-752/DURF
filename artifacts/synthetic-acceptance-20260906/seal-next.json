@@ -1,0 +1,43 @@
+{
+  "dataset_id": "durf-independent-synthetic-acceptance-20260906-round2",
+  "sha256": "de769f40f797d48b1ae5a86bfd47c9e5f83ee5341c8cafc55f23586296168ba2",
+  "single_count": 150,
+  "speech_act_counts": {
+    "evaluative": 50,
+    "imperative": 50,
+    "descriptive": 50
+  },
+  "grounding_counts": {
+    "trajectory": 45,
+    "action": 55,
+    "feature": 50
+  },
+  "mixed_count": 20,
+  "mixed_clause_count": 42,
+  "uncertain_count": 20,
+  "independence": {
+    "candidate_training_text_read": false,
+    "candidate_generator_read": false,
+    "candidate_inference_before_freeze": false,
+    "previous_acceptance_now_development": true,
+    "authorship": "Fresh complete sentences and scenarios authored without reading training/dev text; no exact previous-acceptance sentence reused.",
+    "use": "one final evaluation after next candidate and inference code freeze; no tuning on this set",
+    "limitation": "independent authorship within the same AI session, not independently human-validated ground truth"
+  },
+  "predeclared_checks": {
+    "speech_act_macro_f1_min": 0.87,
+    "speech_act_each_class_recall_min": 0.85,
+    "grounding_macro_f1_min": 0.87,
+    "grounding_each_class_recall_min": 0.85,
+    "mixed_message_component_set_accuracy_min": 0.85,
+    "critical_strata": [
+      "retrospective_should",
+      "future_should",
+      "spatial_state",
+      "spatial_request",
+      "object_value",
+      "past_action_fact"
+    ],
+    "notes": "Synthetic acceptance only. Critical systematic failures and unsupported learning behavior must be reported regardless of aggregate score."
+  }
+}

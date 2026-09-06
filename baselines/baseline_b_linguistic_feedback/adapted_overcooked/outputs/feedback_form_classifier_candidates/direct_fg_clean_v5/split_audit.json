@@ -1,0 +1,784 @@
+{
+  "checks": {
+    "all_partitions_balanced_and_cover_ontology": true,
+    "cross_bank_exact_zero": true,
+    "cross_bank_jaccard_zero": true,
+    "cross_bank_sequence_zero": true,
+    "cross_partition_exact_zero": true,
+    "cross_partition_jaccard_zero": true,
+    "cross_partition_sequence_zero": true,
+    "each_component_contains_one_bank": true,
+    "five_surface_components": true,
+    "generation_contract_passed": true,
+    "metadata_only_baseline_is_chance": true
+  },
+  "component_graph": {
+    "component_count": 5,
+    "component_sizes_desc": [
+      432,
+      432,
+      432,
+      432,
+      432
+    ],
+    "components": [
+      {
+        "banks": [
+          "bank_01"
+        ],
+        "component_id": "clean-v5-surface-component:109a5a7e15a04d470dfe",
+        "label_counts": {
+          "descriptive": 144,
+          "evaluative": 144,
+          "imperative": 144
+        },
+        "rows": 432,
+        "split_roles": [
+          "train"
+        ]
+      },
+      {
+        "banks": [
+          "bank_02"
+        ],
+        "component_id": "clean-v5-surface-component:538e7440ebe1ce4505a8",
+        "label_counts": {
+          "descriptive": 144,
+          "evaluative": 144,
+          "imperative": 144
+        },
+        "rows": 432,
+        "split_roles": [
+          "train"
+        ]
+      },
+      {
+        "banks": [
+          "bank_03"
+        ],
+        "component_id": "clean-v5-surface-component:822d373c1b0667189f81",
+        "label_counts": {
+          "descriptive": 144,
+          "evaluative": 144,
+          "imperative": 144
+        },
+        "rows": 432,
+        "split_roles": [
+          "train"
+        ]
+      },
+      {
+        "banks": [
+          "bank_04"
+        ],
+        "component_id": "clean-v5-surface-component:e660380ee9e01c229e5e",
+        "label_counts": {
+          "descriptive": 144,
+          "evaluative": 144,
+          "imperative": 144
+        },
+        "rows": 432,
+        "split_roles": [
+          "calibration"
+        ]
+      },
+      {
+        "banks": [
+          "bank_05"
+        ],
+        "component_id": "clean-v5-surface-component:f54d810237ebd72487a7",
+        "label_counts": {
+          "descriptive": 144,
+          "evaluative": 144,
+          "imperative": 144
+        },
+        "rows": 432,
+        "split_roles": [
+          "final_eval"
+        ]
+      }
+    ],
+    "edge_rule": "same_surface_bank_OR_exact_OR_sequence_gte_0.88_OR_token_jaccard_gte_0.70",
+    "length_prefilter_used": false,
+    "scenario_grounding_action_edges_used": false,
+    "sequence_threshold": 0.88,
+    "similarity_edge_counts": {
+      "either": 12261,
+      "exact": 0,
+      "jaccard": 11791,
+      "sequence": 7129
+    },
+    "token_jaccard_threshold": 0.7
+  },
+  "cross_bank_similarity": {
+    "counts": {
+      "either": 0,
+      "exact": 0,
+      "jaccard": 0,
+      "sequence": 0
+    },
+    "maximum_sequence_ratio": 0.8782051282051282,
+    "maximum_token_jaccard": 0.6818181818181818,
+    "pairwise_counts": {
+      "bank_01__bank_02": {
+        "either": 0,
+        "exact": 0,
+        "jaccard": 0,
+        "sequence": 0
+      },
+      "bank_01__bank_03": {
+        "either": 0,
+        "exact": 0,
+        "jaccard": 0,
+        "sequence": 0
+      },
+      "bank_01__bank_04": {
+        "either": 0,
+        "exact": 0,
+        "jaccard": 0,
+        "sequence": 0
+      },
+      "bank_01__bank_05": {
+        "either": 0,
+        "exact": 0,
+        "jaccard": 0,
+        "sequence": 0
+      },
+      "bank_02__bank_03": {
+        "either": 0,
+        "exact": 0,
+        "jaccard": 0,
+        "sequence": 0
+      },
+      "bank_02__bank_04": {
+        "either": 0,
+        "exact": 0,
+        "jaccard": 0,
+        "sequence": 0
+      },
+      "bank_02__bank_05": {
+        "either": 0,
+        "exact": 0,
+        "jaccard": 0,
+        "sequence": 0
+      },
+      "bank_03__bank_04": {
+        "either": 0,
+        "exact": 0,
+        "jaccard": 0,
+        "sequence": 0
+      },
+      "bank_03__bank_05": {
+        "either": 0,
+        "exact": 0,
+        "jaccard": 0,
+        "sequence": 0
+      },
+      "bank_04__bank_05": {
+        "either": 0,
+        "exact": 0,
+        "jaccard": 0,
+        "sequence": 0
+      }
+    },
+    "top_jaccard_pair_hashes": [
+      {
+        "left_bank": "bank_03",
+        "left_feedback_id": "6c33981308a5976606a72148",
+        "left_label": "imperative",
+        "left_text_sha256": "e9cfec80c8af845a96e3482ffb67457085e40059dcf2bb2c89626087358b01f7",
+        "right_bank": "bank_02",
+        "right_feedback_id": "9c817f4018bcb1c8d3e77de8",
+        "right_label": "imperative",
+        "right_text_sha256": "d3cd5ecd55ef28413bcae9e950f3208e5691ace0a2080df36eb8e9dfa4376567",
+        "score": 0.6818181818181818
+      },
+      {
+        "left_bank": "bank_03",
+        "left_feedback_id": "6311ba4a3fdf78e085393c7b",
+        "left_label": "imperative",
+        "left_text_sha256": "e3d8d521e7cb236d58241474b0e8535a176a8d4018090297c877820aec54a022",
+        "right_bank": "bank_02",
+        "right_feedback_id": "a8d9ec324b753a06a3d1bc55",
+        "right_label": "imperative",
+        "right_text_sha256": "ff3ae0d35e5fc273e960375494d6940e85b89d5bf2363f26796771473888f570",
+        "score": 0.6818181818181818
+      },
+      {
+        "left_bank": "bank_02",
+        "left_feedback_id": "eb76d85d5fa21293edec3c56",
+        "left_label": "imperative",
+        "left_text_sha256": "baffde5ebe1a67223a283c82e9e808c5c330aba759ce12e1b4b247b3550627d7",
+        "right_bank": "bank_03",
+        "right_feedback_id": "ebfc3562ec2d0e6bd670517a",
+        "right_label": "imperative",
+        "right_text_sha256": "605e8edef7e086c47dc896c22e48052452589904fa10edacc95b0bf53ab3cc56",
+        "score": 0.6818181818181818
+      },
+      {
+        "left_bank": "bank_03",
+        "left_feedback_id": "90fa2a222f30d088098703e7",
+        "left_label": "imperative",
+        "left_text_sha256": "53e8cec9c4afd91e3b703f9a1b07b187b197ebe152346e6c47170826deaf29bd",
+        "right_bank": "bank_02",
+        "right_feedback_id": "9194de3a501ba2c8d21ced3a",
+        "right_label": "imperative",
+        "right_text_sha256": "535a51a78b6f0394d71b58823828794f8a2594abc914df8b6b2f4ab61369835f",
+        "score": 0.6818181818181818
+      },
+      {
+        "left_bank": "bank_03",
+        "left_feedback_id": "6bf409f8f9a65b054bb4ba14",
+        "left_label": "imperative",
+        "left_text_sha256": "45a86c279f47e0852d0560176991476ff404a8ddaf6b0fdc2476e6f5a1da5e3e",
+        "right_bank": "bank_02",
+        "right_feedback_id": "81f34fba6f846f86edb4db6d",
+        "right_label": "imperative",
+        "right_text_sha256": "38bfa6da5c43dad375bd6d72180a25cb3d8d7645f4ed87b87883b9d7709bd9e1",
+        "score": 0.6818181818181818
+      }
+    ],
+    "top_sequence_pair_hashes": [
+      {
+        "left_bank": "bank_03",
+        "left_feedback_id": "93e393c7cd642d489de9aa39",
+        "left_label": "evaluative",
+        "left_text_sha256": "d64525b71470abd05f5f517f2892ddd64bbb6f3ac6fb623633794f96c06db760",
+        "right_bank": "bank_04",
+        "right_feedback_id": "fd5f2250022a236828b65db8",
+        "right_label": "evaluative",
+        "right_text_sha256": "e75d4354b9d3b2440fdd1ca4d6fe02fdc8061cce67ed41cc3369bfca7aa214c4",
+        "score": 0.8782051282051282
+      },
+      {
+        "left_bank": "bank_03",
+        "left_feedback_id": "c5a595715da30141364c46d3",
+        "left_label": "evaluative",
+        "left_text_sha256": "87ef53193391e421d0e1382268fb5391e58b51e6f66661f1e1aa7cf1de36ae47",
+        "right_bank": "bank_04",
+        "right_feedback_id": "ff87b32abf759e7ba0b9ad2c",
+        "right_label": "evaluative",
+        "right_text_sha256": "fd50e49a8d9dad96bfa6cd923a2cdc39d1a21569f054593e57a095f78e4b0264",
+        "score": 0.8734939759036144
+      },
+      {
+        "left_bank": "bank_03",
+        "left_feedback_id": "08f43d2edfb8d0c27ee9cfde",
+        "left_label": "evaluative",
+        "left_text_sha256": "b9b9721542a70c65228c5d3a2fa21da5be1042f73541c3e8b6e05d786199e77e",
+        "right_bank": "bank_04",
+        "right_feedback_id": "edc7ebae268e6667c3cd3279",
+        "right_label": "evaluative",
+        "right_text_sha256": "f56c6bb2573e1679046d5f8e9367eb4f35b3c740df97672cff2673e932346e04",
+        "score": 0.87248322147651
+      },
+      {
+        "left_bank": "bank_04",
+        "left_feedback_id": "2baeb629472cc9a0624403e9",
+        "left_label": "evaluative",
+        "left_text_sha256": "f612a91e07ce76963c8e63cce760d19263b247841e6f55ae3a6a683f3cc3f138",
+        "right_bank": "bank_03",
+        "right_feedback_id": "ae11441af2ad0c1e772a780e",
+        "right_label": "evaluative",
+        "right_text_sha256": "71b8aa7632110888d2b0a7d264e4ab8d6c395b8b1cc2108df552d14f5ee84688",
+        "score": 0.8717948717948718
+      },
+      {
+        "left_bank": "bank_04",
+        "left_feedback_id": "108ccb59d60454cde8661ca3",
+        "left_label": "evaluative",
+        "left_text_sha256": "50b6bc345b1edcd9b653437555866562ffcc1211dd88783beff16a4798083cd3",
+        "right_bank": "bank_03",
+        "right_feedback_id": "1bc79bd8ce91928f95c9627c",
+        "right_label": "evaluative",
+        "right_text_sha256": "511bbd3836e10e52e87cbf8fbd8db2aee3cb706f07a3d9a61cf9c62b9d6984a6",
+        "score": 0.8698630136986302
+      }
+    ]
+  },
+  "cross_partition_similarity": {
+    "counts": {
+      "either": 0,
+      "exact": 0,
+      "jaccard": 0,
+      "sequence": 0
+    },
+    "pairwise_counts": {
+      "calibration__final_eval": {
+        "either": 0,
+        "exact": 0,
+        "jaccard": 0,
+        "sequence": 0
+      },
+      "calibration__train": {
+        "either": 0,
+        "exact": 0,
+        "jaccard": 0,
+        "sequence": 0
+      },
+      "final_eval__train": {
+        "either": 0,
+        "exact": 0,
+        "jaccard": 0,
+        "sequence": 0
+      }
+    }
+  },
+  "examples": {
+    "by_bank": {
+      "bank_01": {
+        "descriptive": "A kitchen-state snapshot for the tomato pickup at the tomato dispenser shows this condition: the AI chef is holding a tomato from the tomato dispenser.",
+        "evaluative": "For the tomato pickup at the tomato dispenser, that was a good move just now: you picked up a tomato from the tomato dispenser.",
+        "imperative": "For the tomato pickup at the tomato dispenser, please pick up a tomato from the tomato dispenser as your next move."
+      },
+      "bank_02": {
+        "descriptive": "During the tomato pickup at the tomato dispenser, the presently observed condition is that the AI chef is holding a tomato from the tomato dispenser.",
+        "evaluative": "I approve of your recent action during the tomato pickup at the tomato dispenser: you picked up a tomato from the tomato dispenser.",
+        "imperative": "During the tomato pickup at the tomato dispenser, you need to pick up a tomato from the tomato dispenser for the current task."
+      },
+      "bank_03": {
+        "descriptive": "This neutral status applies to the tomato pickup at the tomato dispenser as things stand: the AI chef is holding a tomato from the tomato dispenser.",
+        "evaluative": "The last move in the tomato pickup at the tomato dispenser was handled well when you picked up a tomato from the tomato dispenser.",
+        "imperative": "Could you pick up a tomato from the tomato dispenser right away for the tomato pickup at the tomato dispenser?"
+      },
+      "bank_04": {
+        "descriptive": "The live game record lists the following under the tomato pickup at the tomato dispenser: the AI chef is holding a tomato from the tomato dispenser.",
+        "evaluative": "A moment ago in the tomato pickup at the tomato dispenser, it was the right choice when you picked up a tomato from the tomato dispenser.",
+        "imperative": "Make this your immediate priority in the tomato pickup at the tomato dispenser: pick up a tomato from the tomato dispenser."
+      },
+      "bank_05": {
+        "descriptive": "Right now, the AI chef is holding a tomato from the tomato dispenser; this is the relevant fact for the tomato pickup at the tomato dispenser.",
+        "evaluative": "What you did recently for the tomato pickup at the tomato dispenser was helpful: you picked up a tomato from the tomato dispenser.",
+        "imperative": "Coordinate this kitchen task now for the tomato pickup at the tomato dispenser: pick up a tomato from the tomato dispenser."
+      }
+    },
+    "grounding_variant_index": 0,
+    "scenario_id": "get_tomato_dispenser"
+  },
+  "generation": {
+    "ai_assisted": true,
+    "bank_audits": {
+      "bank_01": {
+        "action_x_label_cells": 30,
+        "canonical_action_count": 10,
+        "label_counts": {
+          "descriptive": 144,
+          "evaluative": 144,
+          "imperative": 144
+        },
+        "rows": 432,
+        "scenario_count": 24,
+        "split_role": "train",
+        "surface_family_count": 3
+      },
+      "bank_02": {
+        "action_x_label_cells": 30,
+        "canonical_action_count": 10,
+        "label_counts": {
+          "descriptive": 144,
+          "evaluative": 144,
+          "imperative": 144
+        },
+        "rows": 432,
+        "scenario_count": 24,
+        "split_role": "train",
+        "surface_family_count": 3
+      },
+      "bank_03": {
+        "action_x_label_cells": 30,
+        "canonical_action_count": 10,
+        "label_counts": {
+          "descriptive": 144,
+          "evaluative": 144,
+          "imperative": 144
+        },
+        "rows": 432,
+        "scenario_count": 24,
+        "split_role": "train",
+        "surface_family_count": 3
+      },
+      "bank_04": {
+        "action_x_label_cells": 30,
+        "canonical_action_count": 10,
+        "label_counts": {
+          "descriptive": 144,
+          "evaluative": 144,
+          "imperative": 144
+        },
+        "rows": 432,
+        "scenario_count": 24,
+        "split_role": "calibration",
+        "surface_family_count": 3
+      },
+      "bank_05": {
+        "action_x_label_cells": 30,
+        "canonical_action_count": 10,
+        "label_counts": {
+          "descriptive": 144,
+          "evaluative": 144,
+          "imperative": 144
+        },
+        "rows": 432,
+        "scenario_count": 24,
+        "split_role": "final_eval",
+        "surface_family_count": 3
+      }
+    },
+    "bank_count": 5,
+    "bank_identifier_or_nonce_text_hits": 0,
+    "benchmark_scope": "five_bank_surface_heldout_synthetic_only",
+    "contrast_triad_count": 720,
+    "contrast_triad_rows": 3,
+    "external_input_files_opened": 0,
+    "forbidden_ontology_hits": 0,
+    "human_gold": false,
+    "independent_human_semantic_audit": false,
+    "invisible_character_hits": 0,
+    "label_counts": {
+      "descriptive": 720,
+      "evaluative": 720,
+      "imperative": 720
+    },
+    "metadata_only_baseline_is_chance": true,
+    "metadata_only_empirical_majority_accuracy": 0.3333333333333333,
+    "normalized_unique_rows": 2160,
+    "old_human_dev_test_frozen_rows_read": 0,
+    "real_player_accuracy_claim": false,
+    "reference_type_used": false,
+    "rows": 2160,
+    "semantic_payload_identical_inside_each_eid_triad": true,
+    "semantic_payload_intentionally_shared_across_banks": true,
+    "single_speech_act_failures": 0,
+    "style_limit": "five finite lexical banks with one held-out evaluation bank",
+    "surface_families_bank_exclusive": true,
+    "surface_grammar_failures": 0,
+    "version": "direct-fg-clean-v5-five-surface-banks-v1"
+  },
+  "output_artifacts": {
+    "corpus": {
+      "path": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\feedback_form_classifier_candidates\\direct_fg_clean_v5\\corpus.json",
+      "sha256": "5e239e3de005b8a1a64dff2575ca46b531c92bcaff47bd3bd9a212b97cfc65de"
+    },
+    "model_written": false,
+    "split_audit": {
+      "path": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\feedback_form_classifier_candidates\\direct_fg_clean_v5\\split_audit.json"
+    }
+  },
+  "partition_contract": {
+    "calibration": {
+      "action_x_label_cells": 30,
+      "all_10_actions_present": true,
+      "all_24_scenarios_present": true,
+      "all_30_action_x_label_cells_present": true,
+      "banks": [
+        "bank_04"
+      ],
+      "canonical_action_count": 10,
+      "class_balanced": true,
+      "label_counts": {
+        "descriptive": 144,
+        "evaluative": 144,
+        "imperative": 144
+      },
+      "rows": 432,
+      "scenario_count": 24
+    },
+    "final_eval": {
+      "action_x_label_cells": 30,
+      "all_10_actions_present": true,
+      "all_24_scenarios_present": true,
+      "all_30_action_x_label_cells_present": true,
+      "banks": [
+        "bank_05"
+      ],
+      "canonical_action_count": 10,
+      "class_balanced": true,
+      "label_counts": {
+        "descriptive": 144,
+        "evaluative": 144,
+        "imperative": 144
+      },
+      "rows": 432,
+      "scenario_count": 24
+    },
+    "train": {
+      "action_x_label_cells": 30,
+      "all_10_actions_present": true,
+      "all_24_scenarios_present": true,
+      "all_30_action_x_label_cells_present": true,
+      "banks": [
+        "bank_01",
+        "bank_02",
+        "bank_03"
+      ],
+      "canonical_action_count": 10,
+      "class_balanced": true,
+      "label_counts": {
+        "descriptive": 432,
+        "evaluative": 432,
+        "imperative": 432
+      },
+      "rows": 1296,
+      "scenario_count": 24
+    }
+  },
+  "provenance": {
+    "ai_assisted": true,
+    "external_corpus_inputs_opened": 0,
+    "five_class_reference_classifier_used_as_target": false,
+    "human_gold": false,
+    "independent_human_semantic_audit": false,
+    "old_human_dev_test_frozen_rows_read": 0,
+    "production_promotion_eligible": false,
+    "real_player_accuracy_claim": false,
+    "style_limit": "five lexical banks with one synthetic held-out evaluation bank",
+    "training_performed": false
+  },
+  "quality_gate_passed": true,
+  "script_hashes": {
+    "audit_sha256": "63cd22848347cc413ec536aa7aa5f865c260653ea7f23e3095e573151d56fb1d",
+    "generator_sha256": "a38d523760e2f17d791e57401bdbd0bc690072dfe2798f4b085320382410df79"
+  },
+  "split_protocol": {
+    "benchmark_scope": "surface_heldout_synthetic_only",
+    "calibration_banks": [
+      "bank_04"
+    ],
+    "final_eval_banks": [
+      "bank_05"
+    ],
+    "independent_scenario_action_human_or_player_benchmark": false,
+    "scenario_content_intentionally_shared": true,
+    "semantic_payload_intentionally_shared": true,
+    "surface_frame_banks_exclusive": true,
+    "train_banks": [
+      "bank_01",
+      "bank_02",
+      "bank_03"
+    ],
+    "training_performed": false
+  },
+  "status": "passed_split_audit",
+  "style_diagnostics": {
+    "by_bank_and_label": {
+      "bank_01": {
+        "descriptive": {
+          "character_length_max": 172,
+          "character_length_mean": 138.61805555555554,
+          "character_length_min": 100,
+          "initial_uppercase_fraction": 1.0,
+          "rows": 144,
+          "terminal_punctuation": {
+            ".": 144
+          },
+          "token_length_max": 31,
+          "token_length_mean": 24.444444444444443,
+          "token_length_min": 18
+        },
+        "evaluative": {
+          "character_length_max": 159,
+          "character_length_mean": 122.23611111111111,
+          "character_length_min": 103,
+          "initial_uppercase_fraction": 1.0,
+          "rows": 144,
+          "terminal_punctuation": {
+            ".": 144
+          },
+          "token_length_max": 31,
+          "token_length_mean": 24.15277777777778,
+          "token_length_min": 21
+        },
+        "imperative": {
+          "character_length_max": 148,
+          "character_length_mean": 111.45138888888889,
+          "character_length_min": 90,
+          "initial_uppercase_fraction": 1.0,
+          "rows": 144,
+          "terminal_punctuation": {
+            ".": 144
+          },
+          "token_length_max": 28,
+          "token_length_mean": 21.15277777777778,
+          "token_length_min": 18
+        }
+      },
+      "bank_02": {
+        "descriptive": {
+          "character_length_max": 170,
+          "character_length_mean": 136.61805555555554,
+          "character_length_min": 98,
+          "initial_uppercase_fraction": 1.0,
+          "rows": 144,
+          "terminal_punctuation": {
+            ".": 144
+          },
+          "token_length_max": 30,
+          "token_length_mean": 23.444444444444443,
+          "token_length_min": 17
+        },
+        "evaluative": {
+          "character_length_max": 167,
+          "character_length_mean": 128.23611111111111,
+          "character_length_min": 107,
+          "initial_uppercase_fraction": 1.0,
+          "rows": 144,
+          "terminal_punctuation": {
+            ".": 144
+          },
+          "token_length_max": 30,
+          "token_length_mean": 23.15277777777778,
+          "token_length_min": 20
+        },
+        "imperative": {
+          "character_length_max": 159,
+          "character_length_mean": 122.45138888888889,
+          "character_length_min": 101,
+          "initial_uppercase_fraction": 1.0,
+          "rows": 144,
+          "terminal_punctuation": {
+            ".": 144
+          },
+          "token_length_max": 30,
+          "token_length_mean": 23.15277777777778,
+          "token_length_min": 20
+        }
+      },
+      "bank_03": {
+        "descriptive": {
+          "character_length_max": 169,
+          "character_length_mean": 135.61805555555554,
+          "character_length_min": 97,
+          "initial_uppercase_fraction": 1.0,
+          "rows": 144,
+          "terminal_punctuation": {
+            ".": 144
+          },
+          "token_length_max": 31,
+          "token_length_mean": 24.444444444444443,
+          "token_length_min": 18
+        },
+        "evaluative": {
+          "character_length_max": 165,
+          "character_length_mean": 126.73611111111111,
+          "character_length_min": 106,
+          "initial_uppercase_fraction": 1.0,
+          "rows": 144,
+          "terminal_punctuation": {
+            ".": 144
+          },
+          "token_length_max": 31,
+          "token_length_mean": 24.15277777777778,
+          "token_length_min": 21
+        },
+        "imperative": {
+          "character_length_max": 143,
+          "character_length_mean": 106.45138888888889,
+          "character_length_min": 85,
+          "initial_uppercase_fraction": 1.0,
+          "rows": 144,
+          "terminal_punctuation": {
+            "?": 144
+          },
+          "token_length_max": 27,
+          "token_length_mean": 20.15277777777778,
+          "token_length_min": 17
+        }
+      },
+      "bank_04": {
+        "descriptive": {
+          "character_length_max": 169,
+          "character_length_mean": 135.61805555555554,
+          "character_length_min": 97,
+          "initial_uppercase_fraction": 1.0,
+          "rows": 144,
+          "terminal_punctuation": {
+            ".": 144
+          },
+          "token_length_max": 31,
+          "token_length_mean": 24.444444444444443,
+          "token_length_min": 18
+        },
+        "evaluative": {
+          "character_length_max": 170,
+          "character_length_mean": 132.73611111111111,
+          "character_length_min": 113,
+          "initial_uppercase_fraction": 1.0,
+          "rows": 144,
+          "terminal_punctuation": {
+            ".": 144
+          },
+          "token_length_max": 33,
+          "token_length_mean": 26.15277777777778,
+          "token_length_min": 23
+        },
+        "imperative": {
+          "character_length_max": 156,
+          "character_length_mean": 119.45138888888889,
+          "character_length_min": 98,
+          "initial_uppercase_fraction": 1.0,
+          "rows": 144,
+          "terminal_punctuation": {
+            ".": 144
+          },
+          "token_length_max": 28,
+          "token_length_mean": 21.15277777777778,
+          "token_length_min": 18
+        }
+      },
+      "bank_05": {
+        "descriptive": {
+          "character_length_max": 163,
+          "character_length_mean": 129.61805555555554,
+          "character_length_min": 91,
+          "initial_uppercase_fraction": 1.0,
+          "rows": 144,
+          "terminal_punctuation": {
+            ".": 144
+          },
+          "token_length_max": 31,
+          "token_length_mean": 24.444444444444443,
+          "token_length_min": 18
+        },
+        "evaluative": {
+          "character_length_max": 165,
+          "character_length_mean": 126.73611111111111,
+          "character_length_min": 106,
+          "initial_uppercase_fraction": 1.0,
+          "rows": 144,
+          "terminal_punctuation": {
+            ".": 144
+          },
+          "token_length_max": 30,
+          "token_length_mean": 23.15277777777778,
+          "token_length_min": 20
+        },
+        "imperative": {
+          "character_length_max": 156,
+          "character_length_mean": 119.45138888888889,
+          "character_length_min": 98,
+          "initial_uppercase_fraction": 1.0,
+          "rows": 144,
+          "terminal_punctuation": {
+            ".": 144
+          },
+          "token_length_max": 28,
+          "token_length_mean": 21.15277777777778,
+          "token_length_min": 18
+        }
+      }
+    },
+    "included_in_quality_gate": false,
+    "role": "length_punctuation_case_diagnostic_only"
+  },
+  "v4_stress_reference": {
+    "imperative_recall": 0.74,
+    "manifest_sha256": "dac6db5b1cd0feaa4d1f1a71ef9d7bbfdfa604ab92a02642c5238a99e4e05be0",
+    "report_sha256": "a4669257f62bb144ce00c9cc416056fa247e990b21fee412001e0c4c91051d49",
+    "role": "frozen_action_and_scenario_ood_stress_test_only",
+    "status": "failed_research_candidate",
+    "synthetic_accuracy": 0.9133333333333333,
+    "synthetic_macro_f1": 0.9113866370736393,
+    "used_for_v5_generation_selection_or_gate": false
+  },
+  "version": "direct-fg-clean-v5-five-bank-split-audit-v1"
+}

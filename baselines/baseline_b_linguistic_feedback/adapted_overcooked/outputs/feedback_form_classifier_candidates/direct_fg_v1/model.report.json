@@ -1,0 +1,1631 @@
+{
+  "candidate_grid": [
+    {
+      "config": {
+        "C": 0.05,
+        "class_weight": null
+      },
+      "metrics": {
+        "classification": {
+          "accuracy": 0.873015873015873,
+          "all_labels_present": true,
+          "balanced_accuracy": 0.8730158730158729,
+          "confusion_matrix": [
+            [
+              30,
+              12,
+              0
+            ],
+            [
+              0,
+              40,
+              2
+            ],
+            [
+              0,
+              2,
+              40
+            ]
+          ],
+          "label_order": [
+            "evaluative",
+            "imperative",
+            "descriptive"
+          ],
+          "label_support": {
+            "descriptive": 42,
+            "evaluative": 42,
+            "imperative": 42
+          },
+          "macro_f1": 0.873015873015873,
+          "per_class": {
+            "descriptive": {
+              "f1-score": 0.9523809523809523,
+              "precision": 0.9523809523809523,
+              "recall": 0.9523809523809523
+            },
+            "evaluative": {
+              "f1-score": 0.8333333333333334,
+              "precision": 1.0,
+              "recall": 0.7142857142857143
+            },
+            "imperative": {
+              "f1-score": 0.8333333333333334,
+              "precision": 0.7407407407407407,
+              "recall": 0.9523809523809523
+            }
+          },
+          "rows": 126
+        },
+        "raw_probability": {
+          "accuracy_from_probabilities": 0.873015873015873,
+          "ece_10_bin": 0.4829290179852645,
+          "mean_confidence": 0.3900868550306084,
+          "multiclass_brier": 0.5745636285739781,
+          "negative_log_likelihood": 0.9656442966327429,
+          "rows": 126
+        }
+      }
+    },
+    {
+      "config": {
+        "C": 0.05,
+        "class_weight": "balanced"
+      },
+      "metrics": {
+        "classification": {
+          "accuracy": 0.873015873015873,
+          "all_labels_present": true,
+          "balanced_accuracy": 0.873015873015873,
+          "confusion_matrix": [
+            [
+              30,
+              12,
+              0
+            ],
+            [
+              0,
+              39,
+              3
+            ],
+            [
+              0,
+              1,
+              41
+            ]
+          ],
+          "label_order": [
+            "evaluative",
+            "imperative",
+            "descriptive"
+          ],
+          "label_support": {
+            "descriptive": 42,
+            "evaluative": 42,
+            "imperative": 42
+          },
+          "macro_f1": 0.8722029798229699,
+          "per_class": {
+            "descriptive": {
+              "f1-score": 0.9534883720930233,
+              "precision": 0.9318181818181818,
+              "recall": 0.9761904761904762
+            },
+            "evaluative": {
+              "f1-score": 0.8333333333333334,
+              "precision": 1.0,
+              "recall": 0.7142857142857143
+            },
+            "imperative": {
+              "f1-score": 0.8297872340425532,
+              "precision": 0.75,
+              "recall": 0.9285714285714286
+            }
+          },
+          "rows": 126
+        },
+        "raw_probability": {
+          "accuracy_from_probabilities": 0.873015873015873,
+          "ece_10_bin": 0.48384998857364236,
+          "mean_confidence": 0.38916588444223066,
+          "multiclass_brier": 0.574312476103844,
+          "negative_log_likelihood": 0.9653544926922677,
+          "rows": 126
+        }
+      }
+    },
+    {
+      "config": {
+        "C": 0.1,
+        "class_weight": null
+      },
+      "metrics": {
+        "classification": {
+          "accuracy": 0.8809523809523809,
+          "all_labels_present": true,
+          "balanced_accuracy": 0.8809523809523809,
+          "confusion_matrix": [
+            [
+              30,
+              12,
+              0
+            ],
+            [
+              0,
+              40,
+              2
+            ],
+            [
+              0,
+              1,
+              41
+            ]
+          ],
+          "label_order": [
+            "evaluative",
+            "imperative",
+            "descriptive"
+          ],
+          "label_support": {
+            "descriptive": 42,
+            "evaluative": 42,
+            "imperative": 42
+          },
+          "macro_f1": 0.8800481596147232,
+          "per_class": {
+            "descriptive": {
+              "f1-score": 0.9647058823529412,
+              "precision": 0.9534883720930233,
+              "recall": 0.9761904761904762
+            },
+            "evaluative": {
+              "f1-score": 0.8333333333333334,
+              "precision": 1.0,
+              "recall": 0.7142857142857143
+            },
+            "imperative": {
+              "f1-score": 0.8421052631578947,
+              "precision": 0.7547169811320755,
+              "recall": 0.9523809523809523
+            }
+          },
+          "rows": 126
+        },
+        "raw_probability": {
+          "accuracy_from_probabilities": 0.8809523809523809,
+          "ece_10_bin": 0.45104748499321234,
+          "mean_confidence": 0.4299048959591686,
+          "multiclass_brier": 0.5159547769453994,
+          "negative_log_likelihood": 0.8843573120420277,
+          "rows": 126
+        }
+      }
+    },
+    {
+      "config": {
+        "C": 0.1,
+        "class_weight": "balanced"
+      },
+      "metrics": {
+        "classification": {
+          "accuracy": 0.8809523809523809,
+          "all_labels_present": true,
+          "balanced_accuracy": 0.8809523809523809,
+          "confusion_matrix": [
+            [
+              30,
+              12,
+              0
+            ],
+            [
+              0,
+              40,
+              2
+            ],
+            [
+              0,
+              1,
+              41
+            ]
+          ],
+          "label_order": [
+            "evaluative",
+            "imperative",
+            "descriptive"
+          ],
+          "label_support": {
+            "descriptive": 42,
+            "evaluative": 42,
+            "imperative": 42
+          },
+          "macro_f1": 0.8800481596147232,
+          "per_class": {
+            "descriptive": {
+              "f1-score": 0.9647058823529412,
+              "precision": 0.9534883720930233,
+              "recall": 0.9761904761904762
+            },
+            "evaluative": {
+              "f1-score": 0.8333333333333334,
+              "precision": 1.0,
+              "recall": 0.7142857142857143
+            },
+            "imperative": {
+              "f1-score": 0.8421052631578947,
+              "precision": 0.7547169811320755,
+              "recall": 0.9523809523809523
+            }
+          },
+          "rows": 126
+        },
+        "raw_probability": {
+          "accuracy_from_probabilities": 0.8809523809523809,
+          "ece_10_bin": 0.45188087266133903,
+          "mean_confidence": 0.4290715082910419,
+          "multiclass_brier": 0.5155938424561104,
+          "negative_log_likelihood": 0.883899497937247,
+          "rows": 126
+        }
+      }
+    },
+    {
+      "config": {
+        "C": 0.25,
+        "class_weight": null
+      },
+      "metrics": {
+        "classification": {
+          "accuracy": 0.8809523809523809,
+          "all_labels_present": true,
+          "balanced_accuracy": 0.8809523809523809,
+          "confusion_matrix": [
+            [
+              30,
+              12,
+              0
+            ],
+            [
+              0,
+              40,
+              2
+            ],
+            [
+              0,
+              1,
+              41
+            ]
+          ],
+          "label_order": [
+            "evaluative",
+            "imperative",
+            "descriptive"
+          ],
+          "label_support": {
+            "descriptive": 42,
+            "evaluative": 42,
+            "imperative": 42
+          },
+          "macro_f1": 0.8800481596147232,
+          "per_class": {
+            "descriptive": {
+              "f1-score": 0.9647058823529412,
+              "precision": 0.9534883720930233,
+              "recall": 0.9761904761904762
+            },
+            "evaluative": {
+              "f1-score": 0.8333333333333334,
+              "precision": 1.0,
+              "recall": 0.7142857142857143
+            },
+            "imperative": {
+              "f1-score": 0.8421052631578947,
+              "precision": 0.7547169811320755,
+              "recall": 0.9523809523809523
+            }
+          },
+          "rows": 126
+        },
+        "raw_probability": {
+          "accuracy_from_probabilities": 0.8809523809523809,
+          "ece_10_bin": 0.377745393923988,
+          "mean_confidence": 0.503206987028393,
+          "multiclass_brier": 0.42170800944386,
+          "negative_log_likelihood": 0.7539281556540662,
+          "rows": 126
+        }
+      }
+    },
+    {
+      "config": {
+        "C": 0.25,
+        "class_weight": "balanced"
+      },
+      "metrics": {
+        "classification": {
+          "accuracy": 0.8809523809523809,
+          "all_labels_present": true,
+          "balanced_accuracy": 0.8809523809523809,
+          "confusion_matrix": [
+            [
+              30,
+              12,
+              0
+            ],
+            [
+              0,
+              40,
+              2
+            ],
+            [
+              0,
+              1,
+              41
+            ]
+          ],
+          "label_order": [
+            "evaluative",
+            "imperative",
+            "descriptive"
+          ],
+          "label_support": {
+            "descriptive": 42,
+            "evaluative": 42,
+            "imperative": 42
+          },
+          "macro_f1": 0.8800481596147232,
+          "per_class": {
+            "descriptive": {
+              "f1-score": 0.9647058823529412,
+              "precision": 0.9534883720930233,
+              "recall": 0.9761904761904762
+            },
+            "evaluative": {
+              "f1-score": 0.8333333333333334,
+              "precision": 1.0,
+              "recall": 0.7142857142857143
+            },
+            "imperative": {
+              "f1-score": 0.8421052631578947,
+              "precision": 0.7547169811320755,
+              "recall": 0.9523809523809523
+            }
+          },
+          "rows": 126
+        },
+        "raw_probability": {
+          "accuracy_from_probabilities": 0.8809523809523809,
+          "ece_10_bin": 0.37860305817115153,
+          "mean_confidence": 0.5023493227812295,
+          "multiclass_brier": 0.42171332891759283,
+          "negative_log_likelihood": 0.7539870205652753,
+          "rows": 126
+        }
+      }
+    },
+    {
+      "config": {
+        "C": 0.5,
+        "class_weight": null
+      },
+      "metrics": {
+        "classification": {
+          "accuracy": 0.8809523809523809,
+          "all_labels_present": true,
+          "balanced_accuracy": 0.8809523809523809,
+          "confusion_matrix": [
+            [
+              30,
+              12,
+              0
+            ],
+            [
+              0,
+              40,
+              2
+            ],
+            [
+              0,
+              1,
+              41
+            ]
+          ],
+          "label_order": [
+            "evaluative",
+            "imperative",
+            "descriptive"
+          ],
+          "label_support": {
+            "descriptive": 42,
+            "evaluative": 42,
+            "imperative": 42
+          },
+          "macro_f1": 0.8800481596147232,
+          "per_class": {
+            "descriptive": {
+              "f1-score": 0.9647058823529412,
+              "precision": 0.9534883720930233,
+              "recall": 0.9761904761904762
+            },
+            "evaluative": {
+              "f1-score": 0.8333333333333334,
+              "precision": 1.0,
+              "recall": 0.7142857142857143
+            },
+            "imperative": {
+              "f1-score": 0.8421052631578947,
+              "precision": 0.7547169811320755,
+              "recall": 0.9523809523809523
+            }
+          },
+          "rows": 126
+        },
+        "raw_probability": {
+          "accuracy_from_probabilities": 0.8809523809523809,
+          "ece_10_bin": 0.313796588928418,
+          "mean_confidence": 0.5671557920239629,
+          "multiclass_brier": 0.35250083716219915,
+          "negative_log_likelihood": 0.6544706625410567,
+          "rows": 126
+        }
+      }
+    },
+    {
+      "config": {
+        "C": 0.5,
+        "class_weight": "balanced"
+      },
+      "metrics": {
+        "classification": {
+          "accuracy": 0.8809523809523809,
+          "all_labels_present": true,
+          "balanced_accuracy": 0.8809523809523809,
+          "confusion_matrix": [
+            [
+              30,
+              12,
+              0
+            ],
+            [
+              0,
+              40,
+              2
+            ],
+            [
+              0,
+              1,
+              41
+            ]
+          ],
+          "label_order": [
+            "evaluative",
+            "imperative",
+            "descriptive"
+          ],
+          "label_support": {
+            "descriptive": 42,
+            "evaluative": 42,
+            "imperative": 42
+          },
+          "macro_f1": 0.8800481596147232,
+          "per_class": {
+            "descriptive": {
+              "f1-score": 0.9647058823529412,
+              "precision": 0.9534883720930233,
+              "recall": 0.9761904761904762
+            },
+            "evaluative": {
+              "f1-score": 0.8333333333333334,
+              "precision": 1.0,
+              "recall": 0.7142857142857143
+            },
+            "imperative": {
+              "f1-score": 0.8421052631578947,
+              "precision": 0.7547169811320755,
+              "recall": 0.9523809523809523
+            }
+          },
+          "rows": 126
+        },
+        "raw_probability": {
+          "accuracy_from_probabilities": 0.8809523809523809,
+          "ece_10_bin": 0.31451502561921624,
+          "mean_confidence": 0.5664373553331647,
+          "multiclass_brier": 0.35196864723445065,
+          "negative_log_likelihood": 0.6538019852886284,
+          "rows": 126
+        }
+      }
+    },
+    {
+      "config": {
+        "C": 1.0,
+        "class_weight": null
+      },
+      "metrics": {
+        "classification": {
+          "accuracy": 0.8809523809523809,
+          "all_labels_present": true,
+          "balanced_accuracy": 0.8809523809523809,
+          "confusion_matrix": [
+            [
+              30,
+              12,
+              0
+            ],
+            [
+              0,
+              40,
+              2
+            ],
+            [
+              0,
+              1,
+              41
+            ]
+          ],
+          "label_order": [
+            "evaluative",
+            "imperative",
+            "descriptive"
+          ],
+          "label_support": {
+            "descriptive": 42,
+            "evaluative": 42,
+            "imperative": 42
+          },
+          "macro_f1": 0.8800481596147232,
+          "per_class": {
+            "descriptive": {
+              "f1-score": 0.9647058823529412,
+              "precision": 0.9534883720930233,
+              "recall": 0.9761904761904762
+            },
+            "evaluative": {
+              "f1-score": 0.8333333333333334,
+              "precision": 1.0,
+              "recall": 0.7142857142857143
+            },
+            "imperative": {
+              "f1-score": 0.8421052631578947,
+              "precision": 0.7547169811320755,
+              "recall": 0.9523809523809523
+            }
+          },
+          "rows": 126
+        },
+        "raw_probability": {
+          "accuracy_from_probabilities": 0.8809523809523809,
+          "ece_10_bin": 0.25611780708960613,
+          "mean_confidence": 0.6310943409539153,
+          "multiclass_brier": 0.29473091230690956,
+          "negative_log_likelihood": 0.5652032139602629,
+          "rows": 126
+        }
+      }
+    },
+    {
+      "config": {
+        "C": 1.0,
+        "class_weight": "balanced"
+      },
+      "metrics": {
+        "classification": {
+          "accuracy": 0.8809523809523809,
+          "all_labels_present": true,
+          "balanced_accuracy": 0.8809523809523809,
+          "confusion_matrix": [
+            [
+              30,
+              12,
+              0
+            ],
+            [
+              0,
+              40,
+              2
+            ],
+            [
+              0,
+              1,
+              41
+            ]
+          ],
+          "label_order": [
+            "evaluative",
+            "imperative",
+            "descriptive"
+          ],
+          "label_support": {
+            "descriptive": 42,
+            "evaluative": 42,
+            "imperative": 42
+          },
+          "macro_f1": 0.8800481596147232,
+          "per_class": {
+            "descriptive": {
+              "f1-score": 0.9647058823529412,
+              "precision": 0.9534883720930233,
+              "recall": 0.9761904761904762
+            },
+            "evaluative": {
+              "f1-score": 0.8333333333333334,
+              "precision": 1.0,
+              "recall": 0.7142857142857143
+            },
+            "imperative": {
+              "f1-score": 0.8421052631578947,
+              "precision": 0.7547169811320755,
+              "recall": 0.9523809523809523
+            }
+          },
+          "rows": 126
+        },
+        "raw_probability": {
+          "accuracy_from_probabilities": 0.8809523809523809,
+          "ece_10_bin": 0.25687832219837053,
+          "mean_confidence": 0.6302724208592723,
+          "multiclass_brier": 0.2943575754322914,
+          "negative_log_likelihood": 0.5648698888192263,
+          "rows": 126
+        }
+      }
+    },
+    {
+      "config": {
+        "C": 2.0,
+        "class_weight": null
+      },
+      "metrics": {
+        "classification": {
+          "accuracy": 0.8809523809523809,
+          "all_labels_present": true,
+          "balanced_accuracy": 0.8809523809523809,
+          "confusion_matrix": [
+            [
+              30,
+              12,
+              0
+            ],
+            [
+              0,
+              40,
+              2
+            ],
+            [
+              0,
+              1,
+              41
+            ]
+          ],
+          "label_order": [
+            "evaluative",
+            "imperative",
+            "descriptive"
+          ],
+          "label_support": {
+            "descriptive": 42,
+            "evaluative": 42,
+            "imperative": 42
+          },
+          "macro_f1": 0.8800481596147232,
+          "per_class": {
+            "descriptive": {
+              "f1-score": 0.9647058823529412,
+              "precision": 0.9534883720930233,
+              "recall": 0.9761904761904762
+            },
+            "evaluative": {
+              "f1-score": 0.8333333333333334,
+              "precision": 1.0,
+              "recall": 0.7142857142857143
+            },
+            "imperative": {
+              "f1-score": 0.8421052631578947,
+              "precision": 0.7547169811320755,
+              "recall": 0.9523809523809523
+            }
+          },
+          "rows": 126
+        },
+        "raw_probability": {
+          "accuracy_from_probabilities": 0.8809523809523809,
+          "ece_10_bin": 0.19060732671666542,
+          "mean_confidence": 0.6903450542357155,
+          "multiclass_brier": 0.25156126426063896,
+          "negative_log_likelihood": 0.490884231873693,
+          "rows": 126
+        }
+      }
+    },
+    {
+      "config": {
+        "C": 2.0,
+        "class_weight": "balanced"
+      },
+      "metrics": {
+        "classification": {
+          "accuracy": 0.8809523809523809,
+          "all_labels_present": true,
+          "balanced_accuracy": 0.8809523809523809,
+          "confusion_matrix": [
+            [
+              30,
+              12,
+              0
+            ],
+            [
+              0,
+              40,
+              2
+            ],
+            [
+              0,
+              1,
+              41
+            ]
+          ],
+          "label_order": [
+            "evaluative",
+            "imperative",
+            "descriptive"
+          ],
+          "label_support": {
+            "descriptive": 42,
+            "evaluative": 42,
+            "imperative": 42
+          },
+          "macro_f1": 0.8800481596147232,
+          "per_class": {
+            "descriptive": {
+              "f1-score": 0.9647058823529412,
+              "precision": 0.9534883720930233,
+              "recall": 0.9761904761904762
+            },
+            "evaluative": {
+              "f1-score": 0.8333333333333334,
+              "precision": 1.0,
+              "recall": 0.7142857142857143
+            },
+            "imperative": {
+              "f1-score": 0.8421052631578947,
+              "precision": 0.7547169811320755,
+              "recall": 0.9523809523809523
+            }
+          },
+          "rows": 126
+        },
+        "raw_probability": {
+          "accuracy_from_probabilities": 0.8809523809523809,
+          "ece_10_bin": 0.1917692790218589,
+          "mean_confidence": 0.6891831019305222,
+          "multiclass_brier": 0.25121315890270673,
+          "negative_log_likelihood": 0.49079652950401154,
+          "rows": 126
+        }
+      }
+    },
+    {
+      "config": {
+        "C": 4.0,
+        "class_weight": null
+      },
+      "metrics": {
+        "classification": {
+          "accuracy": 0.8809523809523809,
+          "all_labels_present": true,
+          "balanced_accuracy": 0.8809523809523809,
+          "confusion_matrix": [
+            [
+              30,
+              12,
+              0
+            ],
+            [
+              0,
+              40,
+              2
+            ],
+            [
+              0,
+              1,
+              41
+            ]
+          ],
+          "label_order": [
+            "evaluative",
+            "imperative",
+            "descriptive"
+          ],
+          "label_support": {
+            "descriptive": 42,
+            "evaluative": 42,
+            "imperative": 42
+          },
+          "macro_f1": 0.8800481596147232,
+          "per_class": {
+            "descriptive": {
+              "f1-score": 0.9647058823529412,
+              "precision": 0.9534883720930233,
+              "recall": 0.9761904761904762
+            },
+            "evaluative": {
+              "f1-score": 0.8333333333333334,
+              "precision": 1.0,
+              "recall": 0.7142857142857143
+            },
+            "imperative": {
+              "f1-score": 0.8421052631578947,
+              "precision": 0.7547169811320755,
+              "recall": 0.9523809523809523
+            }
+          },
+          "rows": 126
+        },
+        "raw_probability": {
+          "accuracy_from_probabilities": 0.8809523809523809,
+          "ece_10_bin": 0.1628501288752944,
+          "mean_confidence": 0.7410468772542003,
+          "multiclass_brier": 0.22222408155062473,
+          "negative_log_likelihood": 0.43297766946304855,
+          "rows": 126
+        }
+      }
+    },
+    {
+      "config": {
+        "C": 4.0,
+        "class_weight": "balanced"
+      },
+      "metrics": {
+        "classification": {
+          "accuracy": 0.8809523809523809,
+          "all_labels_present": true,
+          "balanced_accuracy": 0.8809523809523809,
+          "confusion_matrix": [
+            [
+              30,
+              12,
+              0
+            ],
+            [
+              0,
+              40,
+              2
+            ],
+            [
+              0,
+              1,
+              41
+            ]
+          ],
+          "label_order": [
+            "evaluative",
+            "imperative",
+            "descriptive"
+          ],
+          "label_support": {
+            "descriptive": 42,
+            "evaluative": 42,
+            "imperative": 42
+          },
+          "macro_f1": 0.8800481596147232,
+          "per_class": {
+            "descriptive": {
+              "f1-score": 0.9647058823529412,
+              "precision": 0.9534883720930233,
+              "recall": 0.9761904761904762
+            },
+            "evaluative": {
+              "f1-score": 0.8333333333333334,
+              "precision": 1.0,
+              "recall": 0.7142857142857143
+            },
+            "imperative": {
+              "f1-score": 0.8421052631578947,
+              "precision": 0.7547169811320755,
+              "recall": 0.9523809523809523
+            }
+          },
+          "rows": 126
+        },
+        "raw_probability": {
+          "accuracy_from_probabilities": 0.8809523809523809,
+          "ece_10_bin": 0.1646188648909975,
+          "mean_confidence": 0.7404317056671738,
+          "multiclass_brier": 0.2217005297610668,
+          "negative_log_likelihood": 0.4324749042878581,
+          "rows": 126
+        }
+      }
+    },
+    {
+      "config": {
+        "C": 8.0,
+        "class_weight": null
+      },
+      "metrics": {
+        "classification": {
+          "accuracy": 0.8809523809523809,
+          "all_labels_present": true,
+          "balanced_accuracy": 0.8809523809523809,
+          "confusion_matrix": [
+            [
+              30,
+              12,
+              0
+            ],
+            [
+              0,
+              40,
+              2
+            ],
+            [
+              0,
+              1,
+              41
+            ]
+          ],
+          "label_order": [
+            "evaluative",
+            "imperative",
+            "descriptive"
+          ],
+          "label_support": {
+            "descriptive": 42,
+            "evaluative": 42,
+            "imperative": 42
+          },
+          "macro_f1": 0.8800481596147232,
+          "per_class": {
+            "descriptive": {
+              "f1-score": 0.9647058823529412,
+              "precision": 0.9534883720930233,
+              "recall": 0.9761904761904762
+            },
+            "evaluative": {
+              "f1-score": 0.8333333333333334,
+              "precision": 1.0,
+              "recall": 0.7142857142857143
+            },
+            "imperative": {
+              "f1-score": 0.8421052631578947,
+              "precision": 0.7547169811320755,
+              "recall": 0.9523809523809523
+            }
+          },
+          "rows": 126
+        },
+        "raw_probability": {
+          "accuracy_from_probabilities": 0.8809523809523809,
+          "ece_10_bin": 0.13379067106035444,
+          "mean_confidence": 0.7834494839833444,
+          "multiclass_brier": 0.20484307579164665,
+          "negative_log_likelihood": 0.39170089889881937,
+          "rows": 126
+        }
+      }
+    },
+    {
+      "config": {
+        "C": 8.0,
+        "class_weight": "balanced"
+      },
+      "metrics": {
+        "classification": {
+          "accuracy": 0.8809523809523809,
+          "all_labels_present": true,
+          "balanced_accuracy": 0.8809523809523809,
+          "confusion_matrix": [
+            [
+              30,
+              12,
+              0
+            ],
+            [
+              0,
+              40,
+              2
+            ],
+            [
+              0,
+              1,
+              41
+            ]
+          ],
+          "label_order": [
+            "evaluative",
+            "imperative",
+            "descriptive"
+          ],
+          "label_support": {
+            "descriptive": 42,
+            "evaluative": 42,
+            "imperative": 42
+          },
+          "macro_f1": 0.8800481596147232,
+          "per_class": {
+            "descriptive": {
+              "f1-score": 0.9647058823529412,
+              "precision": 0.9534883720930233,
+              "recall": 0.9761904761904762
+            },
+            "evaluative": {
+              "f1-score": 0.8333333333333334,
+              "precision": 1.0,
+              "recall": 0.7142857142857143
+            },
+            "imperative": {
+              "f1-score": 0.8421052631578947,
+              "precision": 0.7547169811320755,
+              "recall": 0.9523809523809523
+            }
+          },
+          "rows": 126
+        },
+        "raw_probability": {
+          "accuracy_from_probabilities": 0.8809523809523809,
+          "ece_10_bin": 0.13816344440865044,
+          "mean_confidence": 0.7836081520314987,
+          "multiclass_brier": 0.20342100864792778,
+          "negative_log_likelihood": 0.38966747894324993,
+          "rows": 126
+        }
+      }
+    }
+  ],
+  "candidate_only": true,
+  "candidate_quality_gate": {
+    "direct_dev_accuracy_at_least_0_87": true,
+    "direct_dev_macro_f1_at_least_0_87": true,
+    "minimum_direct_dev_class_recall_at_least_0_70": true,
+    "natural_probe_accuracy_at_least_0_80": true,
+    "reference_type_used_as_target": false,
+    "split_integrity_passed": true,
+    "status": "passed_research_candidate_not_promoted"
+  },
+  "confidence_limit": "temperature is fitted and measured on selection dev; probabilities are model scores, not independently measured correctness",
+  "corpus_audit": {
+    "boundary_audit": {
+      "accepted_rows": 504,
+      "excluded_label_source_counts": {
+        "paper_mapping_contrastive_train_only": 144
+      },
+      "excluded_rows": 144,
+      "input_rows": 648
+    },
+    "family_split": {
+      "dev_families": 9,
+      "dev_family_sha256": [
+        "0a0303e7052610f2fe9b4ce6a042893b6841855aff712049698a43c47ff3aad0",
+        "0be494a103eaa81d94a65ff0336a0d2afe513a5c990360f4f654a59936f48bf3",
+        "0bf1f69930c875b4f75fa46d09cbb392f6890de7f4df831f940db4d52d229b00",
+        "15841ef07cb0f0901b563e3269ba82cca9f0b8831e4cc5f4dac72dbd716130a4",
+        "179f382161e138271d4d61bffe70914e0b1812ccc9e12fcf552fc94d2ed73849",
+        "22db0871c4a7611341188ff29c07ff94fbc832d33345b152a4cc42a052180cfc",
+        "46830284de44140717a56eaf8d78e9bada7be59b71d1157345563a220c84b52a",
+        "4f8181562a52fe7b6151b3db5e3fcfd2e3378b57e971745b2c47a8694a59b04e",
+        "5b6db7f58ca851dbd620aac736fe776e446a117d87649cda216b82d4785363d6"
+      ],
+      "dev_fraction": 0.25,
+      "method": "sha256_ranked_shared_template_family",
+      "train_families": 27,
+      "train_family_sha256": [
+        "602dd3d778cd7a443c2a99e8c99ef5a643401c6bce81da2abefacd23bb6bc19c",
+        "67c423a832589c9d68af1508fa80529bc7069ed6b8de27fd8d3112bd063c85c7",
+        "6a688a22c718b4f0c4bd71fe62032913b049bcbaaf2608c6937b2e7e9503bc19",
+        "6db5faf3454dae8eae351f4ba0e424cf91f7d2e03d7ddf7e8bd37419e5c9a6b2",
+        "707372e3f47c7bf6ca0986c6dafa459ec396f5c46870432686f3dc51c082bb13",
+        "831f06ba319a5cacbed1c18fc01f038ff96f3cc1738a3d18e2b7c8d7887a0ad0",
+        "9a9a2facc0e0b484c2762bdb2f09b258a5e1bbf17e90ce16096dd5d56fbba579",
+        "a558aa749e25823e453c1dd98dee8d7c6a3c1c4034ac9f6dbb07d43d37e999b1",
+        "a8e25d931c6353241bed35e5be5911cbde9f416c38eac66657c197a4268daa4a",
+        "af145e5a67570773cf81d9e78c0ac917927a3872a372297da6f048ec7371d051",
+        "aff277d3e09ea01b90cc186cb87e5c5df10cb5d93c8567a3be76322aecd1dce7",
+        "b29e2fb81a39c1e969ca0633c478ae339309d5dab4aa7fe6286dabfe363b513d",
+        "b3dcd47c4d7fbad83ec7107b859e243268718b6e0f8cff8ee51128087b555504",
+        "b6ffd98d5f5b1315f8225c0debf096e1963d36cdd6351003340e0ecab8714c0e",
+        "b8deef8e9408e3b1ecef250dfb5a2c91e86212c5b56b41263344c423135fc516",
+        "bdfa67a91e0a95432710b9158268b9190f43cb4ec12cb4f6002ab91fa89f42c0",
+        "c05ba4df3836c23ba470130369c047dfe4897284e8bc8a2593a7a9772a86a076",
+        "c1867a3bcb08a79ce9bc745987cf69719a8213f4aeee072a53290f68e3ac5a09",
+        "c28c257804fb23f839a833e3f0334469d211674bd9fb0923354e4e471d44cb1f",
+        "c647445b7d998b1417278deefcb17b4c34fc830ed4c5bfa239ee46bf017ec529",
+        "c73e81a6d8dbf4459e8e2a6b4e1f9d13d0fc13040081e29f883d70e11316add1",
+        "d1738d211308db1cbae6917977aa75d7289560def79e0979ac2022b39db1efe1",
+        "e623dc5588869cf435e8d8dc3742d6ea0c6ad9d5da37751ed3b16c099c5a1239",
+        "e7ca4f22b95578f0ba5a037d5068777368135ff247e5c94d1613e0df778ac546",
+        "e97018506cb492aaad7b15ce6c7aa71d21a0cca3e573882cb2adb1a3fa68b6be",
+        "fdf1f07733391c2fe0a309652059368864d90633438ce05eebc77caef7b1477b",
+        "ffa70ff7de3777fe706d122df48fb43b608d01dddb23127f092c09a37708d8cb"
+      ]
+    },
+    "label_source_counts": {
+      "direct_speech_act_contrastive_templates_train_only": 504,
+      "human_explicit": 44
+    },
+    "output": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\data\\direct_fg_classifier_corpus.v1.json",
+    "output_sha256": "710f8f09ad09185cefb7d097a4eef57986ed1b1a46bef000b750fd24d206eaf4",
+    "quality_gate": {
+      "allowed_label_sources": [
+        "direct_speech_act_contrastive_templates_train_only",
+        "human_explicit"
+      ],
+      "fail_closed": true,
+      "llm_rule_teacher_rows_used": 0,
+      "minimum_dev_rows_per_class": 30,
+      "minimum_train_rows_per_class": 100,
+      "paper_reference_collapsed_rows_used_for_training_or_primary_dev": 0,
+      "status": "passed"
+    },
+    "reference_type_policy": {
+      "mapping_applied": false,
+      "non_null_rows": 0,
+      "retained_as_provenance_only": true,
+      "used_as_target": false
+    },
+    "rows": 548,
+    "source_counts": {
+      "direct_speech_act_synthetic": 504,
+      "human_explicit": 44
+    },
+    "split_integrity": {
+      "cross_label_text_conflicts": 0,
+      "normalized_duplicate_rows": 0,
+      "train_dev_family_overlap": 0,
+      "train_dev_group_overlap": 0,
+      "train_dev_text_overlap": 0
+    },
+    "split_label_counts": {
+      "dev": {
+        "descriptive": 42,
+        "evaluative": 42,
+        "imperative": 42
+      },
+      "train": {
+        "descriptive": 139,
+        "evaluative": 139,
+        "imperative": 144
+      }
+    },
+    "split_rows": {
+      "dev": 126,
+      "train": 422
+    },
+    "target": "direct_fG_surface_speech_act",
+    "target_field_counts": {
+      "expected_feedback_type": 548
+    },
+    "version": "direct-fg-classifier-candidate-v1"
+  },
+  "direct_fg_family_group_disjoint_dev": {
+    "calibration": {
+      "calibrated": {
+        "accuracy_from_probabilities": 0.8809523809523809,
+        "ece_10_bin": 0.09930416158341057,
+        "mean_confidence": 0.8956631966782939,
+        "multiclass_brier": 0.19248699216813783,
+        "negative_log_likelihood": 0.33371969345705327,
+        "rows": 126
+      },
+      "candidate_temperature_count": 601,
+      "fit_split": "dev_only",
+      "method": "temperature_scaling",
+      "raw_predict_proba": {
+        "accuracy_from_probabilities": 0.8809523809523809,
+        "ece_10_bin": 0.13816344440865044,
+        "mean_confidence": 0.7836081520314987,
+        "multiclass_brier": 0.20342100864792778,
+        "negative_log_likelihood": 0.38966747894324993,
+        "rows": 126
+      },
+      "version": "feedback-form-temperature-dev-v1"
+    },
+    "classification": {
+      "accuracy": 0.8809523809523809,
+      "all_labels_present": true,
+      "balanced_accuracy": 0.8809523809523809,
+      "confusion_matrix": [
+        [
+          30,
+          12,
+          0
+        ],
+        [
+          0,
+          40,
+          2
+        ],
+        [
+          0,
+          1,
+          41
+        ]
+      ],
+      "label_order": [
+        "evaluative",
+        "imperative",
+        "descriptive"
+      ],
+      "label_support": {
+        "descriptive": 42,
+        "evaluative": 42,
+        "imperative": 42
+      },
+      "macro_f1": 0.8800481596147232,
+      "per_class": {
+        "descriptive": {
+          "f1-score": 0.9647058823529412,
+          "precision": 0.9534883720930233,
+          "recall": 0.9761904761904762
+        },
+        "evaluative": {
+          "f1-score": 0.8333333333333334,
+          "precision": 1.0,
+          "recall": 0.7142857142857143
+        },
+        "imperative": {
+          "f1-score": 0.8421052631578947,
+          "precision": 0.7547169811320755,
+          "recall": 0.9523809523809523
+        }
+      },
+      "rows": 126
+    },
+    "raw_probability": {
+      "accuracy_from_probabilities": 0.8809523809523809,
+      "ece_10_bin": 0.13816344440865044,
+      "mean_confidence": 0.7836081520314987,
+      "multiclass_brier": 0.20342100864792778,
+      "negative_log_likelihood": 0.38966747894324993,
+      "rows": 126
+    }
+  },
+  "feature_config": {
+    "char_wb_ngram_range": [
+      2,
+      5
+    ],
+    "min_df": 1,
+    "version": "feedback-form-raw-word-char-tfidf-v3",
+    "word_ngram_range": [
+      1,
+      3
+    ]
+  },
+  "frozen_test": {
+    "labels_read": false,
+    "metrics_computed": false,
+    "path_opened": false
+  },
+  "production_artifact_overwritten": false,
+  "reference_type_policy": {
+    "five_class_role": "provenance_or_downstream_routing_only",
+    "mapping": null,
+    "used_as_target": false
+  },
+  "requested_phrase": {
+    "calibrated_prediction": "evaluative",
+    "calibrated_probabilities": {
+      "descriptive": 8.02807475514326e-05,
+      "evaluative": 0.9998401405306224,
+      "imperative": 7.957872182596871e-05
+    },
+    "confidence_interpretation": "model score, not measured correctness",
+    "raw_prediction": "evaluative",
+    "raw_probabilities": {
+      "descriptive": 0.003246938331085429,
+      "evaluative": 0.9935233867268082,
+      "imperative": 0.003229674942106474
+    },
+    "text": "That move was very good."
+  },
+  "secondary_evaluations": {
+    "human_explicit_dev": {
+      "all_three_labels_present": false,
+      "metrics": {
+        "calibrated_probability": {
+          "accuracy_from_probabilities": 1.0,
+          "ece_10_bin": 0.0017645280830463905,
+          "mean_confidence": 0.9982354719169536,
+          "multiclass_brier": 9.457454825207562e-06,
+          "negative_log_likelihood": 0.0017673793502372727,
+          "rows": 6
+        },
+        "classification": {
+          "accuracy": 1.0,
+          "all_labels_present": false,
+          "balanced_accuracy": 1.0,
+          "confusion_matrix": [
+            [
+              0,
+              0,
+              0
+            ],
+            [
+              0,
+              3,
+              0
+            ],
+            [
+              0,
+              0,
+              3
+            ]
+          ],
+          "label_order": [
+            "evaluative",
+            "imperative",
+            "descriptive"
+          ],
+          "label_support": {
+            "descriptive": 3,
+            "imperative": 3
+          },
+          "macro_f1": 0.6666666666666666,
+          "per_class": {
+            "descriptive": {
+              "f1-score": 1.0,
+              "precision": 1.0,
+              "recall": 1.0
+            },
+            "evaluative": {
+              "f1-score": 0.0,
+              "precision": 0.0,
+              "recall": 0.0
+            },
+            "imperative": {
+              "f1-score": 1.0,
+              "precision": 1.0,
+              "recall": 1.0
+            }
+          },
+          "rows": 6
+        },
+        "raw_probability": {
+          "accuracy_from_probabilities": 1.0,
+          "ece_10_bin": 0.022359427568711676,
+          "mean_confidence": 0.9776405724312883,
+          "multiclass_brier": 0.0011705655915760858,
+          "negative_log_likelihood": 0.022740914290971387,
+          "rows": 6
+        }
+      },
+      "selection_role": "none"
+    },
+    "natural_probe": {
+      "candidate": {
+        "calibrated_probability": {
+          "accuracy_from_probabilities": 0.8666666666666667,
+          "ece_10_bin": 0.09093596989944105,
+          "mean_confidence": 0.9380699618882383,
+          "multiclass_brier": 0.18874208416769467,
+          "negative_log_likelihood": 0.3517328814403657,
+          "rows": 30
+        },
+        "classification": {
+          "accuracy": 0.8666666666666667,
+          "all_labels_present": true,
+          "balanced_accuracy": 0.8666666666666666,
+          "confusion_matrix": [
+            [
+              9,
+              1,
+              0
+            ],
+            [
+              0,
+              7,
+              3
+            ],
+            [
+              0,
+              0,
+              10
+            ]
+          ],
+          "label_order": [
+            "evaluative",
+            "imperative",
+            "descriptive"
+          ],
+          "label_support": {
+            "descriptive": 10,
+            "evaluative": 10,
+            "imperative": 10
+          },
+          "macro_f1": 0.8649038054072379,
+          "per_class": {
+            "descriptive": {
+              "f1-score": 0.8695652173913043,
+              "precision": 0.7692307692307693,
+              "recall": 1.0
+            },
+            "evaluative": {
+              "f1-score": 0.9473684210526315,
+              "precision": 1.0,
+              "recall": 0.9
+            },
+            "imperative": {
+              "f1-score": 0.7777777777777778,
+              "precision": 0.875,
+              "recall": 0.7
+            }
+          },
+          "rows": 30
+        },
+        "raw_probability": {
+          "accuracy_from_probabilities": 0.8666666666666667,
+          "ece_10_bin": 0.08922686892836716,
+          "mean_confidence": 0.8743096593329861,
+          "multiclass_brier": 0.17815167335609275,
+          "negative_log_likelihood": 0.3200819323155955,
+          "rows": 30
+        }
+      },
+      "exact_corpus_overlap": 0,
+      "manually_labeled": true,
+      "production_baseline": {
+        "available": true,
+        "classification": {
+          "accuracy": 0.5,
+          "all_labels_present": true,
+          "balanced_accuracy": 0.5,
+          "confusion_matrix": [
+            [
+              9,
+              1,
+              0
+            ],
+            [
+              6,
+              3,
+              1
+            ],
+            [
+              2,
+              5,
+              3
+            ]
+          ],
+          "label_order": [
+            "evaluative",
+            "imperative",
+            "descriptive"
+          ],
+          "label_support": {
+            "descriptive": 10,
+            "evaluative": 10,
+            "imperative": 10
+          },
+          "macro_f1": 0.4703425229741019,
+          "per_class": {
+            "descriptive": {
+              "f1-score": 0.42857142857142855,
+              "precision": 0.75,
+              "recall": 0.3
+            },
+            "evaluative": {
+              "f1-score": 0.6666666666666666,
+              "precision": 0.5294117647058824,
+              "recall": 0.9
+            },
+            "imperative": {
+              "f1-score": 0.3157894736842105,
+              "precision": 0.3333333333333333,
+              "recall": 0.3
+            }
+          },
+          "rows": 30
+        },
+        "path": "E:\\Research\\DURF\\baselines\\baseline_b_linguistic_feedback\\adapted_overcooked\\outputs\\feedback_form_classifier\\model.joblib",
+        "sha256": "3ce488daf88afb611fa5923ed21407ea344fbbb79c10fbc8ab3c39bc174d6e31"
+      },
+      "selection_role": "none"
+    },
+    "paper_reference_collapse_proxy": {
+      "interpretation": "secondary compatibility diagnostic only; low performance does not invalidate a direct-speech-act target",
+      "metrics": {
+        "calibrated_probability": {
+          "accuracy_from_probabilities": 0.5454545454545454,
+          "ece_10_bin": 0.2525054519336374,
+          "mean_confidence": 0.7450586267028629,
+          "multiclass_brier": 0.6972548278728121,
+          "negative_log_likelihood": 1.4016057596884484,
+          "rows": 99
+        },
+        "classification": {
+          "accuracy": 0.5454545454545454,
+          "all_labels_present": true,
+          "balanced_accuracy": 0.44563279857397503,
+          "confusion_matrix": [
+            [
+              28,
+              1,
+              22
+            ],
+            [
+              8,
+              0,
+              7
+            ],
+            [
+              6,
+              1,
+              26
+            ]
+          ],
+          "label_order": [
+            "evaluative",
+            "imperative",
+            "descriptive"
+          ],
+          "label_support": {
+            "descriptive": 33,
+            "evaluative": 51,
+            "imperative": 15
+          },
+          "macro_f1": 0.39768654284783317,
+          "per_class": {
+            "descriptive": {
+              "f1-score": 0.5909090909090909,
+              "precision": 0.4727272727272727,
+              "recall": 0.7878787878787878
+            },
+            "evaluative": {
+              "f1-score": 0.6021505376344086,
+              "precision": 0.6666666666666666,
+              "recall": 0.5490196078431373
+            },
+            "imperative": {
+              "f1-score": 0.0,
+              "precision": 0.0,
+              "recall": 0.0
+            }
+          },
+          "rows": 99
+        },
+        "raw_probability": {
+          "accuracy_from_probabilities": 0.5454545454545454,
+          "ece_10_bin": 0.17387727777604575,
+          "mean_confidence": 0.6474458648331956,
+          "multiclass_brier": 0.641856797895808,
+          "negative_log_likelihood": 1.1205002591784508,
+          "rows": 99
+        }
+      },
+      "reference_type_counts": {
+        "action_behavioral": 13,
+        "action_spatial": 15,
+        "feature": 33,
+        "trajectory": 38
+      },
+      "selection_role": "none",
+      "target_semantics_match_direct_fG": false
+    }
+  },
+  "selected_hyperparameters": {
+    "C": 8.0,
+    "class_weight": "balanced"
+  },
+  "selection_protocol": {
+    "frozen_or_test_rows_used": 0,
+    "human_direct_dev_used_for_selection": false,
+    "natural_probe_used_for_selection": false,
+    "paper_reference_proxy_used_for_selection": false,
+    "primary": "direct_fG_family_and_group_disjoint_dev_macro_f1",
+    "tie_breakers": [
+      "minimum_per_class_recall",
+      "balanced_accuracy",
+      "accuracy",
+      "raw_negative_log_likelihood",
+      "smaller_C"
+    ]
+  },
+  "split_sizes": {
+    "dev": 126,
+    "train": 422
+  },
+  "target": "direct_fG_surface_speech_act",
+  "test_metrics": null,
+  "version": "direct-fg-classifier-candidate-v1"
+}
