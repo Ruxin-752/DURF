@@ -8,6 +8,7 @@ event-level attribution to Hu's training target:
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
 
@@ -174,6 +175,17 @@ def infer_explicit_preference_from_text(
             "need to yield",
         )
     )
+    # "you keep going for the plate" is about a task object, not a corridor.
+    # A no-yield reading needs the sentence to be free of task-object talk
+    # unless it also names the corridor situation.
+    task_object_talk = any(
+        word in text for word in ("plate", "dish", "ingredient", "tomato", "onion", "pot")
+    )
+    corridor_talk = any(
+        word in text for word in ("way", "path", "block", "pass", "route", "corridor", "move", "yield", "stop")
+    )
+    if no_yield and task_object_talk and not corridor_talk:
+        no_yield = False
     if no_yield and not yield_preference:
         return ["CONTINUE_CURRENT_SUBGOAL"], ["YIELD"], "explicit_text_fallback"
     if yield_preference and not no_yield:
@@ -218,6 +230,9 @@ def infer_explicit_preference_from_text(
             "grab the dish",
             "you take the plate",
             "you take the dish",
+            "plates are yours",
+            "plate is yours",
+            "dishes are yours",
         )
     )
     speaker_takes_ingredients = any(
@@ -229,6 +244,7 @@ def infer_explicit_preference_from_text(
             "i'll get the ingredient",
             "leave the ingredients to me",
             "i'll do the prepping",
+            "ingredients are mine",
         )
     )
     if speaker_takes_plate and asks_partner_to_prep:
@@ -244,6 +260,105 @@ def infer_explicit_preference_from_text(
             "explicit_text_fallback",
         )
 
+    # Ingredient order: which of the two recipe ingredients to fetch first.
+    # Two-sided like the others: a bare "get the onion" is a correction about
+    # NOW, not a standing order preference.  Only when the speaker contrasts
+    # the two ingredients (or claims one for themself) is it read as policy.
+    onion_first = any(
+        phrase in text
+        for phrase in (
+            "onion first",
+            "start with the onion",
+            "start with an onion",
+            "get the onion first",
+            "you handle the onion",
+            "you do the onion",
+            "onion instead",
+        )
+    ) and ("tomato" in text or "onion first" in text or "onion instead" in text)
+    tomato_first = any(
+        phrase in text
+        for phrase in (
+            "tomato first",
+            "tomatoes first",
+            "start with a tomato",
+            "start with the tomato",
+            "you just do tomatoes",
+            "you do tomatoes",
+            "you handle the tomato",
+            "onion goes in last",
+            "onion can wait",
+        )
+    ) and ("onion" in text or "tomato first" in text or "tomatoes first" in text)
+    if onion_first and not tomato_first:
+        return ["GET_ONION"], ["GET_TOMATO"], "explicit_text_fallback"
+    if tomato_first and not onion_first:
+        return ["GET_TOMATO"], ["GET_ONION"], "explicit_text_fallback"
+
+    # Backup dish: whether to fetch a second plate while the partner already
+    # carries one.  "another"/"second"/"spare" + plate/dish is the positive
+    # signal; "already have the plate" + a prohibition is the negative one.
+    mentions_plate = any(word in text for word in ("plate", "dish"))
+    wants_backup = mentions_plate and any(
+        phrase in text
+        for phrase in (
+            "another one", "another plate", "another dish", "second plate",
+            "second dish", "spare plate", "spare dish", "grab another", "get another",
+            "one too",
+        )
+    )
+    # A negation right before "another / second / spare plate" flips the
+    # meaning.  The LLM-generated bank produced "don't bother with another
+    # dish", "no need for a second plate", "don't waste time on another plate"
+    # -- all read as WANTING a backup by the phrase list alone.
+    negated_backup = bool(
+        re.search(
+            r"(don'?t|do not|no need for|no |never|skip|forget|waste time on|bother with)"
+            r"[^.;,]{0,25}?(another|second|spare|extra|2nd)\s+(plate|dish)",
+            text,
+        )
+    )
+    refuses_backup = mentions_plate and (
+        negated_backup
+        or (
+            any(
+                phrase in text
+                for phrase in (
+                    "don't go get another", "do not get another", "dont get another",
+                    "don't get another", "one plate is enough", "one dish is enough",
+                    "two of us carry", "leave the dish", "leave the plate",
+                )
+            )
+            and any(
+                phrase in text
+                for phrase in ("already", "i have", "i've got", "one plate", "one dish", "two of us")
+            )
+        )
+    )
+    # "don't go get another one" contains "another one": the prohibition wins.
+    wants_backup = wants_backup and not refuses_backup
+    if wants_backup and not refuses_backup:
+        return ["GET_DISH"], ["GET_TOMATO", "GET_ONION"], "explicit_text_fallback"
+    if refuses_backup and not wants_backup:
+        return ["GET_TOMATO", "GET_ONION"], ["GET_DISH"], "explicit_text_fallback"
+
+    # Free hands: put the plate down while the soup cooks and go do something
+    # else, rather than waiting by the pot with it.
+    puts_plate_down = mentions_plate and any(
+        phrase in text
+        for phrase in (
+            "put the plate down", "put the dish down", "drop it and", "drop the plate",
+            "put it down for now", "put the dish down for now", "put the plate down and go",
+            "put down the plate", "put down the dish",
+        )
+    )
+    to_do_something = any(
+        phrase in text
+        for phrase in ("go do something", "get ingredients", "go get", "go find", "find some ingredient", "do something", "pick it up when")
+    )
+    if puts_plate_down and to_do_something:
+        return ["PUT_DOWN_OBJECT"], ["WAIT_NEAR_POT"], "explicit_text_fallback"
+
     # Hold the plate rather than dropping it while the soup is not ready.
     keeps_plate = any(
         phrase in text
@@ -256,7 +371,10 @@ def infer_explicit_preference_from_text(
             "keep hold of the dish",
             "hang on to the plate",
             "hang onto the plate",
+            "hang on to the dish",
+            "hang onto the dish",
             "keep the plate",
+            "keep the dish",
         )
     )
     stays_by_pot = any(
